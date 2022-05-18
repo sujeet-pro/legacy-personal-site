@@ -5,7 +5,10 @@
   "description": "websysarch-dot-com",
   "author": "websysarch",
   "keywords": [
-    "gatsby"
+    "web",
+    "System",
+    "Architect",
+    "Architecture"
   ],
   "scripts": {
     "develop": "gatsby develop",
@@ -13,7 +16,9 @@
     "build": "gatsby build",
     "serve": "gatsby serve",
     "clean": "gatsby clean",
-    "typecheck": "tsc --noEmit"
+    "type:check": "tsc --noEmit",
+    "format:fix": "prettier . --write --ignore-unknown",
+    "format:check": "prettier . --check --ignore-unknown"
   },
   "dependencies": {
     "@emotion/react": "^11.9.0",
@@ -40,6 +45,10 @@
     "@types/node": "^17.0.31",
     "@types/react": "^17.0.44",
     "@types/react-dom": "^17.0.16",
+    "@types/react-helmet": "^6.1.5",
+    "@websysarch/prettier-config": "^1.0.0",
+    "prettier": "^2.6.2",
     "typescript": "^4.6.4"
-  }
+  },
+  "prettier": "@websysarch/prettier-config"
 }
