@@ -3,5 +3,6 @@
       "astro",
       "sujeet",
       "tsconfigs"
-    ]
+    ],
+    "editor.formatOnSave": true
 }
