@@ -8,27 +8,37 @@ media_folder: "src/images/uploads" # Media files will be stored in the repo unde
 public_folder: "/images/uploads" # The src attribute for uploaded media will begin with /images/uploads
 
 collections:
-  - name: 'blog'
-    label: 'Blog'
-    folder: 'src/pages/blog'
+  - name: "blog"
+    label: "Blog"
+    folder: "src/content/blog"
     create: true
     slug: "{{slug}}"
     fields:
-      - {label: 'Layout', name: 'layout', widget: 'hidden', default: '../../layouts/blog.astro'}
-      - {label: "Title", name: "title", widget: "string"}
-      - {label: "Description", name: "description", widget: "string"}
-      - {label: "Publish Date", name: "date", widget: "datetime"}
-      - {label: "Hero Image", name: "heroImg", widget: "image"}
-      - {label: "Body", name: "body", widget: "markdown"}
-  - name: 'project' # Used in routes, e.g., /admin/collections/blog
-    label: 'Project' # Used in the UI
-    folder: 'src/pages/project' # The path to the folder where the documents are stored
+      - {
+          label: "Layout",
+          name: "layout",
+          widget: "hidden",
+          default: "../../layouts/blog.astro",
+        }
+      - { label: "Title", name: "title", widget: "string" }
+      - { label: "Description", name: "description", widget: "string" }
+      - { label: "Publish Date", name: "date", widget: "datetime" }
+      - { label: "Hero Image", name: "heroImg", widget: "image" }
+      - { label: "Body", name: "body", widget: "markdown" }
+  - name: "project" # Used in routes, e.g., /admin/collections/blog
+    label: "Project" # Used in the UI
+    folder: "src/content/project" # The path to the folder where the documents are stored
     create: true # Allow users to create new documents in this collection
     slug: "{{slug}}" # "{{year}}-{{month}}-{{day}}-{{slug}}" Filename template, e.g., YYYY-MM-DD-title.md
     fields: # The fields for each document, usually in front matter
-      - {label: "Layout", name: "layout", widget: "hidden", default: "../../layouts/project.astro"}
-      - {label: "Title", name: "title", widget: "string"}
-      - {label: "Description", name: "description", widget: "string"}
-      - {label: "Publish Date", name: "date", widget: "datetime"}
-      - {label: "Hero Image", name: "heroImg", widget: "image"}
-      - {label: "Body", name: "body", widget: "markdown"}
+      - {
+          label: "Layout",
+          name: "layout",
+          widget: "hidden",
+          default: "../../layouts/project.astro",
+        }
+      - { label: "Title", name: "title", widget: "string" }
+      - { label: "Description", name: "description", widget: "string" }
+      - { label: "Publish Date", name: "date", widget: "datetime" }
+      - { label: "Hero Image", name: "heroImg", widget: "image" }
+      - { label: "Body", name: "body", widget: "markdown" }

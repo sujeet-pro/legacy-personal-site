@@ -11,9 +11,13 @@ const { navType } = Astro.props as Props;
     <ul>
       <li>
         <a href="/" aria-current={navType === "home" && "page"}>Home</a>
+      </li>
+      <li>
         <a href="/project" aria-current={navType === "project" && "page"}
           >Project</a
         >
+      </li>
+      <li>
         <a href="/blog" aria-current={navType === "blog" && "page"}>Blog</a>
       </li>
     </ul>

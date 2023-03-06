@@ -5,11 +5,11 @@ description: This is a test blog
 date: 2023-03-06T10:05:03.218Z
 heroImg: /images/uploads/js.webp
 ---
-C﻿ustom Markdown
+Custom Markdown
 
 ```ts
-c﻿onst a = 2
-c﻿onsosole.log('Hello world')
+const a = 2
+consosole.log('Hello world')
 ```
 
-A﻿fter code block
+After code block

@@ -1,7 +1,18 @@
 ---
+import { getCollection } from "astro:content";
 import Layout from "../../layouts/project.astro";
+const entries = await getCollection("blog");
 ---
 
 <Layout title="Sujeet's Projects">
   <h1>Sujeet's Projects</h1>
+  <ul>
+    {
+      entries.map((entry) => (
+        <li>
+          <a href={`/blog/${entry.slug}`}>{entry.data.title}</a>
+        </li>
+      ))
+    }
+  </ul>
 </Layout>
