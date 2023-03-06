@@ -1,5 +1,4 @@
 ---
-layout: ../../layouts/project.astro
 title: Test Project
 description: This is a test project
 date: 2023-03-06T10:05:03.218Z

@@ -1,5 +1,4 @@
 ---
-layout: ../../layouts/blog.astro
 title: Test Blog
 description: This is a test blog
 date: 2023-03-06T10:05:03.218Z

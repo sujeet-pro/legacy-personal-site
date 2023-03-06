@@ -1,7 +1,7 @@
 ---
 import { getCollection } from "astro:content";
 import Layout from "../../layouts/project.astro";
-const entries = await getCollection("blog");
+const entries = await getCollection("project");
 ---
 
 <Layout title="Sujeet's Projects">
@@ -10,7 +10,7 @@ const entries = await getCollection("blog");
     {
       entries.map((entry) => (
         <li>
-          <a href={`/blog/${entry.slug}`}>{entry.data.title}</a>
+          <a href={`/project/${entry.slug}`}>{entry.data.title}</a>
         </li>
       ))
     }

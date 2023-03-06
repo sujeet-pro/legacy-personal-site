@@ -14,12 +14,6 @@ collections:
     create: true
     slug: "{{slug}}"
     fields:
-      - {
-          label: "Layout",
-          name: "layout",
-          widget: "hidden",
-          default: "../../layouts/blog.astro",
-        }
       - { label: "Title", name: "title", widget: "string" }
       - { label: "Description", name: "description", widget: "string" }
       - { label: "Publish Date", name: "date", widget: "datetime" }
@@ -31,12 +25,6 @@ collections:
     create: true # Allow users to create new documents in this collection
     slug: "{{slug}}" # "{{year}}-{{month}}-{{day}}-{{slug}}" Filename template, e.g., YYYY-MM-DD-title.md
     fields: # The fields for each document, usually in front matter
-      - {
-          label: "Layout",
-          name: "layout",
-          widget: "hidden",
-          default: "../../layouts/project.astro",
-        }
       - { label: "Title", name: "title", widget: "string" }
       - { label: "Description", name: "description", widget: "string" }
       - { label: "Publish Date", name: "date", widget: "datetime" }
