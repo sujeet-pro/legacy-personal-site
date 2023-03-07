@@ -1,4 +1,47 @@
 ---
+import Link from "./link.astro";
+import {
+  cv,
+  devTo,
+  github,
+  hashedNode,
+  instagram,
+  linkedIn,
+  medium,
+  twitter,
+} from "../constants/links";
+
+const currentYear = new Date().getFullYear();
+const allLinks = [
+  {
+    category: "Social",
+    links: [linkedIn, twitter, instagram],
+  },
+  {
+    category: "Blog",
+    links: [medium, devTo, hashedNode],
+  },
+  {
+    category: "Profiles",
+    links: [github, cv],
+  },
+];
 ---
 
-<footer>&copy; 2022-2023: Sujeet Jaiswal</footer>
+<footer class="bg-gray-800 text-white shadow shadow-inner px-2 py-6">
+  <nav class="flex justify-around max-w-screen-md mx-auto">
+    {
+      allLinks.map(({ category, links }) => (
+        <ul>
+          <li class="font-bold mb-2">{category}</li>
+          {links.map((link) => (
+            <li>
+              <Link {...link} />
+            </li>
+          ))}
+        </ul>
+      ))
+    }
+  </nav>
+  <p class="text-center mt-6">&copy; {currentYear} Sujeet Jaiswal</p>
+</footer>

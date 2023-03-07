@@ -1,0 +1,15 @@
+---
+import type { LinkConfig } from "../constants/links";
+export type Props = LinkConfig;
+const { text, href } = Astro.props as Props;
+const extraProps = href.startsWith("http://")
+  ? {
+      target: "_blank",
+      rel: "noopener noreferrer",
+    }
+  : {};
+---
+
+<a href={href} {...extraProps}>
+  {text}
+</a>

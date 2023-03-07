@@ -1,6 +1,6 @@
 ---
-title: Test Blog
-description: This is a test blog
+title: Test Blog 2
+description: This is a test blog 2
 date: 2023-03-06T10:05:03.218Z
 heroImg: /assets/images/uploads/js.webp
 ---
