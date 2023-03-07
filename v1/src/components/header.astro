@@ -4,22 +4,44 @@ export type Props = {
 };
 
 const { navType } = Astro.props as Props;
+const links = [
+  {
+    href: "/",
+    text: "Home",
+    isCurrent: navType === "home",
+  },
+  {
+    href: "/blog",
+    text: "Blog",
+    isCurrent: navType === "blog",
+  },
+  {
+    href: "/project",
+    text: "Project",
+    isCurrent: navType === "project",
+  },
+];
 ---
 
-<header>
+<header class="shadow">
   <nav>
-    <ul>
-      <li>
-        <a href="/" aria-current={navType === "home" && "page"}>Home</a>
-      </li>
-      <li>
-        <a href="/project" aria-current={navType === "project" && "page"}
-          >Project</a
-        >
-      </li>
-      <li>
-        <a href="/blog" aria-current={navType === "blog" && "page"}>Blog</a>
-      </li>
+    <ul class="flex gap-x-2.5 p-2 m-2">
+      {
+        links.map((link) => (
+          <li>
+            <a
+              class:list={[
+                `p-2 hover:shadow-xl`,
+                { "font-bold": link.isCurrent },
+              ]}
+              href={link.href}
+              aria-current={link.isCurrent ? "page" : false}
+            >
+              {link.text}
+            </a>
+          </li>
+        ))
+      }
     </ul>
   </nav>
 </header>

@@ -6,5 +6,8 @@ const { title } = Astro.props as Props;
 ---
 
 <Layout title={title} navType="project">
-  <main><slot /></main>
+  <main>
+    <h1 class="text-5xl">{title}</h1>
+    <slot />
+  </main>
 </Layout>
