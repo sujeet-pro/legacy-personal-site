@@ -1,0 +1,27 @@
+---
+import Header, { Props as HeaderProps } from "../../components/header.astro";
+import Footer from "../../components/footer.astro";
+import "./base.css";
+
+export type Props = HeaderProps & {
+  title: string;
+};
+const { title, navType } = Astro.props as Props;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body class="min-h-screen flex flex-col bg-gray-50">
+    <Header navType={navType} />
+    <div class="flex-auto container mx-auto">
+      <slot />
+    </div>
+    <Footer />
+  </body>
+</html>

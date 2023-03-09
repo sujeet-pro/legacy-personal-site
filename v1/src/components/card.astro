@@ -1,0 +1,34 @@
+---
+type Props = {
+  imgSrc?: string | undefined;
+  title: string;
+  description: string;
+  href: string;
+  as?: "li" | "span" | "div";
+};
+const { imgSrc, title, description, href, as = "li" } = Astro.props;
+const Root = as;
+---
+
+<Root
+  class="relative hover:shadow-md border-2 border-gray-200 rounded my-4 p-4 flex gap-4"
+>
+  {
+    imgSrc ? (
+      <img
+        class="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28"
+        src={imgSrc}
+        role="presentation"
+      />
+    ) : null
+  }
+  <div class="flex-auto">
+    <a
+      href={href}
+      class="after:absolute after:left-0 after:right-0 after:top-0 after:bottom-0 font-bold text-lg"
+    >
+      {title}
+    </a>
+    <p>{description}</p>
+  </div>
+</Root>

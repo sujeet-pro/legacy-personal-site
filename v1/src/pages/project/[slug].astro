@@ -1,0 +1,33 @@
+---
+import { CollectionEntry, getCollection } from "astro:content";
+import Layout from "../../layouts/base/base.astro";
+
+export async function getStaticPaths() {
+  const entries = await getCollection("project");
+  return entries.map((entry) => ({
+    params: { slug: entry.slug },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props as { entry: CollectionEntry<"blog"> };
+const { Content } = await entry.render();
+---
+
+<Layout title={entry.data.title} navType="project">
+  <main>
+    <article class="prose mx-auto mt-8">
+      <h1 class="text-center">{entry.data.title}</h1>
+      {
+        entry.data.heroImg ? (
+          <img
+            class="w-full max-h-96 object-cover"
+            role="presentation"
+            src={entry.data.heroImg}
+          />
+        ) : null
+      }
+      <Content />
+    </article>
+  </main>
+</Layout>
