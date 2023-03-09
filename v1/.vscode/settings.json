@@ -1,8 +1,4 @@
 {
-    "cSpell.words": [
-      "astro",
-      "sujeet",
-      "tsconfigs"
-    ],
-    "editor.formatOnSave": true
+  "cSpell.words": ["astro", "sujeet", "tsconfigs"],
+  "editor.formatOnSave": true
 }

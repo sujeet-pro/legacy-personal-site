@@ -1,31 +1,26 @@
 ---
 import { getCollection } from "astro:content";
-import Layout from "../../layouts/blog.astro";
+import Layout from "../../layouts/base/base.astro";
+import Card from "../../components/card.astro";
 
 const entries = await getCollection("blog");
 const title = "Sujeet's Blog";
 ---
 
-<Layout title={title}>
-  <h1 class="text-5xl text-center my-6">{title}</h1>
-  <ul>
-    {
-      entries.map(({ slug, data: { title, description, heroImg } }) => (
-        <li class="grid gap-4 relative hover:shadow-md border-2 border-gray-200 rounded my-4 p-4">
-          <img
-            class="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28"
-            src={heroImg}
-            role="presentation"
-          />
-          <a
+<Layout title={title} navType="blog">
+  <main>
+    <h1 class="text-5xl text-center my-8">{title}</h1>
+    <ul class="max-w-prose mx-auto">
+      {
+        entries.map(({ slug, data: { title, description, heroImg } }) => (
+          <Card
+            title={title}
+            description={description}
+            imgSrc={heroImg}
             href={`/blog/${slug}`}
-            class="after:absolute after:left-0 after:right-0 after:top-0 after:bottom-0 font-bold text-lg"
-          >
-            {title}
-          </a>
-          <p>{description}</p>
-        </li>
-      ))
-    }
-  </ul>
+          />
+        ))
+      }
+    </ul>
+  </main>
 </Layout>

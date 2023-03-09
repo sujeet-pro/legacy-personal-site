@@ -1,6 +1,7 @@
 export type LinkConfig = {
   text: string;
   href: string;
+  isExternal?: boolean;
 };
 
 // Profiles

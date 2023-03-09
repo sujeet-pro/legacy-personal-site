@@ -1,10 +1,50 @@
 ---
-import Layout from "../layouts/index-layout.astro";
+import Layout from "../layouts/base/base.astro";
+import { cv } from "../constants/links";
+import Link from "../components/link.astro";
 ---
 
-<Layout title="Sujeet's Portfolio">
-  <main>
-    <p>Hi, I'm</p>
-    <h1>Sujeet</h1>
+<Layout title="Sujeet's Portfolio" navType="home">
+  <main class="max-w-prose mx-auto flex flex-col gap-20 my-24">
+    <section aria-label="Introduction" class="flex flex-col gap-10">
+      <p class="text-6xl">Hello, I'm</p>
+      <h1 class="text-9xl">Sujeet</h1>
+      <p class="text-4xl">
+        I help build accessible and performant products on Web.
+      </p>
+      <div class="text-right">
+        <Link
+          isExternal
+          class="py-4 px-10 text-white bg-gray-900 hover:bg-gray-800 inline-block w-min rounded-full"
+          {...cv}
+        />
+      </div>
+    </section>
   </main>
 </Layout>
+
+<script
+  is:inline
+  src="https://identity.netlify.com/v1/netlify-identity-widget.js"
+></script>
+<script>
+  declare global {
+    interface Window {
+      netlifyIdentity: {
+        on(type: string, cb: (user: any) => void): void;
+      };
+    }
+  }
+  if (
+    window.netlifyIdentity &&
+    typeof window.netlifyIdentity.on === "function"
+  ) {
+    window.netlifyIdentity.on("init", (user) => {
+      if (!user) {
+        window.netlifyIdentity.on("login", () => {
+          document.location.href = "/admin/";
+        });
+      }
+    });
+  }
+</script>
