@@ -1,24 +1,20 @@
 ---
+import { home, blog } from "../constants/links";
+import Link from "./link.astro";
+
 export type Props = {
   navType: "home" | "project" | "blog";
 };
 
 const { navType } = Astro.props as Props;
-const links = [
+const linkConfig = [
   {
-    href: "/",
-    text: "Home",
+    link: home,
     isCurrent: navType === "home",
   },
   {
-    href: "/blog",
-    text: "Blog",
+    link: blog,
     isCurrent: navType === "blog",
-  },
-  {
-    href: "/project",
-    text: "Project",
-    isCurrent: navType === "project",
   },
 ];
 ---
@@ -27,18 +23,15 @@ const links = [
   <nav>
     <ul class="flex gap-x-2.5 py-4 px-4">
       {
-        links.map((link) => (
+        linkConfig.map(({ link }) => (
           <li>
-            <a
-              class:list={[
-                `p-2 hover:shadow-xl`,
-                { "font-bold": link.isCurrent },
-              ]}
+            <Link
+              isExternal={link.isExternal}
               href={link.href}
-              aria-current={link.isCurrent ? "page" : false}
+              class:list="p-2 hover:shadow-xl"
             >
               {link.text}
-            </a>
+            </Link>
           </li>
         ))
       }

@@ -14,10 +14,12 @@ import Link from "../components/link.astro";
       </p>
       <div class="text-right">
         <Link
-          isExternal
-          class="py-4 px-10 text-white bg-gray-900 hover:bg-gray-800 inline-block w-min rounded-full"
-          {...cv}
-        />
+          class="py-3 px-8 text-white bg-gray-900 hover:bg-gray-800 inline-block rounded-full"
+          href={cv.href}
+          isExternal={cv.isExternal}
+        >
+          Read my {cv.text}
+        </Link>
       </div>
     </section>
   </main>

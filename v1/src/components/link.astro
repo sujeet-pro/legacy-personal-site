@@ -1,22 +1,26 @@
 ---
-import type { LinkConfig } from "../constants/links";
-export type Props = LinkConfig & { class?: string };
-const {
-  text,
-  href,
-  isExternal,
-  class: className,
-  ...otherProps
-} = Astro.props as Props;
-const extraProps =
-  href.startsWith("http://") || isExternal
-    ? {
-        target: "_blank",
-        rel: "noopener noreferrer",
-      }
-    : {};
+export type Props = {
+  href: string;
+  isExternal?: boolean | undefined | null;
+  class?: string;
+};
+
+const { href, isExternal, class: className } = Astro.props as Props;
+const isCurrent = href === Astro.url.href || href === Astro.url.pathname;
+const extraProps = isExternal
+  ? {
+      target: "_blank",
+      rel: "noopener noreferrer",
+    }
+  : {};
+console.log(Astro.url.href);
 ---
 
-<a href={href} class={className} {...extraProps} {...otherProps}>
-  {text}
+<a
+  href={href}
+  aria-current={isCurrent ? "page" : undefined}
+  class:list={[className, { "font-bold": isCurrent }]}
+  {...extraProps}
+>
+  <slot />
 </a>

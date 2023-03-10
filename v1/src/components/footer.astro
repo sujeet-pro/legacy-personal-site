@@ -36,7 +36,9 @@ const allLinks = [
           <li class="font-bold mb-2">{category}</li>
           {links.map((link) => (
             <li>
-              <Link {...link} />
+              <Link isExternal={link.isExternal} href={link.href}>
+                {link.text}
+              </Link>
             </li>
           ))}
         </ul>
