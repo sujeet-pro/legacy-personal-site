@@ -20,8 +20,9 @@ const { Content } = await entry.render();
 
 <Layout title={entry.data.title} navType="blog">
   <main>
-    <article class="prose mx-auto mt-8">
+    <article class="prose mx-auto my-8">
       <h1 class="text-center">{entry.data.title}</h1>
+      <p>{entry.data.description}</p>
       {
         entry.data.heroImg ? (
           <img

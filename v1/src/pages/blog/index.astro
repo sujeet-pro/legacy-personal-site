@@ -12,11 +12,12 @@ const title = "Sujeet's Blog";
     <h1 class="text-5xl text-center my-8">{title}</h1>
     <ul class="max-w-prose mx-auto">
       {
-        entries.map(({ slug, data: { title, description, heroImg } }) => (
+        entries.map(({ slug, data: { title, description, heroImg, tags } }) => (
           <Card
             title={title}
             description={description}
             imgSrc={heroImg}
+            tags={tags}
             href={`/blog/${slug}`}
           />
         ))

@@ -1,12 +1,14 @@
 ---
+import Tags from './tags.astro'
 type Props = {
   imgSrc?: string | undefined;
   title: string;
   description: string;
   href: string;
+  tags?: string[]
   as?: "li" | "span" | "div";
 };
-const { imgSrc, title, description, href, as = "li" } = Astro.props;
+const { imgSrc, title, description, tags, href, as = "li" } = Astro.props;
 const Root = as;
 ---
 
@@ -25,10 +27,11 @@ const Root = as;
   <div class="flex-auto">
     <a
       href={href}
-      class="after:absolute after:left-0 after:right-0 after:top-0 after:bottom-0 font-bold text-lg"
+      class="after:absolute after:left-0 after:right-0 after:top-0 after:bottom-0 text-xl"
     >
       {title}
     </a>
     <p>{description}</p>
+    <Tags tags={tags} />
   </div>
 </Root>

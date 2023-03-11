@@ -18,9 +18,9 @@ collections:
       - { label: "Description", name: "description", widget: "string" }
       - { label: "Is Draft", name: "isDraft", widget: "boolean", default: true }
       - { label: "Publish Date", name: "date", widget: "datetime" }
+      - { label: "Tags", name: "tags", widget: "list", default: ["Web"]}
       - { label: "Hero Image", name: "heroImg", widget: "image" }
       - { label: "Body", name: "body", widget: "markdown" }
-      - { label: "Tags", name: "tags", widget: "list", default: ["Web"]}
   - name: "project" # Used in routes, e.g., /admin/collections/blog
     label: "Project" # Used in the UI
     folder: "src/content/project" # The path to the folder where the documents are stored
