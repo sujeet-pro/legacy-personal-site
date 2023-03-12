@@ -1,12 +1,16 @@
 ---
 type Props = {
-    tags?: string[]
-}
-const { tags } = Astro.props
+  tags?: string[] | undefined | null;
+};
+const { tags } = Astro.props;
 ---
 
-{tags ? (
+{
+  tags ? (
     <ul class="flex gap-4 my-2">
-    {tags.map(tag => <li class="px-4 py-2 bg-gray-100 rounded-full">{tag}</li>)}
+      {tags.map((tag) => (
+        <li class="px-4 py-2 bg-gray-100 rounded-full">{tag}</li>
+      ))}
     </ul>
-    ) : null}
+  ) : null
+}

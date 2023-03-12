@@ -1,0 +1,23 @@
+---
+import Layout from "../layouts/base/base.astro";
+import { home } from "../constants/links";
+import Link from "../components/link.astro";
+---
+
+<Layout title="Page Not Found" navType="home">
+  <main class="max-w-prose mx-auto flex flex-col gap-20 my-24">
+    <section aria-label="Introduction" class="flex flex-col gap-10 text-center">
+      <h1 class="text-9xl">Oops!</h1>
+      <p class="text-4xl">404 - Page Not found</p>
+      <div>
+        <Link
+          class="py-3 px-8 text-white bg-gray-900 hover:bg-gray-800 inline-block rounded-full"
+          href={home.href}
+          isExternal={home.isExternal}
+        >
+          Visit {home.text} Page
+        </Link>
+      </div>
+    </section>
+  </main>
+</Layout>

@@ -1,0 +1,51 @@
+---
+import type { CollectionEntry } from "astro:content";
+import DateComponent from "./date.astro";
+type Props = {
+  entry: CollectionEntry<"blog">;
+};
+const {
+  entry: {
+    slug,
+    data: { isDraft, title, description, coverImg, publishedOn, lastUpdatedOn },
+  },
+} = Astro.props;
+const href = `/blog/${slug}`;
+---
+
+<li
+  class:list={[
+    "relative hover:shadow-md border-2 border-gray-200 rounded my-4 p-4 flex gap-4",
+    { "display-none": isDraft },
+  ]}
+>
+  {
+    coverImg ? (
+      <img
+        class="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28"
+        src={coverImg}
+        role="presentation"
+        loading="lazy"
+      />
+    ) : null
+  }
+  <div class="flex-auto flex flex-col gap-2">
+    <a
+      href={href}
+      class="after:absolute after:left-0 after:right-0 after:top-0 after:bottom-0 text-xl"
+    >
+      {title}
+    </a>
+    <p>{description}</p>
+    <p class="text-gray-400">
+      {
+        lastUpdatedOn ? (
+          <>
+            Last Updated on <DateComponent date={lastUpdatedOn} />.
+          </>
+        ) : null
+      }
+      Published on <DateComponent date={publishedOn} />
+    </p>
+  </div>
+</li>

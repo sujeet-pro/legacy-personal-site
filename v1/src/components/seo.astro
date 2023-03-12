@@ -1,0 +1,39 @@
+---
+import { SITE_BASE } from "../constants/global";
+
+export type Props = {
+  title: string;
+  description?: string;
+  tags?: string;
+  image?: string;
+  pageType?: "article";
+};
+const { title, description, tags, image, pageType } = Astro.props;
+const url = SITE_BASE + Astro.url.pathname;
+---
+
+<title>{title}</title>
+<meta property="og:title" content={title} />
+<meta property="og:url" content={url} />
+{
+  description ? (
+    <>
+      <meta name="description" content={description} />
+      <meta property="og:description" content={description} />
+    </>
+  ) : null
+}
+
+{
+  pageType === "article" ? (
+    <>
+      <meta property="og:type" content="article" />
+      <meta property="og:article:author" content="Sujeet Jaiswal" />
+    </>
+  ) : null
+}
+{image ? <meta property="og:image" content={image} /> : null}
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:creator" content="@sujeetpro" />

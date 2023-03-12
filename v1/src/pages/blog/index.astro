@@ -1,7 +1,7 @@
 ---
 import { getCollection } from "astro:content";
 import Layout from "../../layouts/base/base.astro";
-import Card from "../../components/card.astro";
+import BlogCard from "../../components/list-item-blog-card.astro";
 
 const entries = await getCollection("blog");
 const title = "Sujeet's Blog";
@@ -11,17 +11,7 @@ const title = "Sujeet's Blog";
   <main>
     <h1 class="text-5xl text-center my-8">{title}</h1>
     <ul class="max-w-prose mx-auto">
-      {
-        entries.map(({ slug, data: { title, description, heroImg, tags } }) => (
-          <Card
-            title={title}
-            description={description}
-            imgSrc={heroImg}
-            tags={tags}
-            href={`/blog/${slug}`}
-          />
-        ))
-      }
+      {entries.map((entry) => <BlogCard entry={entry} />)}
     </ul>
   </main>
 </Layout>

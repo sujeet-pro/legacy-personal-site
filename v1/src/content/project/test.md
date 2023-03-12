@@ -1,8 +1,6 @@
 ---
 title: Test Project
 description: This is a test project
-date: 2023-03-06T10:05:03.218Z
-heroImg: /assets/images/uploads/js.webp
 ---
 
 Custom Markdown

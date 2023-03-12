@@ -1,35 +1,135 @@
+##
+# For SEO, always have: title, description, tags
+# For Public visibility: isDraft
+
 backend:
   name: git-gateway
-  branch: main # Branch to update (optional; defaults to master)
-
-# publish_mode: editorial_workflow
-
-media_folder: "public/assets/images/uploads" # Media files will be stored in the repo under static/images/uploads
-public_folder: "/assets/images/uploads" # The src attribute for uploaded media will begin with /images/uploads
-
+  branch: main
+media_folder: public/assets/images/uploads
+public_folder: /assets/images/uploads
+project_tech:
+  - null
 collections:
-  - name: "blog"
-    label: "Blog"
-    folder: "src/content/blog"
+  - name: blog
+    label: Blog
+    folder: src/content/blog
     create: true
     slug: "{{slug}}"
     fields:
-      - { label: "Title", name: "title", widget: "string" }
-      - { label: "Description", name: "description", widget: "string" }
-      - { label: "Is Draft", name: "isDraft", widget: "boolean", default: true }
-      - { label: "Publish Date", name: "date", widget: "datetime" }
-      - { label: "Tags", name: "tags", widget: "list", default: ["Web"]}
-      - { label: "Hero Image", name: "heroImg", widget: "image" }
-      - { label: "Body", name: "body", widget: "markdown" }
-  - name: "project" # Used in routes, e.g., /admin/collections/blog
-    label: "Project" # Used in the UI
-    folder: "src/content/project" # The path to the folder where the documents are stored
-    create: true # Allow users to create new documents in this collection
-    slug: "{{slug}}" # "{{year}}-{{month}}-{{day}}-{{slug}}" Filename template, e.g., YYYY-MM-DD-title.md
-    fields: # The fields for each document, usually in front matter
-      - { label: "Title", name: "title", widget: "string" }
-      - { label: "Description", name: "description", widget: "string" }
-      - { label: "Is Draft", name: "isDraft", widget: "boolean", default: true }
-      - { label: "Publish Date", name: "date", widget: "datetime" }
-      - { label: "Hero Image", name: "heroImg", widget: "image" }
-      - { label: "Body", name: "body", widget: "markdown" }
+      - label: Title
+        name: title
+        widget: string
+      - label: Description
+        name: description
+        widget: string
+      - label: Tags
+        name: tags
+        widget: list
+        field:
+          label: Tag
+          name: tag
+          widget: string
+      - label: Is Draft
+        name: isDraft
+        widget: boolean
+        default: true
+      - label: Hero Image
+        name: coverImg
+        widget: image
+      - label: Publish Date
+        name: publishedOn
+        widget: datetime
+        time_format: false
+        date_format: DD-MMM-YYYY
+      - label: Last Modified Date
+        name: lastUpdatedOn
+        widget: datetime
+        time_format: false
+        date_format: DD-MMM-YYYY
+      - label: Topics
+        name: topics
+        widget: list
+        field:
+          widget: relation
+          collection: topic
+          search_fields:
+            - topic.title
+            - topic.description
+          value_field: { { slug } }
+          display_fields: topic.title
+      - label: Body
+        name: body
+        widget: markdown
+  - name: project
+    label: Project
+    folder: src/content/project
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - label: Title
+        name: title
+        widget: string
+      - label: Description
+        name: description
+        widget: string
+      - label: Tags
+        name: tags
+        widget: list
+        field:
+          label: Tag
+          name: tag
+          widget: string
+      - label: Is Draft
+        name: isDraft
+        widget: boolean
+        default: true
+      - label: Hero Image
+        name: coverImg
+        widget: image
+      - label: Start Date
+        name: startDate
+        widget: datetime
+        time_format: false
+        date_format: DD-MMM-YYYY
+        default: ""
+      - label: End Date
+        name: endDate
+        widget: datetime
+        time_format: false
+        date_format: DD-MMM-YYYY
+        default: ""
+      - label: Body
+        name: body
+        widget: markdown
+  - name: topic
+    label: Topics
+    folder: src/content/topic
+    create: true
+    slug: { { slug } }
+    fields:
+      - label: Title
+        name: title
+        widget: string
+      - label: Description
+        name: description
+        widget: string
+      - label: Tags
+        name: tags
+        widget: list
+        field:
+          label: Tag
+          name: tag
+          widget: string
+      - label: Is Draft
+        name: isDraft
+        widget: boolean
+        default: true
+      - label: Hero Image
+        name: coverImg
+        widget: image
+      - label: Icon Name
+        name: iconName
+        widget: string
+      - label: Body
+        name: body
+        widget: markdown

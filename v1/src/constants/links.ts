@@ -12,12 +12,12 @@ export const home: LinkConfig = {
 };
 export const blog: LinkConfig = {
   text: "Blog",
-  href: "https://blog.sujeet.pro",
+  href: "/blog/",
   isExternal: true, // "/blog" // # TODO: When blog is ready
 };
 export const projects: LinkConfig = {
   text: "Projects",
-  href: "/project",
+  href: "/project/",
   isExternal: false,
 };
 

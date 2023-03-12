@@ -1,7 +1,8 @@
 ---
 title: "Better Error Handling in JavaScript / Typescript"
 description: "Making errors as first-class citizens in your async function response, inspired by Go."
-date: 2023-03-11
+publishedOn: 2023-03-11
+topics: []
 tags: ["JavaScript", "TypeScript", "Error Handling", "Utility"]
 ---
 ## The Inspiration

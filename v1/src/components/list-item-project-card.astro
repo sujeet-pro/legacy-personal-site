@@ -1,25 +1,25 @@
 ---
-import Tags from './tags.astro'
+import type { CollectionEntry } from "astro:content";
 type Props = {
-  imgSrc?: string | undefined;
-  title: string;
-  description: string;
-  href: string;
-  tags?: string[]
-  as?: "li" | "span" | "div";
+  entry: CollectionEntry<"project">;
 };
-const { imgSrc, title, description, tags, href, as = "li" } = Astro.props;
-const Root = as;
+const {
+  entry: {
+    slug,
+    data: { title, description, coverImg },
+  },
+} = Astro.props;
+const href = `/project/${slug}`;
 ---
 
-<Root
+<li
   class="relative hover:shadow-md border-2 border-gray-200 rounded my-4 p-4 flex gap-4"
 >
   {
-    imgSrc ? (
+    coverImg ? (
       <img
         class="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28"
-        src={imgSrc}
+        src={coverImg}
         role="presentation"
       />
     ) : null
@@ -32,6 +32,5 @@ const Root = as;
       {title}
     </a>
     <p>{description}</p>
-    <Tags tags={tags} />
   </div>
-</Root>
+</li>

@@ -2,11 +2,10 @@
 import Header, { Props as HeaderProps } from "../../components/header.astro";
 import Footer from "../../components/footer.astro";
 import "./base.css";
+import Seo, { Props as SeoProps } from "../../components/seo.astro";
 
-export type Props = HeaderProps & {
-  title: string;
-};
-const { title, navType } = Astro.props as Props;
+export type Props = HeaderProps & SeoProps;
+const { navType, ...seoProps } = Astro.props as Props;
 ---
 
 <html lang="en">
@@ -15,7 +14,7 @@ const { title, navType } = Astro.props as Props;
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
-    <title>{title}</title>
+    <Seo {...seoProps} />
   </head>
   <body class="min-h-screen flex flex-col bg-gray-50">
     <Header navType={navType} />
