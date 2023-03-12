@@ -2,6 +2,7 @@
 import type { InferGetStaticPropsType } from "astro";
 import { getCollection } from "astro:content";
 import Layout from "../../layouts/base/base.astro";
+import DateComponent from "../../components/date.astro";
 
 export async function getStaticPaths() {
   const entries = await getCollection("blog");
@@ -15,20 +16,41 @@ export async function getStaticPaths() {
 type Props = InferGetStaticPropsType<typeof getStaticPaths>;
 
 const { entry } = Astro.props;
+const { title, description, coverImg, publishedOn, lastUpdatedOn, tags } =
+  entry.data;
 const { Content } = await entry.render();
 ---
 
-<Layout title={entry.data.title} navType="blog">
+<Layout
+  navType="blog"
+  title={title}
+  description={description}
+  image={coverImg}
+  pageType="article"
+  publishedDate={publishedOn}
+  updatedDate={lastUpdatedOn}
+  tags={tags}
+>
   <main>
     <article class="prose mx-auto my-8">
-      <h1 class="text-center">{entry.data.title}</h1>
-      <p>{entry.data.description}</p>
+      <h1 class="text-center">{title}</h1>
+      <p>{description}</p>
+      <p class="text-gray-400">
+        {
+          lastUpdatedOn ? (
+            <>
+              Last Updated on <DateComponent date={lastUpdatedOn} />.
+            </>
+          ) : null
+        }
+        Published on <DateComponent date={publishedOn} />
+      </p>
       {
-        entry.data.heroImg ? (
+        coverImg ? (
           <img
             class="w-full max-h-96 object-cover"
             role="presentation"
-            src={entry.data.heroImg}
+            src={coverImg}
           />
         ) : null
       }

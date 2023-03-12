@@ -1,20 +1,32 @@
 ---
-import { SITE_BASE } from "../constants/global";
+import { SITE_BASE, AUTHOR_NAME } from "../constants/global";
 
 export type Props = {
   title: string;
   description?: string;
-  tags?: string;
-  image?: string;
-  pageType?: "article";
+  image?: string | undefined | null;
+  pageType?: "article" | undefined | null;
+  tags?: string[] | undefined | null;
+  publishedDate?: Date | undefined | null;
+  updatedDate?: Date | undefined | null;
 };
-const { title, description, tags, image, pageType } = Astro.props;
+const {
+  title,
+  description,
+  tags,
+  image,
+  pageType,
+  publishedDate,
+  updatedDate,
+} = Astro.props;
 const url = SITE_BASE + Astro.url.pathname;
+const isArticle = pageType === "article";
 ---
 
 <title>{title}</title>
 <meta property="og:title" content={title} />
 <meta property="og:url" content={url} />
+<meta property="og:locale" content="en-IN" />
 {
   description ? (
     <>
@@ -23,17 +35,37 @@ const url = SITE_BASE + Astro.url.pathname;
     </>
   ) : null
 }
-
 {
-  pageType === "article" ? (
+  isArticle ? (
     <>
       <meta property="og:type" content="article" />
-      <meta property="og:article:author" content="Sujeet Jaiswal" />
+      <meta property="og:article:author" content={AUTHOR_NAME} />
     </>
+  ) : (
+    <meta property="og:type" content="website" />
+  )
+}
+{
+  [...(isArticle ? tags || [] : [])].map((tag) => (
+    <meta property="og:article:tag" content={tag} />
+  ))
+}
+{
+  isArticle && publishedDate ? (
+    <meta
+      property="og:article:published_time"
+      content={publishedDate.toISOString()}
+    />
+  ) : null
+}
+{
+  isArticle && updatedDate ? (
+    <meta
+      property="og:article:modified_time"
+      content={updatedDate.toISOString()}
+    />
   ) : null
 }
 {image ? <meta property="og:image" content={image} /> : null}
-
-<!-- Twitter -->
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:creator" content="@sujeetpro" />

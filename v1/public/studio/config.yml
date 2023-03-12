@@ -7,8 +7,13 @@ backend:
   branch: main
 media_folder: public/assets/images/uploads
 public_folder: /assets/images/uploads
-project_tech:
-  - null
+site_url: https://sujeet.pro
+display_url: https://sujeet.pro
+search: false
+slug:
+  encoding: "ascii"
+  clean_accents: true
+  sanitize_replacement: "-"
 collections:
   - name: blog
     label: Blog

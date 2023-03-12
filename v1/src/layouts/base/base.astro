@@ -8,7 +8,7 @@ export type Props = HeaderProps & SeoProps;
 const { navType, ...seoProps } = Astro.props as Props;
 ---
 
-<html lang="en">
+<html lang="en-IN">
   <head>
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -22,5 +22,19 @@ const { navType, ...seoProps } = Astro.props as Props;
       <slot />
     </div>
     <Footer />
-  </body>
+    <script
+      is:inline
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-1Z2TP5LG65"
+    ></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "G-1Z2TP5LG65");
+    </script>
+  </body><!-- Google tag (gtag.js) -->
 </html>
