@@ -55,13 +55,15 @@ collections:
         name: topics
         widget: list
         field:
+          label: "Topic"
+          name: "topic"
           widget: relation
           collection: topic
           search_fields:
             - topic.title
             - topic.description
-          value_field: { { slug } }
-          display_fields: topic.title
+          value_field: "{{ slug }}"
+          display_fields: ["topic.title"]
       - label: Body
         name: body
         widget: markdown
@@ -110,7 +112,7 @@ collections:
     label: Topics
     folder: src/content/topic
     create: true
-    slug: { { slug } }
+    slug: "{{slug}}"
     fields:
       - label: Title
         name: title
