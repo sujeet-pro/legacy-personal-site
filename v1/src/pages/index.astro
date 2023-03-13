@@ -2,9 +2,12 @@
 import Layout from "../layouts/base/base.astro";
 import { cv } from "../constants/links";
 import Link from "../components/link.astro";
+
+const title = "Sujeet Jaiswal";
+const description = "I help build accessible and performant products on Web.";
 ---
 
-<Layout title="Sujeet's Portfolio" navType="home">
+<Layout title={title} description={description} navType="home">
   <main class="max-w-prose mx-auto flex flex-col gap-20 my-24">
     <section aria-label="Introduction" class="flex flex-col gap-10">
       <p class="text-6xl">Hello, I'm</p>
@@ -25,10 +28,6 @@ import Link from "../components/link.astro";
   </main>
 </Layout>
 
-<script
-  is:inline
-  src="https://identity.netlify.com/v1/netlify-identity-widget.js"
-></script>
 <script>
   declare global {
     interface Window {
@@ -37,16 +36,28 @@ import Link from "../components/link.astro";
       };
     }
   }
-  if (
-    window.netlifyIdentity &&
-    typeof window.netlifyIdentity.on === "function"
-  ) {
-    window.netlifyIdentity.on("init", (user) => {
-      if (!user) {
-        window.netlifyIdentity.on("login", () => {
-          document.location.href = "/studio/";
+  function initNetlifyCMSLazily() {
+    if (!window.location.search) return null;
+    const script = document.createElement("script");
+    script.src = "https://identity.netlify.com/v1/netlify-identity-widget.js";
+    script.onload = () => {
+      if (
+        window.netlifyIdentity &&
+        typeof window.netlifyIdentity.on === "function"
+      ) {
+        window.netlifyIdentity.on("init", (user) => {
+          if (!user) {
+            window.netlifyIdentity.on("login", () => {
+              document.location.href = "/studio/";
+            });
+          }
         });
       }
-    });
+    };
+    document.body.appendChild(script);
+    return null;
   }
+  setTimeout(() => {
+    initNetlifyCMSLazily();
+  }, 5000);
 </script>

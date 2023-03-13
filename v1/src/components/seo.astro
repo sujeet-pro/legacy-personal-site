@@ -1,6 +1,9 @@
 ---
-import { SITE_BASE, AUTHOR_NAME } from "../constants/global";
-
+import {
+  SITE_BASE,
+  AUTHOR_NAME,
+  DEFAULT_SUJEET_IMAGE,
+} from "../constants/global";
 export type Props = {
   title: string;
   description?: string;
@@ -10,11 +13,12 @@ export type Props = {
   publishedDate?: Date | undefined | null;
   updatedDate?: Date | undefined | null;
 };
+
 const {
   title,
   description,
   tags,
-  image,
+  image = DEFAULT_SUJEET_IMAGE,
   pageType,
   publishedDate,
   updatedDate,

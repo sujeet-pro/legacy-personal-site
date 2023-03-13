@@ -5,9 +5,10 @@ import BlogCard from "../../components/list-item-blog-card.astro";
 
 const entries = await getCollection("blog");
 const title = "Sujeet's Blog";
+const description = "List of all the blog entries written by Sujeet Jaiswal";
 ---
 
-<Layout title={title} navType="blog">
+<Layout title={title} description={description} navType="blog">
   <main>
     <h1 class="text-5xl text-center my-8">{title}</h1>
     <ul class="max-w-prose mx-auto">

@@ -13,7 +13,7 @@ export const home: LinkConfig = {
 export const blog: LinkConfig = {
   text: "Blog",
   href: "/blog/",
-  isExternal: true, // "/blog" // # TODO: When blog is ready
+  isExternal: false, // "/blog" // # TODO: When blog is ready
 };
 export const projects: LinkConfig = {
   text: "Projects",
@@ -53,6 +53,11 @@ export const twitter: LinkConfig = {
 export const instagram: LinkConfig = {
   text: "Instagram",
   href: "https://sujeet.pro/ig",
+  isExternal: true,
+};
+export const mastodon: LinkConfig = {
+  text: "Mastodon",
+  href: "https://mastodon.social/@sujeetjaiswal",
   isExternal: true,
 };
 
