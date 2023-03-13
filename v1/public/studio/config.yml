@@ -37,10 +37,12 @@ collections:
       - label: Is Draft
         name: isDraft
         widget: boolean
+        required: false
         default: true
       - label: Hero Image
         name: coverImg
         widget: image
+        required: false
       - label: Publish Date
         name: publishedOn
         widget: datetime
@@ -54,6 +56,7 @@ collections:
       - label: Topics
         name: topics
         widget: list
+        required: false
         field:
           label: "Topic"
           name: "topic"
@@ -90,9 +93,11 @@ collections:
         name: isDraft
         widget: boolean
         default: true
+        required: false
       - label: Hero Image
         name: coverImg
         widget: image
+        required: false
       - label: Start Date
         name: startDate
         widget: datetime
@@ -131,9 +136,11 @@ collections:
         name: isDraft
         widget: boolean
         default: true
+        required: false
       - label: Hero Image
         name: coverImg
         widget: image
+        required: false
       - label: Icon Name
         name: iconName
         widget: string
