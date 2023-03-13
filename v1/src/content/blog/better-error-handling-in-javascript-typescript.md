@@ -1,9 +1,17 @@
 ---
-title: "Better Error Handling in JavaScript / Typescript"
-description: "Making errors as first-class citizens in your async function response, inspired by Go."
+title: Better Error Handling in JavaScript / Typescript
+description: Making errors as first-class citizens in your async function
+  response, inspired by Go.
+tags:
+  - JavaScript
+  - TypeScript
+  - Error Handling
+  - Utility
+isDraft: false
+coverImg: /assets/images/uploads/js.webp
 publishedOn: 2023-03-11
+lastUpdatedOn: 2023-03-13T12:02:58.603Z
 topics: []
-tags: ["JavaScript", "TypeScript", "Error Handling", "Utility"]
 ---
 ## The Inspiration
 
@@ -13,10 +21,13 @@ When I was exploring Go, I came across function calls that returned the error al
 fd, err := os.Open("test.go")
 ```
 
-This seems great to me since this makes sure we account for errors. The first thought was to create my function signature to match this, something like the below:
+This motivates developers to account for errors at the beginning itself and not as an afterthought. This being available in the language construct is awesome. The closest thing we could do in javascript to simulate this is to return a tuple (technically an array), with both the result and the error.
 
 ```typescript
-async function fetchProfile(): Promise<Result | null, Error | null> {
+async function errorFirstFunctionSample(): Promise<
+    readonly [ResultType, null] |
+    readonly [null, ErrorType]
+> {
     try {
         const res = await someApiCall()
         return [res, null]
@@ -26,7 +37,7 @@ async function fetchProfile(): Promise<Result | null, Error | null> {
 }
 ```
 
-But it seemed tedious to refactor all of my code and even then what about functions from another package, which return promise?
+But it seemed tedious to refactor all of my code and even then how do we take care of functions from another package?
 
 What if we could create some utility `withError` that does this conversion for us.
 
@@ -65,6 +76,8 @@ function withError<
 
 ## An example use-case
 
+To demonstrate how this utility is helpful, let us consider the below use case.
+
 We want to show product recommendations to our users. The recommendation API needs user preference. For cases, when user preference is not available, we will use the trending API to show products. All the errors must be logged.
 
 ```typescript
@@ -75,6 +88,29 @@ declare function getRecommendedProducts(userPreference: UserPreference): Promise
 declare function getTrendingProducts(): Promise<Product[]>
 declare function logger(input: any): void
 ```
+
+### Implementation using our `withError` Utility
+
+```typescript
+async function getProductsUsingWithError() {
+  const [userPref, prefError] = await getUserPreferencesWithError();
+  if (prefError) {
+    logger(prefError);
+  }
+  const [products, productErr] = userPref
+    ? await getRecommendedProducts(userPref)
+    : await getTrendingProductsWithError();
+  if (productErr) {
+    logger(productErr);
+    throw productErr;
+  }
+  return products;
+}
+```
+
+## Implementing using existing methods
+
+To keep the ground fair, I have implemented the above use case in existing approaches as well (callback, promises and regular try-catch block)
 
 ### Implementation using Callback
 
@@ -121,7 +157,7 @@ function getProductsUsingPromises() {
 
 This though has a mental overhead of distinguishing which code runs in sequence and which at a later point in time.
 
-> Did you notice, in the above implementation `getTrendingProducts` will be called when either of `getUserPreferences` OR `getRecommendedProducts` fails.
+> **Did you notice**, in the above implementation `getTrendingProducts` will be called when either of `getUserPreferences` OR `getRecommendedProducts` fails.
 
 ### Implementation using Async -Await with Try / Catch Block
 
@@ -166,26 +202,9 @@ async function getProductsUsingTryCatch() {
 
 *And now, I feel, the promise chaining was better than this, at least in terms of readability. If we ignore the problem of calling trending products when recommendations fail (It might be valid for this example use case anyways)*
 
-### Implementation using our `withError` Utility
-
-```typescript
-async function getProductsUsingWithError() {
-  const [userPref, prefError] = await getUserPreferencesWithError();
-  if (prefError) {
-    logger(prefError);
-  }
-  const [products, productErr] = userPref
-    ? await getRecommendedProducts(userPref)
-    : await getTrendingProductsWithError();
-  if (productErr) {
-    logger(productErr);
-    throw productErr;
-  }
-  return products;
-}
-```
-
 ## Last Words
+
+Based on my experience, the error-first approach using the withError utility method is much easier to work with. Additionally, your implementation of methods can continue to throw errors as a standard.
 
 ### What about Sync Function?
 
@@ -211,11 +230,11 @@ function withErrorSync<
 }
 ```
 
-### Should we make it error-first, similar to node?
+### The Ideal order of result and error in the tuple
 
 The intention behind this exploration is to find ways to ensure we as developers take care of errors.
 
-I have not put any thought into should errors or results be first in the return tuple. If you want node-like ordering (`error, res`), error-first makes sense.  
+If you want node-like ordering (`error, res`), error-first makes sense.  
 For me, since the inspiration was from Go, and it uses `res, err` ordering, I stick with that in the article.
 
 ```typescript
