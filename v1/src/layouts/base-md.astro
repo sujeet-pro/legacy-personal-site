@@ -1,0 +1,29 @@
+---
+import Layout, { Props as LayoutProps } from "./base/base.astro";
+type Props = {
+  frontmatter: LayoutProps;
+};
+const {
+  frontmatter: {
+    title,
+    description,
+    tags,
+    image,
+    pageType,
+    publishedDate,
+    updatedDate,
+  },
+} = Astro.props as Props;
+---
+
+<Layout
+  title={title}
+  description={description}
+  image={image}
+  pageType={pageType}
+  tags={tags}
+  publishedDate={publishedDate}
+  updatedDate={updatedDate}
+>
+  <slot />
+</Layout>

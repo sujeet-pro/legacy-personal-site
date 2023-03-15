@@ -6,7 +6,7 @@ import {
 } from "../constants/global";
 export type Props = {
   title: string;
-  description?: string;
+  description?: string | undefined | null;
   image?: string | undefined | null;
   pageType?: "article" | undefined | null;
   tags?: string[] | undefined | null;

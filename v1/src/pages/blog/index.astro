@@ -8,10 +8,10 @@ const title = "Sujeet's Blog";
 const description = "List of all the blog entries written by Sujeet Jaiswal";
 ---
 
-<Layout title={title} description={description} navType="blog">
+<Layout title={title} description={description}>
   <main>
     <h1 class="text-5xl text-center my-8">{title}</h1>
-    <ul class="max-w-prose mx-auto">
+    <ul class="max-w-prose mx-auto divide-y-2">
       {entries.map((entry) => <BlogCard entry={entry} />)}
     </ul>
   </main>

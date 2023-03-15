@@ -1,0 +1,73 @@
+---
+import { Icon } from "astro-icon";
+import { classNameMuted } from "../../constants/classnames";
+
+type Props = {
+  company: string;
+  department: string;
+  role: string;
+  designation?: string;
+  icon: string;
+  href: string;
+  startDate: string;
+  endDate?: string;
+};
+const {
+  company,
+  department,
+  role,
+  designation,
+  icon,
+  startDate,
+  endDate,
+  href,
+} = Astro.props as Props;
+---
+
+<div class="company-details">
+  <Icon class="w-40 h-20 company-icon" name={icon} />
+  <span class="company-designation text-2xl">{role} / {designation}</span>
+  <span class="company-name text-lg">
+    <a href={href} target="_blank" rel="noopener noreferrer">{company}</a>
+    {
+      department ? (
+        <span class:list={[classNameMuted]}>({department})</span>
+      ) : null
+    }
+  </span>
+  <span class:list={["company-duration font-light", classNameMuted]}>
+    {
+      endDate ? (
+        <>
+          <time datetime={startDate}>{startDate}</time> -
+          <time datetime={endDate}>{endDate}</time>
+        </>
+      ) : (
+        <>
+          Since <time datetime={startDate}>{startDate}</time>
+        </>
+      )
+    }
+  </span>
+</div>
+
+<style>
+  .company-details {
+    display: grid;
+    column-gap: 12px;
+    grid-template-columns: 1fr min-content;
+    grid-template-areas: "designation icon" "company icon" "duration icon";
+  }
+  .company-icon {
+    grid-area: icon;
+  }
+  .company-name {
+    grid-area: company;
+  }
+  .company-designation {
+    grid-area: designation;
+  }
+  .company-duration {
+    grid-area: duration;
+  }
+</style>

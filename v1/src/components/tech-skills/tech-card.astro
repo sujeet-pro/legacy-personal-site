@@ -1,0 +1,22 @@
+---
+import { Icon } from "astro-icon";
+import type { Tech } from "./tech-skills.types";
+import {
+  categoryBorderClasses,
+  categoryBgAndTextClasses,
+} from "./skill-color-map";
+type Props = {
+  tech: Tech;
+};
+
+const {
+  tech: { name, category, icon },
+} = Astro.props as Props;
+---
+
+<div class:list={["border-2", categoryBorderClasses[category]]}>
+  <Icon class="m-4 w-24 h-24 mx-auto" name={icon || "mdi:code-greater-than"} />
+  <div class:list={["p-1 text-center", categoryBgAndTextClasses[category]]}>
+    {name}
+  </div>
+</div>

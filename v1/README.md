@@ -13,3 +13,15 @@
 
 - update `theme` in `src/layout/base.astro`
 - update theme in `public/assets/favicons/browserconfig.xml`
+
+## CSS Decisions
+
+### Light Mode
+
+- Background: `bg-slate-50`
+- Text: `text-slate-700`
+
+### Dark Mode
+
+- Background: `bg-slate-900`
+- Text: `text-slate-300`

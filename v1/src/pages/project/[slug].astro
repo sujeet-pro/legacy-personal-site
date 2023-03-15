@@ -14,16 +14,16 @@ const { entry } = Astro.props as { entry: CollectionEntry<"blog"> };
 const { Content } = await entry.render();
 ---
 
-<Layout title={entry.data.title} navType="project">
+<Layout title={entry.data.title}>
   <main>
     <article class="prose mx-auto mt-8">
       <h1 class="text-center">{entry.data.title}</h1>
       {
-        entry.data.heroImg ? (
+        entry.data.coverImg ? (
           <img
             class="w-full max-h-96 object-cover"
             role="presentation"
-            src={entry.data.heroImg}
+            src={entry.data.coverImg}
           />
         ) : null
       }

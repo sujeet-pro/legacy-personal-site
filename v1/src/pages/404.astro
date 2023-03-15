@@ -7,14 +7,14 @@ const title = "Page Not Found";
 const description = "The page you are looking for doesn't exits.";
 ---
 
-<Layout title={title} description={description} navType="home">
+<Layout title={title} description={description}>
   <main class="max-w-prose mx-auto flex flex-col gap-20 my-24">
     <section aria-label="Introduction" class="flex flex-col gap-10 text-center">
       <h1 class="text-9xl">Oops!</h1>
       <p class="text-4xl">404 - Page Not found</p>
       <div>
         <Link
-          class="py-3 px-8 text-white bg-gray-900 hover:bg-gray-800 inline-block rounded-full"
+          class="py-3 px-8 inline-block rounded-full"
           href={home.href}
           isExternal={home.isExternal}
         >

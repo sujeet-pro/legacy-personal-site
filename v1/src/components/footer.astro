@@ -8,28 +8,36 @@ import {
   instagram,
   linkedIn,
   medium,
+  stackoverflow,
   twitter,
+  notesJS,
+  notesLeadership,
+  notesWeb,
+  blog,
+  mastodon,
 } from "../constants/links";
 
 const currentYear = new Date().getFullYear();
 const allLinks = [
   {
     category: "Social",
-    links: [linkedIn, twitter, instagram],
+    links: [linkedIn, twitter, instagram, github, mastodon],
   },
   {
-    category: "Blog",
-    links: [medium, devTo, hashedNode],
+    category: "Writing",
+    links: [medium, devTo, hashedNode, stackoverflow],
   },
   {
-    category: "Profiles",
-    links: [github, cv],
+    category: "Notes",
+    links: [blog, notesWeb, notesLeadership, notesJS, cv],
   },
 ];
 ---
 
-<footer class="bg-gray-800 text-white shadow shadow-inner px-2 py-6">
-  <nav class="flex justify-around max-w-screen-md mx-auto">
+<footer class="border-t border-slate-300 dark:border-slate-600 px-2 py-6">
+  <nav
+    class="flex flex-col sm:flex-row justify-around max-w-screen-md mx-auto divider-x-2"
+  >
     {
       allLinks.map(({ category, links }) => (
         <ul>
@@ -40,6 +48,8 @@ const allLinks = [
                 class="block py-3"
                 isExternal={link.isExternal}
                 href={link.href}
+                iconName={link.iconName}
+                iconPosition={link.iconPosition}
               >
                 {link.text}
               </Link>

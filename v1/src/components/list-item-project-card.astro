@@ -6,14 +6,17 @@ type Props = {
 const {
   entry: {
     slug,
-    data: { title, description, coverImg },
+    data: { title, isDraft, description, coverImg },
   },
 } = Astro.props;
 const href = `/project/${slug}`;
 ---
 
 <li
-  class="relative hover:shadow-md border-2 border-gray-200 rounded my-4 p-4 flex gap-4"
+  class:list={[
+    "relative hover:shadow-lg shadow-slate-100 dark:shadow-slate-800 rounded my-4 p-4 flex gap-4",
+    { "display-none": isDraft },
+  ]}
 >
   {
     coverImg ? (
@@ -24,7 +27,7 @@ const href = `/project/${slug}`;
       />
     ) : null
   }
-  <div class="flex-auto">
+  <div class="flex-auto flex flex-col gap-2">
     <a
       href={href}
       class="after:absolute after:left-0 after:right-0 after:top-0 after:bottom-0 text-xl"

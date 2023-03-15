@@ -1,27 +1,37 @@
 ---
 import Layout from "../layouts/base/base.astro";
-import { cv } from "../constants/links";
+import { profile } from "../constants/links";
 import Link from "../components/link.astro";
 
 const title = "Sujeet Jaiswal";
 const description = "I help build accessible and performant products on Web.";
 ---
 
-<Layout title={title} description={description} navType="home">
-  <main class="max-w-prose mx-auto flex flex-col gap-20 my-24">
-    <section aria-label="Introduction" class="flex flex-col gap-10">
-      <p class="text-6xl">Hello, I'm</p>
-      <h1 class="text-9xl">Sujeet</h1>
-      <p class="text-4xl">
-        I help build accessible and performant products on Web.
-      </p>
-      <div class="text-right">
+<Layout title={title} description={description}>
+  <main class="flex flex-col gap-20 sm:my-24">
+    <section aria-label="Introduction" class="flex flex-col md:flex-row gap-10">
+      <div>
+        <img
+          src="/assets/default-images/sujeet-min.jpg"
+          alt="Sujeet Jaiswal"
+          class="rounded-full w-full max-w-sm mx-auto"
+          width="864"
+          height="864"
+        />
+      </div>
+      <div class="flex flex-col gap-10 text-center md:text-left">
+        <p class="text-5xl sm:text-6xl">Hello, I'm</p>
+        <h1 class="text-7xl xl:text-9xl">Sujeet Jaiswal</h1>
+        <p class="text-3xl sm:text-4xl">
+          Helping people make the world a better place through quality software.
+        </p>
         <Link
-          class="py-3 px-8 text-white bg-gray-900 hover:bg-gray-800 inline-block rounded-full"
-          href={cv.href}
-          isExternal={cv.isExternal}
+          class="max-w-max mx-auto md:mx-0"
+          skin="cta"
+          href={profile.href}
+          isExternal={profile.isExternal}
         >
-          Read my {cv.text}
+          Know more about me
         </Link>
       </div>
     </section>
