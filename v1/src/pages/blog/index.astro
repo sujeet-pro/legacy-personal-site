@@ -1,18 +1,26 @@
 ---
 import { getCollection } from "astro:content";
-import Layout from "../../layouts/base/base.astro";
-import BlogCard from "../../components/list-item-blog-card.astro";
+import Layout from "../../layouts/layout.astro";
+import BlogCard from "../../components/blog/list-item-blog-card.astro";
 
 const entries = await getCollection("blog");
 const title = "Sujeet's Blog";
 const description = "List of all the blog entries written by Sujeet Jaiswal";
 ---
 
-<Layout title={title} description={description}>
-  <main>
-    <h1 class="text-5xl text-center my-8">{title}</h1>
-    <ul class="max-w-prose mx-auto divide-y-2">
-      {entries.map((entry) => <BlogCard entry={entry} />)}
-    </ul>
-  </main>
+<Layout
+  sidenav={false}
+  prose={false}
+  title={title}
+  description={description}
+  image={null}
+  pageType="site"
+  tags={null}
+  publishedDate={null}
+  updatedDate={null}
+>
+  <h1 class="text-5xl text-center my-8">{title}</h1>
+  <ul class="max-w-prose mx-auto divide-y-2">
+    {entries.map((entry) => <BlogCard entry={entry} />)}
+  </ul>
 </Layout>

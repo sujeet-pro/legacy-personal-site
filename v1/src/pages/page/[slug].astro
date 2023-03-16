@@ -3,17 +3,24 @@ import { CollectionEntry, getCollection } from "astro:content";
 import Layout from "../../layouts/layout.astro";
 
 export async function getStaticPaths() {
-  const entries = await getCollection("project");
+  const entries = await getCollection("page");
   return entries.map((entry) => ({
     params: { slug: entry.slug },
     props: { entry },
   }));
 }
 
-const { entry } = Astro.props as { entry: CollectionEntry<"project"> };
+const { entry } = Astro.props as { entry: CollectionEntry<"blog"> };
 const { Content } = await entry.render();
-const { title, description, coverImg, tags, topics, startDate, endDate } =
-  entry.data;
+const {
+  title,
+  description,
+  coverImg,
+  tags,
+  topics,
+  publishedOn,
+  lastUpdatedOn,
+} = entry.data;
 ---
 
 <Layout
@@ -24,8 +31,8 @@ const { title, description, coverImg, tags, topics, startDate, endDate } =
   image={coverImg}
   pageType="site"
   tags={[...(tags || []), ...(topics || [])]}
-  publishedDate={startDate}
-  updatedDate={endDate}
+  publishedDate={publishedOn}
+  updatedDate={lastUpdatedOn}
 >
   <h1 class="text-center">{entry.data.title}</h1>
   {

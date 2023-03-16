@@ -1,11 +1,22 @@
 ---
-import Layout from "../../layouts/base/base.astro";
-import TechSkills from "../../components/tech-skills/tech-skills.astro";
+import Layout from "../../layouts/layout.astro";
+import TechSkills from "../../components/profile/tech-skills.astro";
 
+const title = "Sujeet's Skills";
 const description =
   "JS, TS, HTML, CSS, React, Gatsby, Next.JS, Angular, Astro, Vue.js and much more.";
 ---
 
-<Layout title="Sujeet's Skills" description={description}>
+<Layout
+  sidenav={false}
+  prose={false}
+  title={title}
+  description={description}
+  image={null}
+  pageType="site"
+  tags={null}
+  publishedDate={null}
+  updatedDate={null}
+>
   <TechSkills />
 </Layout>

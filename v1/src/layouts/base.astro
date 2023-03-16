@@ -1,8 +1,7 @@
 ---
-import Header from "../../components/header.astro";
-import Footer from "../../components/footer.astro";
-import "./base.css";
-import Seo, { Props as SeoProps } from "../../components/seo.astro";
+import Header from "../components/header.astro";
+import Footer from "../components/footer.astro";
+import Seo, { Props as SeoProps } from "../components/seo.astro";
 
 export type Props = SeoProps;
 const { ...seoProps } = Astro.props as Props;
@@ -86,6 +85,7 @@ const { ...seoProps } = Astro.props as Props;
     <meta name="msapplication-TileImage" content="/ms-icon-144x144.png" />
     <meta name="msapplication-TileColor" content="#e4e7eb" />
     <meta name="theme-color" content="#e4e7eb" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
     <Seo {...seoProps} />
     <script is:inline>
       // On page load or when changing themes, best to add inline in `head` to avoid FOUC
@@ -110,9 +110,7 @@ const { ...seoProps } = Astro.props as Props;
     <Header
       class="bg-slate-50 dark:bg-slate-900 shadow-slate-50 dark:shadow-slate-900"
     />
-    <div class="flex-auto lg:container mx-auto p-2 my-6">
-      <slot />
-    </div>
+    <slot />
     <Footer />
     <script
       is:inline

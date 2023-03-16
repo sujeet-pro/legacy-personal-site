@@ -1,0 +1,27 @@
+---
+import Article from "../components/article.astro";
+import Layout, { Props as BaseLayoutProps } from "./base.astro";
+type Props = BaseLayoutProps & {
+  prose?: boolean | undefined;
+  sidenav?: boolean | undefined;
+  class?: string | undefined | null;
+};
+const { prose, sidenav, class: className, ...layoutProps } = Astro.props;
+---
+
+<Layout {...layoutProps}>
+  <div class:list={["flex-auto lg:container mx-auto p-2 my-6", className]}>
+    {
+      sidenav ? (
+        <div>
+          <slot name="sidenav" />
+        </div>
+      ) : null
+    }
+    <main>
+      <Article prose={prose || false}>
+        <slot />
+      </Article>
+    </main>
+  </div>
+</Layout>

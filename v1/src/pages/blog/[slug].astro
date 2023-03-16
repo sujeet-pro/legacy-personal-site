@@ -1,7 +1,7 @@
 ---
 import type { InferGetStaticPropsType } from "astro";
 import { getCollection } from "astro:content";
-import Layout from "../../layouts/base/base.astro";
+import Layout from "../../layouts/layout.astro";
 import DateComponent from "../../components/date.astro";
 
 export async function getStaticPaths() {
@@ -16,44 +16,49 @@ export async function getStaticPaths() {
 type Props = InferGetStaticPropsType<typeof getStaticPaths>;
 
 const { entry } = Astro.props;
-const { title, description, coverImg, publishedOn, lastUpdatedOn, tags } =
-  entry.data;
+const {
+  title,
+  description,
+  coverImg,
+  publishedOn,
+  lastUpdatedOn,
+  tags,
+  topics,
+} = entry.data;
 const { Content } = await entry.render();
 ---
 
 <Layout
+  sidenav={false}
+  prose={true}
   title={title}
   description={description}
   image={coverImg}
   pageType="article"
+  tags={[...(tags || []), ...(topics || [])]}
   publishedDate={publishedOn}
   updatedDate={lastUpdatedOn}
-  tags={tags}
 >
-  <main>
-    <article class="prose prose-xl prose-slate dark:prose-invert mx-auto my-8">
-      <h1 class="text-center">{title}</h1>
-      <p>{description}</p>
-      <p class="flex justify-between italic font-thin">
-        <span>First published on <DateComponent date={publishedOn} />.</span>
-        {
-          lastUpdatedOn ? (
-            <span>
-              Last Updated on <DateComponent date={lastUpdatedOn} />.
-            </span>
-          ) : null
-        }
-      </p>
-      {
-        coverImg ? (
-          <img
-            class="w-full max-h-96 object-cover"
-            role="presentation"
-            src={coverImg}
-          />
-        ) : null
-      }
-      <Content />
-    </article>
-  </main>
+  <h1 class="text-center">{title}</h1>
+  <p>{description}</p>
+  <p class="flex justify-between italic font-thin">
+    <span>First published on <DateComponent date={publishedOn} />.</span>
+    {
+      lastUpdatedOn ? (
+        <span>
+          Last Updated on <DateComponent date={lastUpdatedOn} />.
+        </span>
+      ) : null
+    }
+  </p>
+  {
+    coverImg ? (
+      <img
+        class="w-full max-h-96 object-cover"
+        role="presentation"
+        src={coverImg}
+      />
+    ) : null
+  }
+  <Content />
 </Layout>

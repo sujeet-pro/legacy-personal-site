@@ -1,35 +1,59 @@
 ---
 import Link from "./link.astro";
 import {
-  cv,
-  devTo,
-  github,
-  hashedNode,
-  instagram,
-  linkedIn,
-  medium,
-  stackoverflow,
-  twitter,
+  socialInstagram,
+  socialLinkedIn,
+  socialMastodon,
+  socialTwitter,
+  communityHashedNode,
+  communityDevTo,
+  communityMedium,
+  communityGithub,
+  communityStackoverflow,
   notesJS,
   notesLeadership,
   notesWeb,
-  blog,
-  mastodon,
+  cv,
+  siteHome,
+  siteBlog,
+  siteFaq,
+  siteMap,
+  siteProfile,
+  siteProjects,
+  siteSkills,
 } from "../constants/links";
 
 const currentYear = new Date().getFullYear();
 const allLinks = [
   {
     category: "Social",
-    links: [linkedIn, twitter, instagram, github, mastodon],
+    links: [socialLinkedIn, socialTwitter, socialInstagram, socialMastodon],
   },
   {
-    category: "Writing",
-    links: [medium, devTo, hashedNode, stackoverflow],
+    category: "Community",
+    links: [
+      communityHashedNode,
+      communityDevTo,
+      communityMedium,
+      communityGithub,
+      communityStackoverflow,
+    ],
   },
   {
     category: "Notes",
-    links: [blog, notesWeb, notesLeadership, notesJS, cv],
+    links: [notesWeb, notesLeadership, notesJS, cv],
+  },
+  {
+    category: "Site",
+    links: [
+      siteHome,
+      siteBlog,
+      siteFaq,
+      siteProfile,
+      siteProjects,
+      siteSkills,
+      siteMap,
+    ],
   },
 ];
 ---

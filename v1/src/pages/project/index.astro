@@ -1,13 +1,25 @@
 ---
 import { getCollection } from "astro:content";
-import Layout from "../../layouts/base/base.astro";
-import Card from "../../components/list-item-project-card.astro";
+import Layout from "../../layouts/layout.astro";
+import Card from "../../components/project/list-item-project-card.astro";
 
 const entries = await getCollection("project");
 const title = "Sujeet's Projects";
+const description =
+  "List of all the projects that I have worked on for different companies";
 ---
 
-<Layout title="Sujeet's Projects">
+<Layout
+  sidenav={false}
+  prose={false}
+  title={title}
+  description={description}
+  image={null}
+  pageType="site"
+  tags={null}
+  publishedDate={null}
+  updatedDate={null}
+>
   <main>
     <h1 class="text-5xl text-center my-8">{title}</h1>
     <ul class="max-w-prose mx-auto divide-y-2">

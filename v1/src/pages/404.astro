@@ -1,26 +1,35 @@
 ---
-import Layout from "../layouts/base/base.astro";
-import { home } from "../constants/links";
+import Layout from "../layouts/layout.astro";
+import { siteHome } from "../constants/links";
 import Link from "../components/link.astro";
 
 const title = "Page Not Found";
 const description = "The page you are looking for doesn't exits.";
 ---
 
-<Layout title={title} description={description}>
-  <main class="max-w-prose mx-auto flex flex-col gap-20 my-24">
-    <section aria-label="Introduction" class="flex flex-col gap-10 text-center">
-      <h1 class="text-9xl">Oops!</h1>
-      <p class="text-4xl">404 - Page Not found</p>
-      <div>
-        <Link
-          class="py-3 px-8 inline-block rounded-full"
-          href={home.href}
-          isExternal={home.isExternal}
-        >
-          Visit {home.text} Page
-        </Link>
-      </div>
-    </section>
-  </main>
+<Layout
+  sidenav={false}
+  prose={false}
+  title={title}
+  description={description}
+  image={null}
+  pageType="site"
+  tags={null}
+  publishedDate={null}
+  updatedDate={null}
+  class="flex flex-col gap-20 my-24"
+>
+  <section class="flex flex-col gap-10 text-center">
+    <h1 class="text-9xl">Oops!</h1>
+    <p class="text-4xl">404 - Page Not found</p>
+    <div>
+      <Link
+        class="py-3 px-8 inline-block rounded-full"
+        href={siteHome.href}
+        isExternal={siteHome.isExternal}
+      >
+        Visit {siteHome.text} Page
+      </Link>
+    </div>
+  </section>
 </Layout>

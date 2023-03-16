@@ -2,28 +2,10 @@ import { z, defineCollection } from "astro:content";
 const seoConfig = {
   title: z.string(),
   description: z.string(),
-  isDraft: z.boolean().optional(),
-  name: z.string().optional(),
   tags: z.string().array().optional(),
+  isDraft: z.boolean().optional(),
   coverImg: z.string().optional(),
 };
-
-const blogCollection = defineCollection({
-  schema: z.object({
-    ...seoConfig,
-    publishedOn: z.date(),
-    lastUpdatedOn: z.date().optional(),
-    topics: z.string().array(),
-  }),
-});
-
-const projectCollection = defineCollection({
-  schema: z.object({
-    ...seoConfig,
-    startDate: z.date().optional(),
-    endDate: z.date().optional(),
-  }),
-});
 
 const topicCollection = defineCollection({
   schema: z.object({
@@ -32,8 +14,34 @@ const topicCollection = defineCollection({
   }),
 });
 
+const blogCollection = defineCollection({
+  schema: z.object({
+    ...seoConfig,
+    publishedOn: z.date(),
+    lastUpdatedOn: z.date().optional(),
+    topics: z.string().array().optional(),
+  }),
+});
+
+const projectCollection = defineCollection({
+  schema: z.object({
+    ...seoConfig,
+    startDate: z.date(),
+    endDate: z.date().optional(),
+    topics: z.string().array().optional(),
+  }),
+});
+
+const pageCollection = defineCollection({
+  schema: z.object({
+    ...seoConfig,
+    publishedOn: z.date(),
+    lastUpdatedOn: z.date().optional(),
+  }),
+});
 export const collections = {
   blog: blogCollection,
   project: projectCollection,
   topic: topicCollection,
+  page: pageCollection,
 };
