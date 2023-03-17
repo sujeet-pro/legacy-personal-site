@@ -1,8 +1,8 @@
 export type LinkConfig = {
   text: string;
   href: string;
-  isExternal?: boolean;
-  iconName?: string;
+  isExternal?: boolean | undefined | null;
+  iconName?: string | undefined | null;
   iconPosition?: "left" | "right";
 };
 
@@ -27,7 +27,7 @@ export const siteBlog: LinkConfig = {
 };
 export const siteFaq: LinkConfig = {
   text: "FAQs",
-  href: "/faq/",
+  href: "/page/faq/",
   iconName: "wpf:faq",
 };
 export const siteProfile: LinkConfig = {
@@ -46,6 +46,12 @@ export const siteProjects: LinkConfig = {
   href: "/project/",
   isExternal: false,
   iconName: "mdi:responsive",
+};
+export const siteTopic: LinkConfig = {
+  text: "Topics",
+  href: "/topic/",
+  isExternal: false,
+  iconName: "icon-park-outline:topic",
 };
 
 // Social Profiles

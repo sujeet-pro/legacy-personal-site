@@ -8,16 +8,11 @@ tags:
   - Error Handling
   - Utility
 isDraft: false
-coverImg: ""
 publishedOn: 2023-03-11
 lastUpdatedOn: 2023-03-13T12:02:58.603Z
 topics:
   - web-development
-  - performance
 ---
-
-- web-development
-- performance
 
 ## The Inspiration
 

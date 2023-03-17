@@ -1,0 +1,31 @@
+---
+import type { ImageMetadata } from "astro";
+import { Image } from "astro:assets";
+
+type Props = {
+  title: string;
+  description: string;
+  thumbnail?:
+    | ImageMetadata
+    | (Omit<ImageMetadata, "format"> & { format: string })
+    | null
+    | undefined;
+};
+
+const { title, description, thumbnail } = Astro.props as Props;
+const imageSrc = thumbnail as ImageMetadata;
+---
+
+<h1 class="text-center text-3xl sm:text-4xl md:text-6xl">{title}</h1>
+<div class="flex flex-col sm:flex-row gap-4">
+  {
+    thumbnail ? (
+      <Image
+        class="m-0 p-0 w-16 sm:w-24 h-16 sm:h-24"
+        src={imageSrc}
+        alt={title}
+      />
+    ) : null
+  }
+  <p class="text-2xl m-0">{description}</p>
+</div>

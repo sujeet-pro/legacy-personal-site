@@ -1,5 +1,10 @@
 ---
 import { CollectionEntry, getCollection } from "astro:content";
+import Breadcrumb from "../../components/breadcrumb.astro";
+import DateComponent from "../../components/date.astro";
+import DraftNotice from "../../components/draft-notice.astro";
+import PageHeading from "../../components/page-heading.astro";
+import { siteProjects } from "../../constants/links";
 import Layout from "../../layouts/layout.astro";
 
 export async function getStaticPaths() {
@@ -12,30 +17,47 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props as { entry: CollectionEntry<"project"> };
 const { Content } = await entry.render();
-const { title, description, coverImg, tags, topics, startDate, endDate } =
-  entry.data;
+const {
+  title,
+  description,
+  thumbnail,
+  tags,
+  topics,
+  startDate,
+  endDate,
+  isDraft,
+} = entry.data;
 ---
 
 <Layout
-  sidenav={false}
-  prose={true}
+  article={true}
   title={title}
   description={description}
-  image={coverImg}
-  pageType="site"
-  tags={[...(tags || []), ...(topics || [])]}
-  publishedDate={startDate}
-  updatedDate={endDate}
+  image={thumbnail}
+  pageDetails={{
+    type: "article",
+    tags: [...(tags || []), ...(topics || [])],
+    publishedDate: null,
+    updatedDate: null,
+  }}
 >
-  <h1 class="text-center">{entry.data.title}</h1>
-  {
-    entry.data.coverImg ? (
-      <img
-        class="w-full max-h-96 object-cover"
-        role="presentation"
-        src={entry.data.coverImg}
-      />
-    ) : null
-  }
+  <Breadcrumb
+    links={[siteProjects]}
+    currentPageTitle={title}
+    slot="pre-article"
+  />
+  <DraftNotice showDraft={isDraft} slot="pre-article" />
+  <PageHeading title={title} description={description} thumbnail={thumbnail} />
+  <p class="flex justify-start italic font-thin">
+    <span><DateComponent date={startDate} /></span>
+    {
+      endDate ? (
+        <span>
+          &nbsp;-&nbsp;
+          <DateComponent date={endDate} />.
+        </span>
+      ) : null
+    }
+  </p>
   <Content />
 </Layout>

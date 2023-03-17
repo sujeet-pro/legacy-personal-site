@@ -4,10 +4,9 @@ import Breadcrumb from "../../components/breadcrumb.astro";
 import Card from "../../components/card.astro";
 import Layout from "../../layouts/layout.astro";
 
-const entries = await getCollection("project");
-const title = "Sujeet's Projects";
-const description =
-  "List of all the projects that I have worked on for different companies";
+const entries = await getCollection("topic");
+const title = "Topics";
+const description = "List of all the topics";
 ---
 
 <Layout
@@ -17,12 +16,12 @@ const description =
   image={null}
   pageDetails={{ type: "site" }}
 >
-  <Breadcrumb links={[]} currentPageTitle="Projects" />
+  <Breadcrumb links={[]} currentPageTitle={title} />
   <h1 class="text-5xl text-center my-8">{title}</h1>
   <ul class="divide-y-2">
     {
       entries.map((entry) => {
-        const href = `/project/${entry.slug}/`;
+        const href = `/topic/${entry.slug}/`;
         return (
           <Card
             title={entry.data.title}

@@ -6,8 +6,8 @@ tags:
   - TypeScript
   - Error Handling
   - Utility
-isDraft: false
-coverImg: "/assets/images/uploads/js.webp"
+isDraft: true
+thumbnail: "uploads/js.webp"
 iconName: "mdi:home"
 ---
 

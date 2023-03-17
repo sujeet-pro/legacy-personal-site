@@ -1,0 +1,56 @@
+---
+import { getCollection } from "astro:content";
+import Alert from "../alert.astro";
+import Card from "../card.astro";
+import DateComponent from "../date.astro";
+
+type Props = {
+  topics?: string[];
+};
+
+const { topics } = Astro.props;
+const entries = await getCollection("blog", (entry) => {
+  if (!topics?.length) return true;
+  const entryTopics = entry.data.topics;
+  if (!entryTopics?.length) return false;
+  return topics.some((topic) => entryTopics.includes(topic));
+});
+---
+
+{entries.length ? <slot /> : null}
+<ul class="divide-y-2">
+  {
+    entries.map((entry) => {
+      const {
+        isDraft,
+        title,
+        description,
+        thumbnail,
+        publishedOn,
+        lastUpdatedOn,
+      } = entry.data;
+      const href = `/blog/${entry.slug}/`;
+      return (
+        <Card
+          title={title}
+          description={description}
+          thumbnail={thumbnail}
+          isDraft={isDraft}
+          href={href}
+        >
+          <p class="flex justify-between italic font-thin">
+            <span>
+              First published on <DateComponent date={publishedOn} />.
+            </span>
+            {lastUpdatedOn ? (
+              <span>
+                Last Updated on <DateComponent date={lastUpdatedOn} />.
+              </span>
+            ) : null}
+          </p>
+        </Card>
+      );
+    })
+  }
+  {entries.length === 0 ? <Alert level="info">No Blogs</Alert> : null}
+</ul>

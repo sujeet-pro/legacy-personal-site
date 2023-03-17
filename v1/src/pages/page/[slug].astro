@@ -1,6 +1,10 @@
 ---
 import { CollectionEntry, getCollection } from "astro:content";
+
 import Layout from "../../layouts/layout.astro";
+import PageHeading from "../../components/page-heading.astro";
+import Breadcrumb from "../../components/breadcrumb.astro";
+import DraftNotice from "../../components/draft-notice.astro";
 
 export async function getStaticPaths() {
   const entries = await getCollection("page");
@@ -10,39 +14,20 @@ export async function getStaticPaths() {
   }));
 }
 
-const { entry } = Astro.props as { entry: CollectionEntry<"blog"> };
+const { entry } = Astro.props as { entry: CollectionEntry<"page"> };
 const { Content } = await entry.render();
-const {
-  title,
-  description,
-  coverImg,
-  tags,
-  topics,
-  publishedOn,
-  lastUpdatedOn,
-} = entry.data;
+const { title, description, thumbnail, isDraft } = entry.data;
 ---
 
 <Layout
-  sidenav={false}
-  prose={true}
+  article={false}
   title={title}
   description={description}
-  image={coverImg}
-  pageType="site"
-  tags={[...(tags || []), ...(topics || [])]}
-  publishedDate={publishedOn}
-  updatedDate={lastUpdatedOn}
+  image={thumbnail}
+  pageDetails={{ type: "site" }}
 >
-  <h1 class="text-center">{entry.data.title}</h1>
-  {
-    entry.data.coverImg ? (
-      <img
-        class="w-full max-h-96 object-cover"
-        role="presentation"
-        src={entry.data.coverImg}
-      />
-    ) : null
-  }
+  <Breadcrumb links={[]} currentPageTitle={title} />
+  <DraftNotice showDraft={isDraft} />
+  <PageHeading title={title} description={description} thumbnail={thumbnail} />
   <Content />
 </Layout>

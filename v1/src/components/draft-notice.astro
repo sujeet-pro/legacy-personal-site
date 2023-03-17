@@ -1,0 +1,14 @@
+---
+import Alert from "./alert.astro";
+
+type Props = {
+  showDraft?: boolean | undefined | null;
+};
+const { showDraft } = Astro.props as Props;
+---
+
+{
+  showDraft ? (
+    <Alert level="warning">This page is currently in draft.</Alert>
+  ) : null
+}

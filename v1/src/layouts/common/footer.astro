@@ -1,5 +1,6 @@
 ---
-import Link from "./link.astro";
+import Link from "../../components/link.astro";
+import { maxWidthContainer } from "../../constants/classnames";
 import {
   socialInstagram,
   socialLinkedIn,
@@ -14,14 +15,15 @@ import {
   notesLeadership,
   notesWeb,
   cv,
-  siteHome,
-  siteBlog,
+  // siteHome,
+  // siteBlog,
   siteFaq,
   siteMap,
   siteProfile,
   siteProjects,
   siteSkills,
-} from "../constants/links";
+  siteTopic,
+} from "../../constants/links";
 
 const currentYear = new Date().getFullYear();
 const allLinks = [
@@ -46,12 +48,13 @@ const allLinks = [
   {
     category: "Site",
     links: [
-      siteHome,
-      siteBlog,
+      // siteHome,
+      // siteBlog,
       siteFaq,
       siteProfile,
       siteProjects,
       siteSkills,
+      siteTopic,
       siteMap,
     ],
   },
@@ -60,7 +63,10 @@ const allLinks = [
 
 <footer class="border-t border-slate-300 dark:border-slate-600 px-2 py-6">
   <nav
-    class="flex flex-col sm:flex-row justify-around max-w-screen-md mx-auto divider-x-2"
+    class:list={[
+      "flex flex-col sm:flex-row justify-between divider-x-2",
+      maxWidthContainer,
+    ]}
   >
     {
       allLinks.map(({ category, links }) => (
@@ -68,15 +74,7 @@ const allLinks = [
           <li class="font-bold mb-2">{category}</li>
           {links.map((link) => (
             <li>
-              <Link
-                class="block py-3"
-                isExternal={link.isExternal}
-                href={link.href}
-                iconName={link.iconName}
-                iconPosition={link.iconPosition}
-              >
-                {link.text}
-              </Link>
+              <Link block class="py-3" skin="default" config={link} />
             </li>
           ))}
         </ul>

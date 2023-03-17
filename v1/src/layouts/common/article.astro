@@ -8,7 +8,10 @@ const { prose, class: className } = Astro.props;
 
 <article
   class:list={[
-    { "prose prose-xl prose-slate dark:prose-invert mx-auto my-8": prose },
+    {
+      "prose prose-xl prose-slate dark:prose-invert mx-auto my-8 text-justify w-full":
+        prose,
+    },
     className,
   ]}
 >

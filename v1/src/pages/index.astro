@@ -5,19 +5,14 @@ import Link from "../components/link.astro";
 
 const title = "Sujeet Jaiswal";
 const description = "I help build accessible and performant products on Web.";
-console.log(Astro.url.href);
 ---
 
 <Layout
-  sidenav={false}
-  prose={false}
+  article={false}
   title={title}
   description={description}
   image={null}
-  pageType="site"
-  tags={null}
-  publishedDate={null}
-  updatedDate={null}
+  pageDetails={{ type: "site" }}
   class="flex flex-col gap-20 sm:my-24"
 >
   <section aria-label="Introduction" class="flex flex-col md:flex-row gap-10">
@@ -37,10 +32,10 @@ console.log(Astro.url.href);
         Helping people make the world a better place through quality software.
       </p>
       <Link
+        config={siteProfile}
+        iconName={null}
         class="max-w-max mx-auto md:mx-0"
         skin="cta"
-        href={siteProfile.href}
-        isExternal={siteProfile.isExternal}
       >
         Know more about me
       </Link>

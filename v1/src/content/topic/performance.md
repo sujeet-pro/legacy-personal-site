@@ -6,8 +6,8 @@ tags:
   - TypeScript
   - Error Handling
   - Utility
-isDraft: false
-coverImg: ""
+isDraft: true
+thumbnail: "uploads/js.webp"
 iconName: ""
 ---
 

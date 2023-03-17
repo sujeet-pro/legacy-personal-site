@@ -1,10 +1,9 @@
-import { z, defineCollection } from "astro:content";
+import { z, image, defineCollection } from "astro:content";
 const seoConfig = {
   title: z.string(),
   description: z.string(),
-  tags: z.string().array().optional(),
   isDraft: z.boolean().optional(),
-  coverImg: z.string().optional(),
+  thumbnail: image().optional(),
 };
 
 const topicCollection = defineCollection({
@@ -20,6 +19,13 @@ const blogCollection = defineCollection({
     publishedOn: z.date(),
     lastUpdatedOn: z.date().optional(),
     topics: z.string().array().optional(),
+    tags: z.string().array().optional(),
+    cover: image()
+      .refine((img) => img.width >= 1080, {
+        message: "Cover image must be at least 1080 pixels wide!",
+      })
+      .optional(),
+    coverAlt: z.string().optional(),
   }),
 });
 
@@ -29,14 +35,13 @@ const projectCollection = defineCollection({
     startDate: z.date(),
     endDate: z.date().optional(),
     topics: z.string().array().optional(),
+    tags: z.string().array().optional(),
   }),
 });
 
 const pageCollection = defineCollection({
   schema: z.object({
     ...seoConfig,
-    publishedOn: z.date(),
-    lastUpdatedOn: z.date().optional(),
   }),
 });
 export const collections = {

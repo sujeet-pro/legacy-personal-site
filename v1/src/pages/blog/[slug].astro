@@ -1,8 +1,12 @@
 ---
-import type { InferGetStaticPropsType } from "astro";
+import type { InferGetStaticPropsType, ImageMetadata } from "astro";
 import { getCollection } from "astro:content";
+import { Image } from "astro:assets";
 import Layout from "../../layouts/layout.astro";
 import DateComponent from "../../components/date.astro";
+import Breadcrumb from "../../components/breadcrumb.astro";
+import { siteBlog } from "../../constants/links";
+import DraftNotice from "../../components/draft-notice.astro";
 
 export async function getStaticPaths() {
   const entries = await getCollection("blog");
@@ -19,29 +23,35 @@ const { entry } = Astro.props;
 const {
   title,
   description,
-  coverImg,
+  thumbnail,
+  cover,
+  coverAlt,
   publishedOn,
   lastUpdatedOn,
   tags,
   topics,
+  isDraft,
 } = entry.data;
 const { Content } = await entry.render();
 ---
 
 <Layout
-  sidenav={false}
-  prose={true}
+  article={true}
   title={title}
   description={description}
-  image={coverImg}
-  pageType="article"
-  tags={[...(tags || []), ...(topics || [])]}
-  publishedDate={publishedOn}
-  updatedDate={lastUpdatedOn}
+  image={thumbnail}
+  pageDetails={{
+    type: "article",
+    tags: [...(tags || []), ...(topics || [])],
+    publishedDate: publishedOn,
+    updatedDate: lastUpdatedOn || null,
+  }}
 >
+  <Breadcrumb links={[siteBlog]} currentPageTitle={title} slot="pre-article" />
+  <DraftNotice showDraft={isDraft} slot="pre-article" />
   <h1 class="text-center">{title}</h1>
   <p>{description}</p>
-  <p class="flex justify-between italic font-thin">
+  <p class="flex flex-col sm:flex-row justify-between italic font-thin">
     <span>First published on <DateComponent date={publishedOn} />.</span>
     {
       lastUpdatedOn ? (
@@ -51,14 +61,6 @@ const { Content } = await entry.render();
       ) : null
     }
   </p>
-  {
-    coverImg ? (
-      <img
-        class="w-full max-h-96 object-cover"
-        role="presentation"
-        src={coverImg}
-      />
-    ) : null
-  }
+  {cover ? <Image src={cover as ImageMetadata} alt={coverAlt || ""} /> : null}
   <Content />
 </Layout>

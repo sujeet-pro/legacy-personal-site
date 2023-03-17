@@ -1,4 +1,5 @@
 ---
+import Breadcrumb from "../../components/breadcrumb.astro";
 import CompanyDetails from "../../components/profile/company-details.astro";
 import Layout from "../../layouts/layout.astro";
 
@@ -7,16 +8,15 @@ const description = "A detailed list of my work experience";
 ---
 
 <Layout
-  sidenav={false}
-  prose={true}
+  article={true}
   title={title}
   description={description}
   image={null}
-  pageType="site"
-  tags={null}
-  publishedDate={null}
-  updatedDate={null}
+  pageDetails={{
+    type: "site",
+  }}
 >
+  <Breadcrumb links={[]} currentPageTitle="Profile" slot="pre-article" />
   <section>
     <h2>Summary</h2>
     <p>

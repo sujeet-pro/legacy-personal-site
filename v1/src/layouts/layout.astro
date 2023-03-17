@@ -1,27 +1,70 @@
 ---
-import Article from "../components/article.astro";
-import Layout, { Props as BaseLayoutProps } from "./base.astro";
-type Props = BaseLayoutProps & {
-  prose?: boolean | undefined;
-  sidenav?: boolean | undefined;
+import Analytics from "./common/analytics.astro";
+import Article from "./common/article.astro";
+import Footer from "./common/footer.astro";
+import Header from "./common/header.astro";
+import PageIcons from "./common/page-icons.astro";
+import Seo, { Props as SeoProps } from "./common/seo.astro";
+import ThemeSetter from "./common/theme-setter.astro";
+import {
+  maxWidthContainer,
+  siteColorBgDarkMode,
+  siteColorBgLightMode,
+  siteColorTextDarkMode,
+  siteColorTextLightMode,
+} from "../constants/classnames";
+export type Props = SeoProps & {
   class?: string | undefined | null;
+  article: boolean | { prose: boolean };
 };
-const { prose, sidenav, class: className, ...layoutProps } = Astro.props;
+const { class: className, article, ...seoProps } = Astro.props as Props;
 ---
 
-<Layout {...layoutProps}>
-  <div class:list={["flex-auto lg:container mx-auto p-2 my-6", className]}>
-    {
-      sidenav ? (
-        <div>
-          <slot name="sidenav" />
-        </div>
-      ) : null
-    }
-    <main>
-      <Article prose={prose || false}>
-        <slot />
-      </Article>
-    </main>
-  </div>
-</Layout>
+<html lang="en-IN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <PageIcons />
+    <link rel="manifest" href="/assets/favicons/manifest.json" />
+    <meta name="msapplication-TileImage" content="/ms-icon-144x144.png" />
+    <meta name="msapplication-TileColor" content="#e4e7eb" />
+    <meta name="theme-color" content="#e4e7eb" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <Seo {...seoProps} />
+    <ThemeSetter />
+  </head>
+  <body
+    class:list={[
+      "min-h-screen overflow-x-hidden flex flex-col",
+      siteColorBgDarkMode,
+      siteColorBgLightMode,
+      siteColorTextDarkMode,
+      siteColorTextLightMode,
+    ]}
+  >
+    <Header />
+    <div class:list={["flex-auto", maxWidthContainer]}>
+      <main class:list={[!article ? className : null]}>
+        {
+          article ? (
+            <>
+              <slot name="pre-article" />
+              <Article
+                prose={typeof article === "boolean" ? true : article.prose}
+                class:list={[className]}
+              >
+                <slot />
+              </Article>
+              <slot name="post-article" />
+            </>
+          ) : (
+            <slot />
+          )
+        }
+      </main>
+    </div>
+    <Footer />
+    <Analytics />
+  </body>
+</html>

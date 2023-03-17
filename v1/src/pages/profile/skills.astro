@@ -1,6 +1,8 @@
 ---
 import Layout from "../../layouts/layout.astro";
 import TechSkills from "../../components/profile/tech-skills.astro";
+import { siteProfile } from "../../constants/links";
+import Breadcrumb from "../../components/breadcrumb.astro";
 
 const title = "Sujeet's Skills";
 const description =
@@ -8,15 +10,12 @@ const description =
 ---
 
 <Layout
-  sidenav={false}
-  prose={false}
+  article={false}
   title={title}
   description={description}
   image={null}
-  pageType="site"
-  tags={null}
-  publishedDate={null}
-  updatedDate={null}
+  pageDetails={{ type: "site" }}
 >
+  <Breadcrumb links={[siteProfile]} currentPageTitle="Skills" />
   <TechSkills />
 </Layout>

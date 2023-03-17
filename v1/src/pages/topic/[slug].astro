@@ -1,0 +1,50 @@
+---
+import { CollectionEntry, getCollection } from "astro:content";
+import Layout from "../../layouts/layout.astro";
+import BlogList from "../../components/blog/blog-list.astro";
+import PageHeading from "../../components/page-heading.astro";
+import { siteBlog, siteTopic } from "../../constants/links";
+import Breadcrumb from "../../components/breadcrumb.astro";
+import DraftNotice from "../../components/draft-notice.astro";
+import Link from "../../components/link.astro";
+export async function getStaticPaths() {
+  const entries = await getCollection("topic");
+  return entries.map((entry) => ({
+    params: { slug: entry.slug },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props as { entry: CollectionEntry<"topic"> };
+const { Content } = await entry.render();
+const { title, description, thumbnail, isDraft } = entry.data;
+---
+
+<Layout
+  article={true}
+  title={title}
+  description={description}
+  image={thumbnail}
+  pageDetails={{ type: "site" }}
+>
+  <Breadcrumb links={[siteTopic]} currentPageTitle={title} slot="pre-article" />
+  <DraftNotice showDraft={isDraft} slot="pre-article" />
+  <PageHeading title={title} description={description} thumbnail={thumbnail} />
+  <Content />
+
+  <section class="border-t-2" slot="post-article">
+    <BlogList topics={[entry.slug]}>
+      <div class="flex justify-between items-center">
+        <h2 class="text-3xl my-4">Blogs</h2>
+        <Link
+          skin="default"
+          href={siteBlog.href}
+          iconPosition="right"
+          iconName="mdi:arrow-right"
+        >
+          View all blogs
+        </Link>
+      </div>
+    </BlogList>
+  </section>
+</Layout>
