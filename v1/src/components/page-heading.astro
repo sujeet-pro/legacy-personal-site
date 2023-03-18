@@ -1,10 +1,12 @@
 ---
 import type { ImageMetadata } from "astro";
+import { Icon } from "astro-icon";
 import { Image } from "astro:assets";
 
 type Props = {
   title: string;
   description: string;
+  iconName?: string | undefined | null;
   thumbnail?:
     | ImageMetadata
     | (Omit<ImageMetadata, "format"> & { format: string })
@@ -12,20 +14,14 @@ type Props = {
     | undefined;
 };
 
-const { title, description, thumbnail } = Astro.props as Props;
+const { title, description, iconName, thumbnail } = Astro.props as Props;
 const imageSrc = thumbnail as ImageMetadata;
+const className = "m-0 p-0 w-16 sm:w-24 h-16 sm:h-24";
 ---
 
 <h1 class="text-center text-3xl sm:text-4xl md:text-6xl">{title}</h1>
-<div class="flex flex-col sm:flex-row gap-4">
-  {
-    thumbnail ? (
-      <Image
-        class="m-0 p-0 w-16 sm:w-24 h-16 sm:h-24"
-        src={imageSrc}
-        alt={title}
-      />
-    ) : null
-  }
+<div class="flex flex-col sm:flex-row items-center gap-4">
+  {thumbnail ? <Image class={className} src={imageSrc} alt={title} /> : null}
+  {!thumbnail && iconName ? <Icon name={iconName} class={className} /> : null}
   <p class="text-2xl m-0">{description}</p>
 </div>

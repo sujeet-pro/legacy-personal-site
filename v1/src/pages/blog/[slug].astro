@@ -5,8 +5,8 @@ import { Image } from "astro:assets";
 import Layout from "../../layouts/layout.astro";
 import DateComponent from "../../components/date.astro";
 import Breadcrumb from "../../components/breadcrumb.astro";
-import { siteBlog } from "../../constants/links";
 import DraftNotice from "../../components/draft-notice.astro";
+import { siteBlog } from "../../constants/link-site";
 
 export async function getStaticPaths() {
   const entries = await getCollection("blog");

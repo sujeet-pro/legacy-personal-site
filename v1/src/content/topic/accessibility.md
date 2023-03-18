@@ -7,8 +7,7 @@ tags:
   - Error Handling
   - Utility
 isDraft: true
-thumbnail: "uploads/js.webp"
-iconName: "mdi:home"
+iconName: "topic-accessibility"
 ---
 
 ## About Accessibility

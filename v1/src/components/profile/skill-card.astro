@@ -1,0 +1,34 @@
+---
+import { Icon } from "astro-icon";
+import { proficiencyLevelConfigMap } from "../../constants/skill-tech";
+import type { Tech } from "../../types/skills.types";
+
+type Props = {
+  skill: Tech;
+  class?: string | undefined;
+};
+
+const {
+  class: className,
+  skill: { name, icon, level },
+} = Astro.props as Props;
+const {
+  textColor,
+  bgColor,
+  borderColor,
+  icon: proficiencyIcon,
+  title,
+} = proficiencyLevelConfigMap[level];
+---
+
+<div class:list={["border-2 relative", borderColor, className]}>
+  <Icon class="m-4 w-24 h-24 mx-auto" name={icon || "mdi:code-greater-than"} />
+  <Icon
+    name={proficiencyIcon}
+    title={title}
+    class:list={["absolute top-1 right-1 w-6 h-6 rounded", textColor, bgColor]}
+  />
+  <div class:list={["p-1 text-center", textColor, bgColor]}>
+    {name}
+  </div>
+</div>

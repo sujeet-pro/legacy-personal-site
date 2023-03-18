@@ -1,8 +1,13 @@
 ---
 import Layout from "../../layouts/layout.astro";
-import TechSkills from "../../components/profile/tech-skills.astro";
-import { siteProfile } from "../../constants/links";
 import Breadcrumb from "../../components/breadcrumb.astro";
+import { siteProfile } from "../../constants/link-site";
+import {
+  proficiencyLevelConfigs,
+  techSkillSections,
+} from "../../constants/skill-tech";
+import Card from "../../components/profile/skill-card.astro";
+import { Icon } from "astro-icon";
 
 const title = "Sujeet's Skills";
 const description =
@@ -17,5 +22,42 @@ const description =
   pageDetails={{ type: "site" }}
 >
   <Breadcrumb links={[siteProfile]} currentPageTitle="Skills" />
-  <TechSkills />
+  <section class:list={["border-2 p-4"]}>
+    <h2 class="text-lg mb-4">Proficiency Legend</h2>
+    <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+      {
+        proficiencyLevelConfigs.map((entry) => {
+          return (
+            <li class="flex items-center gap-4">
+              <span
+                class:list={[
+                  entry.bgColor,
+                  entry.borderColor,
+                  entry.textColor,
+                  "border-2 w-9 h-9 flex justify-center items-center",
+                ]}
+              >
+                <Icon name={entry.icon} />
+              </span>
+              <span>{entry.title}</span>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </section>
+  {
+    techSkillSections.map((section) =>
+      section.skills.length ? (
+        <section>
+          <h2 class="text-4xl my-8">{section.title}</h2>
+          <ul class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4 ">
+            {section.skills.map((skill) => (
+              <Card skill={skill} />
+            ))}
+          </ul>
+        </section>
+      ) : null
+    )
+  }
 </Layout>

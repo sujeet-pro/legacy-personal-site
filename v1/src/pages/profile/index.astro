@@ -1,6 +1,8 @@
 ---
 import Breadcrumb from "../../components/breadcrumb.astro";
+import Link from "../../components/link.astro";
 import CompanyDetails from "../../components/profile/company-details.astro";
+import { cv } from "../../constants/links-external";
 import Layout from "../../layouts/layout.astro";
 
 const title = "Sujeet's Profile";
@@ -17,6 +19,9 @@ const description = "A detailed list of my work experience";
   }}
 >
   <Breadcrumb links={[]} currentPageTitle="Profile" slot="pre-article" />
+  <section slot="pre-article" class="italic">
+    <Link skin="default" config={cv}>My Resume/CV in Google Docs format.</Link>
+  </section>
   <section>
     <h2>Summary</h2>
     <p>
@@ -103,7 +108,7 @@ const description = "A detailed list of my work experience";
         href="https://www.linkedin.com/company/vistaprint/"
         role="Acting Engineering Manager"
         designation="Lead Software Engineer"
-        icon="company_vistaprint"
+        icon="company-vistaprint"
         startDate="Aug 2020"
       />
       <p class="italic">Current Designation - Lead Software Engineer</p>
@@ -145,7 +150,7 @@ const description = "A detailed list of my work experience";
         href="https://www.linkedin.com/company/cult.fit/"
         role="Team Lead"
         designation="Full Stack Developer"
-        icon="company_cure.fit"
+        icon="company-cure.fit"
         endDate="Aug 2020"
         startDate="Feb 2020"
       />
@@ -174,7 +179,7 @@ const description = "A detailed list of my work experience";
         href="https://www.linkedin.com/company/media.net/"
         role="UI Lead"
         designation="Lead Software Engineer"
-        icon="company_media.net"
+        icon="company-media.net"
         endDate="Feb 2020"
         startDate="Nov 2019"
       />
@@ -197,7 +202,7 @@ const description = "A detailed list of my work experience";
         href="https://www.linkedin.com/company/infosys/"
         role="Team Lead"
         designation="Specialist Programmer"
-        icon="company_infosys"
+        icon="company-infosys"
         endDate="Nov 2019"
         startDate="June 2014"
       />
@@ -214,5 +219,23 @@ const description = "A detailed list of my work experience";
         </li>
       </ul>
     </section>
+  </section>
+  <section>
+    <h2>Education</h2>
+    <ul>
+      <li>
+        <strong>B.Tech</strong> (Mechanical Engineering) from Uttar Pradesh Technical
+        University
+        <span class="italic">(Batch of <time datetime="2014">2014</time>)</span>
+      </li>
+      <li>
+        <strong>10+2</strong> - Central Board of Secondary Education
+        <span class="italic">(Batch of <time datetime="2010">2010</time>)</span>
+      </li>
+      <li>
+        <strong>10</strong> - Central Board of Secondary Education
+        <span class="italic">(Batch of <time datetime="2008">2008</time>)</span>
+      </li>
+    </ul>
   </section>
 </Layout>

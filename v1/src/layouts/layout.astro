@@ -44,7 +44,7 @@ const { class: className, article, ...seoProps } = Astro.props as Props;
     ]}
   >
     <Header />
-    <div class:list={["flex-auto", maxWidthContainer]}>
+    <div class:list={["flex-auto py-4", maxWidthContainer]}>
       <main class:list={[!article ? className : null]}>
         {
           article ? (

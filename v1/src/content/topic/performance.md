@@ -7,8 +7,7 @@ tags:
   - Error Handling
   - Utility
 isDraft: true
-thumbnail: "uploads/js.webp"
-iconName: ""
+iconName: "topic-performance"
 ---
 
 ## About Performance

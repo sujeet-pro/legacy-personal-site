@@ -1,67 +1,33 @@
 ---
 import Link from "../../components/link.astro";
 import { maxWidthContainer } from "../../constants/classnames";
-import {
-  socialInstagram,
-  socialLinkedIn,
-  socialMastodon,
-  socialTwitter,
-  communityHashedNode,
-  communityDevTo,
-  communityMedium,
-  communityGithub,
-  communityStackoverflow,
-  notesJS,
-  notesLeadership,
-  notesWeb,
-  cv,
-  // siteHome,
-  // siteBlog,
-  siteFaq,
-  siteMap,
-  siteProfile,
-  siteProjects,
-  siteSkills,
-  siteTopic,
-} from "../../constants/links";
+import { communityLinks } from "../../constants/link-community";
+import { siteLinks } from "../../constants/link-site";
+import { socialLinks } from "../../constants/link-social";
+import { externalLinks } from "../../constants/links-external";
 
 const currentYear = new Date().getFullYear();
 const allLinks = [
   {
     category: "Social",
-    links: [socialLinkedIn, socialTwitter, socialInstagram, socialMastodon],
+    links: socialLinks,
   },
   {
     category: "Community",
-    links: [
-      communityHashedNode,
-      communityDevTo,
-      communityMedium,
-      communityGithub,
-      communityStackoverflow,
-    ],
+    links: communityLinks,
   },
   {
     category: "Notes",
-    links: [notesWeb, notesLeadership, notesJS, cv],
+    links: externalLinks,
   },
   {
     category: "Site",
-    links: [
-      // siteHome,
-      // siteBlog,
-      siteFaq,
-      siteProfile,
-      siteProjects,
-      siteSkills,
-      siteTopic,
-      siteMap,
-    ],
+    links: siteLinks,
   },
 ];
 ---
 
-<footer class="border-t border-slate-300 dark:border-slate-600 px-2 py-6">
+<footer class="border-t border-slate-300 dark:border-slate-600 py-6">
   <nav
     class:list={[
       "flex flex-col sm:flex-row justify-between divider-x-2",
@@ -81,5 +47,5 @@ const allLinks = [
       ))
     }
   </nav>
-  <p class="text-center mt-6">&copy; {currentYear} Sujeet Jaiswal</p>
+  <p class="text-center mt-4">&copy; {currentYear} Sujeet Jaiswal</p>
 </footer>

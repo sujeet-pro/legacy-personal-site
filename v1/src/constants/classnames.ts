@@ -8,4 +8,4 @@ export const siteColorTextDarkMode = "dark:text-slate-300";
 export const siteColorShadowLight = "shadow-slate-50";
 export const siteColorShadowDark = "dark:shadow-slate-900";
 
-export const maxWidthContainer = "max-w-screen-md w-full mx-auto p-4";
+export const maxWidthContainer = "max-w-screen-md w-full mx-auto px-4";
