@@ -32,7 +32,8 @@ collections:
       - label: Is Draft
         name: isDraft
         widget: boolean
-        required: false
+        required: true
+        default: false
       - label: Thumbnail Image
         name: thumbnail
         widget: image
@@ -57,6 +58,7 @@ collections:
         time_format: false
         date_format: DD-MMM-YYYY
         required: false
+        default: ""
       - label: Tags
         name: tags
         widget: list
@@ -73,7 +75,7 @@ collections:
           search_fields:
             - topic.title
             - topic.description
-          value_field: "{{ slug }}"
+          value_field: "{{slug}}"
           display_fields: ["topic.title"]
       - label: Body
         name: body
@@ -116,6 +118,16 @@ collections:
         name: tags
         widget: list
         required: false
+      - label: Organization Name
+        name: company
+        widget: select
+        required: true
+        options:
+          - Vistaprint
+          - Cure.fit
+          - Media.Net
+          - Infosys
+          - Personal
       - label: Topics
         name: topics
         widget: list
@@ -128,7 +140,7 @@ collections:
           search_fields:
             - topic.title
             - topic.description
-          value_field: "{{ slug }}"
+          value_field: "{{slug}}"
           display_fields: ["topic.title"]
       - label: Body
         name: body

@@ -49,15 +49,9 @@ const {
   <DraftNotice showDraft={isDraft} slot="pre-article" />
   <PageHeading title={title} description={description} thumbnail={thumbnail} />
   <p class="flex justify-start italic font-thin">
-    <span><DateComponent date={startDate} /></span>
-    {
-      endDate ? (
-        <span>
-          &nbsp;-&nbsp;
-          <DateComponent date={endDate} />.
-        </span>
-      ) : null
-    }
+    <DateComponent date={startDate} />
+    &nbsp;-&nbsp;
+    {endDate ? <DateComponent date={endDate} /> : "Current"}
   </p>
   <Content />
 </Layout>

@@ -32,6 +32,13 @@ const blogCollection = defineCollection({
 const projectCollection = defineCollection({
   schema: z.object({
     ...seoConfig,
+    company: z.enum([
+      "Vistaprint",
+      "Cure.fit",
+      "Media.net",
+      "Infosys",
+      "Personal",
+    ]), //string().optional(),
     startDate: z.date(),
     endDate: z.date().optional(),
     topics: z.string().array().optional(),

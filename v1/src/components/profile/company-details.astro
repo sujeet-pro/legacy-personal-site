@@ -1,34 +1,32 @@
 ---
 import { Icon } from "astro-icon";
 import { classNameMuted } from "../../constants/classnames";
+import { organizationMap, OrgKeys } from "../../constants/organization";
 
 type Props = {
-  company: string;
+  company: OrgKeys;
   department: string;
   role: string;
   designation?: string;
-  icon: string;
-  href: string;
   startDate: string;
   endDate?: string;
 };
-const {
-  company,
-  department,
-  role,
-  designation,
-  icon,
-  startDate,
-  endDate,
-  href,
-} = Astro.props as Props;
+const { company, department, role, designation, startDate, endDate } =
+  Astro.props as Props;
+const companyDetails = organizationMap[company];
 ---
 
-<div class="company-details">
-  <Icon class="w-40 h-20 company-icon" name={icon} />
-  <span class="company-designation text-2xl">{role} / {designation}</span>
+<div class="company-details grid gap-x-3 gap-y-2">
+  <Icon class="w-40 h-20 company-icon" name={companyDetails.icon} />
+  <span class="company-designation text-2xl text-left"
+    >{role} / {designation}</span
+  >
   <span class="company-name text-lg">
-    <a href={href} target="_blank" rel="noopener noreferrer">{company}</a>
+    <a
+      href={companyDetails.linkedInUrl}
+      target="_blank"
+      rel="noopener noreferrer">{company}</a
+    >
     {
       department ? (
         <span class:list={[classNameMuted]}>({department})</span>
@@ -53,10 +51,14 @@ const {
 
 <style>
   .company-details {
-    display: grid;
-    column-gap: 12px;
-    grid-template-columns: 1fr min-content;
-    grid-template-areas: "designation icon" "company icon" "duration icon";
+    grid-template-columns: 1fr;
+    grid-template-areas: "icon" "designation" "company" "duration";
+  }
+  @media (min-width: 600px) {
+    .company-details {
+      grid-template-columns: 1fr min-content;
+      grid-template-areas: "designation icon" "company icon" "duration icon";
+    }
   }
   .company-icon {
     grid-area: icon;

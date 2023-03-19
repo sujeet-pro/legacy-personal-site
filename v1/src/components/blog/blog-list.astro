@@ -15,6 +15,12 @@ const entries = await getCollection("blog", (entry) => {
   if (!entryTopics?.length) return false;
   return topics.some((topic) => entryTopics.includes(topic));
 });
+entries.sort((a, b) =>
+  (a.data.lastUpdatedOn || a.data.publishedOn) >=
+  (b.data.lastUpdatedOn || b.data.publishedOn)
+    ? -1
+    : 1
+);
 ---
 
 {entries.length ? <slot /> : null}
@@ -38,15 +44,16 @@ const entries = await getCollection("blog", (entry) => {
           isDraft={isDraft}
           href={href}
         >
-          <p class="flex justify-between italic font-thin">
-            <span>
-              First published on <DateComponent date={publishedOn} />.
-            </span>
+          <p class="flex justify-end italic font-thin">
             {lastUpdatedOn ? (
               <span>
                 Last Updated on <DateComponent date={lastUpdatedOn} />.
               </span>
-            ) : null}
+            ) : (
+              <span>
+                First published on <DateComponent date={publishedOn} />.
+              </span>
+            )}
           </p>
         </Card>
       );

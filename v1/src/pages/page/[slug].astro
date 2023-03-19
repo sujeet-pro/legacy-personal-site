@@ -20,14 +20,14 @@ const { title, description, thumbnail, isDraft } = entry.data;
 ---
 
 <Layout
-  article={false}
+  article={true}
   title={title}
   description={description}
   image={thumbnail}
   pageDetails={{ type: "site" }}
 >
-  <Breadcrumb links={[]} currentPageTitle={title} />
-  <DraftNotice showDraft={isDraft} />
+  <Breadcrumb links={[]} currentPageTitle={title} slot="pre-article" />
+  <DraftNotice showDraft={isDraft} slot="pre-article" />
   <PageHeading title={title} description={description} thumbnail={thumbnail} />
   <Content />
 </Layout>
