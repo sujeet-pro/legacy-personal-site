@@ -17,11 +17,13 @@ export type Props = SeoProps & {
   class?: string | undefined | null;
   article: boolean | { prose: boolean };
   noIndex?: boolean | undefined | null;
+  maxWithContainerClassName?: string | null | undefined;
 };
 const {
   class: className,
   article,
   noIndex,
+  maxWithContainerClassName = maxWidthContainer,
   ...seoProps
 } = Astro.props as Props;
 ---
@@ -52,7 +54,7 @@ const {
     ]}
   >
     <Header />
-    <div class:list={["flex-auto py-4", maxWidthContainer]}>
+    <div class:list={["flex-auto py-4", maxWithContainerClassName]}>
       <main class:list={[!article ? className : null]}>
         {
           article ? (

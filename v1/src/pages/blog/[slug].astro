@@ -7,6 +7,7 @@ import DateComponent from "../../components/date.astro";
 import Breadcrumb from "../../components/breadcrumb.astro";
 import DraftNotice from "../../components/draft-notice.astro";
 import { siteBlog } from "../../constants/link-site";
+import CoverImg from "../../components/cover-img.astro";
 
 export async function getStaticPaths() {
   const entries = await getCollection("blog");
@@ -62,6 +63,6 @@ const { Content } = await entry.render();
       ) : null
     }
   </p>
-  {cover ? <Image src={cover as ImageMetadata} alt={coverAlt || ""} /> : null}
+  <CoverImg src={cover} alt={coverAlt} />
   <Content />
 </Layout>

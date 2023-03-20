@@ -6,6 +6,7 @@ description: >
   Let us explore why is it 21 and how to get 3.
 isDraft: false
 publishedOn: 2023-03-20
+cover: uploads/length-of-a-string.jpeg
 tags:
   - JS
   - Emoticon
@@ -15,7 +16,7 @@ tags:
 
 ## TL;DR
 
-`'👩‍👩‍👦‍👦🌦️🧘🏻‍♂️'.length` is 21 instead of 3 because JS gives length UTF-16 code units and icons are combination of more than one of such code units. Use `Intl.Segmenter` to get the length of rendered graphemes.
+`'👩‍👩‍👦‍👦🌦️🧘🏻‍♂️'.length` is 21 instead of 3 because JS gives length UTF-16 code units and icons are a combination of more than one of such code units. Use `Intl.Segmenter` to get the length of rendered graphemes.
 
 ```typescript
 console.log("👩‍👩‍👦‍👦🌦️🧘🏻‍♂️".length); // 21  - W
