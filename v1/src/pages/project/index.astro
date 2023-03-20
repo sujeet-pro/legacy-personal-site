@@ -4,7 +4,10 @@ import Breadcrumb from "../../components/breadcrumb.astro";
 import Card from "../../components/card.astro";
 import Layout from "../../layouts/layout.astro";
 
-const entries = await getCollection("project");
+const entries = await getCollection("project", (entry) => {
+  if (entry.data.isDraft) return false;
+  return true;
+});
 const title = "Sujeet's Projects";
 const description =
   "List of all the projects that I have worked on for different companies";

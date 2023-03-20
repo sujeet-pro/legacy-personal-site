@@ -10,6 +10,7 @@ type Props = {
 
 const { topics } = Astro.props;
 const entries = await getCollection("blog", (entry) => {
+  if (entry.data.isDraft) return false;
   if (!topics?.length) return true;
   const entryTopics = entry.data.topics;
   if (!entryTopics?.length) return false;

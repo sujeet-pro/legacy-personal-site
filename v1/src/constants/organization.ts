@@ -12,7 +12,7 @@ export type Organization = {
 export const vistaprint: Organization = {
   name: "Vistaprint",
   icon: "company-vistaprint",
-  linkedInUrl: "",
+  linkedInUrl: "https://www.linkedin.com/company/vistaprint/",
   orgUrl: "",
   aboutUrl: "",
 };
@@ -20,7 +20,7 @@ export const vistaprint: Organization = {
 export const cure_fit: Organization = {
   name: "Cure.Fit",
   icon: "company-cure.fit",
-  linkedInUrl: "",
+  linkedInUrl: "https://www.linkedin.com/company/cult.fit/",
   orgUrl: "",
   aboutUrl: "",
 };
@@ -28,7 +28,7 @@ export const cure_fit: Organization = {
 export const media_net: Organization = {
   name: "Media.net",
   icon: "company-media.net",
-  linkedInUrl: "",
+  linkedInUrl: "https://www.linkedin.com/company/media.net/",
   orgUrl: "",
   aboutUrl: "",
 };
@@ -36,7 +36,7 @@ export const media_net: Organization = {
 export const infosys: Organization = {
   name: "Infosys",
   icon: "company-infosys",
-  linkedInUrl: "",
+  linkedInUrl: "https://www.linkedin.com/company/infosys/",
   orgUrl: "",
   aboutUrl: "",
 };

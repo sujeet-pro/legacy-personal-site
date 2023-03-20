@@ -25,6 +25,7 @@ const { title, description, thumbnail, isDraft } = entry.data;
   description={description}
   image={thumbnail}
   pageDetails={{ type: "site" }}
+  noIndex={isDraft}
 >
   <Breadcrumb links={[]} currentPageTitle={title} slot="pre-article" />
   <DraftNotice showDraft={isDraft} slot="pre-article" />

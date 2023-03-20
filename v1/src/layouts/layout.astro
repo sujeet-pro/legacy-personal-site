@@ -16,8 +16,14 @@ import {
 export type Props = SeoProps & {
   class?: string | undefined | null;
   article: boolean | { prose: boolean };
+  noIndex?: boolean | undefined | null;
 };
-const { class: className, article, ...seoProps } = Astro.props as Props;
+const {
+  class: className,
+  article,
+  noIndex,
+  ...seoProps
+} = Astro.props as Props;
 ---
 
 <html lang="en-IN">
@@ -25,12 +31,14 @@ const { class: className, article, ...seoProps } = Astro.props as Props;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
+    {noIndex ? <meta name="robots" content="noindex" /> : null}
     <PageIcons />
     <link rel="manifest" href="/assets/favicons/manifest.json" />
     <meta name="msapplication-TileImage" content="/ms-icon-144x144.png" />
     <meta name="msapplication-TileColor" content="#e4e7eb" />
     <meta name="theme-color" content="#e4e7eb" />
     <link rel="sitemap" href="/sitemap-index.xml" />
+
     <Seo {...seoProps} />
     <ThemeSetter />
   </head>
