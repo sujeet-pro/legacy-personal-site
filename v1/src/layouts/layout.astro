@@ -13,6 +13,7 @@ import {
   siteColorTextDarkMode,
   siteColorTextLightMode,
 } from "../constants/classnames";
+import { SITE_BASE } from "../constants/global";
 export type Props = SeoProps & {
   class?: string | undefined | null;
   article: boolean | { prose: boolean };
@@ -26,6 +27,7 @@ const {
   maxWithContainerClassName = maxWidthContainer,
   ...seoProps
 } = Astro.props as Props;
+const canonicalUrl = SITE_BASE + Astro.url.pathname;
 ---
 
 <html lang="en-IN">
@@ -40,7 +42,7 @@ const {
     <meta name="msapplication-TileColor" content="#e4e7eb" />
     <meta name="theme-color" content="#e4e7eb" />
     <link rel="sitemap" href="/sitemap-index.xml" />
-
+    <link rel="canonical" href={canonicalUrl} />
     <Seo {...seoProps} />
     <ThemeSetter />
   </head>
