@@ -48,11 +48,11 @@ export const siteTopic: LinkConfig = {
 };
 
 export const siteLinks: LinkConfig[] = [
-  siteFaq,
   siteProjects,
-  siteProfile,
   siteSkills,
-  siteTopic,
+  siteFaq,
+  // siteProfile,
+  // siteTopic,
   siteMap,
 ];
 

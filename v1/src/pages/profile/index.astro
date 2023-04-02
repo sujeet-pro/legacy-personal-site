@@ -21,7 +21,7 @@ const description = "A detailed list of my work experience";
   <Breadcrumb links={[]} currentPageTitle="Profile" slot="pre-article" />
   <section
     slot="pre-article"
-    class="italic text-xl py-2 px-4 rounded bg-slate-200"
+    class="italic text-xl py-2 px-4 rounded bg-slate-200 dark:bg-slate-700"
   >
     <Link skin="default" config={cv}>
       Get my Resume/CV in Google Docs format.
@@ -112,7 +112,7 @@ const description = "A detailed list of my work experience";
         department="E-commerce Platform"
         role="Acting Engineering Manager"
         designation="Lead Software Engineer"
-        startDate="Aug 2020"
+        startDate={new Date("Aug 2020")}
       />
       <p class="italic">Current Designation - Lead Software Engineer</p>
       <h4>Commerce Platform</h4>
@@ -152,8 +152,8 @@ const description = "A detailed list of my work experience";
         department="Audit Platform"
         role="Team Lead"
         designation="Full Stack Developer"
-        endDate="Aug 2020"
-        startDate="Feb 2020"
+        endDate={new Date("Aug 2020")}
+        startDate={new Date("Feb 2020")}
       />
       <ul>
         <li>
@@ -179,8 +179,8 @@ const description = "A detailed list of my work experience";
         department="Pragmmatic Platform"
         role="UI Lead"
         designation="Lead Software Engineer"
-        endDate="Feb 2020"
-        startDate="Nov 2019"
+        endDate={new Date("Feb 2020")}
+        startDate={new Date("Nov 2019")}
       />
       <ul>
         <li>
@@ -200,8 +200,8 @@ const description = "A detailed list of my work experience";
         department="Strategic Technology Group - Expert Track"
         role="Team Lead"
         designation="Specialist Programmer"
-        endDate="Nov 2019"
-        startDate="June 2014"
+        endDate={new Date("Nov 2019")}
+        startDate={new Date("June 2014")}
       />
       <ul>
         <li>I led a team of 8 developers in building the Wingspan Platform.</li>

@@ -1,4 +1,5 @@
 import type { LinkConfig } from "../types/link.type";
+import { cv } from "./links-external";
 
 // Social Profiles
 export const socialLinkedIn: LinkConfig = {
@@ -31,6 +32,7 @@ export const socialMastodon: LinkConfig = {
 export const socialLinks: LinkConfig[] = [
   socialLinkedIn,
   socialTwitter,
-  socialInstagram,
-  socialMastodon,
+  cv,
+  // socialInstagram,
+  // socialMastodon,
 ];

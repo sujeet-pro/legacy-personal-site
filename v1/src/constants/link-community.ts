@@ -34,8 +34,8 @@ export const communityMedium: LinkConfig = {
 
 export const communityLinks: LinkConfig[] = [
   communityHashNode,
-  communityDevTo,
-  communityMedium,
+  // communityDevTo,
+  // communityMedium,
   communityGithub,
   communityStackoverflow,
 ];

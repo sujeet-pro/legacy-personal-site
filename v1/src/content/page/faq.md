@@ -49,21 +49,24 @@ The Lead Software Engineer manages two pairs of dev, each pair have 1 Senior Sof
 
 ### Conflict Management
 
-#### Between Peers
+The first step to resolving conflict is to listen for both sides.
+Personally, the conflicts that I have observed is because of one or more below reasons.
+After listing to both the parties, you would ideally break it down to reasons like below and fix them one by one.
+Remember that the goal is to limit the negative aspects of conflict while increasing the positive aspects of conflicts. You should not try to use your authority to suppress any conflicts, but instead try to mold that into a healthy discussion.
 
-> TODO
-
-#### With Direct Reports
-
-> TODO
-
-#### With Managers & Management
-
-> TODO
-
-#### Between Cross-Functional Peers
-
-> TODO
+- Miscommunications
+  - Bridge gaps with more frequent communication, may be a multi
+  - Have skip level meetings at a lower cadence to make sure you have a broader picture
+- Unclear deliverables
+  - Keep track of deliverables with respect to there individual priority. Using RICE (Reach, Impact, Confidence, Effort) technique is generally helpful.
+- Gap in expectations
+  - Setting up clear expectations is important, if its not set, set it up.
+- Conflicting Priorities
+  - Map each of these priorities to a org level objective
+  - Estimate in terms of value generation for short and long terms
+  - And try to come up with relative priorities
+- Unclear ownership
+  - Re-define the ownership with clear boundaries.
 
 ### Carrier Related
 

@@ -5,22 +5,36 @@ import { organizationMap, OrgKeys } from "../../constants/organization";
 
 type Props = {
   company: OrgKeys;
-  department: string;
-  role: string;
-  designation?: string;
-  startDate: string;
-  endDate?: string;
+  department?: string;
+  role?: string;
+  designation?: string | undefined;
+  startDate: Date;
+  endDate?: Date | undefined;
 };
 const { company, department, role, designation, startDate, endDate } =
   Astro.props as Props;
 const companyDetails = organizationMap[company];
+const dateTimeFormatter = new Intl.DateTimeFormat("en-IN", {
+  year: "numeric",
+  month: "long",
+});
+const displayStartDate: string =
+  typeof startDate === "object"
+    ? dateTimeFormatter.format(startDate)
+    : startDate;
+const displayEndDate: string | undefined =
+  typeof endDate === "object" ? dateTimeFormatter.format(endDate) : endDate;
 ---
 
 <div class="company-details grid gap-x-3 gap-y-2">
   <Icon class="w-40 h-20 company-icon" name={companyDetails.icon} />
-  <h3 class="company-designation text-2xl text-left m-0">
-    {role} / {designation}
-  </h3>
+  {
+    role || designation ? (
+      <h3 class="company-designation text-2xl text-left m-0">
+        {[role, designation].filter(Boolean).join(" / ")}
+      </h3>
+    ) : null
+  }
   <span class="company-name text-lg">
     <a
       href={companyDetails.linkedInUrl}
@@ -37,12 +51,12 @@ const companyDetails = organizationMap[company];
     {
       endDate ? (
         <>
-          <time datetime={startDate}>{startDate}</time> -
-          <time datetime={endDate}>{endDate}</time>
+          <time datetime={displayStartDate}>{displayStartDate}</time> -
+          <time datetime={displayEndDate}>{displayEndDate}</time>
         </>
       ) : (
         <>
-          Since <time datetime={startDate}>{startDate}</time>
+          Since <time datetime={displayStartDate}>{displayStartDate}</time>
         </>
       )
     }
