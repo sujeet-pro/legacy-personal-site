@@ -1,0 +1,121 @@
+---
+layout: ../../layouts/md-layout.astro
+title: "Sujeet's Profile"
+description: "Some description"
+breadcrumbTitle: Profile
+breadcrumbLinks: []
+---
+
+import Breadcrumb from "../../components/breadcrumb.astro";
+import Link from "../../components/link.astro";
+import CompanyDetails from "../../components/profile/company-details.astro";
+import { cv } from "../../constants/links-external";
+
+
+<section class="italic py-2 px-4 rounded bg-slate-200 dark:bg-slate-700">
+    <Link skin="default" config={cv}>
+        Get my Resume/CV in Google Docs format.
+    </Link>
+</section>
+
+## Summary
+With **nine years of experience** in building low-latency, robust
+solutions at scale. I help explore new avenues for growth using technical solutions
+while enhancing **efficiency** for **code and teams** for faster and better deliverables.
+
+I am helping Vista build its **$2B+** global eCommerce platform, serving over
+**16M+** customers across **20+ countries in 25+ locales**. We use **microservices**,
+**micro-frontends**, and **micro-sites** built using **distributed, event-driven
+architecture** on AWS for high availability, scalability, and performance.
+
+I spend most of my time doing **system design, technical implementation, and
+code reviews**. I lead **cross-functional collaborations** with different teams
+for requirement gathering, prioritization, and execution of tasks
+following **Agile methodology**, ensuring we incrementally deliver value. I
+oversee **performance reviews, appraisals, and hiring** for my team.
+
+My domain experience includes building e-commerce, health & fitness, ad
+tech, and edTech.
+
+## Technical Skills
+
+[A detailed view of All the techologies](./skills)
+
+- **Design System** - extensible, composable & accessible.
+- **Web performance**, accessibility, SEO, and internationalization
+- Mobile-First, Progressive, and Responsive Web Applications
+- Authentication, authorization, and access control (OAuth 2.0)
+- Building Restful and GraphQL APIs
+- Automated monitoring and alert.
+
+## Technology & techologies
+
+- **Languages:** JavaScript, Typescript, HTML, CSS, SASS, Java, Python
+- **Frameworks:** React, Gatsby, NextJS, Vue, Angular, Astro
+- **Build Tools:** Webpack, Rollup, Vite, esbuild, gulp
+- **Testing Tools:** Jest, Vitest, React testing library, Play, Storybook
+- **Caches & Datastores:** Redis, DynamoDB
+- **Tools & Services:** New Relic, Prometheus, Grafana, AWS, Cloudflare’s Edge Computing
+- **Web Services:** Spring Framework on Java and Express.js on Node.js
+- **Mobile App Development:** Android Native Apps, React Native
+
+## Experience
+
+<CompanyDetails
+    company="Vistaprint"
+    department="mass customization, e-commerce"
+    role="Acting Engineering Manager"
+    designation="Lead Software Engineer"
+    startDate={new Date("Aug 2020")}
+/>
+I am involved with the customer-facing discovery pages and the design system
+focused on providing a low-latency, high-performance, accessible web experience
+deployed on AWS with edge computing (ESI).
+E.g., the home page, product pages, logo maker, mailing services, etc.
+
+<CompanyDetails
+    company="Cure.fit"
+    department="Health & Fitness"
+    role="Team Lead"
+    designation="Full Stack Developer"
+    endDate={new Date("Aug 2020")}
+    startDate={new Date("Feb 2020")}
+/>
+
+I led a team of full-stack engineers to build an end-to-end audit platform with an intelligent audit scheduler and automatic training assignment based on a rule engine, rating trend analysis, and a recommender system using collaborative filtering.
+
+<CompanyDetails
+    company="Media.net"
+    department="Contextual Advertising and Pragmmatic Platform"
+    role="UI Lead"
+    designation="Lead Software Engineer"
+    endDate={new Date("Feb 2020")}
+    startDate={new Date("Nov 2019")}
+/>
+
+I led the engineering team for the header bidder platform, building configurators and dashboards.
+
+
+<CompanyDetails
+    company="Infosys"
+    department="Strategic Technology Group - Expert Track"
+    role="Team Lead"
+    designation="Specialist Programmer"
+    endDate={new Date("Nov 2019")}
+    startDate={new Date("June 2014")}
+/>
+
+I developed the Wingspan Platform and other web applications. I have primarily focused on video streaming, interactive content players, recommendation systems, and analytics.
+
+## Awards
+
+- I was awarded RSUs at Vista (2021 and 2022) based on my performance.
+- Award for Excellence 2018–19 (Gold), the highest award at Infosys for talent transformation in the age of digital disruption.
+- Award for Excellence 2017–18 (Gold), the highest award at Infosys for transforming workplace learning through new-age solutions.
+- Others: Insta Award (2016), Tech Champion (2015).
+
+## Education
+
+- **B.Tech** (Mechanical Engineering) from Uttar Pradesh Technical University | 2014
+- **10+2** - Central Board of Secondary Education | 2010
+- **10** - Central Board of Secondary Education | 2008

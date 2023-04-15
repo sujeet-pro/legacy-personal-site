@@ -1,0 +1,22 @@
+---
+import Breadcrumb from "../components/breadcrumb.astro";
+import Article from "./common/article.astro";
+import Layout from "./layout.astro";
+
+const { frontmatter } = Astro.props;
+---
+
+<Layout
+  title={frontmatter.title}
+  description={frontmatter.description}
+  article={false}
+  pageDetails={{ type: "site" }}
+>
+  <Breadcrumb
+    links={frontmatter.breadcrumbLinks || []}
+    currentPageTitle={frontmatter.breadcrumbTitle}
+  />
+  <Article prose>
+    <slot />
+  </Article>
+</Layout>

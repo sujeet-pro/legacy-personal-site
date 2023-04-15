@@ -28,6 +28,7 @@ const {
   ...seoProps
 } = Astro.props as Props;
 const canonicalUrl = SITE_BASE + Astro.url.pathname;
+console.log(`Layout: ${Astro.url.pathname}`, article ? "true" : "false");
 ---
 
 <html lang="en-IN">
