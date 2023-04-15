@@ -1,26 +1,26 @@
-import { z, image, defineCollection } from "astro:content";
-const seoConfig = {
+import { z, defineCollection, SchemaContext } from "astro:content";
+const seoConfig = ({image}: SchemaContext) => ({
   title: z.string(),
   description: z.string(),
   isDraft: z.boolean().optional(),
   thumbnail: image().optional(),
-};
+});
 
 const topicCollection = defineCollection({
-  schema: z.object({
-    ...seoConfig,
+  schema: (options) => z.object({
+    ...seoConfig(options),
     iconName: z.string().optional(),
   }),
 });
 
 const blogCollection = defineCollection({
-  schema: z.object({
-    ...seoConfig,
+  schema: (options) => z.object({
+    ...seoConfig(options),
     publishedOn: z.date(),
     lastUpdatedOn: z.date().optional(),
     topics: z.string().array().optional(),
     tags: z.string().array().optional(),
-    cover: image()
+    cover: options.image()
       .refine((img) => img.width >= 1080, {
         message: "Cover image must be at least 1080 pixels wide!",
       })
@@ -30,8 +30,8 @@ const blogCollection = defineCollection({
 });
 
 const projectCollection = defineCollection({
-  schema: z.object({
-    ...seoConfig,
+  schema:(options) => z.object({
+    ...seoConfig(options),
     company: z.enum([
       "Vistaprint",
       "Cure.fit",
@@ -47,8 +47,8 @@ const projectCollection = defineCollection({
 });
 
 const pageCollection = defineCollection({
-  schema: z.object({
-    ...seoConfig,
+  schema: (options) =>z.object({
+    ...seoConfig(options),
   }),
 });
 export const collections = {
