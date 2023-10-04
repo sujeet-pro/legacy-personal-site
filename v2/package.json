@@ -1,0 +1,34 @@
+{
+  "name": "@sujeet-pro/v2",
+  "type": "module",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=18.18.0",
+    "npm": ">=9.8.1"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "deploy": "gh-pages -d dist --dotfiles include",
+    "fix": "npm run lint:fix && npm run format:fix",
+    "format:check": "prettier . --check --ignore-unknown",
+    "format:fix": "prettier . --write --ignore-unknown",
+    "lint:check": "eslint --ext .js,.astro src",
+    "lint:fix": "eslint --ext .js,.astro src --fix"
+  },
+  "dependencies": {
+    "astro": "^3.2.2"
+  },
+  "devDependencies": {
+    "@typescript-eslint/parser": "^6.7.4",
+    "eslint": "^8.50.0",
+    "eslint-plugin-astro": "^0.29.1",
+    "eslint-plugin-jsx-a11y": "^6.7.1",
+    "gh-pages": "^6.0.0",
+    "prettier": "^3.0.3",
+    "prettier-plugin-astro": "^0.12.0"
+  }
+}
