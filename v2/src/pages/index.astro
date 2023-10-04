@@ -1,5 +1,8 @@
 ---
-
+type test = {
+  a: number
+}
+const a: test = { a: 1 }
 ---
 
 <html lang="en">
@@ -11,10 +14,22 @@
     <title>Sujeet | Home</title>
   </head>
   <body>
-    <h1>Sujeet Jaiswal</h1>
+    <h1>Sujeet Jaiswal {a.a}</h1>
     <p>
       Helping people make the world a better place through quality software.
     </p>
     <h2>Comming Soon</h2>
   </body>
 </html>
+
+<script>
+  const themeSwitcher: HTMLButtonElement | null =
+    document.querySelector("#theme-switcher")
+  if (themeSwitcher) {
+    themeSwitcher.removeAttribute("disabled")
+    themeSwitcher.addEventListener("click", () => {
+      const isDark = document.documentElement.classList.toggle("dark")
+      localStorage.setItem("theme", isDark ? "dark" : "light")
+    })
+  }
+</script>
