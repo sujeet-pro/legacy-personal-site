@@ -12,6 +12,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
+    "bd": "npm run build && npm run deploy",
     "deploy": "gh-pages -d dist --dotfiles include",
     "fix": "npm run lint:fix && npm run format:fix",
     "format:check": "prettier . --check --ignore-unknown",
