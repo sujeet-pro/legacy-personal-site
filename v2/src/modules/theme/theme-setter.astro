@@ -1,0 +1,16 @@
+---
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type Props = Record<string, never>
+---
+
+<script is:inline>
+  // On page load or when changing themes, best to add inline in `head` to avoid FOUC
+  const isDark =
+    localStorage.getItem("theme") === "dark" ||
+    (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches)
+  if (isDark) {
+    document.documentElement.classList.add("dark")
+  } else {
+    document.documentElement.classList.remove("dark")
+  }
+</script>

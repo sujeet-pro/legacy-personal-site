@@ -1,0 +1,29 @@
+---
+import { SITE_BASE } from "$constants/global"
+import authorImage from "$assets/author.jpg"
+type Props = {
+  title: string
+  description: string
+  imageSrc?: string
+  chilren?: astroHTML.JSX.Children
+}
+const { title, description, imageSrc } = Astro.props
+const url = SITE_BASE + Astro.url.pathname
+---
+
+<title>{title}</title>
+<meta property="og:title" content={title} />
+<meta property="og:url" content={url} />
+<meta property="og:locale" content="en-IN" />
+
+<meta name="description" content={description} />
+<meta property="og:description" content={description} />
+
+<meta property="og:image" content={imageSrc ?? authorImage.src} />
+
+<slot>
+  <meta property="og:type" content="website" />
+</slot>
+
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:creator" content="@sujeetpro" />

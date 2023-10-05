@@ -1,0 +1,22 @@
+---
+import BaseLayout from "./base.layout.astro"
+import { SeoArticle, SeoBase } from "../modules/seo"
+
+export type Props = {
+  title: string
+  description: string
+  imageSrc: string
+  tags: string[] | null
+  publishedDate: Date | null
+  updatedDate: Date | null
+  children: astroHTML.JSX.Children
+}
+const { title, description, imageSrc, tags, publishedDate, updatedDate } = Astro.props
+---
+
+<BaseLayout>
+  <SeoBase {title} {description} {imageSrc} slot="head">
+    <SeoArticle {tags} {publishedDate} {updatedDate} />
+  </SeoBase>
+  <slot />
+</BaseLayout>

@@ -14,7 +14,7 @@ module.exports = {
   parserOptions: {
     ecmaVersion: "latest",
     sourceType: "module",
-    project: true,
+    project: "./tsconfig.eslint.json",
   },
   plugins: ["@typescript-eslint"],
   rules: {
@@ -22,7 +22,7 @@ module.exports = {
     "linebreak-style": ["error", "unix"],
     quotes: ["error", "double"],
     semi: ["error", "never"],
-    "@typescript-eslint/consistent-type-definitions": ["error", "type"],
+    "@typescript-eslint/consistent-type-definitions": "off", // ["error", "type"],
   },
   overrides: [
     {
@@ -54,7 +54,7 @@ module.exports = {
         extraFileExtensions: [".astro"],
         // The script of Astro components uses ESM.
         sourceType: "module",
-        project: true,
+        // project: true,
       },
       rules: {
         // ...commonRules,
@@ -69,12 +69,7 @@ module.exports = {
     {
       // Define the configuration for `<script>` tag.
       // Script in `<script>` is assigned a virtual file name with the `.js` extension.
-      files: [
-        "**/*.astro/*.js",
-        "*.astro/*.js",
-        "**/*.astro/*.ts",
-        "*.astro/*.ts",
-      ],
+      files: ["**/*.astro/*.js", "*.astro/*.js", "**/*.astro/*.ts", "*.astro/*.ts"],
       env: {
         browser: true,
         es2020: true,
@@ -83,6 +78,8 @@ module.exports = {
         sourceType: "module",
       },
       rules: {
+        // Sh
+        // "@typescript-eslint/no-unsafe-assignment": "off",
         // If you are using "prettier/prettier" rule,
         // you don't need to format inside <script> as it will be formatted as a `.astro` file.
         "prettier/prettier": "off",

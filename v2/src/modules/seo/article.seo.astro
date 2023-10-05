@@ -1,0 +1,16 @@
+---
+import { AUTHOR_NAME } from "$constants/global"
+type Props = {
+  tags: string[] | null
+  publishedDate: Date | null
+  updatedDate: Date | null
+  children?: never
+}
+const { tags, publishedDate, updatedDate } = Astro.props
+---
+
+<meta property="og:type" content="article" />
+<meta property="og:article:author" content={AUTHOR_NAME} />
+{(tags ?? []).map((tag) => <meta property="og:article:tag" content={tag} />)}
+{publishedDate ? <meta property="og:article:published_time" content={publishedDate.toISOString()} /> : null}
+{updatedDate ? <meta property="og:article:modified_time" content={updatedDate.toISOString()} /> : null}

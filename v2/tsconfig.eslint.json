@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./tsconfig.json",
+  "include": [
+    "d.ts",
+    "env.d.ts",
+    "astro.config.ts",
+    ".eslintrc.cjs",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.astro",
+    "src/**/*.astro/*.ts"
+  ],
+  "exclude": [".vscode", "dist", "node_modules", "public"]
+}
