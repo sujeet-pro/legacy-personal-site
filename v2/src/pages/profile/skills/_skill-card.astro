@@ -1,0 +1,24 @@
+---
+import { Icon } from "astro-icon"
+import { ProficiencyLevel, profiencencyConfigs } from "./_skill-config"
+
+export type Props = {
+  name: string
+  level: ProficiencyLevel
+  icon: string
+}
+const { name, level, icon } = Astro.props
+const config = profiencencyConfigs[level]
+---
+
+<li class:list={["border-2 relative", config.borderColor]}>
+  <Icon class="m-4 w-24 h-24 mx-auto" name={icon || "mdi:code-greater-than"} />
+  <Icon
+    name={config.icon}
+    title={config.title}
+    class:list={["absolute top-1 right-1 w-6 h-6 rounded", config.textColor, config.bgColor]}
+  />
+  <div class:list={["p-1 text-center", config.textColor, config.bgColor]}>
+    {name}
+  </div>
+</li>

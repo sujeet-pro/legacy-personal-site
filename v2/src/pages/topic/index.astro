@@ -1,0 +1,19 @@
+---
+import Layout from "$layouts/base.layout.astro"
+import { getTopicEntries } from "./_topics.utils"
+
+const entries = await getTopicEntries()
+---
+
+<Layout>
+  <h1>Topics</h1>
+  <ul>
+    {
+      entries.map((entry) => (
+        <li>
+          <a href={`/topic/${entry.slug}`}>{entry.data.title}</a>
+        </li>
+      ))
+    }
+  </ul>
+</Layout>

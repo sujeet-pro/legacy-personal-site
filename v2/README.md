@@ -9,3 +9,7 @@
 
 - take care of the redirects (`public/_redirects`)
 - changes the sitemap to `v2.sujeet.pro`
+
+## References
+
+- [Astro Icons](https://icon-sets.iconify.design/)

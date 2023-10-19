@@ -9,11 +9,14 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
+    "x": "npm run clean && npm run check && npm run build",
     "build": "astro check && astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "bd": "npm run build && npm run deploy",
+    "gh": "npm run clean && npm run check && npm run build && npm run deploy",
     "deploy": "gh-pages -d dist --dotfiles include",
+    "sync": "astro sync",
+    "clean": "rimraf .astro dist",
     "check": "npm run check:ts && npm run check:lint && npm run check:format",
     "check:ts": "astro check",
     "check:format": "prettier . --check --ignore-unknown",
@@ -25,6 +28,8 @@
   "devDependencies": {
     "@astrojs/check": "^0.2.0",
     "@astrojs/ts-plugin": "^1.1.3",
+    "@fontsource-variable/open-sans": "^5.0.16",
+    "@tailwindcss/typography": "^0.5.10",
     "@typescript-eslint/eslint-plugin": "^6.7.4",
     "@typescript-eslint/parser": "^6.7.4",
     "astro": "^3.2.2",
@@ -33,8 +38,19 @@
     "eslint-plugin-astro": "^0.29.1",
     "eslint-plugin-jsx-a11y": "^6.7.1",
     "gh-pages": "^6.0.0",
+    "mdast-util-to-string": "^4.0.0",
     "prettier": "^3.0.3",
     "prettier-plugin-astro": "^0.12.0",
+    "reading-time": "^1.5.0",
+    "rimraf": "^5.0.5",
     "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "@astrojs/prefetch": "^0.4.1",
+    "@astrojs/rss": "^3.0.0",
+    "@astrojs/sitemap": "^3.0.1",
+    "@astrojs/tailwind": "^5.0.2",
+    "astro-icon": "^0.8.1",
+    "tailwindcss": "^3.3.3"
   }
 }

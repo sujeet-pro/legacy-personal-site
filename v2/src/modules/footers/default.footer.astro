@@ -1,6 +1,35 @@
 ---
+import Link from "./footer-item-link.astro"
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 type Props = Record<string, never>
+const currentYear = new Date().getFullYear()
 ---
 
-<nav>Default Footer</nav>
+<footer class="border-t border-slate-300 dark:border-slate-600">
+  <nav class="flex flex-col sm:flex-row justify-around divide-y sm:divide-y-0 divide-dashed">
+    <ul class="flex flex-col gap-2 m-2">
+      <li class="font-bold my-2">Social</li>
+      <Link text="LinkedIn" href="https://sujeet.pro/in" iconName="mdi:linkedin" />
+      <Link text="X (Twitter)" href="https://sujeet.pro/x" iconName="mdi:twitter" />
+      <Link text="Mastodon" href="https://mastodon.social/@sujeetjaiswal" iconName="mdi:mastodon" />
+      <Link text="Instagram" href="https://sujeet.pro/ig" iconName="mdi:instagram" />
+      <Link text="CV" href="https://sujeet.pro/cv" iconName="ph:file-doc" />
+    </ul>
+    <ul class="flex flex-col gap-2 m-2">
+      <li class="font-bold my-2">Community</li>
+      <Link text="Github" href="https://sujeet.pro/gh" iconName="mdi:github" />
+      <Link text="Stackoverflow" href="https://sujeet.pro/stackoverflow" iconName="mdi:stackoverflow" />
+      <Link text="Dev.to" href="https://sujeet.pro/dev-to" iconName="mdi:dev-to" />
+      <Link text="Hashnode" href="https://sujeet.pro/hashnode" iconName="simple-icons:hashnode" />
+      <Link text="Medium" href="https://sujeet.pro/medium" iconName="community-medium" />
+    </ul>
+    <ul class="flex flex-col gap-2 m-2">
+      <li class="font-bold my-2">Site</li>
+      <Link text="FAQs" href="/faq/" iconName="wpf:faq" />
+      <Link text="Profile" href="/profile/" iconName="mdi:face-man-profile" />
+      <Link text="Projects" href="/profile/project" iconName="mdi:responsive" />
+      <Link text="Skills" href="/profile/skills" iconName="carbon:skill-level-advanced" />
+    </ul>
+  </nav>
+  <p class="text-center p-4">&copy; {currentYear} Sujeet Jaiswal</p>
+</footer>

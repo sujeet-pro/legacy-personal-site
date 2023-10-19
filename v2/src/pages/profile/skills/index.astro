@@ -1,0 +1,104 @@
+---
+import Layout from "$layouts/base.layout.astro"
+import Section from "./_skill-section.astro"
+import Card from "./_skill-card.astro"
+import { ProficiencyLevel } from "./_skill-config"
+---
+
+<Layout>
+  <main class="container flex-1">
+    <h1>Skills</h1>
+    <p>Add Legend</p>
+
+    <Section name="Programming Languages">
+      <Card name="JavaScript" icon="tech-js" level={ProficiencyLevel.Expert} />
+      <Card name="TypeScript" icon="tech-ts" level={ProficiencyLevel.Expert} />
+      <Card name="Node.js" icon="tech-node" level={ProficiencyLevel.Advanced} />
+      <Card name="HTML" icon="tech-html" level={ProficiencyLevel.Expert} />
+      <Card name="CSS" icon="tech-css" level={ProficiencyLevel.Expert} />
+      <Card name="Java" icon="tech-java" level={ProficiencyLevel.Advanced} />
+      <Card name="Python" icon="tech-python" level={ProficiencyLevel.Advanced} />
+      <Card name="SCSS" icon="tech-sass" level={ProficiencyLevel.Expert} />
+      <Card name="Go" icon="tech-go" level={ProficiencyLevel.Beginner} />
+      <Card name="Rust" icon="" level={ProficiencyLevel.Beginner} />
+    </Section>
+
+    <Section name="Front-End Frameworks">
+      <Card name="React" icon="tech-react" level={ProficiencyLevel.Expert} />
+      <Card name="Preact" icon="tech-preact" level={ProficiencyLevel.Advanced} />
+      <Card name="Angular" icon="tech-angular" level={ProficiencyLevel.Expert} />
+      <Card name="Solid JS" icon="tech-solid_js" level={ProficiencyLevel.Intermediate} />
+      <Card name="Svelte" icon="tech-svelte" level={ProficiencyLevel.Beginner} />
+      <Card name="Vue.js" icon="tech-vue_js" level={ProficiencyLevel.Beginner} />
+      <Card name="Qwik" icon="tech-qwik" level={ProficiencyLevel.Beginner} />
+    </Section>
+
+    <Section name="Meta Frameworks">
+      <Card name="Astro" icon="tech-astro" level={ProficiencyLevel.Expert} />
+      <Card name="Next JS" icon="tech-next_js" level={ProficiencyLevel.Intermediate} />
+      <Card name="Gatsby" icon="tech-gatsby" level={ProficiencyLevel.Expert} />
+      <Card name="Eleventy" icon="tech-11ty" level={ProficiencyLevel.Advanced} />
+      <Card name="Nuxt JS" icon="tech-nuxt" level={ProficiencyLevel.Beginner} />
+    </Section>
+
+    <Section name="Multi-Platform Frameworks">
+      <Card name="Expo" icon="tech-expo" level={ProficiencyLevel.Advanced} />
+      <Card name="Electron" icon="tech-electron" level={ProficiencyLevel.Advanced} />
+      <Card name="React Native" icon="tech-react_native" level={ProficiencyLevel.Intermediate} />
+      <Card name="Ionic" icon="tech-ionic" level={ProficiencyLevel.Intermediate} />
+      <Card name="Cordova" icon="tech-cordova" level={ProficiencyLevel.Beginner} />
+      <Card name="Tauri" icon="tech-tauri" level={ProficiencyLevel.Beginner} />
+    </Section>
+
+    <Section name="Testing">
+      <Card name="Jest" icon="tech-jest" level={ProficiencyLevel.Expert} />
+      <Card name="Testing Library" icon="tech-testing_library" level={ProficiencyLevel.Intermediate} />
+      <Card name="Storybook" icon="tech-storybook" level={ProficiencyLevel.Expert} />
+      <Card name="Cypress" icon="tech-cypress" level={ProficiencyLevel.Advanced} />
+      <Card name="Playwright" icon="tech-playwright" level={ProficiencyLevel.Intermediate} />
+      <Card name="Vitest" icon="tech-vitest" level={ProficiencyLevel.Intermediate} />
+      <Card name="Jasmine" icon="tech-jasmine" level={ProficiencyLevel.Beginner} />
+      <Card name="Mocha" icon="tech-mocha" level={ProficiencyLevel.Beginner} />
+      <Card name="Puppeteer" icon="tech-puppeteer" level={ProficiencyLevel.Beginner} />
+      <Card name="Selenium" icon="tech-selenium" level={ProficiencyLevel.Beginner} />
+    </Section>
+
+    <Section name="Build Tools">
+      <Card name="Vite" icon="tech-vite" level={ProficiencyLevel.Advanced} />
+      <Card name="EsBuild" icon="tech-esbuild" level={ProficiencyLevel.Advanced} />
+      <Card name="Rollup" icon="tech-rollup" level={ProficiencyLevel.Expert} />
+      <Card name="Webpack" icon="tech-webpack" level={ProficiencyLevel.Expert} />
+      <Card name="Gulp" icon="tech-gulp" level={ProficiencyLevel.Expert} />
+      <Card name="Tsc CLI" icon="tech-tsc" level={ProficiencyLevel.Expert} />
+      <Card name="Parcel" icon="tech-parcel" level={ProficiencyLevel.Expert} />
+      <Card name="Browserify" icon="tech-browserify" level={ProficiencyLevel.Expert} />
+    </Section>
+
+    <Section name="Mono Repo Tools">
+      <Card name="NPM Workspaces" icon="tech-npm_workspaces" level={ProficiencyLevel.Expert} />
+      <Card name="Yarn Workspaces" icon="tech-yarn_workspaces" level={ProficiencyLevel.Expert} />
+      <Card name="Lerna" icon="tech-lerna" level={ProficiencyLevel.Advanced} />
+      <Card name="Nx" icon="tech-nx" level={ProficiencyLevel.Intermediate} />
+      <Card name="Pnpm" icon="tech-pnpm" level={ProficiencyLevel.Beginner} />
+    </Section>
+
+    <Section name="Back-End Frameworks">
+      <Card name="Express.js" icon="tech-express" level={ProficiencyLevel.Expert} />
+      <Card name="GraphQL" icon="tech-graphql" level={ProficiencyLevel.Advanced} />
+      <Card name="Spring Boot" icon="tech-sprint_boot" level={ProficiencyLevel.Intermediate} />
+    </Section>
+
+    <Section name="Data Stores">
+      <Card name="Postgres" icon="tech-postgres" level={ProficiencyLevel.Advanced} />
+      <Card name="ElasticSearch" icon="tech-elasticsearch" level={ProficiencyLevel.Intermediate} />
+      <Card name="Neo4j" icon="tech-neo4j" level={ProficiencyLevel.Beginner} />
+      <Card name="Firebase" icon="tech-firebase" level={ProficiencyLevel.Intermediate} />
+    </Section>
+    <Section name="Utilities">
+      <Card name="AJV" icon="tech-ajv" level={ProficiencyLevel.Advanced} />
+    </Section>
+    <Section name="Front-End Frameworks">
+      <Card name="React Spring" icon="tech-react_spring" level={ProficiencyLevel.Intermediate} />
+    </Section>
+  </main>
+</Layout>

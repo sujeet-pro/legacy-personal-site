@@ -1,0 +1,40 @@
+---
+import type { HTMLAttributes } from "astro/types"
+import { isExternalUrl } from "./link.util"
+
+type Props = HTMLAttributes<"a"> & {
+  className?: string
+  skin?: "none" | "cta"
+}
+
+const { href, className, skin, ...extraProps } = Astro.props
+if (!href) {
+  throw new Error("Href must be provided")
+}
+const isExternal = isExternalUrl(href)
+const isCta = skin === "cta"
+const isCurrent = href === Astro.url.href || href === Astro.url.pathname
+const extraLinkProps: HTMLAttributes<"a"> = {}
+if (isExternal) {
+  extraLinkProps.target = "_blank"
+  extraLinkProps.rel = "n"
+}
+---
+
+<a
+  aria-current={isCurrent ? "page" : undefined}
+  {...extraLinkProps}
+  {...extraProps}
+  {href}
+  class:list={[
+    {
+      "hover:underline": !isCta,
+      "inline-block py-3 px-8 rounded-full": isCta,
+      "text-slate-300 bg-slate-900 hover:bg-slate-700": isCta,
+      "dark:text-slate-700 dark:bg-slate-50 dark:hover:bg-slate-300": isCta,
+    },
+    className,
+  ]}
+>
+  <slot />
+</a>

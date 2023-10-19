@@ -1,0 +1,21 @@
+---
+import { getCollection } from "astro:content"
+import Layout from "$layouts/base.layout.astro"
+const entries = await getCollection("blog", ({ data }) => {
+  return import.meta.env.PROD ? !data.isDraft : true
+})
+---
+
+<Layout>
+  <h1>Blogs</h1>
+  <ul>
+    {
+      entries.map((entry) => (
+        <li>
+          <a href={`/blog/${entry.slug}`}>{entry.data.title}</a>
+          <time datetime={entry.data.publishedOn.toISOString()}>{entry.data.publishedOn.toDateString()}</time>
+        </li>
+      ))
+    }
+  </ul>
+</Layout>

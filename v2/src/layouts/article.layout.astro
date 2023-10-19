@@ -10,13 +10,18 @@ export type Props = {
   publishedDate: Date | null
   updatedDate: Date | null
   children: astroHTML.JSX.Children
+  minutesRead: string
 }
-const { title, description, imageSrc, tags, publishedDate, updatedDate } = Astro.props
+const { title, description, imageSrc, tags, publishedDate, updatedDate, minutesRead } = Astro.props
 ---
 
 <BaseLayout>
   <SeoBase {title} {description} {imageSrc} slot="head">
     <SeoArticle {tags} {publishedDate} {updatedDate} />
   </SeoBase>
+  <article>
+    <h1>{title}</h1>
+    <p>{minutesRead}</p>
+  </article>
   <slot />
 </BaseLayout>

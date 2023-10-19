@@ -1,0 +1,16 @@
+---
+import Layout from "$layouts/base.layout.astro"
+import { Link } from "$components"
+---
+
+<Layout>
+  <main class="container flex-1 flex items-center justify-center">
+    <section class="flex flex-col gap-10 text-center">
+      <h1 class="text-9xl">Oops!</h1>
+      <p class="text-4xl">404 - Page Not found</p>
+      <div>
+        <Link href="/" skin="cta" rel="prefetch">Visit Home Page</Link>
+      </div>
+    </section>
+  </main>
+</Layout>

@@ -1,0 +1,12 @@
+---
+export type Props = {
+  name: string
+  children: astroHTML.JSX.Children
+}
+const { name } = Astro.props
+---
+
+<h2 class="text-4xl my-8">{name}</h2>
+<ul class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">
+  <slot />
+</ul>
