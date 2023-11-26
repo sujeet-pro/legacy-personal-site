@@ -1,0 +1,20 @@
+---
+import { Icon } from "astro-icon"
+type AlertLevel = "info" | "warning" | "error" | "success"
+type Props = {
+  level: AlertLevel
+}
+const colorMap: Record<AlertLevel, string> = {
+  info: "bg-slate-200 text-slate-900 dark:bg-slate-800 dark:text-slate-200",
+  warning: "bg-amber-200 text-amber-900 dark:bg-amber-900 dark:text-amber-200",
+  error: "bg-red-200 text-red-900 dark:bg-red-900 dark:text-red-200",
+  success: "bg-green-200 text-green-900 dark:bg-green-900 dark:text-green-200",
+}
+
+const { level } = Astro.props
+---
+
+<div class:list={["my-4 p-4", "text-xl rounded", "flex items-center justify-center gap-4", colorMap[level]]}>
+  <Icon name={"mdi:alert"} class="w-10" />
+  <slot />
+</div>

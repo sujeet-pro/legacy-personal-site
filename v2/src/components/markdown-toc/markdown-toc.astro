@@ -1,0 +1,23 @@
+---
+import type { MarkdownHeading } from "astro"
+
+type Props = {
+  headings: MarkdownHeading[]
+}
+
+const { headings } = Astro.props
+---
+
+<ul>
+  {
+    headings.map((h) =>
+      h.depth > 3 ? null : (
+        <li>
+          <a href={`#${h.slug}`}>
+            {h.text} | {h.depth}
+          </a>
+        </li>
+      ),
+    )
+  }
+</ul>

@@ -13,7 +13,7 @@ const blog = defineCollection({
           message: "Cover image must be at least 1080 pixels wide!",
         })
         .optional(),
-      description: z.string().optional(),
+      description: z.string(),
       // Auto Populated
       minutesRead: z.string().optional(),
       // Referenced
@@ -37,18 +37,8 @@ const topic = defineCollection({
     }),
 })
 
-const validProficiency = new Set<string>(["Beginner", "Intermediate", "Advance", "Expert"])
-
-const skill = defineCollection({
-  type: "content",
-  schema: ({ image }) =>
-    z.object({
-      title: z.string(),
-      proficiency: z.string().refine((val) => validProficiency.has(val), {
-        message: "Proficiency can only be one of Beginner, Intermidiate, Advance, Expert",
-      }),
-      icon: image(),
-    }),
-})
-
-export const collections = { blog, topic, skill }
+// Export a single `collections` object to register your collection(s)
+export const collections = {
+  blog,
+  topic,
+}

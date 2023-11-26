@@ -1,5 +1,5 @@
 ---
-layout: $layouts/base.layout.astro
+layout: $layout/base-layout.astro
 ---
 
 # FAQ

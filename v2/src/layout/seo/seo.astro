@@ -4,7 +4,7 @@ import authorImage from "$assets/author.jpg"
 type Props = {
   title: string
   description: string
-  imageSrc?: string
+  imageSrc?: string | undefined
   chilren?: astroHTML.JSX.Children
 }
 const { title, description, imageSrc } = Astro.props

@@ -1,11 +1,12 @@
 ---
-import Layout from "$layouts/base.layout.astro"
+import Layout from "$layout/base-layout.astro"
 import { getTopicEntries } from "./_topics.utils"
 
 const entries = await getTopicEntries()
+// TODO: Update description
 ---
 
-<Layout>
+<Layout title="Topics" description="Topics I love reading / writing about!">
   <h1>Topics</h1>
   <ul>
     {

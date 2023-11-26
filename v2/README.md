@@ -13,3 +13,4 @@
 ## References
 
 - [Astro Icons](https://icon-sets.iconify.design/)
+- [Rough Notation](https://github.com/rough-stuff/rough-notation)

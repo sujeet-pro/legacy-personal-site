@@ -1,0 +1,42 @@
+---
+import { ViewTransitions } from "astro:transitions"
+import FavIcons from "./favicons.astro"
+import Analytics from "./analytics/analytics.astro"
+import Seo from "./seo/seo.astro"
+import ThemeSetter from "./theme/theme-setter.astro"
+import Header from "./header/header.astro"
+import Footer from "./footer/footer.astro"
+import "@fontsource-variable/open-sans"
+
+type Props = {
+  children: astroHTML.JSX.Children
+  title: string
+  description: string
+  imageSrc?: string | undefined
+}
+
+const { title, description, imageSrc } = Astro.props
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <FavIcons />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <Seo {title} {description} {imageSrc}>
+      <slot name="seo" />
+    </Seo>
+    <ViewTransitions />
+  </head>
+  <body class="bg-slate-50 text-slate-700 dark:bg-slate-900 dark:text-slate-300">
+    <ThemeSetter />
+    <div class="flex flex-col min-h-screen">
+      <Header />
+      <slot />
+      <Footer />
+    </div>
+    <Analytics />
+  </body>
+</html>

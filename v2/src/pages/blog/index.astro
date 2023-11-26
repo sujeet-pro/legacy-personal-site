@@ -1,12 +1,12 @@
 ---
 import { getCollection } from "astro:content"
-import Layout from "$layouts/base.layout.astro"
+import Layout from "$layout/base-layout.astro"
 const entries = await getCollection("blog", ({ data }) => {
   return import.meta.env.PROD ? !data.isDraft : true
 })
 ---
 
-<Layout>
+<Layout title="Sujeet's Blogs" description="List of all the blogs">
   <h1>Blogs</h1>
   <ul>
     {
