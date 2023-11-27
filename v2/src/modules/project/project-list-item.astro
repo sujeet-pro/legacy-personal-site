@@ -1,0 +1,34 @@
+---
+import type { CollectionEntry } from "astro:content"
+import { Icon } from "astro-icon"
+import { Image } from "astro:assets"
+
+type Props = {
+  entry: CollectionEntry<"project">
+  href: string
+}
+
+const { entry, href } = Astro.props
+const { title, description, isDraft, thumbnail, iconName } = entry.data
+---
+
+<li
+  class:list={[
+    "relative hover:shadow-lg shadow-slate-100 dark:shadow-slate-800 rounded p-4 flex gap-4",
+    { "display-none": isDraft },
+  ]}
+>
+  {
+    thumbnail ? (
+      <Image src={thumbnail} alt="" role="presentation" class="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28" />
+    ) : null
+  }
+  {iconName ? <Icon name={iconName} class="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28" /> : null}
+  <div class="flex-auto flex flex-col gap-2">
+    <a {href} class="after:absolute after:left-0 after:right-0 after:top-0 after:bottom-0 text-xl">
+      {title}
+    </a>
+    <p>{description}</p>
+    <slot />
+  </div>
+</li>

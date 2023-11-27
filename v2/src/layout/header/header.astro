@@ -1,10 +1,10 @@
 ---
 import ThemeSwitcher from "../theme/theme-switcher.astro"
-export type Props = Record<string, never>
 ---
 
 <header
   class:list={[
+    "header",
     "bg-slate-50 dark:bg-slate-900",
     "sticky top-0 z-50",
     "flex justify-between px-4",
@@ -13,10 +13,33 @@ export type Props = Record<string, never>
   ]}
 >
   <nav>
-    <ul class="flex gap-x-2.5 h-full items-center">
+    <ul class="nav-ul">
       <li><a href="/" class="p-4">Home</a></li>
       <li><a href="/blog/" class="p-4">Blog</a></li>
     </ul>
   </nav>
   <ThemeSwitcher />
 </header>
+
+<style>
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 8px;
+    border-bottom: 1px solid red;
+  }
+
+  .nav-ul {
+    display: flex;
+    column-gap: 8px;
+    height: 100%;
+    align-items: center;
+  }
+  .theme-light .header {
+  }
+  .theme-dark .header {
+  }
+</style>

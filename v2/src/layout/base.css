@@ -1,3 +1,22 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+.theme-light {
+  --sp-bg-color: #ffffff;
+  --sp-text-color: #000000;
+}
+
+.theme-dark {
+  --sp-bg-color: #000000;
+  --sp-text-color: #ffffff;
+}
+
+body {
+  background-color: var(--sp-bg-color);
+  color: var(--sp-text-color);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.container {
+  width: 100%;
+  max-width: 786px;
+}

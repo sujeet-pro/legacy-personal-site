@@ -1,0 +1,74 @@
+---
+import type { CollectionEntry } from "astro:content"
+import Icon from "astro-icon"
+type Props = {
+  entry: CollectionEntry<"company">
+}
+
+const { entry } = Astro.props
+const { name, icon, role, designation, department, startYear, endYear, linkedInUrl } = entry.data
+
+// const dateTimeFormatter = new Intl.DateTimeFormat("en-IN", {
+//   year: "numeric",
+//   month: "long",
+// });
+// const displayStartDate: string =
+//   typeof startDate === "object"
+//     ? dateTimeFormatter.format(startDate)
+//     : startDate;
+// const displayEndDate: string | undefined =
+//   typeof endDate === "object" ? dateTimeFormatter.format(endDate) : endDate;
+
+const classNameMuted = "text-slate-600 dark:text-slate-400"
+---
+
+<div class="company-details grid gap-x-3 gap-y-2">
+  <Icon class="w-40 h-20 company-icon" name={icon} />
+  {
+    role || designation ? (
+      <h3 class="company-designation text-2xl text-left m-0">{[role, designation].filter(Boolean).join(" / ")}</h3>
+    ) : null
+  }
+  <span class="company-name text-lg">
+    <a href={linkedInUrl} target="_blank" rel="noopener noreferrer">{name}</a>
+    {department ? <span class:list={[classNameMuted]}>({department})</span> : null}
+  </span>
+  <span class:list={["company-duration font-light", classNameMuted]}>
+    {
+      endYear ? (
+        <>
+          <time datetime={startYear}>{startYear}</time> -<time datetime={endYear}>{endYear}</time>
+        </>
+      ) : (
+        <>
+          Since <time datetime={startYear}>{startYear}</time>
+        </>
+      )
+    }
+  </span>
+</div>
+
+<style>
+  .company-details {
+    grid-template-columns: 1fr;
+    grid-template-areas: "icon" "designation" "company" "duration";
+  }
+  @media (min-width: 600px) {
+    .company-details {
+      grid-template-columns: 1fr min-content;
+      grid-template-areas: "designation icon" "company icon" "duration icon";
+    }
+  }
+  .company-icon {
+    grid-area: icon;
+  }
+  .company-name {
+    grid-area: company;
+  }
+  .company-designation {
+    grid-area: designation;
+  }
+  .company-duration {
+    grid-area: duration;
+  }
+</style>

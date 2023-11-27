@@ -1,0 +1,38 @@
+---
+import { Link } from "../link"
+type Props = {
+  parentPageHref: string
+  parentPageTitle: string
+  currentPageTitle: string
+}
+const { currentPageTitle, parentPageHref, parentPageTitle } = Astro.props
+const classNameExtraMuted = "text-slate-500 dark:text-slate-600"
+const currentPageHref = Astro.url.pathname
+---
+
+<nav class="container my-4">
+  <ul class="flex flex-wrap items-center justify-center gap-2">
+    <li class="flex items-center gap-2">
+      <Link href="/" class={classNameExtraMuted}>Home</Link>
+      <span role="presentation" class={classNameExtraMuted}> /</span>
+    </li>
+    {
+      parentPageHref && parentPageTitle ? (
+        <li class="flex items-center gap-2">
+          <Link href={parentPageHref} class={classNameExtraMuted}>
+            {parentPageTitle}
+          </Link>
+          <span role="presentation" class={classNameExtraMuted}>
+            /
+          </span>
+        </li>
+      ) : null
+    }
+
+    <li class="max-w-full">
+      <Link href={currentPageHref} aria-current="page" class={classNameExtraMuted}>
+        {currentPageTitle}
+      </Link>
+    </li>
+  </ul>
+</nav>

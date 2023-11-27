@@ -17,6 +17,8 @@ type Props = Record<string, never>
 </button>
 
 <style>
+  #theme-switcher {
+  }
   #theme-switcher .switch-to-light-theme {
     display: none;
   }
@@ -29,13 +31,18 @@ type Props = Record<string, never>
 </style>
 
 <script>
+  import { getClassNameWithPrefix, removeClassNameWithPrefix, getNextTheme } from "./class-utils"
   try {
     const themeSwitcherBtn = document.querySelector<HTMLButtonElement>("button#theme-switcher")
     if (themeSwitcherBtn) {
       themeSwitcherBtn.removeAttribute("disabled")
       themeSwitcherBtn.addEventListener("click", () => {
-        const isDark = document.documentElement.classList.toggle("dark")
-        localStorage.setItem("theme", isDark ? "dark" : "light")
+        const classsList = document.documentElement.classList
+        const currentTheme = getClassNameWithPrefix(classsList, "theme-")
+        removeClassNameWithPrefix(classsList, "theme-")
+        const nextTheme = getNextTheme(currentTheme)
+        localStorage.setItem("theme", nextTheme)
+        document.documentElement.classList.add(nextTheme)
       })
     }
   } catch {}
