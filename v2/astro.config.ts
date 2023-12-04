@@ -3,11 +3,11 @@ import sitemap from "@astrojs/sitemap"
 import prefetch from "@astrojs/prefetch"
 import { remarkReadingTime } from "./plugins/remark-reading-time"
 
-// https://astro.build/config
-const SITE_NAME_KEY = process.env.SITE_NAME_KEY ?? "SITE"
-const SITE = process.env[SITE_NAME_KEY] ?? "https://localhost:4321"
+// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+const SITE = process.env.SITE || process.env.CF_PAGES_URL || "https://localhost:4321"
 
-console.log(`Building with site: ${SITE}`)
+// https://astro.build/config
+console.log(`Building with site: "${SITE}"`)
 
 export default defineConfig({
   site: SITE,
