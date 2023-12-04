@@ -28,3 +28,22 @@ import { Link } from "$components"
     }
   }
 </style>
+
+<script>
+  import { getSanitizedUrl } from "$utils/link.util"
+
+  function redirectIfRequried() {
+    try {
+      const pathName = window.location.pathname
+      const redirectUrl = getSanitizedUrl(window.location.origin, pathName)
+      if (pathName !== redirectUrl) {
+        window.location.replace(redirectUrl)
+      }
+    } catch {}
+  }
+
+  redirectIfRequried()
+  document.addEventListener("astro:after-swap", () => {
+    redirectIfRequried()
+  })
+</script>

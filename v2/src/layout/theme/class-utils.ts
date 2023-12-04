@@ -19,13 +19,9 @@ function removeClassNameWithPrefix(classlist: DOMTokenList, prefix: string) {
   classlist.remove(...classNamesToRemove)
 }
 
-
-
 function getNextTheme(currentTheme: string) {
   return currentTheme === "theme-light" ? "theme-dark" : "theme-light"
 }
-
-
 
 export function changeTheme() {
   const classsList = document.documentElement.classList
