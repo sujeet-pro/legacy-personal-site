@@ -13,7 +13,6 @@ import {
   siteColorTextDarkMode,
   siteColorTextLightMode,
 } from "../constants/classnames";
-import { SITE_BASE } from "../constants/global";
 export type Props = SeoProps & {
   class?: string | undefined | null;
   article: boolean | { prose: boolean };
@@ -27,7 +26,7 @@ const {
   maxWithContainerClassName = maxWidthContainer,
   ...seoProps
 } = Astro.props as Props;
-const canonicalUrl = SITE_BASE + Astro.url.pathname;
+const canonicalUrl = Astro.site?.origin + Astro.url.pathname;
 ---
 
 <html lang="en-IN">
