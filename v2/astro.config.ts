@@ -7,6 +7,8 @@ import { remarkReadingTime } from "./plugins/remark-reading-time"
 const SITE_NAME_KEY = process.env.SITE_NAME_KEY ?? "SITE"
 const SITE = process.env[SITE_NAME_KEY] ?? "https://localhost:4321"
 
+console.log(`Building with site: ${SITE}`)
+
 export default defineConfig({
   site: SITE,
   prefetch: true,
