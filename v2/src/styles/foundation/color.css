@@ -1,0 +1,77 @@
+/* theme-(light/dark) stores token dependent on theme */
+:root,
+.theme-light {
+  --sp-background-color: #ffffff;
+  --sp-foreground-color: #000000;
+
+  --sp-primary-color: #000000;
+}
+
+.theme-dark {
+  --sp-background-color: rgb(15, 23, 42);
+  --sp-foreground-color: #ffffff;
+
+  --sp-primary-color: ffffff;
+}
+
+/* Applied to body tag, Stores all the derived color tokens */
+.color-pallet {
+  /* background pallet */
+  --sp-background-50: color-mix(in srgb, var(--sp-background-color) 5%, var(--sp-foreground-color));
+  --sp-background-100: color-mix(in srgb, var(--sp-background-color) 10%, var(--sp-foreground-color));
+  --sp-background-200: color-mix(in srgb, var(--sp-background-color) 20%, var(--sp-foreground-color));
+  --sp-background-300: color-mix(in srgb, var(--sp-background-color) 30%, var(--sp-foreground-color));
+  --sp-background-400: color-mix(in srgb, var(--sp-background-color) 40%, var(--sp-foreground-color));
+  --sp-background-500: color-mix(in srgb, var(--sp-background-color) 50%, var(--sp-foreground-color));
+  --sp-background-600: color-mix(in srgb, var(--sp-background-color) 60%, var(--sp-foreground-color));
+  --sp-background-700: color-mix(in srgb, var(--sp-background-color) 70%, var(--sp-foreground-color));
+  --sp-background-800: color-mix(in srgb, var(--sp-background-color) 80%, var(--sp-foreground-color));
+  --sp-background-900: color-mix(in srgb, var(--sp-background-color) 90%, var(--sp-foreground-color));
+  --sp-background-950: color-mix(in srgb, var(--sp-background-color) 95%, var(--sp-foreground-color));
+  /* Foreground pallet */
+  --sp-foreground-50: color-mix(in srgb, var(--sp-foreground-color) 5%, var(--sp-background-color));
+  --sp-foreground-100: color-mix(in srgb, var(--sp-foreground-color) 10%, var(--sp-background-color));
+  --sp-foreground-200: color-mix(in srgb, var(--sp-foreground-color) 20%, var(--sp-background-color));
+  --sp-foreground-300: color-mix(in srgb, var(--sp-foreground-color) 30%, var(--sp-background-color));
+  --sp-foreground-400: color-mix(in srgb, var(--sp-foreground-color) 40%, var(--sp-background-color));
+  --sp-foreground-500: color-mix(in srgb, var(--sp-foreground-color) 50%, var(--sp-background-color));
+  --sp-foreground-600: color-mix(in srgb, var(--sp-foreground-color) 60%, var(--sp-background-color));
+  --sp-foreground-700: color-mix(in srgb, var(--sp-foreground-color) 70%, var(--sp-background-color));
+  --sp-foreground-800: color-mix(in srgb, var(--sp-foreground-color) 80%, var(--sp-background-color));
+  --sp-foreground-900: color-mix(in srgb, var(--sp-foreground-color) 90%, var(--sp-background-color));
+  --sp-foreground-950: color-mix(in srgb, var(--sp-foreground-color) 95%, var(--sp-background-color));
+  /* Primary Pallet */
+  --sp-primary-50: color-mix(in srgb, var(--sp-primary-color) 5%, var(--sp-background-color));
+  --sp-primary-100: color-mix(in srgb, var(--sp-primary-color) 10%, var(--sp-background-color));
+  --sp-primary-200: color-mix(in srgb, var(--sp-primary-color) 20%, var(--sp-background-color));
+  --sp-primary-300: color-mix(in srgb, var(--sp-primary-color) 30%, var(--sp-background-color));
+  --sp-primary-400: color-mix(in srgb, var(--sp-primary-color) 40%, var(--sp-background-color));
+  --sp-primary-500: color-mix(in srgb, var(--sp-primary-color) 50%, var(--sp-background-color));
+  --sp-primary-600: color-mix(in srgb, var(--sp-primary-color) 60%, var(--sp-background-color));
+  --sp-primary-700: color-mix(in srgb, var(--sp-primary-color) 70%, var(--sp-background-color));
+  --sp-primary-800: color-mix(in srgb, var(--sp-primary-color) 80%, var(--sp-background-color));
+  --sp-primary-900: color-mix(in srgb, var(--sp-primary-color) 90%, var(--sp-background-color));
+  --sp-primary-950: color-mix(in srgb, var(--sp-primary-color) 95%, var(--sp-background-color));
+  /* Semantic Tokens */
+  --sp-text-color: var(--sp-foreground-800);
+  --sp-text-muted-color: var(var(--sp-foreground-500));
+  --sp-border-color: var(--sp-background-800);
+}
+
+/* For Skill Proficiency */
+.proficiency-expert {
+  --sp-proficiency-level-bg: #e9d5ff;
+  --sp-proficiency-level-text: #6b21a8;
+}
+.proficiency-advanced {
+  --sp-proficiency-level-bg: #bbf7d0;
+  --sp-proficiency-level-text: #16a34a;
+}
+.proficiency-intermediate {
+  --sp-proficiency-level-bg: #bfdbfe;
+  --sp-proficiency-level-text: #1e40af;
+}
+.proficiency-beginner {
+  --sp-proficiency-level-bg: #d9f99d;
+  --sp-proficiency-level-text: #3f6212;
+}

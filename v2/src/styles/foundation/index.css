@@ -1,0 +1,6 @@
+@layer color, spacing, font, typography;
+
+@import "./color.css" layer(color);
+@import "./spacing.css" layer(spacing);
+@import "@fontsource-variable/open-sans" layer(font);
+@import "./typography.css" layer(typography);

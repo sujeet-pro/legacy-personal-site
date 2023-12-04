@@ -1,0 +1,63 @@
+---
+import type { HTMLAttributes } from "astro/types"
+import { isExternalUrl } from "./link.util"
+
+type Props = HTMLAttributes<"a"> & {
+  class?: string
+  skin?: "none" | "cta"
+}
+
+const { href, class: className, skin, ...extraProps } = Astro.props
+if (!href) {
+  throw new Error("Href must be provided")
+}
+const isExternal = isExternalUrl(href)
+const isCta = skin === "cta"
+const isCurrent = href === Astro.url.href || href === Astro.url.pathname
+const extraLinkProps: HTMLAttributes<"a"> = {}
+if (isExternal) {
+  extraLinkProps.target = "_blank"
+  extraLinkProps.rel = "noopener noreferrer"
+}
+---
+
+<a
+  aria-current={isCurrent ? "page" : undefined}
+  {...extraLinkProps}
+  {...extraProps}
+  {href}
+  class:list={[
+    {
+      cta: isCta,
+    },
+    className,
+  ]}
+>
+  <slot />
+</a>
+
+<style>
+  a {
+    text-decoration: none;
+    color: inherit;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  .cta {
+    padding: var(--sp-space-4) var(--sp-space-8);
+    border-radius: 999px;
+    background: var(--sp-primary-100);
+    color: var(--sp-primary-800);
+    border: var(--sp-space-1) solid var(--sp-primary-800);
+    display: inline-block;
+
+    &:hover {
+      background: var(--sp-primary-200);
+      color: var(--sp-primary-900);
+      border-color: var(--sp-primary-700);
+    }
+  }
+</style>

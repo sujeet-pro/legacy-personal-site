@@ -1,0 +1,46 @@
+---
+type Props = {
+  title: string
+  description: string
+  href: string
+}
+const { title, description, href } = Astro.props
+---
+
+<article>
+  <a {href}>{title}</a>
+  <p>{description}</p>
+  <slot />
+</article>
+
+<style>
+  article {
+    position: relative;
+    padding: var(--sp-font-size-3);
+    border: var(--sp-space-1) solid transparent;
+
+    &:hover,
+    &:focus-within {
+      border-color: var(--sp-border-color);
+    }
+    &:not(:last-child) {
+      border-bottom-color: var(--sp-border-color);
+    }
+  }
+  a {
+    text-decoration: none;
+    color: inherit;
+    font-size: var(--sp-font-size-4);
+    &::before {
+      content: " ";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      left: 0;
+    }
+  }
+  p {
+    margin: var(--sp-space-2) 0;
+  }
+</style>

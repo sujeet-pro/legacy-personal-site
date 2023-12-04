@@ -1,0 +1,30 @@
+---
+import { getCollection, type CollectionEntry } from "astro:content"
+import Layout from "$layout/base-layout.astro"
+import ProjectListItem from "$modules/project/project-list-item.astro"
+
+const entries: CollectionEntry<"project">[] = await getCollection("project", (entry: CollectionEntry<"project">) => {
+  if (entry.data.isDraft) return false
+  return true
+})
+entries.sort((a, b) => (a.data.startDate >= b.data.startDate ? -1 : 1))
+const title = "Sujeet's Projects"
+const description = "List of all the projects that I have worked on for different companies"
+---
+
+<Layout {title} {description}>
+  <main class="container">
+    <h1>{title}</h1>
+    {entries.map((entry) => <ProjectListItem entry={entry} href={`/projects/${entry.slug}/`} />)}
+  </main>
+</Layout>
+
+<style>
+  main {
+    flex: 1;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: var(--sp-space-8);
+  }
+</style>

@@ -1,0 +1,19 @@
+---
+import type { CollectionEntry } from "astro:content"
+// import { Icon } from "astro-icon"
+// import { Image } from "astro:assets"
+import { Card } from "$components"
+
+type Props = {
+  entry: CollectionEntry<"project">
+  href: string
+}
+
+const { entry, href } = Astro.props
+const { title, description, isDraft } = entry.data
+// const iconName = undefined
+---
+
+<Card {title} {description} {href}>
+  <div>{isDraft ? "Is in Draft" : null}</div>
+</Card>

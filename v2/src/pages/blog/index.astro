@@ -1,0 +1,25 @@
+---
+import { getCollection } from "astro:content"
+import Layout from "$layout/base-layout.astro"
+import BlogListItem from "$modules/blog/blog-card.astro"
+
+const entries = await getCollection("blog", ({ data }) => {
+  return import.meta.env.PROD ? !data.isDraft : true
+})
+---
+
+<Layout title="Sujeet's Blogs" description="List of all the blogs">
+  <main class="container">
+    <h1>Blogs</h1>
+    {entries.map((entry) => <BlogListItem {entry} />)}
+  </main>
+</Layout>
+
+<style>
+  main {
+    flex: 1;
+  }
+  h1 {
+    text-align: center;
+  }
+</style>

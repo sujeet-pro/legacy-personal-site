@@ -1,0 +1,67 @@
+---
+import { Icon } from "astro-icon"
+---
+
+<button disabled id="theme-switcher" title="Toggle Dark Mode">
+  <span class="switch-to-dark-theme">
+    <Icon name="carbon:moon" />
+    <span class="sr-only">Switch to Dark Theme</span>
+  </span>
+  <span class="switch-to-light-theme">
+    <Icon name="carbon:sun" />
+    <span class="sr-only">Switch to Light Theme</span>
+  </span>
+</button>
+
+<style>
+  @layer component {
+    #theme-switcher {
+      padding: var(--sp-space-3);
+      width: var(--sp-space-12);
+      height: var(--sp-space-12);
+      background: none;
+      border: none;
+      color: inherit;
+    }
+    #theme-switcher:disabled {
+      color: var(--sp-text-muted-color);
+    }
+    .switch-to-light-theme {
+      display: none;
+    }
+    .switch-to-dark-theme {
+      display: inline;
+    }
+
+    ::global(.theme-dark) {
+      .switch-to-light-theme {
+        display: inline;
+      }
+      .switch-to-dark-theme {
+        display: none;
+      }
+    }
+  }
+</style>
+
+<script>
+  import { changeTheme } from "./class-utils"
+  ;(function () {
+    function switchThemeClickListner() {
+      changeTheme()
+    }
+
+    function attachThemeSwitchEventListner() {
+      const themeSwitcherBtn = document.querySelector<HTMLButtonElement>("button#theme-switcher")
+      if (themeSwitcherBtn) {
+        themeSwitcherBtn.removeAttribute("disabled")
+        themeSwitcherBtn?.removeEventListener("click", switchThemeClickListner)
+        themeSwitcherBtn.addEventListener("click", switchThemeClickListner)
+      }
+    }
+    attachThemeSwitchEventListner()
+    document.addEventListener("astro:after-swap", () => {
+      attachThemeSwitchEventListner()
+    })
+  })()
+</script>

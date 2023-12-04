@@ -1,0 +1,30 @@
+---
+import Layout from "$layout/base-layout.astro"
+import { Link } from "$components"
+---
+
+<Layout title="Page Not Found" description="This page doesn't exits">
+  <main class="container typescale-site">
+    <h1 class="text-9">Oops!</h1>
+    <p class="text-8">Page Not found!</p>
+    <div>
+      <Link href="/" skin="cta" rel="prefetch">Visit Home Page</Link>
+    </div>
+  </main>
+</Layout>
+
+<style>
+  @layer page {
+    main {
+      flex: 1;
+      display: grid;
+      place-content: center;
+      text-align: center;
+      gap: var(--sp-space-8);
+    }
+    p,
+    h1 {
+      margin: 0;
+    }
+  }
+</style>

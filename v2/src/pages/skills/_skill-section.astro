@@ -1,0 +1,23 @@
+---
+export type Props = {
+  name: string
+  children: astroHTML.JSX.Children
+}
+const { name } = Astro.props
+---
+
+<h2 class="">{name}</h2>
+<ul class="skill-grid">
+  <slot />
+</ul>
+
+<style>
+  .skill-grid {
+    margin-block-start: var(--sp-space-6);
+    padding-inline-start: 0;
+    list-style: none;
+    display: grid;
+    gap: var(--sp-space-6);
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  }
+</style>

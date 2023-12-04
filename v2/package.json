@@ -3,32 +3,48 @@
   "type": "module",
   "version": "0.0.1",
   "engines": {
-    "node": ">=18.18.0",
-    "npm": ">=9.8.1"
+    "node": ">=20",
+    "npm": ">=10"
   },
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build",
+    "x": "npm run clean && npm run check && npm run build",
+    "build": "astro check && astro build",
     "preview": "astro preview",
     "astro": "astro",
+    "gh": "npm run clean && npm run check && npm run build && npm run deploy",
     "deploy": "gh-pages -d dist --dotfiles include",
-    "fix": "npm run lint:fix && npm run format:fix",
-    "format:check": "prettier . --check --ignore-unknown",
-    "format:fix": "prettier . --write --ignore-unknown",
-    "lint:check": "eslint --ext .js,.astro src",
-    "lint:fix": "eslint --ext .js,.astro src --fix"
-  },
-  "dependencies": {
-    "astro": "^3.2.2"
+    "sync": "astro sync",
+    "clean": "rimraf .astro dist",
+    "check": "npm run check:ts && npm run check:lint && npm run check:format",
+    "check:ts": "astro check",
+    "check:format": "prettier . --check --ignore-unknown",
+    "check:lint": "eslint --ext .js,.cjs,.ts,.astro src",
+    "fix": "npm run fix:lint && npm run fix:format",
+    "fix:format": "prettier . --write --ignore-unknown",
+    "fix:lint": "eslint --ext .js,.cjs,.ts,.astro src --fix"
   },
   "devDependencies": {
-    "@typescript-eslint/parser": "^6.7.4",
-    "eslint": "^8.50.0",
+    "@astrojs/check": "^0.3.1",
+    "@astrojs/prefetch": "^0.4.1",
+    "@astrojs/rss": "^3.0.0",
+    "@astrojs/sitemap": "^3.0.3",
+    "@astrojs/ts-plugin": "^1.3.1",
+    "@fontsource-variable/open-sans": "^5.0.18",
+    "@typescript-eslint/eslint-plugin": "^6.12.0",
+    "@typescript-eslint/parser": "^6.12.0",
+    "astro": "^3.6.0",
+    "astro-icon": "^0.8.1",
+    "eslint": "^8.54.0",
+    "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-astro": "^0.29.1",
-    "eslint-plugin-jsx-a11y": "^6.7.1",
-    "gh-pages": "^6.0.0",
-    "prettier": "^3.0.3",
-    "prettier-plugin-astro": "^0.12.0"
+    "eslint-plugin-jsx-a11y": "^6.8.0",
+    "mdast-util-to-string": "^4.0.0",
+    "prettier": "^3.1.0",
+    "prettier-plugin-astro": "^0.12.2",
+    "reading-time": "^1.5.0",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.3.2"
   }
 }

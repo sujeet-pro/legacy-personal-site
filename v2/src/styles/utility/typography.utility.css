@@ -1,0 +1,37 @@
+.text-muted {
+  color: var(--sp-text-muted-color);
+}
+
+.text-1 {
+  font-size: var(--sp-font-size-1);
+}
+
+.text-2 {
+  font-size: var(--sp-font-size-2);
+}
+
+.text-3 {
+  font-size: var(--sp-font-size-3);
+}
+
+.text-4 {
+  font-size: var(--sp-font-size-4);
+}
+
+.text-5 {
+  font-size: var(--sp-font-size-5);
+}
+
+.text-6 {
+  font-size: var(--sp-font-size-6);
+}
+.text-7 {
+  font-size: var(--sp-font-size-7);
+}
+.text-8 {
+  font-size: var(--sp-font-size-8);
+}
+
+.text-9 {
+  font-size: var(--sp-font-size-9);
+}

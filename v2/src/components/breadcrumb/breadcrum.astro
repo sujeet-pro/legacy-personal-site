@@ -1,0 +1,45 @@
+---
+import { Link } from "../link"
+type Props = {
+  parentPageHref: string
+  parentPageTitle: string
+  currentPageTitle: string
+}
+const { currentPageTitle, parentPageHref, parentPageTitle } = Astro.props
+const currentPageHref = Astro.url.pathname
+---
+
+<nav>
+  <ul class="text-muted">
+    <li>
+      <Link href="/">Home</Link>
+    </li>
+    {
+      parentPageHref && parentPageTitle ? (
+        <li>
+          <Link href={parentPageHref}>{parentPageTitle}</Link>
+        </li>
+      ) : null
+    }
+
+    <li>
+      <Link href={currentPageHref} aria-current="page">
+        {currentPageTitle}
+      </Link>
+    </li>
+  </ul>
+</nav>
+
+<style>
+  ul {
+    list-style: none;
+    margin-block-start: 0;
+    padding-inline-start: 0;
+    display: flex;
+    flex-wrap: wrap;
+  }
+  li:not(:last-child)::after {
+    content: "/";
+    padding-inline: var(--sp-space-4);
+  }
+</style>

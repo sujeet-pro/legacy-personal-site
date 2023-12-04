@@ -1,20 +1,84 @@
 ---
-
+import { Image } from "astro:assets"
+import Layout from "$layout/base-layout.astro"
+import { Link } from "$components"
+import sujeetImg from "$assets/author.jpg"
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="generator" content={Astro.generator} />
-    <title>Sujeet | Home</title>
-  </head>
-  <body>
-    <h1>Sujeet Jaiswal</h1>
-    <p>
-      Helping people make the world a better place through quality software.
+<Layout title="I'm Sujeet" description="I help build accessible and performant products on Web.">
+  <main class="container">
+    <section aria-label="Introduction" class="intro">
+      <Image src={sujeetImg} alt="Sujeet Jaiswal" role="presentation" class="img" />
+      <span class="intro-start text-8">Hello, I'm</span>
+      <span class="name typescale-site text-8">Sujeet Jaiswal</span>
+      <div class="cta">
+        <Link href="/profile/" skin="cta">View Profile</Link>
+      </div>
+    </section>
+    <p class="message text-8">
+      Helping people make the world a better place through <strong>quality software</strong>.
     </p>
-    <h2>Comming Soon</h2>
-  </body>
-</html>
+  </main>
+</Layout>
+
+<style>
+  @layer page {
+    main {
+      flex: 1;
+      container-type: inline-size;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: var(--sp-space-6);
+    }
+
+    .intro {
+      display: grid;
+      grid-template-areas:
+        "image"
+        "intro"
+        "name"
+        "cta";
+      column-gap: var(--sp-space-6);
+      place-items: center;
+      text-align: center;
+      /* padding: 0 var(--sp-space-6); */
+
+      @media (min-width: 40rem) {
+        grid-template-areas:
+          "image intro"
+          "image name"
+          "image cta";
+      }
+
+      @container (min-width: 40rem) {
+        grid-template-areas:
+          "image intro"
+          "image name"
+          "image cta"
+          "message message";
+      }
+    }
+    .img {
+      grid-area: image;
+      justify-self: center;
+
+      border-radius: 9999px;
+      width: 100%;
+      height: auto;
+      max-width: 14rem;
+    }
+    .intro-start {
+      grid-area: intro;
+    }
+    .name {
+      grid-area: name;
+    }
+    .cta {
+      grid-area: cta;
+    }
+    .message {
+      text-align: center;
+    }
+  }
+</style>

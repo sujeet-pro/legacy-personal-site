@@ -1,0 +1,22 @@
+---
+import Layout from "./base-layout.astro"
+const {
+  frontmatter: { title, description, imageSrc },
+} = Astro.props
+---
+
+<Layout {title} {description} {imageSrc} class="typescale-content">
+  <main class="container">
+    <h1>{title}</h1>
+    <slot />
+  </main>
+</Layout>
+
+<style>
+  h1 {
+    text-align: center;
+  }
+  main {
+    flex: 1;
+  }
+</style>

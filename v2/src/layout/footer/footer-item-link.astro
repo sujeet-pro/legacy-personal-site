@@ -1,0 +1,38 @@
+---
+import { Icon } from "astro-icon"
+import { Link } from "$components"
+
+type Props = {
+  href: string
+  iconName: string
+  text: string
+}
+
+const { href, iconName, text } = Astro.props
+---
+
+<li>
+  <Link {href} class="link">
+    <Icon class="icon" name={iconName} />
+    <span class="text">
+      <slot>{text}</slot>
+    </span>
+  </Link>
+</li>
+
+<style>
+  .link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .icon {
+    width: 24px;
+  }
+  .text {
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+</style>

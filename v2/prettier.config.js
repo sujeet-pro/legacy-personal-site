@@ -11,4 +11,6 @@ export default {
   ],
   semi: false,
   astroAllowShorthand: true,
+  endOfLine: "lf",
+  printWidth: 120,
 }
