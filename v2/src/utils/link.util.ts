@@ -15,7 +15,7 @@ const config: Record<string, string> = {
 
 export function getSanitizedUrl(origin: string | null | undefined, url: string | URL): string | URL {
   if (origin === "https://sujeet.pro") return url
-  const pathName = typeof url === "string" ? url : (url.pathName as string)
+  const pathName = typeof url === "string" ? url : url.pathname
   const redirectUrl = config[pathName]
   return redirectUrl ?? url
 }

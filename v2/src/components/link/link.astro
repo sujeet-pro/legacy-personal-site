@@ -38,27 +38,29 @@ if (isExternal) {
 </a>
 
 <style>
-  a {
-    text-decoration: none;
-    color: inherit;
+  @layer component {
+    a {
+      text-decoration: none;
+      color: inherit;
 
-    &:hover {
-      text-decoration: underline;
+      &:hover {
+        text-decoration: underline;
+      }
     }
-  }
 
-  .cta {
-    padding: var(--sp-space-4) var(--sp-space-8);
-    border-radius: 999px;
-    background: var(--sp-primary-100);
-    color: var(--sp-primary-800);
-    border: var(--sp-space-1) solid var(--sp-primary-800);
-    display: inline-block;
+    .cta {
+      padding: var(--sp-space-4) var(--sp-space-8);
+      border-radius: 999px;
+      background: var(--sp-primary-100);
+      color: var(--sp-primary-800);
+      border: var(--sp-space-1) solid var(--sp-primary-800);
+      display: inline-block;
 
-    &:hover {
-      background: var(--sp-primary-200);
-      color: var(--sp-primary-900);
-      border-color: var(--sp-primary-700);
+      &:hover {
+        background: var(--sp-primary-200);
+        color: var(--sp-primary-900);
+        border-color: var(--sp-primary-700);
+      }
     }
   }
 </style>

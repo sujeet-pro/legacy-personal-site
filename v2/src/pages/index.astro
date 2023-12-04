@@ -3,6 +3,7 @@ import { Image } from "astro:assets"
 import Layout from "$layout/base-layout.astro"
 import { Link } from "$components"
 import sujeetImg from "$assets/author.jpg"
+import Icon from "astro-icon"
 ---
 
 <Layout title="I'm Sujeet" description="I help build accessible and performant products on Web.">
@@ -12,7 +13,9 @@ import sujeetImg from "$assets/author.jpg"
       <span class="intro-start text-8">Hello, I'm</span>
       <span class="name typescale-site text-8">Sujeet Jaiswal</span>
       <div class="cta">
-        <Link href="/profile/" skin="cta">View Profile</Link>
+        <Link href="/in" skin="cta" class="cta-link">
+          Connect on LinkedIn <Icon class="cta-icon" name="mdi:linkedin" />
+        </Link>
       </div>
     </section>
     <p class="message text-8">
@@ -79,6 +82,16 @@ import sujeetImg from "$assets/author.jpg"
     }
     .message {
       text-align: center;
+    }
+    .cta-link {
+      display: flex;
+      gap: var(--sp-space-3);
+      align-items: center;
+    }
+
+    .cta-icon {
+      width: var(--sp-space-7);
+      width: var(--sp-space-7);
     }
   }
 </style>
