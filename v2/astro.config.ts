@@ -4,7 +4,7 @@ import prefetch from "@astrojs/prefetch"
 import { remarkReadingTime } from "./plugins/remark-reading-time"
 
 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-const SITE = process.env.SITE || process.env.CF_PAGES_URL || "https://localhost:4321"
+const SITE = process.env.SITE || process.env.CF_PAGES_URL || "https://v2.sujeet.pro"
 
 // https://astro.build/config
 console.log(`Building with site: "${SITE}"`)
