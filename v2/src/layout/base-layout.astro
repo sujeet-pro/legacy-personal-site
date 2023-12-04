@@ -1,4 +1,5 @@
 ---
+import "../styles/index.css"
 import { ViewTransitions } from "astro:transitions"
 import FavIcons from "./favicons.astro"
 import Analytics from "./analytics/analytics.astro"
@@ -6,16 +7,17 @@ import Seo from "./seo/seo.astro"
 import ThemeSetter from "./theme/theme-setter.astro"
 import Header from "./header/header.astro"
 import Footer from "./footer/footer.astro"
-import "@fontsource-variable/open-sans"
-import "./base.css"
+// import "@fontsource-variable/open-sans"
+
 type Props = {
   children: astroHTML.JSX.Children
   title: string
   description: string
   imageSrc?: string | undefined
+  class?: string
 }
 
-const { title, description, imageSrc } = Astro.props
+const { title, description, imageSrc, class: className } = Astro.props
 ---
 
 <html lang="en">
@@ -32,7 +34,7 @@ const { title, description, imageSrc } = Astro.props
     <ThemeSetter />
     <Analytics />
   </head>
-  <body>
+  <body class:list={["color-pallet", className]}>
     <Header />
     <slot />
     <Footer />

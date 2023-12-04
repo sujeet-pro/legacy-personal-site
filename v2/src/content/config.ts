@@ -39,37 +39,36 @@ const topic = defineCollection({
 
 const project = defineCollection({
   type: "content",
-  schema: ({ image }) => z.object({
-    title: z.string(),
-    description: z.string(),
-    isDraft: z.boolean().optional(),
-    thumbnail: image().optional(),
-    company: reference("company"),
-    startDate: z.date(),
-    endDate: z.date().optional(),
-    topics: z.array(reference("topic")),
-  })
+  schema: ({ image }) =>
+    z.object({
+      title: z.string(),
+      description: z.string(),
+      isDraft: z.boolean().optional(),
+      thumbnail: image().optional(),
+      company: reference("company"),
+      startDate: z.date(),
+      endDate: z.date().optional(),
+      topics: z.array(reference("topic")),
+    }),
 })
 
-
-const currYear = (new Date()).getFullYear()
 const company = defineCollection({
   type: "data",
   schema: z.object({
     name: z.string(),
-    startYear: z.number().refine(year => year >= 2014 && year <= currYear),
-    endYear: z.number().refine(year => year >= 2014 && year <= currYear),
+    startDate: z.string().transform((str) => new Date(str)),
+    endDate: z.string().transform((str) => new Date(str)).optional(),
     icon: z.string(),
     linkedInUrl: z.string().url(),
     role: z.string().optional(),
     designation: z.string().optional(),
     department: z.string().optional(),
-  })
+  }),
 })
 // Export a single `collections` object to register your collection(s)
 export const collections = {
   blog,
   topic,
   project,
-  company
+  company,
 }

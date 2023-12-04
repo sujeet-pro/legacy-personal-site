@@ -1,7 +1,8 @@
 ---
 import type { CollectionEntry } from "astro:content"
-import { Icon } from "astro-icon"
-import { Image } from "astro:assets"
+// import { Icon } from "astro-icon"
+// import { Image } from "astro:assets"
+import { Card } from "$components"
 
 type Props = {
   entry: CollectionEntry<"project">
@@ -9,26 +10,10 @@ type Props = {
 }
 
 const { entry, href } = Astro.props
-const { title, description, isDraft, thumbnail, iconName } = entry.data
+const { title, description, isDraft } = entry.data
+// const iconName = undefined
 ---
 
-<li
-  class:list={[
-    "relative hover:shadow-lg shadow-slate-100 dark:shadow-slate-800 rounded p-4 flex gap-4",
-    { "display-none": isDraft },
-  ]}
->
-  {
-    thumbnail ? (
-      <Image src={thumbnail} alt="" role="presentation" class="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28" />
-    ) : null
-  }
-  {iconName ? <Icon name={iconName} class="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28" /> : null}
-  <div class="flex-auto flex flex-col gap-2">
-    <a {href} class="after:absolute after:left-0 after:right-0 after:top-0 after:bottom-0 text-xl">
-      {title}
-    </a>
-    <p>{description}</p>
-    <slot />
-  </div>
-</li>
+<Card {title} {description} {href}>
+  <div>{isDraft ? "Is in Draft" : null}</div>
+</Card>

@@ -3,12 +3,13 @@ import Layout from "$layout/base-layout.astro"
 import Section from "./_skill-section.astro"
 import Card from "./_skill-card.astro"
 import { ProficiencyLevel } from "./_skill-config"
+import SkillLegend from "./_skill-legend.astro"
 ---
 
 <Layout title="Tech Skills" description="Skills acquired over a decade!">
-  <main class="container flex-1">
+  <main class="container">
     <h1>Skills</h1>
-    <p>Add Legend</p>
+    <SkillLegend class="legend-section" />
 
     <Section name="Programming Languages">
       <Card name="JavaScript" icon="tech-js" level={ProficiencyLevel.Expert} />
@@ -96,9 +97,29 @@ import { ProficiencyLevel } from "./_skill-config"
     </Section>
     <Section name="Utilities">
       <Card name="AJV" icon="tech-ajv" level={ProficiencyLevel.Advanced} />
-    </Section>
-    <Section name="Front-End Frameworks">
       <Card name="React Spring" icon="tech-react_spring" level={ProficiencyLevel.Intermediate} />
     </Section>
   </main>
 </Layout>
+
+<style>
+  @layer page {
+    main {
+      flex: 1;
+    }
+    h1 {
+      text-align: center;
+    }
+
+    .container:has(input[name="proficiency"]:checked) :global(.skill-card) {
+      display: none;
+    }
+
+    .container:has(input[value="proficiency-beginner"]:checked) :global(.proficiency-beginner),
+    .container:has(input[value="proficiency-intermediate"]:checked) :global(.proficiency-intermediate),
+    .container:has(input[value="proficiency-advanced"]:checked) :global(.proficiency-advanced),
+    .container:has(input[value="proficiency-expert"]:checked) :global(.proficiency-expert) {
+      display: initial;
+    }
+  }
+</style>

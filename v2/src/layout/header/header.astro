@@ -1,45 +1,48 @@
 ---
 import ThemeSwitcher from "../theme/theme-switcher.astro"
+import { Link } from "$components"
 ---
 
-<header
-  class:list={[
-    "header",
-    "bg-slate-50 dark:bg-slate-900",
-    "sticky top-0 z-50",
-    "flex justify-between px-4",
-    "border-b border-slate-300 dark:border-slate-600",
-    "drop-shadow-xl shadow-slate-50 dark:shadow-slate-900",
-  ]}
->
-  <nav>
-    <ul class="nav-ul">
-      <li><a href="/" class="p-4">Home</a></li>
-      <li><a href="/blog/" class="p-4">Blog</a></li>
-    </ul>
-  </nav>
-  <ThemeSwitcher />
+<header>
+  <div class="container">
+    <nav>
+      <ul>
+        <li><Link class="nav-link" href="/">Home</Link></li>
+        <li><Link class="nav-link" href="/blog/">Blogs</Link></li>
+      </ul>
+    </nav>
+    <ThemeSwitcher />
+  </div>
 </header>
 
 <style>
-  .header {
+  header {
     position: sticky;
     top: 0;
-    z-index: 50;
+    z-index: 1;
+    box-shadow: 0px var(--sp-space-3) var(--sp-space-4) var(--sp-border-color);
+  }
+  :global(.theme-dark) header {
+    border-bottom: var(--sp-space-1) solid var(--sp-border-color);
+    box-shadow: none;
+  }
+  .container {
     display: flex;
     justify-content: space-between;
-    padding: 0 8px;
-    border-bottom: 1px solid red;
+    background-color: color-mix(in srgb, var(--sp-background-color) 80%, transparent);
+    backdrop-filter: blur(var(--sp-space-4));
   }
 
-  .nav-ul {
+  ul {
+    list-style: none;
+    padding-inline-start: 0;
+    margin: 0;
     display: flex;
-    column-gap: 8px;
+    column-gap: var(--sp-space-6);
     height: 100%;
     align-items: center;
   }
-  .theme-light .header {
-  }
-  .theme-dark .header {
+  .nav-link {
+    padding: 0 var(--sp-space-6);
   }
 </style>

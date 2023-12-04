@@ -6,7 +6,7 @@ description: >
   Let us explore why is it 21 and how to get 3.
 isDraft: false
 publishedOn: 2023-03-20
-lastUpdatedOn: 2023-03-20
+lastUpdatedOn: 2023-12-20
 image: ./length-of-a-string.jpeg
 topics:
   - javascript

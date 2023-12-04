@@ -11,14 +11,41 @@ const { name, level, icon } = Astro.props
 const config = profiencencyConfigs[level]
 ---
 
-<li class:list={["border-2 relative", config.borderColor]}>
-  <Icon class="m-4 w-24 h-24 mx-auto" name={icon || "mdi:code-greater-than"} />
-  <Icon
-    name={config.icon}
-    title={config.title}
-    class:list={["absolute top-1 right-1 w-6 h-6 rounded", config.textColor, config.bgColor]}
-  />
-  <div class:list={["p-1 text-center", config.textColor, config.bgColor]}>
+<li class:list={["skill-card", config.class]}>
+  <Icon class="icon-tech" name={icon || "mdi:code-greater-than"} />
+  <Icon name={config.icon} title={config.title} class="icon-level" />
+  <div class="name">
     {name}
   </div>
 </li>
+
+<style>
+  .skill-card {
+    position: relative;
+    border: var(--sp-space-2) solid var(--sp-proficiency-level-text);
+    text-align: center;
+  }
+  .icon-tech {
+    width: 6rem;
+    height: 6rem;
+    margin: 1rem auto;
+    padding: var(--sp-space-3);
+    max-width: 100%;
+  }
+  .icon-level {
+    position: absolute;
+    top: var(--sp-space-3);
+    right: var(--sp-space-3);
+    padding: var(--sp-space-2);
+    width: var(--sp-space-8);
+    height: var(--sp-space-8);
+    background-color: var(--sp-proficiency-level-bg);
+    color: var(--sp-proficiency-level-text);
+    border-radius: var(--sp-space-3);
+  }
+  .name {
+    background-color: var(--sp-proficiency-level-bg);
+    color: var(--sp-proficiency-level-text);
+    padding: var(--sp-space-2);
+  }
+</style>

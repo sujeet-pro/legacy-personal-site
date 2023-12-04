@@ -9,6 +9,17 @@ const entries = await getCollection("blog", ({ data }) => {
 ---
 
 <Layout title="Sujeet's Blogs" description="List of all the blogs">
-  <h1>Blogs</h1>
-  {entries.map((entry) => <BlogListItem {entry} />)}
+  <main class="container">
+    <h1>Blogs</h1>
+    {entries.map((entry) => <BlogListItem {entry} />)}
+  </main>
 </Layout>
+
+<style>
+  main {
+    flex: 1;
+  }
+  h1 {
+    text-align: center;
+  }
+</style>

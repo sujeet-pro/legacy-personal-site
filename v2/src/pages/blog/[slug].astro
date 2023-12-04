@@ -28,7 +28,7 @@ const { title, description, image, topics, publishedOn, lastUpdatedOn, isDraft }
 const tags = topics.map((topic) => topic.slug)
 ---
 
-<Layout {title} {description} imageSrc={image?.src}>
+<Layout {title} {description} imageSrc={image?.src} class="typescale-content">
   <Fragment slot="seo">
     <meta property="og:type" content="article" />
     <meta property="og:article:author" content={AUTHOR_NAME} />
@@ -36,14 +36,14 @@ const tags = topics.map((topic) => topic.slug)
     <meta property="og:article:published_time" content={publishedOn.toISOString()} />
     <meta property="og:article:modified_time" content={lastUpdatedOn.toISOString()} />
   </Fragment>
-  <div>
+  <div class="container">
     <main>
-      <Article prose>
-        {isDraft ? <Alert level="warning">This blog is currently in draft</Alert> : null}
-        <h1>{title}</h1>
-        {frontmatter["minutesRead"] ? <p>{frontmatter["minutesRead"]}</p> : null}
-        <p>{description}</p>
-        {entry.data.image ? <Image src={entry.data.image} alt="" /> : null}
+      {isDraft ? <Alert level="warning">This blog is currently in draft</Alert> : null}
+      <h1>{title}</h1>
+      {frontmatter["minutesRead"] ? <p>{frontmatter["minutesRead"]}</p> : null}
+      <p>{description}</p>
+      {entry.data.image ? <Image src={entry.data.image} alt="" /> : null}
+      <Article>
         <Content />
       </Article>
     </main>

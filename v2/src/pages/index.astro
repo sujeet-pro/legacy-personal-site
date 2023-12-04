@@ -6,19 +6,79 @@ import sujeetImg from "$assets/author.jpg"
 ---
 
 <Layout title="I'm Sujeet" description="I help build accessible and performant products on Web.">
-  <main class="container flex-1">
-    <section aria-label="Introduction" class="">
-      <div class="flex flex-col md:flex-row md:justify-center items-center gap-10 my-4 sm:my-20">
-        <Image src={sujeetImg} alt="Sujeet Jaiswal" role="presentation" class="rounded-full w-full max-w-xs" />
-        <div class="flex flex-col gap-10 text-center md:text-left">
-          <p class="text-5xl sm:text-6xl">Hello, I'm</p>
-          <h1 class="text-6xl lg:text-8xl">Sujeet Jaiswal</h1>
-          <Link href="/profile/" className="max-w-max mx-auto md:mx-0" skin="cta">View Profile</Link>
-        </div>
+  <main class="container">
+    <section aria-label="Introduction" class="intro">
+      <Image src={sujeetImg} alt="Sujeet Jaiswal" role="presentation" class="img" />
+      <span class="intro-start text-8">Hello, I'm</span>
+      <span class="name typescale-site text-8">Sujeet Jaiswal</span>
+      <div class="cta">
+        <Link href="/profile/" skin="cta">View Profile</Link>
       </div>
-      <p class="text-4xl sm:text-6xl lg:text-7xl leading-tight sm:leading-tight lg:leading-tight p-4">
-        Helping people make the world a better place through <strong>quality software</strong>.
-      </p>
     </section>
+    <p class="message text-8">
+      Helping people make the world a better place through <strong>quality software</strong>.
+    </p>
   </main>
 </Layout>
+
+<style>
+  @layer page {
+    main {
+      flex: 1;
+      container-type: inline-size;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: var(--sp-space-6);
+    }
+
+    .intro {
+      display: grid;
+      grid-template-areas:
+        "image"
+        "intro"
+        "name"
+        "cta";
+      column-gap: var(--sp-space-6);
+      place-items: center;
+      text-align: center;
+      /* padding: 0 var(--sp-space-6); */
+
+      @media (min-width: 40rem) {
+        grid-template-areas:
+          "image intro"
+          "image name"
+          "image cta";
+      }
+
+      @container (min-width: 40rem) {
+        grid-template-areas:
+          "image intro"
+          "image name"
+          "image cta"
+          "message message";
+      }
+    }
+    .img {
+      grid-area: image;
+      justify-self: center;
+
+      border-radius: 9999px;
+      width: 100%;
+      height: auto;
+      max-width: 14rem;
+    }
+    .intro-start {
+      grid-area: intro;
+    }
+    .name {
+      grid-area: name;
+    }
+    .cta {
+      grid-area: cta;
+    }
+    .message {
+      text-align: center;
+    }
+  }
+</style>

@@ -5,11 +5,16 @@ type Props = {
 const { class: className } = Astro.props
 ---
 
-<article class:list={["article", className]}>
+<article class:list={["markdown-article", className]}>
   <slot />
 </article>
 
-<style>
-  .article {
+<style is:global>
+  @layer component {
+    .markdown-article {
+      ul {
+        list-style: initial;
+      }
+    }
   }
 </style>

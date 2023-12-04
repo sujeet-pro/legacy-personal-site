@@ -1,11 +1,8 @@
 ---
 import { Icon } from "astro-icon"
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-type Props = Record<string, never>
 ---
 
-<button disabled id="theme-switcher" class="p-2 w-12 h-12" title="Toggle Dark Mode">
+<button disabled id="theme-switcher" title="Toggle Dark Mode">
   <span class="switch-to-dark-theme">
     <Icon name="carbon:moon" />
     <span class="sr-only">Switch to Dark Theme</span>
@@ -17,33 +14,54 @@ type Props = Record<string, never>
 </button>
 
 <style>
-  #theme-switcher {
-  }
-  #theme-switcher .switch-to-light-theme {
-    display: none;
-  }
-  :global(.dark) #theme-switcher .switch-to-light-theme {
-    display: initial;
-  }
-  :global(.dark) #theme-switcher .switch-to-dark-theme {
-    display: none;
+  @layer component {
+    #theme-switcher {
+      padding: var(--sp-space-3);
+      width: var(--sp-space-12);
+      height: var(--sp-space-12);
+      background: none;
+      border: none;
+      color: inherit;
+    }
+    #theme-switcher:disabled {
+      color: var(--sp-text-muted-color);
+    }
+    .switch-to-light-theme {
+      display: none;
+    }
+    .switch-to-dark-theme {
+      display: inline;
+    }
+
+    ::global(.theme-dark) {
+      .switch-to-light-theme {
+        display: inline;
+      }
+      .switch-to-dark-theme {
+        display: none;
+      }
+    }
   }
 </style>
 
 <script>
-  import { getClassNameWithPrefix, removeClassNameWithPrefix, getNextTheme } from "./class-utils"
-  try {
-    const themeSwitcherBtn = document.querySelector<HTMLButtonElement>("button#theme-switcher")
-    if (themeSwitcherBtn) {
-      themeSwitcherBtn.removeAttribute("disabled")
-      themeSwitcherBtn.addEventListener("click", () => {
-        const classsList = document.documentElement.classList
-        const currentTheme = getClassNameWithPrefix(classsList, "theme-")
-        removeClassNameWithPrefix(classsList, "theme-")
-        const nextTheme = getNextTheme(currentTheme)
-        localStorage.setItem("theme", nextTheme)
-        document.documentElement.classList.add(nextTheme)
-      })
+  import { changeTheme } from "./class-utils"
+  ;(function () {
+    function switchThemeClickListner() {
+      changeTheme()
     }
-  } catch {}
+
+    function attachThemeSwitchEventListner() {
+      const themeSwitcherBtn = document.querySelector<HTMLButtonElement>("button#theme-switcher")
+      if (themeSwitcherBtn) {
+        themeSwitcherBtn.removeAttribute("disabled")
+        themeSwitcherBtn?.removeEventListener("click", switchThemeClickListner)
+        themeSwitcherBtn.addEventListener("click", switchThemeClickListner)
+      }
+    }
+    attachThemeSwitchEventListner()
+    document.addEventListener("astro:after-swap", () => {
+      attachThemeSwitchEventListner()
+    })
+  })()
 </script>

@@ -9,9 +9,7 @@ export type ProfiencencyConfig = {
   title: string
   icon: string
   level: ProficiencyLevel
-  textColor: string
-  bgColor: string
-  borderColor: string
+  class: string
 }
 
 export const profiencencyConfigs: Record<ProficiencyLevel, ProfiencencyConfig> = {
@@ -19,32 +17,31 @@ export const profiencencyConfigs: Record<ProficiencyLevel, ProfiencencyConfig> =
     title: "Expert",
     level: ProficiencyLevel.Expert,
     icon: "profile-skill_level_4",
-    textColor: "text-purple-800 dark:text-purple-200",
-    bgColor: "bg-purple-200 dark:bg-purple-800",
-    borderColor: "border-purple-600 dark:border-purple-300",
+    class: "proficiency-expert",
   },
   [ProficiencyLevel.Advanced]: {
     title: "Advance",
     level: ProficiencyLevel.Advanced,
     icon: "profile-skill_level_3",
-    textColor: "text-green-800 dark:text-green-200",
-    bgColor: "bg-green-200 dark:bg-green-800",
-    borderColor: "border-green-600 dark:border-green-300",
+    class: "proficiency-advanced",
   },
   [ProficiencyLevel.Intermediate]: {
     title: "Intermediate",
     level: ProficiencyLevel.Intermediate,
     icon: "profile-skill_level_2",
-    textColor: "text-blue-800 dark:text-blue-200",
-    bgColor: "bg-blue-200 dark:bg-blue-800",
-    borderColor: "border-blue-600 dark:border-blue-300",
+    class: "proficiency-intermediate",
   },
   [ProficiencyLevel.Beginner]: {
     title: "Beginner",
     level: ProficiencyLevel.Beginner,
     icon: "profile-skill_level_1",
-    textColor: "text-lime-800 dark:text-lime-200",
-    bgColor: "bg-lime-200 dark:bg-lime-800",
-    borderColor: "border-lime-600 dark:border-lime-300",
+    class: "proficiency-beginner",
   },
 }
+
+export const proficiencyLevelConfigs: ProfiencencyConfig[] = [
+  profiencencyConfigs.Expert,
+  profiencencyConfigs.Advanced,
+  profiencencyConfigs.Intermediate,
+  profiencencyConfigs.Beginner,
+];

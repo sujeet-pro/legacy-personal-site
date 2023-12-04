@@ -6,7 +6,7 @@ type Props = {
 }
 
 const { entry } = Astro.props
-const { name, icon, role, designation, department, startYear, endYear, linkedInUrl } = entry.data
+const { name, icon, role, designation, department, linkedInUrl } = entry.data
 
 // const dateTimeFormatter = new Intl.DateTimeFormat("en-IN", {
 //   year: "numeric",
@@ -25,7 +25,7 @@ const classNameMuted = "text-slate-600 dark:text-slate-400"
 <div class="company-details grid gap-x-3 gap-y-2">
   <Icon class="w-40 h-20 company-icon" name={icon} />
   {
-    role || designation ? (
+    role ?? designation ? (
       <h3 class="company-designation text-2xl text-left m-0">{[role, designation].filter(Boolean).join(" / ")}</h3>
     ) : null
   }
@@ -33,7 +33,7 @@ const classNameMuted = "text-slate-600 dark:text-slate-400"
     <a href={linkedInUrl} target="_blank" rel="noopener noreferrer">{name}</a>
     {department ? <span class:list={[classNameMuted]}>({department})</span> : null}
   </span>
-  <span class:list={["company-duration font-light", classNameMuted]}>
+  <!-- <span class:list={["company-duration font-light", classNameMuted]}>
     {
       endYear ? (
         <>
@@ -45,7 +45,7 @@ const classNameMuted = "text-slate-600 dark:text-slate-400"
         </>
       )
     }
-  </span>
+  </span> -->
 </div>
 
 <style>

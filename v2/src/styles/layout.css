@@ -1,0 +1,22 @@
+@layer layout {
+  .layout-super-centered {
+    display: grid;
+    place-items: center;
+  }
+
+  .layoout-sidebar {
+    display: grid;
+    grid-template-columns: minmax(150px, 25%) 1fr;
+  }
+
+  .layout-pancake-stack {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+  }
+
+  .layout-auto-grid {
+    display: grid;
+    grid-gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+}

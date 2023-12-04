@@ -11,11 +11,28 @@ type Props = {
 const { href, iconName, text } = Astro.props
 ---
 
-<li class="">
-  <Link {href} className="flex items-center gap-2">
-    <Icon class="w-8" name={iconName} />
-    <span class="w-full overflow-hidden text-ellipsis whitespace-nowrap">
+<li>
+  <Link {href} class="link">
+    <Icon class="icon" name={iconName} />
+    <span class="text">
       <slot>{text}</slot>
     </span>
   </Link>
 </li>
+
+<style>
+  .link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .icon {
+    width: 24px;
+  }
+  .text {
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+</style>

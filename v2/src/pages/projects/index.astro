@@ -14,9 +14,17 @@ const description = "List of all the projects that I have worked on for differen
 
 <Layout {title} {description}>
   <main class="container">
-    <h1 class="text-5xl text-center my-8">{title}</h1>
-    <ul class="divide-y-2">
-      {entries.map((entry) => <ProjectListItem entry={entry} href={`/projects/${entry.slug}/`} />)}
-    </ul>
+    <h1>{title}</h1>
+    {entries.map((entry) => <ProjectListItem entry={entry} href={`/projects/${entry.slug}/`} />)}
   </main>
 </Layout>
+
+<style>
+  main {
+    flex: 1;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: var(--sp-space-8);
+  }
+</style>
