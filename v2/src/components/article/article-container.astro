@@ -1,0 +1,32 @@
+---
+import Article from "./article.astro"
+import { Breadcrumb } from "../breadcrumb"
+
+type Props = {
+  title: string
+  description: string
+  parentPageTitle: string
+  parentPageHref: string
+}
+
+const { title, description, parentPageHref, parentPageTitle } = Astro.props
+---
+
+<Breadcrumb {parentPageHref} {parentPageTitle} currentPageTitle={title} />
+<slot name="pre" />
+<h1>{title}</h1>
+<p class="text-5">{description}</p>
+<slot name="post" />
+<Article>
+  <slot />
+</Article>
+
+<style>
+  h1 {
+    text-align: center;
+    font-weight: bold;
+  }
+  p {
+    font-style: italic;
+  }
+</style>

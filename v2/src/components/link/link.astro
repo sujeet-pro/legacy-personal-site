@@ -17,7 +17,7 @@ const isCurrent = href === Astro.url.href || href === Astro.url.pathname
 const extraLinkProps: HTMLAttributes<"a"> = {}
 if (isExternal) {
   extraLinkProps.target = "_blank"
-  extraLinkProps.rel = "n"
+  extraLinkProps.rel = "noopener noreferrer"
 }
 ---
 
