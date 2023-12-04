@@ -16,33 +16,35 @@ import { Link } from "$components"
 </header>
 
 <style>
-  header {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    box-shadow: 0px var(--sp-space-3) var(--sp-space-4) var(--sp-border-color);
-  }
-  :global(.theme-dark) header {
-    border-bottom: var(--sp-space-1) solid var(--sp-border-color);
-    box-shadow: none;
-  }
-  .container {
-    display: flex;
-    justify-content: space-between;
-    background-color: color-mix(in srgb, var(--sp-background-color) 80%, transparent);
-    backdrop-filter: blur(var(--sp-space-4));
-  }
+  @layer component {
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      box-shadow: 0px var(--sp-space-3) var(--sp-space-4) var(--sp-border-color);
+    }
+    :global(.theme-dark) header {
+      border-bottom: var(--sp-space-1) solid var(--sp-border-color);
+      box-shadow: none;
+    }
+    .container {
+      display: flex;
+      justify-content: space-between;
+      background-color: color-mix(in srgb, var(--sp-background-color) 80%, transparent);
+      backdrop-filter: blur(var(--sp-space-4));
+    }
 
-  ul {
-    list-style: none;
-    padding-inline-start: 0;
-    margin: 0;
-    display: flex;
-    column-gap: var(--sp-space-6);
-    height: 100%;
-    align-items: center;
-  }
-  .nav-link {
-    padding: 0 var(--sp-space-6);
+    ul {
+      list-style: none;
+      padding-inline-start: 0;
+      margin: 0;
+      display: flex;
+      column-gap: var(--sp-space-6);
+      height: 100%;
+      align-items: center;
+    }
+    .nav-link {
+      padding: 0 var(--sp-space-6);
+    }
   }
 </style>

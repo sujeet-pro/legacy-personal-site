@@ -3,8 +3,8 @@
   "type": "module",
   "version": "0.0.1",
   "engines": {
-    "node": ">=20",
-    "npm": ">=10"
+    "node": ">=20.10.0",
+    "npm": ">=10.2.3"
   },
   "scripts": {
     "dev": "astro dev",
@@ -14,7 +14,6 @@
     "preview": "astro preview",
     "astro": "astro",
     "gh": "npm run clean && npm run check && npm run build && npm run deploy",
-    "deploy": "gh-pages -d dist --dotfiles include",
     "sync": "astro sync",
     "clean": "rimraf .astro dist",
     "check": "npm run check:ts && npm run check:lint && npm run check:format",

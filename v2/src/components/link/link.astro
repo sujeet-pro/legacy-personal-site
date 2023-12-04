@@ -1,16 +1,17 @@
 ---
 import type { HTMLAttributes } from "astro/types"
-import { isExternalUrl } from "./link.util"
+import { isExternalUrl, getSanitizedUrl } from "$utils/link.util"
 
 type Props = HTMLAttributes<"a"> & {
   class?: string
   skin?: "none" | "cta"
 }
 
-const { href, class: className, skin, ...extraProps } = Astro.props
-if (!href) {
+const { href: inputHref, class: className, skin, ...extraProps } = Astro.props
+if (!inputHref) {
   throw new Error("Href must be provided")
 }
+const href = getSanitizedUrl(Astro.site?.origin, inputHref)
 const isExternal = isExternalUrl(href)
 const isCta = skin === "cta"
 const isCurrent = href === Astro.url.href || href === Astro.url.pathname

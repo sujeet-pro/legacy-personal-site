@@ -21,18 +21,20 @@ const { href, iconName, text } = Astro.props
 </li>
 
 <style>
-  .link {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .icon {
-    width: 24px;
-  }
-  .text {
-    width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  @layer component {
+    .link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .icon {
+      width: 24px;
+    }
+    .text {
+      width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   }
 </style>

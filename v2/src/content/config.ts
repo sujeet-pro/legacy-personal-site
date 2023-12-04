@@ -57,7 +57,10 @@ const company = defineCollection({
   schema: z.object({
     name: z.string(),
     startDate: z.string().transform((str) => new Date(str)),
-    endDate: z.string().transform((str) => new Date(str)).optional(),
+    endDate: z
+      .string()
+      .transform((str) => new Date(str))
+      .optional(),
     icon: z.string(),
     linkedInUrl: z.string().url(),
     role: z.string().optional(),

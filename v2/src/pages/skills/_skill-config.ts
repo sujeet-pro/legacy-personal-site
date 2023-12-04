@@ -44,4 +44,4 @@ export const proficiencyLevelConfigs: ProfiencencyConfig[] = [
   profiencencyConfigs.Advanced,
   profiencencyConfigs.Intermediate,
   profiencencyConfigs.Beginner,
-];
+]
