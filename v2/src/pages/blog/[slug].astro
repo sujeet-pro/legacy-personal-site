@@ -6,6 +6,7 @@ import Layout from "$layout/base-layout.astro"
 import { AUTHOR_NAME } from "$constants/global"
 import { MarkdownToc, Alert, ArticleContainer, ImgFigure, DateTime } from "$components"
 import sujeetImg from "$assets/author.jpg"
+import Icon from "astro-icon"
 // 1. Generate a new path for every collection entry
 export async function getStaticPaths() {
   const blogEntries = await getCollection("blog", ({ data }) => {
@@ -53,9 +54,17 @@ const hasUpdated = publishedOn.getTime() !== lastUpdatedOn.getTime()
           <span>{AUTHOR_NAME}</span>
         </li>
         <li class="blog-date">
+          <Icon class="icon" name="carbon:calendar" />
           <DateTime date={hasUpdated ? lastUpdatedOn : publishedOn} />
         </li>
-        {frontmatter["minutesRead"] ? <li class="blog-time">{frontmatter["minutesRead"]}</li> : null}
+        {
+          frontmatter["minutesRead"] ? (
+            <li class="blog-time">
+              <Icon class="icon" name="carbon:time" />
+              {frontmatter["minutesRead"]}
+            </li>
+          ) : null
+        }
       </ul>
       <ImgFigure {image} caption={imageCredit} />
       <Content />
@@ -103,7 +112,13 @@ const hasUpdated = publishedOn.getTime() !== lastUpdatedOn.getTime()
     color: var(--sp-text-muted-color);
   }
 
-  @media (min-width: 30rem) {
+  .icon {
+    width: var(--sp-space-8);
+    height: var(--sp-space-8);
+    margin-right: var(--sp-space-4);
+  }
+
+  @media (min-width: 40rem) {
     .blog-meta {
       grid-template-areas: "author date time";
     }
