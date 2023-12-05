@@ -4,15 +4,16 @@ import { Link } from "$components"
 
 type Props = {
   href: string
+  isExternal?: boolean | undefined
   iconName: string
   text: string
 }
 
-const { href, iconName, text } = Astro.props
+const { href, iconName, text, isExternal } = Astro.props
 ---
 
 <li>
-  <Link {href} class="link">
+  <Link {href} {isExternal} class="link">
     <Icon class="icon" name={iconName} />
     <span class="text">
       <slot>{text}</slot>

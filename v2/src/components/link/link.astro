@@ -5,13 +5,14 @@ import { isExternalUrl } from "$utils/link.util"
 type Props = HTMLAttributes<"a"> & {
   class?: string
   skin?: "none" | "cta"
+  isExternal?: boolean | undefined
 }
 
-const { href, class: className, skin, ...extraProps } = Astro.props
+const { href, class: className, skin, isExternal: isExternalProp, ...extraProps } = Astro.props
 if (!href) {
   throw new Error("Href must be provided")
 }
-const isExternal = isExternalUrl(href)
+const isExternal = isExternalProp ?? isExternalUrl(href)
 const isCta = skin === "cta"
 const isCurrent = href === Astro.url.href || href === Astro.url.pathname
 const extraLinkProps: HTMLAttributes<"a"> = {}
