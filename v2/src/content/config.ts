@@ -13,6 +13,7 @@ const blog = defineCollection({
           message: "Cover image must be at least 1080 pixels wide!",
         })
         .optional(),
+      imageCredit: z.string().optional(),
       description: z.string(),
       // Auto Populated
       minutesRead: z.string().optional(),

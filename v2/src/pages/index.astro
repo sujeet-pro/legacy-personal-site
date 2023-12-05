@@ -3,15 +3,16 @@ import { Image } from "astro:assets"
 import Layout from "$layout/base-layout.astro"
 import { Link } from "$components"
 import sujeetImg from "$assets/author.jpg"
+import { AUTHOR_NAME } from "$constants/global"
 import Icon from "astro-icon"
 ---
 
 <Layout title="I'm Sujeet" description="I help build accessible and performant products on Web.">
   <main class="container">
     <section aria-label="Introduction" class="intro">
-      <Image src={sujeetImg} alt="Sujeet Jaiswal" role="presentation" class="img" />
+      <Image src={sujeetImg} alt={AUTHOR_NAME} role="presentation" class="img" />
       <span class="intro-start text-8">Hello, I'm</span>
-      <span class="name typescale-site text-8">Sujeet Jaiswal</span>
+      <span class="name typescale-site text-8">AUTHOR_NAME</span>
       <div class="cta">
         <Link href="/in" skin="cta" class="cta-link">
           Connect on LinkedIn <Icon class="cta-icon" name="mdi:linkedin" />

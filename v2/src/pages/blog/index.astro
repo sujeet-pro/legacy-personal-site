@@ -10,7 +10,7 @@ const entries = await getCollection("blog", ({ data }) => {
 
 <Layout title="Sujeet's Blogs" description="List of all the blogs">
   <main class="container">
-    <h1>Blogs</h1>
+    <h1>Sujeet's Blogs</h1>
     {entries.map((entry) => <BlogListItem {entry} />)}
   </main>
 </Layout>
@@ -21,5 +21,6 @@ const entries = await getCollection("blog", ({ data }) => {
   }
   h1 {
     text-align: center;
+    margin-bottom: var(--sp-space-8);
   }
 </style>

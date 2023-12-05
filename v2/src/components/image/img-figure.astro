@@ -1,0 +1,38 @@
+---
+import { Image } from "astro:assets"
+import type { ImageMetadata } from "astro"
+export type Props = {
+  image: ImageMetadata | string | undefined | null
+  caption?: string | undefined
+  alt?: string | null | undefined
+} // & ImgAttributes
+
+const { image, alt = "", caption } = Astro.props
+---
+
+<figure>
+  {image && typeof image !== "string" ? <Image src={image} alt={alt} /> : null}
+  {image && typeof image === "string" ? <img src={image} alt={alt} /> : null}
+  {caption ? <figcaption set:html={caption} /> : null}
+</figure>
+
+<style>
+  @layer component {
+    figure {
+      display: block;
+      margin: var(--sp-space-6) 0;
+    }
+    img {
+      width: 100%;
+    }
+    figcaption {
+      font-size: var(--sp-font-size-1);
+      color: var(--sp-text-muted-color);
+      text-align: center;
+
+      a {
+        color: inherit;
+      }
+    }
+  }
+</style>

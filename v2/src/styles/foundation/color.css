@@ -54,7 +54,7 @@
   --sp-primary-950: color-mix(in srgb, var(--sp-primary-color) 95%, var(--sp-background-color));
   /* Semantic Tokens */
   --sp-text-color: var(--sp-foreground-800);
-  --sp-text-muted-color: var(var(--sp-foreground-500));
+  --sp-text-muted-color: var(--sp-foreground-500);
   --sp-border-color: var(--sp-background-800);
 }
 

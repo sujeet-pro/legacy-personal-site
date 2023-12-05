@@ -4,8 +4,8 @@ import { getCollection } from "astro:content"
 import { Image } from "astro:assets"
 import Layout from "$layout/base-layout.astro"
 import { AUTHOR_NAME } from "$constants/global"
-import { MarkdownToc, Alert, ArticleContainer } from "$components"
-
+import { MarkdownToc, Alert, ArticleContainer, ImgFigure, DateTime } from "$components"
+import sujeetImg from "$assets/author.jpg"
 // 1. Generate a new path for every collection entry
 export async function getStaticPaths() {
   const blogEntries = await getCollection("blog", ({ data }) => {
@@ -24,8 +24,10 @@ type Props = InferGetStaticPropsType<typeof getStaticPaths>
 // 2. For your template, you can get the entry directly from the prop
 const { entry } = Astro.props
 const { Content, remarkPluginFrontmatter: frontmatter, headings } = await entry.render()
-const { title, description, image, topics, publishedOn, lastUpdatedOn, isDraft } = entry.data
+const { title, description, image, imageCredit, topics, publishedOn, lastUpdatedOn, isDraft } = entry.data
 const tags = topics.map((topic) => topic.slug)
+
+const hasUpdated = publishedOn.getTime() !== lastUpdatedOn.getTime()
 ---
 
 <Layout {title} {description} imageSrc={image?.src} class="typescale-content">
@@ -45,10 +47,17 @@ const tags = topics.map((topic) => topic.slug)
           </Alert>
         ) : null
       }
-      <div slot="post">
-        {frontmatter["minutesRead"] ? <p class="reading-time">{frontmatter["minutesRead"]}</p> : null}
-        {entry.data.image ? <Image src={entry.data.image} alt="" /> : null}
-      </div>
+      <ul slot="post" class="blog-meta">
+        <li class="blog-author">
+          <Image src={sujeetImg} alt={AUTHOR_NAME} role="presentation" class="author-img" />
+          <span>{AUTHOR_NAME}</span>
+        </li>
+        <li class="blog-date">
+          <DateTime date={hasUpdated ? lastUpdatedOn : publishedOn} />
+        </li>
+        {frontmatter["minutesRead"] ? <li class="blog-time">{frontmatter["minutesRead"]}</li> : null}
+      </ul>
+      <ImgFigure {image} caption={imageCredit} />
       <Content />
     </ArticleContainer>
   </main>
@@ -62,8 +71,60 @@ const tags = topics.map((topic) => topic.slug)
 </Layout>
 
 <style>
-  .reading-time {
-    margin: var(--sp-space-6) 0;
-    text-align: right;
+  .blog-meta {
+    display: grid;
+    grid-template-areas: "author author" "date time";
+    gap: var(--sp-space-4) var(--sp-space-6);
+    place-items: center;
+    place-content: center;
+    list-style: none;
+    padding-inline-start: 0;
+  }
+
+  .blog-author {
+    grid-area: author;
+    display: flex;
+    align-items: center;
+  }
+  .blog-date {
+    grid-area: date;
+  }
+  .blog-time {
+    grid-area: time;
+    display: flex;
+    align-items: center;
+  }
+  .blog-time::before {
+    content: "\00B7";
+    margin-right: var(--sp-space-6);
+    font-weight: bolder;
+    font-size: var(--sp-font-size-6);
+    line-height: 0;
+    color: var(--sp-text-muted-color);
+  }
+
+  @media (min-width: 30rem) {
+    .blog-meta {
+      grid-template-areas: "author date time";
+    }
+    .blog-date {
+      display: flex;
+      align-items: center;
+    }
+    .blog-date::before {
+      content: "\00B7";
+      margin-right: var(--sp-space-6);
+      font-weight: bolder;
+      font-size: var(--sp-font-size-6);
+      line-height: 0;
+      color: var(--sp-text-muted-color);
+    }
+  }
+
+  .author-img {
+    width: var(--sp-space-10);
+    height: var(--sp-space-10);
+    border-radius: 50%;
+    margin-right: var(--sp-space-4);
   }
 </style>
