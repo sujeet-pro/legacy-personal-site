@@ -1,26 +1,38 @@
-import { z, reference, defineCollection } from "astro:content"
+import { z, reference, defineCollection, type ImageFunction } from "astro:content"
+
+const baseConfig = () => ({
+  title: z.string(),
+  description: z.string(),
+  isDraft: z.boolean(),
+  initialTocClose: z.boolean(),
+})
+const commonConfig = (image: ImageFunction) => ({
+  ...baseConfig(),
+  image: image().refine((img) => img.width >= 1080, {
+    message: "Cover image must be at least 1080 pixels wide!",
+  }),
+  imageCredit: z.string(),
+})
 
 const blog = defineCollection({
   type: "content",
   schema: ({ image }) =>
     z.object({
-      isDraft: z.boolean(),
-      title: z.string(),
+      ...commonConfig(image),
       publishedOn: z.date(),
       lastUpdatedOn: z.date(),
-      image: image()
-        .refine((img) => img.width >= 1080, {
-          message: "Cover image must be at least 1080 pixels wide!",
-        })
-        .optional(),
-      imageCredit: z.string().optional(),
-      description: z.string(),
-      // Auto Populated
-      minutesRead: z.string().optional(),
       // Referenced
       topics: z.array(reference("topic")),
       // Reference an array of related posts from the `blog` collection by `slug`
-      relatedBlogs: z.array(reference("blog")).optional(),
+      // relatedBlogs: z.array(reference("blog")).optional(),
+    }),
+})
+
+const mdPages = defineCollection({
+  type: "content",
+  schema: ({ image }) =>
+    z.object({
+      ...commonConfig(image),
     }),
 })
 
@@ -28,27 +40,18 @@ const topic = defineCollection({
   type: "content",
   schema: ({ image }) =>
     z.object({
-      title: z.string(),
-      description: z.string(),
-      image: image()
-        .refine((img) => img.width >= 1080, {
-          message: "Cover image must be at least 1080 pixels wide!",
-        })
-        .optional(),
+      ...commonConfig(image),
     }),
 })
 
 const project = defineCollection({
   type: "content",
-  schema: ({ image }) =>
+  schema: () =>
     z.object({
-      title: z.string(),
-      description: z.string(),
-      isDraft: z.boolean().optional(),
-      thumbnail: image().optional(),
-      company: reference("company"),
+      ...baseConfig(),
       startDate: z.date(),
       endDate: z.date().optional(),
+      company: reference("company"),
       topics: z.array(reference("topic")),
     }),
 })
@@ -71,6 +74,7 @@ const company = defineCollection({
 })
 // Export a single `collections` object to register your collection(s)
 export const collections = {
+  "md-pages": mdPages,
   blog,
   topic,
   project,

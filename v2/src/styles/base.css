@@ -8,11 +8,14 @@ body {
 
   /* Typography */
   font-family: "Open Sans Variable", sans-serif;
-  font-size: var(--sp-font-size-3);
+  font-size: var(--sp-font-size-4);
   line-height: 1.6;
 
   /* Spacing */
   margin: 0;
+
+  /* For smooth scrolling */
+  scroll-behavior: smooth;
 }
 
 h1,
@@ -21,12 +24,14 @@ h3,
 h4,
 h5,
 h6 {
-  /* line-height: 1.5; */
+  line-height: 1.2;
   font-weight: normal;
 }
 
 h1 {
   font-size: var(--sp-font-size-9);
+  text-align: center;
+  /* font-weight: bold; */
 }
 h2 {
   font-size: var(--sp-font-size-8);
@@ -57,8 +62,8 @@ pre {
 blockquote {
   background: var(--sp-background-950);
   border-left: var(--sp-space-3) solid var(--sp-background-800);
-  margin: var(--sp-space-3) 0;
-  padding: var(--sp-space-3) var(--sp-space-3) var(--sp-space-3) var(--sp-space-6);
+  margin: var(--sp-space-4) 0;
+  padding: var(--sp-space-4) var(--sp-space-4) var(--sp-space-4) var(--sp-space-6);
   quotes: "\201C" "\201D" "\2018" "\2019";
 }
 
@@ -73,5 +78,8 @@ img {
 }
 
 :not(pre) > code {
+  padding: 0.2em 0.4em;
+  margin: 0;
+  font-size: 85%;
   background-color: var(--sp-background-950);
 }

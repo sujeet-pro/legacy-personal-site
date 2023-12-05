@@ -5,6 +5,11 @@
   --sp-foreground-color: #000000;
 
   --sp-primary-color: #000000;
+
+  --sp-alert-error-color: color-mix(in srgb, red 15%, transparent);
+  --sp-alert-warning-color: color-mix(in srgb, orange 15%, transparent);
+  --sp-alert-info-color: color-mix(in srgb, blue 15%, transparent);
+  --sp-alert-success-color: color-mix(in srgb, green 15%, transparent);
 }
 
 .theme-dark {
@@ -12,6 +17,11 @@
   --sp-foreground-color: #ffffff;
 
   --sp-primary-color: ffffff;
+
+  --sp-alert-error-color: color-mix(in srgb, red 85%, transparent);
+  --sp-alert-warning-color: color-mix(in srgb, orange 85%, transparent);
+  --sp-alert-info-color: color-mix(in srgb, blue 85%, transparent);
+  --sp-alert-success-color: color-mix(in srgb, green 85%, transparent);
 }
 
 /* Applied to body tag, Stores all the derived color tokens */

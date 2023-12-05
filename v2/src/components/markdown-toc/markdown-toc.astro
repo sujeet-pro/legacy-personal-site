@@ -1,23 +1,80 @@
 ---
 import type { MarkdownHeading } from "astro"
+import { Link } from "../link"
+import { convertToNestedList } from "./markdown-toc.util"
+import Icon from "astro-icon"
 
 type Props = {
   headings: MarkdownHeading[]
+  initialTocClose?: boolean | undefined
 }
 
-const { headings } = Astro.props
+const { headings: allHeadings, initialTocClose = false } = Astro.props
+const headings = convertToNestedList(allHeadings)
 ---
 
-<ul>
-  {
-    headings.map((h) =>
-      h.depth > 3 ? null : (
+<details open={!initialTocClose}>
+  <summary>
+    <span class="toc-heading text-4">Table of Contents</span>
+    <Icon name="mdi:chevron-down" class="icon toc-open" />
+    <Icon name="mdi:chevron-up" class="icon toc-close" />
+  </summary>
+  <ul class="toc-content">
+    {
+      headings.map((heading) => (
         <li>
-          <a href={`#${h.slug}`}>
-            {h.text} | {h.depth}
-          </a>
+          <Link href={`#${heading.slug}`}>{heading.text}</Link>
+          {heading.children.length ? (
+            <ul>
+              {heading.children.map((subheading) => (
+                <li>
+                  <Link href={`#${subheading.slug}`}>{subheading.text}</Link>
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </li>
-      ),
-    )
+      ))
+    }
+  </ul>
+</details>
+
+<style>
+  @layer component {
+    details {
+      margin: var(--sp-space-6) 0;
+      background: var(--sp-background-950);
+    }
+
+    summary {
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      padding: var(--sp-space-6);
+    }
+
+    details summary::-webkit-details-marker {
+      display: none;
+    }
+    .toc-open {
+    }
+    .toc-close {
+      display: none;
+    }
+    details[open] .toc-open {
+      display: none;
+    }
+    details[open] .toc-close {
+      display: initial;
+    }
+    .toc-heading {
+      font-weight: bold;
+    }
+    .toc-content {
+      padding-bottom: var(--sp-space-6);
+      padding-right: var(--sp-space-6);
+    }
   }
-</ul>
+</style>

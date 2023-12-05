@@ -17,11 +17,12 @@ const { title, description, href } = Astro.props
   article {
     position: relative;
     padding: var(--sp-font-size-3);
-    border: var(--sp-space-1) solid transparent;
+    border-bottom: var(--sp-space-1) solid transparent;
+    transition: background-color 0.25s;
 
     &:hover,
     &:focus-within {
-      border-color: var(--sp-border-color);
+      background-color: var(--sp-background-950);
     }
     &:not(:last-child) {
       border-bottom-color: var(--sp-border-color);
@@ -30,7 +31,7 @@ const { title, description, href } = Astro.props
   a {
     text-decoration: none;
     color: inherit;
-    font-size: var(--sp-font-size-4);
+    font-size: var(--sp-font-size-5);
     &::before {
       content: " ";
       position: absolute;

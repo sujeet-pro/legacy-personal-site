@@ -1,12 +1,11 @@
 ---
 title: Wingspan
 description: "Helping companies in their journey to talent transformation and digital change management"
-company: infosys
-tags:
-  - LMS
-  - Angular
 isDraft: false
+initialTocClose: false
 startDate: 2016-01-01
+endDate: 2019-11-10
+company: infosys
 topics:
   - web-development
   - accessibility

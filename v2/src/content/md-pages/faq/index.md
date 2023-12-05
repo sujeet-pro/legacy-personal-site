@@ -1,12 +1,15 @@
 ---
-layout: $layout/markdown-layout.astro
 title: FAQs
 description: Most frequently asked questions
+isDraft: false
+initialTocClose: false
+image: ./cover-faq.jpg
+imageCredit: Photo by <a href="https://unsplash.com/@camylla93?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Camylla Battani</a> on <a href="https://unsplash.com/photos/short-coated-brown-dog-AoqgGAqrLpU?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a>
 ---
 
 ## Customer Behavior
 
-#### Q: What is the most unexpected end-user's or customer's behavior you have seen?
+### Q: What is the most unexpected end-user's or customer's behavior you have seen?
 
 When we were to launch our new platform in the US(migrating from the monolith), we selected a few customers to try our new platform at next.vistaprint.com with a $50 credit to purchase products and share their experiences. 🎉
 
@@ -16,7 +19,7 @@ When we dug deeper, we discovered that these people were using the credits for g
 
 ## Misleading Data Points
 
-#### When Data Points Lied!
+### When Data Points Lied!
 
 To release, we generally do A/B testing to validate if it would have a positive effect.
 
@@ -29,7 +32,7 @@ So while the metrics said that the CTR had increased, the overall experience had
 
 ## Team Management
 
-#### Q: What is your ideal team structure?
+### Q: What is your ideal team structure?
 
 A total of 5 developers with following composition
 
@@ -62,7 +65,7 @@ Remember that the goal is to limit the negative aspects of conflict while increa
 
 ## Carrier Related
 
-#### Q: What are you looking for in your next project
+### Q: What are you looking for in your next project
 
 - A technically good team.
 - Management with clear vision of long and short term goals.
@@ -71,7 +74,7 @@ Remember that the goal is to limit the negative aspects of conflict while increa
 - Solving a problem, that has impact on people's lives.
 - Value driven development and evolvment.
 
-#### Q: What are the things you would avoid?
+### Q: What are the things you would avoid?
 
 - The Feature Factor mentality. The goal should not be to add as many features as possible. But to solve a problem that makes our end user's life easier.
 - Promotion driven development, Demo Driven Development.
@@ -80,13 +83,13 @@ Remember that the goal is to limit the negative aspects of conflict while increa
 
 Yes, we had regular demos with management stakeholders when working on Wingspan. Adding features to keep impressing became the primary objective of the product manager, resulting in too much tech debt.
 
-#### Q: Why do you want to join X company?
+### Q: Why do you want to join X company?
 
 I am looking for a combination of a good project, team, management, and culture where I enjoy working and have ample opportunity to grow. Any company which satisfies these are good for me.
 
 You can have a different experience within the same company depending on your vertical, the problems you are solving, and the people you are working with; hence, during the interviews, I am still evaluating whether this is the right company.
 
-#### Q: Your views on interview?
+### Q: Your views on interview?
 
 I have often experienced that interviewers feel that they are only interviewing the candidate without acknowledging that it's a two-way process.
 

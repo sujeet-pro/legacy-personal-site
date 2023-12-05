@@ -1,5 +1,6 @@
-@layer accessibility, layout, typography;
+@layer accessibility, layout, typography, icon;
 
 @import "./accessibility.utility.css" layer(accessibility);
 @import "./layout.utility.css" layer(layout);
 @import "./typography.utility.css" layer(typography);
+@import "./icon.utility.css" layer(icon);

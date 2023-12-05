@@ -1,32 +1,32 @@
 ---
 import Article from "./article.astro"
 import { Breadcrumb } from "../breadcrumb"
+import { Alert } from "../alerts"
 
 type Props = {
   title: string
   description: string
-  parentPageTitle: string
-  parentPageHref: string
+  parentPageTitle?: string | undefined
+  parentPageHref?: string | undefined
+  isDraft?: boolean | undefined
 }
 
-const { title, description, parentPageHref, parentPageTitle } = Astro.props
+const { title, description, parentPageHref, parentPageTitle, isDraft = false } = Astro.props
 ---
 
-<Breadcrumb {parentPageHref} {parentPageTitle} currentPageTitle={title} />
-<slot name="pre" />
+{parentPageHref && parentPageTitle ? <Breadcrumb {parentPageHref} {parentPageTitle} currentPageTitle={title} /> : null}
+{isDraft ? <Alert level="warning">Currently in Draft.</Alert> : null}
+<slot name="pre-intro" />
 <h1>{title}</h1>
-<p class="text-5">{description}</p>
-<slot name="post" />
+<p class="text-5 text-center">{description}</p>
+<slot name="post-intro" />
 <Article>
   <slot />
 </Article>
 
 <style>
-  h1 {
-    text-align: center;
-    font-weight: bold;
-  }
   p {
     font-style: italic;
+    text-wrap: balance;
   }
 </style>

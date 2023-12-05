@@ -1,4 +1,5 @@
 ---
+import { Card, Alert } from "$components"
 import Layout from "$layout/base-layout.astro"
 import { getTopicEntries } from "./_topics.utils"
 
@@ -7,14 +8,9 @@ const entries = await getTopicEntries()
 ---
 
 <Layout title="Topics" description="Topics I love reading / writing about!">
-  <h1>Topics</h1>
-  <ul>
-    {
-      entries.map((entry) => (
-        <li>
-          <a href={`/topic/${entry.slug}`}>{entry.data.title}</a>
-        </li>
-      ))
-    }
-  </ul>
+  <main class="container">
+    <h1 class="text-center">Topics</h1>
+    {entries.length === 0 ? <Alert level="warning">No topics yet configured.</Alert> : null}
+    {entries.map(({ data: { title, description }, slug }) => <Card {title} {description} href={`/topic/${slug}`} />)}
+  </main>
 </Layout>

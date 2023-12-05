@@ -1,18 +1,16 @@
 ---
 import type { InferGetStaticPropsType } from "astro"
-import { getCollection } from "astro:content"
 import { Image } from "astro:assets"
 import Layout from "$layout/base-layout.astro"
 import { AUTHOR_NAME } from "$constants/global"
-import { MarkdownToc, Alert, ArticleContainer, ImgFigure, DateTime } from "$components"
+import { MarkdownToc, ArticleContainer, ImgFigure, DateTime } from "$components"
 import sujeetImg from "$assets/author.jpg"
 import Icon from "astro-icon"
+import { getBlogEntries } from "$modules/blog/blog.service"
 // 1. Generate a new path for every collection entry
 export async function getStaticPaths() {
-  const blogEntries = await getCollection("blog", ({ data }) => {
-    return import.meta.env.PROD ? !data.isDraft : true
-  })
-  const pages = blogEntries.map((entry) => ({
+  const entries = await getBlogEntries()
+  const pages = entries.map((entry) => ({
     params: { slug: entry.slug },
     props: { entry: entry },
   }))
@@ -25,13 +23,14 @@ type Props = InferGetStaticPropsType<typeof getStaticPaths>
 // 2. For your template, you can get the entry directly from the prop
 const { entry } = Astro.props
 const { Content, remarkPluginFrontmatter: frontmatter, headings } = await entry.render()
-const { title, description, image, imageCredit, topics, publishedOn, lastUpdatedOn, isDraft } = entry.data
+const { title, description, image, imageCredit, topics, publishedOn, lastUpdatedOn, isDraft, initialTocClose } =
+  entry.data
 const tags = topics.map((topic) => topic.slug)
 
 const hasUpdated = publishedOn.getTime() !== lastUpdatedOn.getTime()
 ---
 
-<Layout {title} {description} imageSrc={image?.src} class="typescale-content">
+<Layout {title} {description} imageSrc={image.src}>
   <Fragment slot="seo">
     <meta property="og:type" content="article" />
     <meta property="og:article:author" content={AUTHOR_NAME} />
@@ -40,43 +39,32 @@ const hasUpdated = publishedOn.getTime() !== lastUpdatedOn.getTime()
     <meta property="og:article:modified_time" content={lastUpdatedOn.toISOString()} />
   </Fragment>
   <main class="container">
-    <ArticleContainer {title} {description} parentPageHref="/blog/" parentPageTitle="Blogs">
-      {
-        isDraft ? (
-          <Alert slot="pre" level="warning">
-            This blog is currently in draft
-          </Alert>
-        ) : null
-      }
-      <ul slot="post" class="blog-meta">
-        <li class="blog-author">
-          <Image src={sujeetImg} alt={AUTHOR_NAME} role="presentation" class="author-img" />
-          <span>{AUTHOR_NAME}</span>
-        </li>
-        <li class="blog-date">
-          <Icon class="icon" name="carbon:calendar" />
-          <DateTime date={hasUpdated ? lastUpdatedOn : publishedOn} />
-        </li>
-        {
-          frontmatter["minutesRead"] ? (
-            <li class="blog-time">
-              <Icon class="icon" name="carbon:time" />
-              {frontmatter["minutesRead"]}
-            </li>
-          ) : null
-        }
-      </ul>
-      <ImgFigure {image} caption={imageCredit} />
+    <ArticleContainer {title} {description} parentPageHref="/blog/" parentPageTitle="Blogs" {isDraft}>
+      <Fragment slot="post-intro">
+        <ul class="blog-meta">
+          <li class="blog-author">
+            <Image src={sujeetImg} alt={AUTHOR_NAME} role="presentation" class="author-img" />
+            <span>{AUTHOR_NAME}</span>
+          </li>
+          <li class="blog-date">
+            <Icon class="icon" name="carbon:calendar" />
+            <DateTime date={hasUpdated ? lastUpdatedOn : publishedOn} />
+          </li>
+          {
+            frontmatter["minutesRead"] ? (
+              <li class="blog-time">
+                <Icon class="icon" name="carbon:time" />
+                {frontmatter["minutesRead"]}
+              </li>
+            ) : null
+          }
+        </ul>
+        <ImgFigure {image} caption={imageCredit} />
+        <MarkdownToc {headings} {initialTocClose} />
+      </Fragment>
       <Content />
     </ArticleContainer>
   </main>
-  {
-    isDraft ? (
-      <nav>
-        <MarkdownToc {headings} />
-      </nav>
-    ) : null
-  }
 </Layout>
 
 <style>
@@ -113,8 +101,6 @@ const hasUpdated = publishedOn.getTime() !== lastUpdatedOn.getTime()
   }
 
   .icon {
-    width: var(--sp-space-8);
-    height: var(--sp-space-8);
     margin-right: var(--sp-space-4);
   }
 
