@@ -40,14 +40,14 @@ const headings = convertToNestedList(allHeadings)
 </details>
 
 <style>
-  @layer component {
+  @layer component.markdown-toc {
     details {
       margin: var(--sp-space-6) 0;
       background: var(--sp-background-950);
     }
 
     summary {
-      list-style: none;
+      list-style: none; /* Hide Marker */
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -59,6 +59,7 @@ const headings = convertToNestedList(allHeadings)
       display: none;
     }
     .toc-open {
+      display: initial;
     }
     .toc-close {
       display: none;

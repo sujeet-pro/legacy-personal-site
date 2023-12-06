@@ -7,7 +7,7 @@ import SkillLegend from "./_skill-legend.astro"
 ---
 
 <Layout title="Tech Skills" description="Skills acquired over a decade!">
-  <main class="container">
+  <main class="container flex-1">
     <h1>Skills</h1>
     <SkillLegend class="legend-section" />
 
@@ -104,10 +104,6 @@ import SkillLegend from "./_skill-legend.astro"
 
 <style>
   @layer page {
-    main {
-      flex: 1;
-    }
-
     .container:has(input[name="proficiency"]:checked) :global(.skill-card) {
       display: none;
     }

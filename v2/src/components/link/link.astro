@@ -28,6 +28,7 @@ if (isExternal) {
   {...extraProps}
   {href}
   class:list={[
+    "link",
     {
       cta: isCta,
     },
@@ -38,8 +39,8 @@ if (isExternal) {
 </a>
 
 <style>
-  @layer component {
-    a {
+  @layer component.link {
+    .link {
       text-decoration: none;
       color: inherit;
 

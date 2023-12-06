@@ -1,8 +1,8 @@
 ---
 import { Link } from "../link"
 type Props = {
-  parentPageHref: string
-  parentPageTitle: string
+  parentPageHref?: string | undefined
+  parentPageTitle?: string | undefined
   currentPageTitle: string
 }
 const { currentPageTitle, parentPageHref, parentPageTitle } = Astro.props
@@ -10,19 +10,19 @@ const currentPageHref = Astro.url.pathname
 ---
 
 <nav>
-  <ul class="text-muted text-3">
-    <li>
+  <ul class="breadcrum-list text-muted text-3">
+    <li class="breadcrum-list-item">
       <Link href="/">Home</Link>
     </li>
     {
       parentPageHref && parentPageTitle ? (
-        <li>
+        <li class="breadcrum-list-item">
           <Link href={parentPageHref}>{parentPageTitle}</Link>
         </li>
       ) : null
     }
 
-    <li>
+    <li class="breadcrum-list-item">
       <Link href={currentPageHref} aria-current="page">
         {currentPageTitle}
       </Link>
@@ -31,15 +31,17 @@ const currentPageHref = Astro.url.pathname
 </nav>
 
 <style>
-  ul {
-    list-style: none;
-    margin-block-start: 0;
-    padding-inline-start: 0;
-    display: flex;
-    flex-wrap: wrap;
-  }
-  li:not(:last-child)::after {
-    content: "/";
-    padding-inline: var(--sp-space-4);
+  @layer component.breadcrum {
+    .breadcrum-list {
+      list-style: none;
+      margin-block-start: 0;
+      padding-inline-start: 0;
+      display: flex;
+      flex-wrap: wrap;
+    }
+    .breadcrum-list-item:not(:last-child)::after {
+      content: "/";
+      padding-inline: var(--sp-space-4);
+    }
   }
 </style>

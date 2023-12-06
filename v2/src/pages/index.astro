@@ -8,7 +8,7 @@ import Icon from "astro-icon"
 ---
 
 <Layout title="I'm Sujeet" description="I help build accessible and performant products on Web.">
-  <main class="container">
+  <main class="container flex-1">
     <section aria-label="Introduction" class="intro">
       <Image src={sujeetImg} alt={AUTHOR_NAME} role="presentation" class="img" />
       <span class="intro-start text-8">Hello, I'm</span>
@@ -28,7 +28,6 @@ import Icon from "astro-icon"
 <style>
   @layer page {
     main {
-      flex: 1;
       container-type: inline-size;
       display: flex;
       flex-direction: column;

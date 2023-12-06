@@ -1,4 +1,5 @@
 ---
+import { Link } from "./link"
 type Props = {
   title: string
   description: string
@@ -7,41 +8,41 @@ type Props = {
 const { title, description, href } = Astro.props
 ---
 
-<article>
-  <a {href}>{title}</a>
-  <p>{description}</p>
+<article class="card">
+  <Link class="card-link" {href}>{title}</Link>
+  <p class="card-description">{description}</p>
   <slot />
 </article>
 
 <style>
-  article {
-    position: relative;
-    padding: var(--sp-font-size-3);
-    border-bottom: var(--sp-space-1) solid transparent;
-    transition: background-color 0.25s;
+  @layer component.card {
+    .card {
+      position: relative;
+      padding: var(--sp-font-size-3);
+      border-bottom: var(--sp-space-1) solid transparent;
+      transition: background-color 0.25s;
 
-    &:hover,
-    &:focus-within {
-      background-color: var(--sp-background-950);
+      &:hover,
+      &:focus-within {
+        background-color: var(--sp-background-950);
+      }
+      &:not(:last-child) {
+        border-bottom-color: var(--sp-border-color);
+      }
     }
-    &:not(:last-child) {
-      border-bottom-color: var(--sp-border-color);
+    .card-link {
+      font-size: var(--sp-font-size-5);
+      &::before {
+        content: " ";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: 0;
+        left: 0;
+      }
     }
-  }
-  a {
-    text-decoration: none;
-    color: inherit;
-    font-size: var(--sp-font-size-5);
-    &::before {
-      content: " ";
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      right: 0;
-      left: 0;
+    .card-description {
+      margin: var(--sp-space-2) 0;
     }
-  }
-  p {
-    margin: var(--sp-space-2) 0;
   }
 </style>

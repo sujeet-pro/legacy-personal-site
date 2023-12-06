@@ -27,7 +27,7 @@ const companyDetails = await getEntry(company)
 ---
 
 <Layout {title} {description}>
-  <main class="container">
+  <main class="container flex-1">
     <ArticleContainer {title} {description} parentPageHref="/projects/" parentPageTitle="Projects">
       <CompanyCard slot="post-intro" class="company-card" entry={companyDetails} />
       <MarkdownToc {headings} {initialTocClose} />
@@ -38,10 +38,6 @@ const companyDetails = await getEntry(company)
 
 <style>
   @layer page {
-    main {
-      flex: 1;
-    }
-
     .content-description {
       font-style: italic;
     }

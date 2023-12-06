@@ -26,7 +26,7 @@ const entries = await getBlogEntries(entry.slug)
 ---
 
 <Layout {title} {description} imageSrc={image.src}>
-  <main class="container">
+  <main class="container flex-1">
     <ArticleContainer {title} {description} {isDraft} parentPageTitle="Topics" parentPageHref="/topic/">
       <Fragment slot="post-intro">
         <Image src={image} alt="" />

@@ -14,27 +14,29 @@ const { level } = Astro.props
 </div>
 
 <style>
-  .alert {
-    margin: var(--sp-space-4) 0;
-    padding: var(--sp-space-4);
-    font-size: var(--sp-font-size-4);
-    border-radius: var(--sp-space-4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--sp-space-6);
-  }
+  @layer component.alert {
+    .alert {
+      margin: var(--sp-space-4) 0;
+      padding: var(--sp-space-4);
+      font-size: var(--sp-font-size-4);
+      border-radius: var(--sp-space-4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--sp-space-6);
+    }
 
-  .info {
-    background-color: var(--sp-alert-info-color);
-  }
-  .warning {
-    background-color: var(--sp-alert-warning-color);
-  }
-  .error {
-    background-color: var(--sp-alert-error-color);
-  }
-  .success {
-    background-color: var(--sp-alert-success-color);
+    .info {
+      background-color: var(--sp-alert-info-color);
+    }
+    .warning {
+      background-color: var(--sp-alert-warning-color);
+    }
+    .error {
+      background-color: var(--sp-alert-error-color);
+    }
+    .success {
+      background-color: var(--sp-alert-success-color);
+    }
   }
 </style>

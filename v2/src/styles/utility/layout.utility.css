@@ -5,3 +5,7 @@
   margin-right: auto;
   padding: var(--sp-space-6);
 }
+
+.flex-1 {
+  flex: 1;
+}

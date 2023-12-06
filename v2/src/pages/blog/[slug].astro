@@ -68,51 +68,31 @@ const hasUpdated = publishedOn.getTime() !== lastUpdatedOn.getTime()
 </Layout>
 
 <style>
-  .blog-meta {
-    display: grid;
-    grid-template-areas: "author author" "date time";
-    gap: var(--sp-space-4) var(--sp-space-6);
-    place-items: center;
-    place-content: center;
-    list-style: none;
-    padding-inline-start: 0;
-  }
-
-  .blog-author {
-    grid-area: author;
-    display: flex;
-    align-items: center;
-  }
-  .blog-date {
-    grid-area: date;
-  }
-  .blog-time {
-    grid-area: time;
-    display: flex;
-    align-items: center;
-  }
-  .blog-time::before {
-    content: "\00B7";
-    margin-right: var(--sp-space-6);
-    font-weight: bolder;
-    font-size: var(--sp-font-size-6);
-    line-height: 0;
-    color: var(--sp-text-muted-color);
-  }
-
-  .icon {
-    margin-right: var(--sp-space-4);
-  }
-
-  @media (min-width: 40rem) {
+  @layer page {
     .blog-meta {
-      grid-template-areas: "author date time";
+      display: grid;
+      grid-template-areas: "author author" "date time";
+      gap: var(--sp-space-4) var(--sp-space-6);
+      place-items: center;
+      place-content: center;
+      list-style: none;
+      padding-inline-start: 0;
     }
-    .blog-date {
+
+    .blog-author {
+      grid-area: author;
       display: flex;
       align-items: center;
     }
-    .blog-date::before {
+    .blog-date {
+      grid-area: date;
+    }
+    .blog-time {
+      grid-area: time;
+      display: flex;
+      align-items: center;
+    }
+    .blog-time::before {
       content: "\00B7";
       margin-right: var(--sp-space-6);
       font-weight: bolder;
@@ -120,12 +100,34 @@ const hasUpdated = publishedOn.getTime() !== lastUpdatedOn.getTime()
       line-height: 0;
       color: var(--sp-text-muted-color);
     }
-  }
 
-  .author-img {
-    width: var(--sp-space-10);
-    height: var(--sp-space-10);
-    border-radius: 50%;
-    margin-right: var(--sp-space-4);
+    .icon {
+      margin-right: var(--sp-space-4);
+    }
+
+    @media (min-width: 40rem) {
+      .blog-meta {
+        grid-template-areas: "author date time";
+      }
+      .blog-date {
+        display: flex;
+        align-items: center;
+      }
+      .blog-date::before {
+        content: "\00B7";
+        margin-right: var(--sp-space-6);
+        font-weight: bolder;
+        font-size: var(--sp-font-size-6);
+        line-height: 0;
+        color: var(--sp-text-muted-color);
+      }
+    }
+
+    .author-img {
+      width: var(--sp-space-10);
+      height: var(--sp-space-10);
+      border-radius: 50%;
+      margin-right: var(--sp-space-4);
+    }
   }
 </style>

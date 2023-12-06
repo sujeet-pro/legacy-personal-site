@@ -3,12 +3,12 @@ import ThemeSwitcher from "../theme/theme-switcher.astro"
 import { Link } from "$components"
 ---
 
-<header>
+<header class="page-header">
   <div class="container">
     <nav>
-      <ul>
-        <li><Link class="nav-link" href="/">Home</Link></li>
-        <li><Link class="nav-link" href="/blog/">Blogs</Link></li>
+      <ul class="header-nav-list">
+        <li><Link class="header-nav-link" href="/">Home</Link></li>
+        <li><Link class="header-nav-link" href="/blog/">Blogs</Link></li>
       </ul>
     </nav>
     <ThemeSwitcher />
@@ -16,14 +16,14 @@ import { Link } from "$components"
 </header>
 
 <style>
-  @layer component {
-    header {
+  @layer component.layout-header {
+    .page-header {
       position: sticky;
       top: 0;
       z-index: 1;
       box-shadow: 0px var(--sp-space-3) var(--sp-space-4) var(--sp-border-color);
     }
-    :global(.theme-dark) header {
+    :global(.theme-dark) .page-header {
       border-bottom: var(--sp-space-1) solid var(--sp-border-color);
       box-shadow: none;
     }
@@ -34,7 +34,7 @@ import { Link } from "$components"
       backdrop-filter: blur(var(--sp-space-4));
     }
 
-    ul {
+    .header-nav-list {
       list-style: none;
       padding-inline-start: 0;
       margin: 0;
@@ -43,7 +43,7 @@ import { Link } from "$components"
       height: 100%;
       align-items: center;
     }
-    .nav-link {
+    .header-nav-link {
       padding: 0 var(--sp-space-6);
     }
   }

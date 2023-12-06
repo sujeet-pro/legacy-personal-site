@@ -18,15 +18,17 @@ const { title, description, parentPageHref, parentPageTitle, isDraft = false } =
 {isDraft ? <Alert level="warning">Currently in Draft.</Alert> : null}
 <slot name="pre-intro" />
 <h1>{title}</h1>
-<p class="text-5 text-center">{description}</p>
+<p class="article-description text-5 text-center">{description}</p>
 <slot name="post-intro" />
 <Article>
   <slot />
 </Article>
 
 <style>
-  p {
-    font-style: italic;
-    text-wrap: balance;
+  @layer component.article-container {
+    .article-description {
+      font-style: italic;
+      text-wrap: balance;
+    }
   }
 </style>

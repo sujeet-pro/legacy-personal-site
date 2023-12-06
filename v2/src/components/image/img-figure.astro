@@ -10,29 +10,26 @@ export type Props = {
 const { image, alt = "", caption } = Astro.props
 ---
 
-<figure>
-  {image && typeof image !== "string" ? <Image src={image} alt={alt} /> : null}
-  {image && typeof image === "string" ? <img src={image} alt={alt} /> : null}
-  {caption ? <figcaption set:html={caption} /> : null}
+<figure class="img-figure">
+  {image && typeof image !== "string" ? <Image class="img-figure-img" src={image} alt={alt} /> : null}
+  {image && typeof image === "string" ? <img class="img-figure-img" src={image} alt={alt} /> : null}
+  {caption ? <figcaption class="img-figure-caption text-center" set:html={caption} /> : null}
 </figure>
 
 <style>
-  @layer component {
-    figure {
+  @layer component.img-figure {
+    .img-figure {
       display: block;
       margin: var(--sp-space-6) 0;
     }
-    img {
+    .img-figure-img {
       width: 100%;
     }
-    figcaption {
+    .img-figure-caption {
       font-size: var(--sp-font-size-1);
       color: var(--sp-text-muted-color);
       text-align: center;
-
-      a {
-        color: inherit;
-      }
+      text-wrap: balance;
     }
   }
 </style>

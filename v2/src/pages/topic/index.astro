@@ -8,7 +8,7 @@ const entries = await getTopicEntries()
 ---
 
 <Layout title="Topics" description="Topics I love reading / writing about!">
-  <main class="container">
+  <main class="container flex-1">
     <h1 class="text-center">Topics</h1>
     {entries.length === 0 ? <Alert level="warning">No topics yet configured.</Alert> : null}
     {entries.map(({ data: { title, description }, slug }) => <Card {title} {description} href={`/topic/${slug}`} />)}

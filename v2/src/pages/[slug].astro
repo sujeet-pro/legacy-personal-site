@@ -20,7 +20,7 @@ const { title, description, image, imageCredit, isDraft, initialTocClose } = ent
 ---
 
 <Layout {title} {description} imageSrc={image.src}>
-  <main class="container">
+  <main class="container flex-1">
     <ArticleContainer {title} {description} {isDraft}>
       <Fragment slot="post-intro">
         <ImgFigure {image} caption={imageCredit} />
@@ -30,11 +30,3 @@ const { title, description, image, imageCredit, isDraft, initialTocClose } = ent
     </ArticleContainer>
   </main>
 </Layout>
-
-<style>
-  @layer page {
-    main {
-      flex: 1;
-    }
-  }
-</style>

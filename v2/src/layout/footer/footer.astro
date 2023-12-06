@@ -4,49 +4,49 @@ export type Props = Record<string, never>
 const currentYear = new Date().getFullYear()
 ---
 
-<footer>
+<footer class="footer">
   <div class="container">
-    <nav>
-      <ul>
-        <li>Social</li>
+    <nav class="footer-nav">
+      <ul class="footer-list">
+        <li class="footer-list-item-heading">Social</li>
         <Link isExternal text="LinkedIn" href="/in" iconName="mdi:linkedin" />
         <!-- <Link isExternal text="X (Twitter)" href="/x" iconName="mdi:twitter" /> -->
         <!-- <Link isExternal text="Mastodon" href="https://mastodon.social/@sujeetjaiswal" iconName="mdi:mastodon" /> -->
         <!-- <Link isExternal text="Instagram" href="/ig" iconName="mdi:instagram" /> -->
         <Link isExternal text="CV" href="/cv" iconName="ph:file-doc" />
       </ul>
-      <ul>
-        <li>Community</li>
+      <ul class="footer-list">
+        <li class="footer-list-item-heading">Community</li>
         <Link isExternal text="Github" href="/gh" iconName="mdi:github" />
         <Link isExternal text="Stackoverflow" href="/stackoverflow" iconName="mdi:stackoverflow" />
         <!-- <Link isExternal text="Dev.to" href="/dev-to" iconName="mdi:dev-to" /> -->
         <!-- <Link isExternal text="Hashnode" href="/hashnode" iconName="simple-icons:hashnode" /> -->
         <!-- <Link isExternal text="Medium" href="/medium" iconName="community-medium" /> -->
       </ul>
-      <ul>
-        <li>Site</li>
+      <ul class="footer-list">
+        <li class="footer-list-item-heading">Site</li>
         <Link text="FAQs" href="/faq/" iconName="wpf:faq" />
         <Link text="Projects" href="/projects/" iconName="mdi:responsive" />
         <Link text="Skills" href="/skills/" iconName="carbon:skill-level-advanced" />
       </ul>
     </nav>
-    <small class="text-center">&copy; {currentYear} Sujeet Jaiswal</small>
+    <small class="copy-text text-center">&copy; {currentYear} Sujeet Jaiswal</small>
   </div>
 </footer>
 
 <style>
-  @layer component {
-    footer {
+  @layer component.layout-footer {
+    .footer {
       border-top: var(--sp-space-1) solid var(--sp-border-color);
     }
-    nav {
+    .footer-nav {
       display: flex;
       flex-direction: row;
       justify-content: space-between;
       flex-wrap: wrap;
       gap: var(--sp-space-6);
     }
-    ul {
+    .footer-list {
       display: flex;
       flex-direction: column;
       gap: var(--sp-space-3);
@@ -55,12 +55,12 @@ const currentYear = new Date().getFullYear()
       margin-block: 0;
     }
 
-    li:first-child {
+    .footer-list-item-heading {
       font-weight: bold;
       margin-bottom: var(--sp-space-4);
     }
 
-    small {
+    .copy-text {
       display: block;
       margin-top: var(--sp-space-6);
       width: 100%;

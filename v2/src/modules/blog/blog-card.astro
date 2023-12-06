@@ -8,10 +8,11 @@ type Props = {
 const { entry } = Astro.props
 const { title, description, isDraft, publishedOn, lastUpdatedOn } = entry.data
 const href = `/blog/${entry.slug}`
+// const hasUpdated = publishedOn.getTime() !== lastUpdatedOn.getTime()
 ---
 
 <Card {title} {description} {href}>
-  <div class="publish">
+  <div class="blog-publish-info">
     {
       lastUpdatedOn.getTime() === publishedOn.getTime() ? (
         <span>
@@ -28,9 +29,11 @@ const href = `/blog/${entry.slug}`
 </Card>
 
 <style>
-  .publish {
-    text-align: right;
-    font-size: var(--sp-font-size-2);
-    font-weight: lighter;
+  @layer component.blog-card {
+    .blog-publish-info {
+      text-align: right;
+      font-size: var(--sp-font-size-2);
+      font-weight: lighter;
+    }
   }
 </style>

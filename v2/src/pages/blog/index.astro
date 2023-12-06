@@ -7,18 +7,17 @@ const entries = await getBlogEntries()
 ---
 
 <Layout title="Sujeet's Blogs" description="List of all the blogs">
-  <main class="container">
+  <main class="container flex-1">
     <h1>Sujeet's Blogs</h1>
     {entries.map((entry) => <BlogListItem {entry} />)}
   </main>
 </Layout>
 
 <style>
-  main {
-    flex: 1;
-  }
-  h1 {
-    text-align: center;
-    margin-bottom: var(--sp-space-8);
+  @layer page {
+    h1 {
+      text-align: center;
+      margin-bottom: var(--sp-space-8);
+    }
   }
 </style>
