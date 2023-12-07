@@ -3,7 +3,7 @@ import type { InferGetStaticPropsType } from "astro"
 import { getEntry } from "astro:content"
 import Layout from "$layout/base-layout.astro"
 import { ArticleContainer, MarkdownToc } from "$components"
-import CompanyCard from "$modules/company/company-list-card.astro"
+import CompanyCard from "$modules/company/company-card.astro"
 import { getProjectEntries } from "$modules/project/project.service"
 
 // 1. Generate a new path for every collection entry
@@ -29,7 +29,7 @@ const companyDetails = await getEntry(company)
 <Layout {title} {description}>
   <main class="container flex-1">
     <ArticleContainer {title} {description} parentPageHref="/projects/" parentPageTitle="Projects">
-      <CompanyCard slot="post-intro" class="company-card" entry={companyDetails} />
+      <CompanyCard slot="post-intro" entry={companyDetails} variant="card" displayDuration />
       <MarkdownToc {headings} {initialTocClose} />
       <Content />
     </ArticleContainer>
@@ -45,9 +45,6 @@ const companyDetails = await getEntry(company)
     .content-start {
       margin-top: var(--sp-space-13);
       margin-bottom: calc(2 * var(--sp-space-13));
-    }
-    .company-card {
-      margin: var(--sp-space-6) 0;
     }
   }
 </style>

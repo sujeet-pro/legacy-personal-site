@@ -4,11 +4,12 @@ import Icon from "astro-icon"
 import { Link } from "$components"
 type Props = {
   entry: CollectionEntry<"company">
-  class?: string
+  displayDuration?: boolean
+  variant?: "list" | "card"
 }
 
-const { entry, class: className } = Astro.props
-const { name, startDate, endDate, icon, linkedInUrl } = entry.data
+const { entry, displayDuration, variant = "card" } = Astro.props
+const { name, startDate, endDate, icon, linkedInUrl, role } = entry.data
 
 const dateTimeFormatter = new Intl.DateTimeFormat("en-IN", {
   year: "numeric",
@@ -18,26 +19,37 @@ const displayStartDate: string = typeof startDate === "object" ? dateTimeFormatt
 const displayEndDate: string | undefined = typeof endDate === "object" ? dateTimeFormatter.format(endDate) : endDate
 ---
 
-<div class:list={[className, "company-details"]}>
+<div
+  class:list={[
+    "company-details",
+    {
+      "company-details-list": variant === "list",
+      "company-details-card": variant === "card",
+    },
+  ]}
+>
   <Icon class="company-icon" name={icon} />
   <span class="company-name text-5">
     <Link href={linkedInUrl}>{name}</Link>
   </span>
-  <span class="company-duration">
-    {
-      endDate ? (
-        <>
-          <time datetime={displayStartDate}>{displayStartDate}</time>
-          &nbsp;-&nbsp;
-          <time datetime={displayEndDate}>{displayEndDate}</time>
-        </>
-      ) : (
-        <>
-          Since <time datetime={displayStartDate}>{displayStartDate}</time>
-        </>
-      )
-    }
-  </span>
+  <span class="company-role text-3">{role}</span>
+  {
+    displayDuration ? (
+      <span class="company-duration text-2">
+        {endDate ? (
+          <>
+            <time datetime={displayStartDate}>{displayStartDate}</time>
+            &nbsp;-&nbsp;
+            <time datetime={displayEndDate}>{displayEndDate}</time>
+          </>
+        ) : (
+          <>
+            Since <time datetime={displayStartDate}>{displayStartDate}</time>
+          </>
+        )}
+      </span>
+    ) : null
+  }
 </div>
 
 <style>
@@ -45,19 +57,28 @@ const displayEndDate: string | undefined = typeof endDate === "object" ? dateTim
     .company-details {
       display: grid;
       grid-template-columns: 1fr;
-      grid-template-areas: "icon" "company" "duration";
+      grid-template-areas: "icon" "company" "role" "duration";
       gap: var(--sp-space-3);
-      margin: var(--sp-space-6) 0;
       padding: var(--sp-space-6) 0;
+    }
+
+    .company-details-list:not(:last-child) {
+      border-bottom: var(--sp-space-1) solid var(--sp-border-color);
+    }
+
+    .company-details-card {
+      margin: var(--sp-space-6) 0;
       border-top: var(--sp-space-1) solid var(--sp-border-color);
       border-bottom: var(--sp-space-1) solid var(--sp-border-color);
     }
+
     @media (min-width: 600px) {
       .company-details {
         grid-template-columns: 1fr min-content;
-        grid-template-areas: "company icon" "duration icon";
+        grid-template-areas: "company icon" "role icon" "duration icon";
       }
     }
+
     .company-icon {
       grid-area: icon;
       align-self: center;
@@ -70,6 +91,9 @@ const displayEndDate: string | undefined = typeof endDate === "object" ? dateTim
     .company-duration {
       grid-area: duration;
       font-weight: 100;
+    }
+    .company-role {
+      grid-area: role;
     }
   }
 </style>

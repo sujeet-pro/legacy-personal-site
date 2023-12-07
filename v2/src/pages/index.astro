@@ -5,13 +5,23 @@ import { Link } from "$components"
 import sujeetImg from "$assets/author.jpg"
 import { AUTHOR_NAME } from "$constants/global"
 import Icon from "astro-icon"
+import { getBlogEntries } from "$modules/blog/blog.service"
+import BlogCard from "$modules/blog/blog-card.astro"
+import { getProjectEntries } from "$modules/project/project.service"
+import ProjectCard from "$modules/project/project-card.astro"
+import { getCompanyEntries } from "$modules/company/company.service"
+import CompanyCard from "$modules/company/company-card.astro"
+
+const blogEntries = await getBlogEntries()
+const projectEntries = await getProjectEntries()
+const companyEntries = await getCompanyEntries()
 ---
 
 <Layout title="I'm Sujeet" description="I help build accessible and performant products on Web.">
   <main class="container flex-1">
     <section aria-label="Introduction" class="intro">
       <Image src={sujeetImg} alt={AUTHOR_NAME} role="presentation" class="img" />
-      <span class="intro-start text-8">Hello, I'm</span>
+      <span class="intro-start text-7">Hello, I'm</span>
       <span class="name typescale-site text-8">{AUTHOR_NAME}</span>
       <div class="cta">
         <Link isExternal href="/in" skin="cta" class="cta-link">
@@ -19,9 +29,32 @@ import Icon from "astro-icon"
         </Link>
       </div>
     </section>
-    <p class="message text-8">
+    <p class="message text-7">
       Helping people make the world a better place through <strong>quality software</strong>.
     </p>
+    <section>
+      <header class="section-header">
+        <h2 class="section-heading">Recent Blogs</h2>
+        <Link href="/blog/">View All Blogs</Link>
+      </header>
+
+      {blogEntries.slice(0, 3).map((entry) => <BlogCard entry={entry} />)}
+    </section>
+
+    <section>
+      <header class="section-header">
+        <h2 class="section-heading">Recent Projects</h2>
+        <Link href="/project/">View All Projects</Link>
+      </header>
+      {projectEntries.slice(0, 3).map((entry) => <ProjectCard entry={entry} />)}
+    </section>
+
+    <section>
+      <header class="section-header">
+        <h2 class="section-heading">Recent Companies</h2>
+      </header>
+      {companyEntries.slice(0, 3).map((entry) => <CompanyCard entry={entry} variant="list" />)}
+    </section>
   </main>
 </Layout>
 
@@ -58,8 +91,7 @@ import Icon from "astro-icon"
         grid-template-areas:
           "image intro"
           "image name"
-          "image cta"
-          "message message";
+          "image cta";
       }
     }
     .img {
@@ -82,6 +114,7 @@ import Icon from "astro-icon"
     }
     .message {
       text-align: center;
+      font-style: italic;
     }
     .cta-link {
       display: flex;
@@ -92,6 +125,19 @@ import Icon from "astro-icon"
     .cta-icon {
       width: var(--sp-space-7);
       width: var(--sp-space-7);
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      flex-wrap: wrap;
+      margin-top: var(--sp-space-8);
+      margin-bottom: var(--sp-space-6);
+      gap: var(--sp-space-3) var(--sp-space-8);
+    }
+    .section-header .section-heading {
+      margin-bottom: 0;
     }
   }
 </style>

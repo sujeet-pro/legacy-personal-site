@@ -67,9 +67,9 @@ const company = defineCollection({
       .optional(),
     icon: z.string(),
     linkedInUrl: z.string().url(),
-    role: z.string().optional(),
-    designation: z.string().optional(),
-    department: z.string().optional(),
+    role: z.string(),
+    // designation: z.string().optional(),
+    // department: z.string().optional(),
   }),
 })
 // Export a single `collections` object to register your collection(s)

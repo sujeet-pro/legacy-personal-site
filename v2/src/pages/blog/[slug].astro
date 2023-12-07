@@ -46,8 +46,8 @@ const hasUpdated = publishedOn.getTime() !== lastUpdatedOn.getTime()
             <Image src={sujeetImg} alt={AUTHOR_NAME} role="presentation" class="author-img" />
             <span>{AUTHOR_NAME}</span>
           </li>
-          <li class="blog-date">
-            <Icon class="icon" name="carbon:calendar" />
+          <li class="blog-date" title={hasUpdated ? "Last updated on" : "Published on"}>
+            <Icon class="icon" name={hasUpdated ? "carbon:calendar-tools" : "carbon:calendar"} />
             <DateTime date={hasUpdated ? lastUpdatedOn : publishedOn} />
           </li>
           {

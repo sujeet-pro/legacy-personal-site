@@ -12,6 +12,7 @@ const SITE = process.env.SITE || process.env.CF_PAGES_URL || "http://v2.sujeet.p
 export default defineConfig({
   site: SITE,
   prefetch: true,
+  scopedStyleStrategy: "where",
   markdown: {
     remarkPlugins: [remarkReadingTime],
     rehypePlugins: [rehypeAccessibleEmojis] as unknown as RehypePlugins,
