@@ -16,25 +16,25 @@ export const profiencencyConfigs: Record<ProficiencyLevel, ProfiencencyConfig> =
   [ProficiencyLevel.Expert]: {
     title: "Expert",
     level: ProficiencyLevel.Expert,
-    icon: "profile-skill_level_4",
+    icon: "profile/skill_level_4",
     class: "proficiency-expert",
   },
   [ProficiencyLevel.Advanced]: {
     title: "Advance",
     level: ProficiencyLevel.Advanced,
-    icon: "profile-skill_level_3",
+    icon: "profile/skill_level_3",
     class: "proficiency-advanced",
   },
   [ProficiencyLevel.Intermediate]: {
     title: "Intermediate",
     level: ProficiencyLevel.Intermediate,
-    icon: "profile-skill_level_2",
+    icon: "profile/skill_level_2",
     class: "proficiency-intermediate",
   },
   [ProficiencyLevel.Beginner]: {
     title: "Beginner",
     level: ProficiencyLevel.Beginner,
-    icon: "profile-skill_level_1",
+    icon: "profile/skill_level_1",
     class: "proficiency-beginner",
   },
 }

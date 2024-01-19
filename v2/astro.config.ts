@@ -4,7 +4,7 @@ import prefetch from "@astrojs/prefetch"
 import { remarkReadingTime } from "./plugins/remark-reading-time"
 import { rehypeAccessibleEmojis } from "rehype-accessible-emojis"
 import { RehypePlugins, RemarkPlugins } from "astro"
-import icon from "astro-icon";
+import icon from "astro-icon"
 
 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
 const SITE = process.env.SITE || process.env.CF_PAGES_URL || "http://v2.sujeet.pro"
