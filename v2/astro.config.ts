@@ -3,7 +3,8 @@ import sitemap from "@astrojs/sitemap"
 import prefetch from "@astrojs/prefetch"
 import { remarkReadingTime } from "./plugins/remark-reading-time"
 import { rehypeAccessibleEmojis } from "rehype-accessible-emojis"
-import { RehypePlugins } from "astro"
+import { RehypePlugins, RemarkPlugins } from "astro"
+import icon from "astro-icon";
 
 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
 const SITE = process.env.SITE || process.env.CF_PAGES_URL || "http://v2.sujeet.pro"
@@ -14,7 +15,7 @@ export default defineConfig({
   prefetch: true,
   scopedStyleStrategy: "where",
   markdown: {
-    remarkPlugins: [remarkReadingTime],
+    remarkPlugins: [remarkReadingTime] as unknown as RemarkPlugins,
     rehypePlugins: [rehypeAccessibleEmojis] as unknown as RehypePlugins,
   },
   redirects: {
@@ -31,5 +32,5 @@ export default defineConfig({
     "/stackoverflow": "https://stackoverflow.com/users/5570700/sujeet-jaiswal",
     "/cv": "https://docs.google.com/document/d/1G-zdwqHLTJ9eoDAnyMeWKkb2Bf-0i8dfQ6NWYJ_osL0/edit?usp=sharing",
   },
-  integrations: [sitemap(), prefetch()],
+  integrations: [icon(), sitemap(), prefetch()],
 })
