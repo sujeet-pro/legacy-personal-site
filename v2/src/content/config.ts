@@ -8,7 +8,7 @@ const baseConfig = () => ({
 })
 const commonConfig = (image: ImageFunction) => ({
   ...baseConfig(),
-  image: image().refine((img) => img.width >= 1080, {
+  image: image().refine((img) => img.format === 'svg' || img.width >= 1080, {
     message: "Cover image must be at least 1080 pixels wide!",
   }),
   imageCredit: z.string(),
