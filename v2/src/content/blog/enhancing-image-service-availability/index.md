@@ -3,7 +3,7 @@ title: Enhancing E-commerce Image Service Availability
 description: Create a backup of all the images and its common variant in S3, and use it as a fallback origin to increase the overall availability of the system
 isDraft: false
 initialTocClose: true
-image: ./enhance-image-service-availability.svg
+image: ./arch-enhance-image-service-availability.svg
 imageCredit: Architecture diagram for fallback
 publishedOn: 2024-01-20
 lastUpdatedOn: 2024-01-20
