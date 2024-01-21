@@ -16,8 +16,10 @@ const { class: className } = Astro.props
     }
 
     .markdown-article {
-      /* text-wrap: balance; */
-      text-align: justify;
+      p,
+      ul {
+        text-align: justify;
+      }
     }
   }
 </style>

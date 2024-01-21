@@ -1,0 +1,162 @@
+[
+    {
+        "type": "gzip",
+        "level": 1,
+        "compressionTime": 21.860750019550323,
+        "compressedByteLength": 1280848,
+        "decompressionTime": 10.114457964897156,
+        "decompressedByteLength": 13267693
+    },
+    {
+        "type": "gzip",
+        "level": 2,
+        "compressionTime": 22.964082956314087,
+        "compressedByteLength": 1234131,
+        "decompressionTime": 8.28933298587799,
+        "decompressedByteLength": 13267693
+    },
+    {
+        "type": "gzip",
+        "level": 3,
+        "compressionTime": 23.022665977478027,
+        "compressedByteLength": 1201919,
+        "decompressionTime": 8.06962502002716,
+        "decompressedByteLength": 13267693
+    },
+    {
+        "type": "gzip",
+        "level": 4,
+        "compressionTime": 45.875458002090454,
+        "compressedByteLength": 1102444,
+        "decompressionTime": 7.453916966915131,
+        "decompressedByteLength": 13267693
+    },
+    {
+        "type": "gzip",
+        "level": 5,
+        "compressionTime": 48.02583295106888,
+        "compressedByteLength": 1001802,
+        "decompressionTime": 6.834791004657745,
+        "decompressedByteLength": 13267693
+    },
+    {
+        "type": "gzip",
+        "level": 6,
+        "compressionTime": 56.04916602373123,
+        "compressedByteLength": 947206,
+        "decompressionTime": 6.407208025455475,
+        "decompressedByteLength": 13267693
+    },
+    {
+        "type": "gzip",
+        "level": 7,
+        "compressionTime": 63.48112499713898,
+        "compressedByteLength": 930406,
+        "decompressionTime": 6.584832966327667,
+        "decompressedByteLength": 13267693
+    },
+    {
+        "type": "gzip",
+        "level": 8,
+        "compressionTime": 101.34937500953674,
+        "compressedByteLength": 905848,
+        "decompressionTime": 5.985583007335663,
+        "decompressedByteLength": 13267693
+    },
+    {
+        "type": "gzip",
+        "level": 9,
+        "compressionTime": 125.77991700172424,
+        "compressedByteLength": 905214,
+        "decompressionTime": 6.862791955471039,
+        "decompressedByteLength": 13267693
+    },
+    {
+        "type": "br",
+        "level": 1,
+        "compressionTime": 5501.742833018303,
+        "compressedByteLength": 357754,
+        "decompressionTime": 6.470166981220245,
+        "decompressedByteLength": 13267693
+    },
+    {
+        "type": "br",
+        "level": 2,
+        "compressionTime": 5462.927040994167,
+        "compressedByteLength": 357754,
+        "decompressionTime": 6.692125022411346,
+        "decompressedByteLength": 13267693
+    },
+    {
+        "type": "br",
+        "level": 3,
+        "compressionTime": 5682.816500008106,
+        "compressedByteLength": 357754,
+        "decompressionTime": 6.902208983898163,
+        "decompressedByteLength": 13267693
+    },
+    {
+        "type": "br",
+        "level": 4,
+        "compressionTime": 5540.589917004108,
+        "compressedByteLength": 357754,
+        "decompressionTime": 6.449999988079071,
+        "decompressedByteLength": 13267693
+    },
+    {
+        "type": "br",
+        "level": 5,
+        "compressionTime": 5540.6513749957085,
+        "compressedByteLength": 357754,
+        "decompressionTime": 6.61412501335144,
+        "decompressedByteLength": 13267693
+    },
+    {
+        "type": "br",
+        "level": 6,
+        "compressionTime": 5556.353833019733,
+        "compressedByteLength": 357754,
+        "decompressionTime": 6.7286670207977295,
+        "decompressedByteLength": 13267693
+    },
+    {
+        "type": "br",
+        "level": 7,
+        "compressionTime": 5543.910542011261,
+        "compressedByteLength": 357754,
+        "decompressionTime": 6.480584025382996,
+        "decompressedByteLength": 13267693
+    },
+    {
+        "type": "br",
+        "level": 8,
+        "compressionTime": 5533.557291030884,
+        "compressedByteLength": 357754,
+        "decompressionTime": 6.32845801115036,
+        "decompressedByteLength": 13267693
+    },
+    {
+        "type": "br",
+        "level": 9,
+        "compressionTime": 5552.542083024979,
+        "compressedByteLength": 357754,
+        "decompressionTime": 6.723291039466858,
+        "decompressedByteLength": 13267693
+    },
+    {
+        "type": "br",
+        "level": 10,
+        "compressionTime": 5537.099666953087,
+        "compressedByteLength": 357754,
+        "decompressionTime": 6.5607500076293945,
+        "decompressedByteLength": 13267693
+    },
+    {
+        "type": "br",
+        "level": 11,
+        "compressionTime": 5552.120082974434,
+        "compressedByteLength": 357754,
+        "decompressionTime": 6.53658401966095,
+        "decompressedByteLength": 13267693
+    }
+]
