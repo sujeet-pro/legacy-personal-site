@@ -28,7 +28,7 @@ const companyDetails = await getEntry(company)
 
 <Layout {title} {description}>
   <main class="container flex-1">
-    <ArticleContainer {title} {description} parentPageHref="/projects/" parentPageTitle="Projects">
+    <ArticleContainer {title} {description} parentPageHref="/project/" parentPageTitle="Projects">
       <CompanyCard slot="post-intro" entry={companyDetails} variant="card" displayDuration />
       <MarkdownToc {headings} {initialTocClose} />
       <Content />

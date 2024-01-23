@@ -8,7 +8,10 @@ imageCredit: Nginx Proxy with proxy_cache_lock enabled
 publishedOn: 2024-01-18
 lastUpdatedOn: 2024-01-18
 topics:
+  - cost-optimization
+  - infra
   - performance
+  - web-development
 ---
 
 ## Introduction

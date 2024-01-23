@@ -13,5 +13,13 @@ const href = `/project/${entry.slug}`
 ---
 
 <Card {title} {description} {href}>
-  <div>{isDraft ? "Is in Draft" : null}</div>
+  <div class="project-card-content">{isDraft ? "Is in Draft" : null}</div>
 </Card>
+
+<style>
+  @layer component.project-card {
+    .project-card-content {
+      grid-area: card-content;
+    }
+  }
+</style>

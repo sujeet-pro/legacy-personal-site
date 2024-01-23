@@ -8,7 +8,11 @@ imageCredit: Photo by <a href="https://unsplash.com/@blankerwahnsinn?utm_content
 publishedOn: 2024-01-19
 lastUpdatedOn: 2024-01-19
 topics:
+  - availability
+  - cost-optimization
+  - infra
   - performance
+  - web-development
 ---
 
 ## TLDR: Navigating the Image Dilemma in Ecommerce

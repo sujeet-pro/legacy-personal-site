@@ -8,7 +8,9 @@ imageCredit: Architecture diagram for fallback
 publishedOn: 2024-01-20
 lastUpdatedOn: 2024-01-20
 topics:
-  - performance
+  - availability
+  - infra
+  - web-development
 ---
 
 ## Introduction

@@ -9,8 +9,8 @@ imageCredit: Photo by <a href="https://unsplash.com/@brett_jordan?utm_content=cr
 publishedOn: 2023-03-11
 lastUpdatedOn: 2023-03-13
 topics:
-  - web-development
   - javascript
+  - web-development
 ---
 
 ## The Inspiration

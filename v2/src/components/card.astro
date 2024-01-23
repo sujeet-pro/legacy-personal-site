@@ -1,17 +1,22 @@
 ---
+import type { ImageMetadata } from "astro"
+import { Image } from "astro:assets"
+
 import { Link } from "./link"
 type Props = {
   title: string
   description: string
   href: string
+  image?: ImageMetadata
 }
-const { title, description, href } = Astro.props
+const { title, description, href, image } = Astro.props
 ---
 
-<article class="card">
+<article class:list={{ card: true, "card-with-image": !!image }}>
+  {image ? <Image class="card-image" src={image} alt="" /> : null}
   <Link class="card-link" {href}>{title}</Link>
   <p class="card-description">{description}</p>
-  <slot />
+  <slot class="card-content" />
 </article>
 
 <style>
@@ -32,6 +37,7 @@ const { title, description, href } = Astro.props
     }
     .card-link {
       font-size: var(--sp-font-size-5);
+      grid-area: card-link;
       &::before {
         content: " ";
         position: absolute;
@@ -42,7 +48,28 @@ const { title, description, href } = Astro.props
       }
     }
     .card-description {
+      grid-area: card-description;
       margin: var(--sp-space-2) 0;
+    }
+
+    .card-image {
+      grid-area: card-image;
+    }
+    .card-content {
+      grid-area: card-content;
+    }
+
+    @media screen and (min-width: 600px) {
+      .card-with-image {
+        display: grid;
+        grid-gap: 10px;
+        grid-template-columns: 240px 1fr;
+        grid-template-rows: auto 1fr;
+        grid-template-areas:
+          "card-image card-link"
+          "card-image card-description"
+          "card-content card-content";
+      }
     }
   }
 </style>

@@ -4,11 +4,14 @@ description: Serving Pre-compressed content from CDN
 isDraft: false
 initialTocClose: true
 image: ./pre-compressed.svg
-imageCredit: ADD HERE
+imageCredit: Architecture Diagram
 publishedOn: 2024-01-21
 lastUpdatedOn: 2024-01-21
 topics:
+  - cost-optimization
+  - infra
   - performance
+  - web-development
 ---
 
 At our organization, we leverage Amazon CloudFront to distribute content globally, ensuring low-latency access to our web assets. However, we encountered challenges with automatic compression settings that led to unexpected cost spikes and suboptimal compression results.
