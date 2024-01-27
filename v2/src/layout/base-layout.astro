@@ -1,5 +1,5 @@
 ---
-import "../styles/index.css"
+import "$styles"
 import { ViewTransitions } from "astro:transitions"
 import FavIcons from "./favicons.astro"
 import Analytics from "./analytics/analytics.astro"
@@ -10,7 +10,7 @@ import Footer from "./footer/footer.astro"
 // import "@fontsource-variable/open-sans"
 
 type Props = {
-  children: astroHTML.JSX.Children
+  // children: astroHTML.JSX.Children
   title: string
   description: string
   imageSrc?: string | undefined

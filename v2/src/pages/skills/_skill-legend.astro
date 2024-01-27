@@ -28,39 +28,41 @@ const { class: className } = Astro.props
 </section>
 
 <style>
-  section {
-    padding: var(--sp-space-6);
-    border: var(--sp-space-2) solid var(--sp-border-color);
-    margin: var(--sp-space-4) 0;
-  }
-  h2 {
-    margin-top: 0;
-    margin-bottom: var(--sp-space-6);
-  }
-  ul {
-    list-style: none;
-    padding-inline-start: 0;
-    margin: 0;
-    display: flex;
-    gap: var(--sp-space-6);
-    justify-content: space-between;
-    flex-wrap: wrap;
-  }
-  li {
-    flex: 1;
-  }
-  label {
-    display: flex;
-    gap: var(--sp-space-4);
-    align-items: center;
-  }
-  .icon {
-    width: var(--sp-space-10);
-    height: var(--sp-space-10);
-    border: var(--sp-space-2) solid var(--sp-proficiency-level-text);
-    color: var(--sp-proficiency-level-text);
-    background-color: var(--sp-proficiency-level-bg);
-  }
-  .name {
+  @layer page {
+    section {
+      padding: var(--sp-space-6);
+      border: var(--sp-space-2) solid var(--sp-border-color);
+      margin: var(--sp-space-4) 0;
+    }
+    h2 {
+      margin-top: 0;
+      margin-bottom: var(--sp-space-6);
+    }
+    ul {
+      list-style: none;
+      padding-inline-start: 0;
+      margin: 0;
+      display: flex;
+      gap: var(--sp-space-6);
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    li {
+      flex: 1;
+    }
+    label {
+      display: flex;
+      gap: var(--sp-space-4);
+      align-items: center;
+    }
+    .icon {
+      width: var(--sp-space-10);
+      height: var(--sp-space-10);
+      border: var(--sp-space-2) solid var(--sp-proficiency-level-text);
+      color: var(--sp-proficiency-level-text);
+      background-color: var(--sp-proficiency-level-bg);
+    }
+    .name {
+    }
   }
 </style>

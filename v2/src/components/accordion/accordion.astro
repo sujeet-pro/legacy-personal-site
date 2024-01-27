@@ -1,0 +1,62 @@
+---
+import { Icon } from "astro-icon/components"
+
+type Props = {
+  title: string
+  initialOpen?: boolean | undefined
+}
+
+const { title, initialOpen = true } = Astro.props
+---
+
+<details open={initialOpen}>
+  <summary>
+    <span class="accordion-heading text-4">{title}</span>
+    <Icon name="mdi:chevron-down" class="icon toc-open" />
+    <Icon name="mdi:chevron-up" class="icon toc-close" />
+  </summary>
+  <div class="accordion-content">
+    <slot />
+  </div>
+</details>
+
+<style>
+  @layer component.accordion {
+    details {
+      margin: var(--sp-space-6) 0;
+      background: var(--sp-background-950);
+    }
+
+    summary {
+      list-style: none; /* Hide Marker */
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      padding: var(--sp-space-6);
+    }
+
+    details summary::-webkit-details-marker {
+      display: none;
+    }
+    .toc-open {
+      display: initial;
+    }
+    .toc-close {
+      display: none;
+    }
+    details[open] .toc-open {
+      display: none;
+    }
+    details[open] .toc-close {
+      display: initial;
+    }
+    .accordion-heading {
+      font-weight: bold;
+    }
+    .accordion-content {
+      padding-bottom: var(--sp-space-6);
+      padding-right: var(--sp-space-6);
+    }
+  }
+</style>

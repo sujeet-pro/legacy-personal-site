@@ -41,9 +41,6 @@ module.exports = {
         "astro/astro": true,
         es2020: true,
       },
-      globals: {
-        astroHTML: "readonly",
-      },
       // Allows Astro components to be parsed.
       parser: "astro-eslint-parser",
       // Parse the script in `.astro` as TypeScript by adding the following configuration.
@@ -58,9 +55,9 @@ module.exports = {
         // Enable recommended rules
         "astro/no-conflict-set-directives": "error",
         "astro/no-unused-define-vars-in-style": "error",
+
         // override/add rules settings here, such as:
         // "astro/no-set-html-directive": "error"
-        "@typescript-eslint/no-unsafe-assignment": "off",
       },
     },
     {
@@ -77,7 +74,29 @@ module.exports = {
       rules: {
         // override/add rules settings here, such as:
         // "no-unused-vars": "error"
-        "@typescript-eslint/no-unsafe-assignment": "off",
+
+        // If you are using "prettier/prettier" rule,
+        // you don't need to format inside <script> as it will be formatted as a `.astro` file.
+        "prettier/prettier": "off",
+      },
+    },
+    {
+      // Define the configuration for `<script>` tag when using `client-side-ts` processor.
+      // Script in `<script>` is assigned a virtual file name with the `.ts` extension.
+      files: ["**/*.astro/*.ts", "*.astro/*.ts"],
+      env: {
+        browser: true,
+        es2020: true,
+      },
+      parser: "@typescript-eslint/parser",
+      parserOptions: {
+        sourceType: "module",
+        project: null,
+      },
+      rules: {
+        // override/add rules settings here, such as:
+        // "no-unused-vars": "error"
+
         // If you are using "prettier/prettier" rule,
         // you don't need to format inside <script> as it will be formatted as a `.astro` file.
         "prettier/prettier": "off",

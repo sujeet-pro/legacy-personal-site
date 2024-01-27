@@ -1,7 +1,7 @@
 ---
 import Article from "./article.astro"
-import { Breadcrumb } from "../breadcrumb"
-import { Alert } from "../alerts"
+import Breadcrumb from "../breadcrumb/breadcrum.astro"
+import Alert from "../alerts/alert.astro"
 
 type Props = {
   title: string
@@ -25,7 +25,7 @@ const { title, description, parentPageHref, parentPageTitle, isDraft = false } =
 </Article>
 
 <style>
-  @layer component.article-container {
+  @layer component.article {
     .article-description {
       font-style: italic;
       text-wrap: balance;

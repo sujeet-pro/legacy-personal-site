@@ -1,20 +1,15 @@
 ---
-import { Card, Alert } from "$components"
-import Layout from "$layout/base-layout.astro"
-import { getTopicEntries } from "./_topics.utils"
+import { Alert } from "$components"
+import { Layout } from "$layout"
+import { TopicCard, getTopicEntries } from "$modules/topic"
 
 const entries = await getTopicEntries()
-// TODO: Update description
 ---
 
 <Layout title="Topics" description="Topics I love reading / writing about!">
   <main class="container flex-1">
     <h1 class="text-center">Topics</h1>
     {entries.length === 0 ? <Alert level="warning">No topics yet configured.</Alert> : null}
-    {
-      entries.map(({ data: { title, description, image }, slug }) => (
-        <Card {title} {description} href={`/topic/${slug}`} image={image} />
-      ))
-    }
+    {entries.map((entry) => <TopicCard topic={entry} />)}
   </main>
 </Layout>

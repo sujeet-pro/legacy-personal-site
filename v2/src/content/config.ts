@@ -8,10 +8,31 @@ const baseConfig = () => ({
 })
 const commonConfig = (image: ImageFunction) => ({
   ...baseConfig(),
-  image: image().refine((img) => img.format === 'svg' || img.width >= 1080, {
+  image: image().refine((img) => img.format === "svg" || img.width >= 1080, {
     message: "Cover image must be at least 1080 pixels wide!",
   }),
   imageCredit: z.string(),
+})
+
+const mdPages = defineCollection({
+  type: "content",
+  schema: ({ image }) =>
+    z.object({
+      ...commonConfig(image),
+    }),
+})
+
+const series = defineCollection({
+  type: "content",
+  schema: ({ image }) =>
+    z
+      .object({
+        ...commonConfig(image),
+        blogs: z.array(reference("blog")),
+      })
+      .omit({
+        initialTocClose: true,
+      }),
 })
 
 const blog = defineCollection({
@@ -25,14 +46,6 @@ const blog = defineCollection({
       topics: z.array(reference("topic")),
       // Reference an array of related posts from the `blog` collection by `slug`
       // relatedBlogs: z.array(reference("blog")).optional(),
-    }),
-})
-
-const mdPages = defineCollection({
-  type: "content",
-  schema: ({ image }) =>
-    z.object({
-      ...commonConfig(image),
     }),
 })
 
@@ -79,4 +92,5 @@ export const collections = {
   topic,
   project,
   company,
+  series,
 }

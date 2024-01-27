@@ -1,7 +1,7 @@
 ---
-import Layout from "$layout/base-layout.astro"
-import BlogListItem from "$modules/blog/blog-card.astro"
-import { getBlogEntries } from "$modules/blog/blog.service"
+import { Layout } from "$layout"
+import { BlogCard } from "$modules/blog"
+import { getBlogEntries } from "$modules/blog"
 
 const entries = await getBlogEntries()
 ---
@@ -9,7 +9,7 @@ const entries = await getBlogEntries()
 <Layout title="Sujeet's Blogs" description="List of all the blogs">
   <main class="container flex-1">
     <h1>Sujeet's Blogs</h1>
-    {entries.map((entry) => <BlogListItem {entry} />)}
+    {entries.map((entry) => <BlogCard {entry} />)}
   </main>
 </Layout>
 

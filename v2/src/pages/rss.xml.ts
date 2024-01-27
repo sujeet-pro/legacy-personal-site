@@ -1,9 +1,9 @@
 import type { APIContext } from "astro"
 import rss from "@astrojs/rss"
-import { getCollection } from "astro:content"
+import { getBlogEntries } from "$modules/blog"
 
 export async function GET(context: APIContext) {
-  const blog = await getCollection("blog")
+  const blog = await getBlogEntries()
   if (!context.site) {
     throw new Error("Site must be configured")
   }
@@ -11,7 +11,7 @@ export async function GET(context: APIContext) {
     // `<title>` field in output xml
     title: "Sujeet’s Blog",
     // `<description>` field in output xml
-    description: "A humble Astronaut’s guide to the stars",
+    description: "Blog related to Software Development",
     // Pull in your project "site" from the endpoint context
     // https://docs.astro.build/en/reference/api-reference/#contextsite
     site: context.site,

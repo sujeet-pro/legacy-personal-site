@@ -8,19 +8,20 @@ type Props = {
 const { entry } = Astro.props
 const { title, description, image, isDraft, publishedOn, lastUpdatedOn } = entry.data
 const href = `/blog/${entry.slug}`
-// const hasUpdated = publishedOn.getTime() !== lastUpdatedOn.getTime()
+
+const hasUpdated = publishedOn.getTime() !== lastUpdatedOn.getTime()
 ---
 
 <Card {title} {image} {description} {href}>
   <div class="blog-publish-info">
     {
-      lastUpdatedOn.getTime() === publishedOn.getTime() ? (
+      hasUpdated ? (
         <span>
-          Published on <DateTime date={publishedOn} />.
+          Last Updated on <DateTime date={lastUpdatedOn} />.
         </span>
       ) : (
         <span>
-          Last Updated on <DateTime date={lastUpdatedOn} />.
+          Published on <DateTime date={publishedOn} />.
         </span>
       )
     }

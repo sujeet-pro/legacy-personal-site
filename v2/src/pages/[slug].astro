@@ -1,7 +1,7 @@
 ---
 import type { InferGetStaticPropsType } from "astro"
 import { getCollection } from "astro:content"
-import Layout from "$layout/base-layout.astro"
+import { Layout } from "$layout"
 import { ArticleContainer, ImgFigure, MarkdownToc } from "$components"
 
 export async function getStaticPaths() {

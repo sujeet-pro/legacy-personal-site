@@ -1,8 +1,8 @@
 ---
 import type { MarkdownHeading } from "astro"
-import { Link } from "../link"
+import Link from "../link/link.astro"
 import { convertToNestedList } from "./markdown-toc.util"
-import { Icon } from "astro-icon/components"
+import Accordion from "../accordion/accordion.astro"
 
 type Props = {
   headings: MarkdownHeading[]
@@ -13,12 +13,7 @@ const { headings: allHeadings, initialTocClose = false } = Astro.props
 const headings = convertToNestedList(allHeadings)
 ---
 
-<details open={!initialTocClose}>
-  <summary>
-    <span class="toc-heading text-4">Table of Contents</span>
-    <Icon name="mdi:chevron-down" class="icon toc-open" />
-    <Icon name="mdi:chevron-up" class="icon toc-close" />
-  </summary>
+<Accordion initialOpen={!initialTocClose} title="Table of Contents">
   <ul class="toc-content">
     {
       headings.map((heading) => (
@@ -37,45 +32,4 @@ const headings = convertToNestedList(allHeadings)
       ))
     }
   </ul>
-</details>
-
-<style>
-  @layer component.markdown-toc {
-    details {
-      margin: var(--sp-space-6) 0;
-      background: var(--sp-background-950);
-    }
-
-    summary {
-      list-style: none; /* Hide Marker */
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-      padding: var(--sp-space-6);
-    }
-
-    details summary::-webkit-details-marker {
-      display: none;
-    }
-    .toc-open {
-      display: initial;
-    }
-    .toc-close {
-      display: none;
-    }
-    details[open] .toc-open {
-      display: none;
-    }
-    details[open] .toc-close {
-      display: initial;
-    }
-    .toc-heading {
-      font-weight: bold;
-    }
-    .toc-content {
-      padding-bottom: var(--sp-space-6);
-      padding-right: var(--sp-space-6);
-    }
-  }
-</style>
+</Accordion>

@@ -3,7 +3,7 @@ import sitemap from "@astrojs/sitemap"
 import prefetch from "@astrojs/prefetch"
 import { remarkReadingTime } from "./plugins/remark-reading-time"
 import { rehypeAccessibleEmojis } from "rehype-accessible-emojis"
-import { RehypePlugins, RemarkPlugins } from "astro"
+import type { RehypePlugins, RemarkPlugins } from "astro"
 import icon from "astro-icon"
 
 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

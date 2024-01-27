@@ -8,27 +8,26 @@ const currentYear = new Date().getFullYear()
   <div class="container">
     <nav class="footer-nav">
       <ul class="footer-list">
-        <li class="footer-list-item-heading">Social</li>
+        <li class="footer-list-item-heading">Community</li>
         <Link isExternal text="LinkedIn" href="/in" iconName="mdi:linkedin" />
+        <Link isExternal text="Github" href="/gh" iconName="mdi:github" />
+        <Link isExternal text="Stackoverflow" href="/stackoverflow" iconName="mdi:stackoverflow" />
         <!-- <Link isExternal text="X (Twitter)" href="/x" iconName="mdi:twitter" /> -->
         <!-- <Link isExternal text="Mastodon" href="https://mastodon.social/@sujeetjaiswal" iconName="mdi:mastodon" /> -->
         <!-- <Link isExternal text="Instagram" href="/ig" iconName="mdi:instagram" /> -->
-        <Link isExternal text="CV" href="/cv" iconName="mdi:file-chart-outline" />
       </ul>
       <ul class="footer-list">
-        <li class="footer-list-item-heading">Community</li>
-        <Link isExternal text="Github" href="/gh" iconName="mdi:github" />
-        <Link isExternal text="Stackoverflow" href="/stackoverflow" iconName="mdi:stackoverflow" />
-        <!-- <Link isExternal text="Dev.to" href="/dev-to" iconName="mdi:dev-to" /> -->
-        <!-- <Link isExternal text="Hashnode" href="/hashnode" iconName="simple-icons:hashnode" /> -->
-        <!-- <Link isExternal text="Medium" href="/medium" iconName="community/medium" /> -->
+        <li class="footer-list-item-heading">Write Ups</li>
+        <Link text="Series" href="/series/" iconName="mdi:notebook-edit-outline" />
+        <Link text="Blogs" href="/blog/" iconName="mdi:blog" />
+        <Link text="Topics" href="/topic/" iconName="mdi:tag-outline" />
       </ul>
       <ul class="footer-list">
         <li class="footer-list-item-heading">Site</li>
         <Link text="FAQs" href="/faq/" iconName="mdi:faq" />
-        <Link text="Topics" href="/topic/" iconName="mdi:faq" />
         <Link text="Projects" href="/project/" iconName="mdi:responsive" />
         <Link text="Skills" href="/skills/" iconName="carbon:skill-level-advanced" />
+        <Link isExternal text="CV" href="/cv" iconName="mdi:file-chart-outline" />
       </ul>
     </nav>
     <small class="copy-text text-center">&copy; {currentYear} Sujeet Jaiswal</small>

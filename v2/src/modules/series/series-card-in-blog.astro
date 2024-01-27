@@ -1,0 +1,23 @@
+---
+import { getEntries, type CollectionEntry } from "astro:content"
+import { Accordion } from "$components"
+
+type Props = {
+  series: CollectionEntry<"series">
+}
+
+const { series } = Astro.props
+const blogs = await getEntries(series.data.blogs)
+---
+
+<Accordion initialOpen={blogs.length > 1} title={`Series: ${series.data.title}`}>
+  <ul>
+    {
+      blogs.map((blog) => (
+        <li>
+          <a href={`/blog/${blog.slug}`}>{blog.data.title}</a>
+        </li>
+      ))
+    }
+  </ul>
+</Accordion>

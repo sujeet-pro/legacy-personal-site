@@ -1,0 +1,16 @@
+---
+import { Alert } from "$components"
+import { Layout } from "$layout"
+import { getSeriesEntries } from "$modules/series"
+import SeriesCard from "src/modules/series/series-card.astro"
+
+const entries = await getSeriesEntries()
+---
+
+<Layout title="Series" description="Blog Series">
+  <main class="container flex-1">
+    <h1 class="text-center">Blog Series</h1>
+    {entries.length === 0 ? <Alert level="warning">Coming Soon.</Alert> : null}
+    {entries.map((entry) => <SeriesCard series={entry} />)}
+  </main>
+</Layout>
