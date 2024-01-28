@@ -35,7 +35,7 @@ const featuredCompanies = await getFeaturedCompany()
         <Link href="/blog/">View All Blogs</Link>
       </header>
 
-      {featuredBlogs.map((entry) => <BlogCard entry={entry} />)}
+      {featuredBlogs.map((blog) => <BlogCard content={blog} />)}
     </section>
 
     <section>

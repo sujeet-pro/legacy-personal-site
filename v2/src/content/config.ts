@@ -22,19 +22,6 @@ const mdPages = defineCollection({
     }),
 })
 
-const series = defineCollection({
-  type: "content",
-  schema: ({ image }) =>
-    z
-      .object({
-        ...commonConfig(image),
-        blogs: z.array(reference("blog")),
-      })
-      .omit({
-        initialTocClose: true,
-      }),
-})
-
 const blog = defineCollection({
   type: "content",
   schema: ({ image }) =>
@@ -92,5 +79,4 @@ export const collections = {
   topic,
   project,
   company,
-  series,
 }

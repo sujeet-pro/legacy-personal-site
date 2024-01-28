@@ -11,7 +11,9 @@ const { title, initialOpen = true } = Astro.props
 
 <details open={initialOpen}>
   <summary>
-    <span class="accordion-heading text-4">{title}</span>
+    <span class="accordion-heading text-4">
+      <slot name="title">{title}</slot>
+    </span>
     <Icon name="mdi:chevron-down" class="icon toc-open" />
     <Icon name="mdi:chevron-up" class="icon toc-close" />
   </summary>

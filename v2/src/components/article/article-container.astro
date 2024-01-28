@@ -6,15 +6,19 @@ import Alert from "../alerts/alert.astro"
 type Props = {
   title: string
   description: string
-  parentPageTitle?: string | undefined
-  parentPageHref?: string | undefined
+  breadcrumbParents?:
+    | {
+        title: string
+        path: string
+      }[]
+    | undefined
   isDraft?: boolean | undefined
 }
 
-const { title, description, parentPageHref, parentPageTitle, isDraft = false } = Astro.props
+const { title, description, breadcrumbParents, isDraft = false } = Astro.props
 ---
 
-{parentPageHref && parentPageTitle ? <Breadcrumb {parentPageHref} {parentPageTitle} currentPageTitle={title} /> : null}
+{breadcrumbParents?.length ? <Breadcrumb parents={breadcrumbParents} currentPageTitle={title} /> : null}
 {isDraft ? <Alert level="warning">Currently in Draft.</Alert> : null}
 <slot name="pre-intro" />
 <h1>{title}</h1>

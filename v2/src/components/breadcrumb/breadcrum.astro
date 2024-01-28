@@ -1,11 +1,15 @@
 ---
 import Link from "../link/link.astro"
 type Props = {
-  parentPageHref?: string | undefined
-  parentPageTitle?: string | undefined
+  parents?:
+    | {
+        title: string
+        path: string
+      }[]
+    | undefined
   currentPageTitle: string
 }
-const { currentPageTitle, parentPageHref, parentPageTitle } = Astro.props
+const { currentPageTitle, parents = [] } = Astro.props
 const currentPageHref = Astro.url.pathname
 ---
 
@@ -15,11 +19,11 @@ const currentPageHref = Astro.url.pathname
       <Link href="/">Home</Link>
     </li>
     {
-      parentPageHref && parentPageTitle ? (
+      parents.map(({ title, path }) => (
         <li class="breadcrum-list-item">
-          <Link href={parentPageHref}>{parentPageTitle}</Link>
+          <Link href={path}>{title}</Link>
         </li>
-      ) : null
+      ))
     }
 
     <li class="breadcrum-list-item">

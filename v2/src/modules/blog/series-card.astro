@@ -1,0 +1,46 @@
+---
+import { Accordion } from "$components"
+import type { BlogSeriesItem } from "./blog.service"
+
+type Props = {
+  parent: BlogSeriesItem
+  children: BlogSeriesItem[]
+}
+
+const { parent, children } = Astro.props
+---
+
+<Accordion initialOpen={parent.isCurrent} title="Series">
+  {
+    parent.isCurrent ? (
+      <span slot="title">This series contains: {parent.title}</span>
+    ) : (
+      <a href={parent.path} slot="title">
+        Part of Series: {parent.title}
+      </a>
+    )
+  }
+  <ul>
+    {
+      children.map(({ path, title, isCurrent }) => (
+        <li
+          class:list={{
+            "blog-in-series": !isCurrent,
+            "current-blog-in-series": isCurrent,
+          }}
+        >
+          <a href={path}>{title}</a>
+        </li>
+      ))
+    }
+  </ul>
+</Accordion>
+
+<style>
+  .blog-in-series {
+    list-style: circle;
+  }
+  .current-blog-in-series {
+    list-style: disc;
+  }
+</style>

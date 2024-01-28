@@ -18,7 +18,6 @@
       "$modules/blog": ["./src/modules/blog/index.ts"],
       "$modules/company": ["./src/modules/company/index.ts"],
       "$modules/project": ["./src/modules/project/index.ts"],
-      "$modules/series": ["./src/modules/series/index.ts"],
       "$modules/topic": ["./src/modules/topic/index.ts"],
       "$styles": ["./src/styles/index.css"],
       "$utils/*": ["./src/utils/*"],

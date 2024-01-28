@@ -1,41 +1,73 @@
 ---
 import { Card, DateTime } from "$components"
-import type { CollectionEntry } from "astro:content"
+import type { BlogContent } from "./blog.service"
 type Props = {
-  entry: CollectionEntry<"blog">
+  content: BlogContent
 }
 
-const { entry } = Astro.props
+const { entry, path, children, parent } = Astro.props.content
 const { title, description, image, isDraft, publishedOn, lastUpdatedOn } = entry.data
-const href = `/blog/${entry.slug}`
 
 const hasUpdated = publishedOn.getTime() !== lastUpdatedOn.getTime()
+function getSeriesMsg() {
+  if (!parent) return null
+  if (parent.isCurrent) return `Series with ${children.length} blogs`
+  if (children.some((child) => child.isCurrent)) {
+    return `Part of Series: ${parent.title}`
+  }
+  return null
+}
+const seriesMsg = getSeriesMsg()
 ---
 
-<Card {title} {image} {description} {href}>
-  <div class="blog-publish-info">
-    {
-      hasUpdated ? (
-        <span>
-          Last Updated on <DateTime date={lastUpdatedOn} />.
-        </span>
-      ) : (
-        <span>
-          Published on <DateTime date={publishedOn} />.
-        </span>
-      )
-    }
-    {isDraft ? <span>Draft Entry</span> : null}
+<Card {title} {image} {description} href={path}>
+  <div class="blog-card-content">
+    {seriesMsg ? <span class="blog-card-series-info">{seriesMsg}</span> : null}
+    {isDraft ? <span class="blog-card-draft-info">Draft Entry</span> : null}
+    <span class="blog-card-publish-info">
+      {
+        hasUpdated ? (
+          <>
+            Last Updated on <DateTime date={lastUpdatedOn} />.
+          </>
+        ) : (
+          <>
+            Published on <DateTime date={publishedOn} />.
+          </>
+        )
+      }
+    </span>
   </div>
 </Card>
 
 <style>
   @layer component.blog-card {
-    .blog-publish-info {
-      text-align: right;
+    .blog-card-content {
+      display: grid;
+      grid-area: card-content;
       font-size: var(--sp-font-size-2);
       font-weight: lighter;
-      grid-area: card-content;
+      grid-template-columns: 1fr;
+      grid-template-areas: "series-info" "draft-info" "publish-info";
+      row-gap: var(--sp-space-2);
+      column-gap: var(--sp-space-4);
+    }
+
+    @media (min-width: 40rem) {
+      .blog-card-content {
+        grid-template-columns: 1fr max-content auto;
+        grid-template-areas: "series-info draft-info publish-info";
+      }
+    }
+
+    .blog-card-series-info {
+      grid-area: series-info;
+    }
+    .blog-card-draft-info {
+      grid-area: draft-info;
+    }
+    .blog-card-publish-info {
+      grid-area: publish-info;
     }
   }
 </style>

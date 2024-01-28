@@ -1,9 +1,9 @@
 import type { APIContext } from "astro"
 import rss from "@astrojs/rss"
-import { getBlogEntries } from "$modules/blog"
+import { getBlogs } from "$modules/blog"
 
 export async function GET(context: APIContext) {
-  const blog = await getBlogEntries()
+  const blogs = await getBlogs()
   if (!context.site) {
     throw new Error("Site must be configured")
   }
@@ -17,14 +17,14 @@ export async function GET(context: APIContext) {
     site: context.site,
     // Array of `<item>`s in output xml
     // See "Generating items" section for examples using content collections and glob imports
-    items: blog.map((post) => ({
-      title: post.data.title,
-      pubDate: post.data.publishedOn,
-      description: post.data.description,
+    items: blogs.map((blog) => ({
+      title: blog.entry.data.title,
+      pubDate: blog.entry.data.publishedOn,
+      description: blog.entry.data.description,
       // customData: post.data.customData,
       // Compute RSS link from post `slug`
       // This example assumes all posts are rendered as `/blog/[slug]` routes
-      link: `/blog/${post.slug}/`,
+      link: blog.path,
     })),
     // (optional) inject custom xml
     customData: `<language>en</language>`,

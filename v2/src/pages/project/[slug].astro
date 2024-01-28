@@ -28,7 +28,7 @@ const companyDetails = await getEntry(company)
 
 <Layout {title} {description}>
   <main class="container flex-1">
-    <ArticleContainer {title} {description} parentPageHref="/project/" parentPageTitle="Projects">
+    <ArticleContainer {title} {description} breadcrumbParents={[{ title: "Projects", path: "/project/" }]}>
       <CompanyCard slot="post-intro" entry={companyDetails} variant="card" displayDuration />
       <MarkdownToc {headings} {initialTocClose} />
       <Content />
