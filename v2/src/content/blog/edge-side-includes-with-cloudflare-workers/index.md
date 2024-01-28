@@ -2,7 +2,7 @@
 title: Micro-frontend with Cloudflare ESI
 description: Explores ESI for dynamic injection of header and footer (as microfrontent) in a microsite architecture implemented with SSG
 isDraft: false
-initialTocClose: true
+isContentSummaryOpen: true
 image: ./esi-bookends.svg
 imageCredit: ESI from <a href="https://blog.cloudflare.com/edge-side-includes-with-cloudflare-workers">Cloudflare blog</a>
 publishedOn: 2024-01-27

@@ -2,7 +2,7 @@
 title: Swan Design System
 description: "Vistaprint's Design System implemented in React and is used across the company, its subsidiaries and sister companies"
 isDraft: false
-initialTocClose: false
+isContentSummaryOpen: false
 startDate: 2020-08-31
 endDate: 2023-05-20
 company: vistaprint

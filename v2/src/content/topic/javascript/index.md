@@ -2,7 +2,7 @@
 title: Javascript
 description: JavaScript, the ubiquitous web whisperer, breathes life into every click, swipe, and scroll.  ✨
 isDraft: false
-initialTocClose: false
+isContentSummaryOpen: false
 image: ./cover-js.webp
 imageCredit: "hello"
 ---

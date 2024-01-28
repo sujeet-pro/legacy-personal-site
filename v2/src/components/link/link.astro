@@ -4,7 +4,7 @@ import { isExternalUrl } from "$utils/link.util"
 
 type Props = HTMLAttributes<"a"> & {
   class?: string
-  skin?: "none" | "cta"
+  skin?: "no-decorate" | "cta"
   isExternal?: boolean | undefined
 }
 
@@ -31,6 +31,7 @@ if (isExternal) {
     "link",
     {
       cta: isCta,
+      "link-no-decoration": skin === "no-decorate",
     },
     className,
   ]}
@@ -40,13 +41,22 @@ if (isExternal) {
 
 <style>
   @layer component.link {
-    .link {
-      text-decoration: none;
+    .link,
+    :global(a:not([class])) {
       color: inherit;
+      text-decoration: underline;
+      text-decoration-color: var(--sp-foreground-200);
+      transition: text-decoration-color linear 0.15s;
 
       &:hover {
-        text-decoration: underline;
+        text-decoration-color: inherit;
       }
+    }
+    .link {
+      text-decoration-color: transparent;
+    }
+    .link-no-decoration {
+      text-decoration: none;
     }
 
     .cta {

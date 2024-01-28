@@ -2,7 +2,7 @@
 title: Audit System
 description: "A suit of applications with a web app, react-native based mobile app to keep the quality control of all the centers in check."
 isDraft: false
-initialTocClose: false
+isContentSummaryOpen: false
 startDate: 2020-02-01
 endDate: 2020-08-31
 company: cure-fit

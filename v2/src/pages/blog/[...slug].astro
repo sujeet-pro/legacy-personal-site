@@ -3,7 +3,7 @@ import type { InferGetStaticPropsType } from "astro"
 import { Image } from "astro:assets"
 import { Layout } from "$layout"
 import { AUTHOR_NAME } from "$constants/global"
-import { MarkdownToc, ArticleContainer, ImgFigure, DateTime } from "$components"
+import { MarkdownToc, ArticleContainer, ImgFigure, DateTime, Link } from "$components"
 import sujeetImg from "$assets/author.jpg"
 import { Icon } from "astro-icon/components"
 import { getBlogs, SeriesCard } from "$modules/blog"
@@ -35,7 +35,7 @@ const {
   publishedOn,
   lastUpdatedOn,
   isDraft,
-  initialTocClose,
+  isContentSummaryOpen,
 } = entry.data
 
 const topics = await getEntries(topicsRef)
@@ -44,6 +44,9 @@ const breadcrumbParents = [{ title: "Blogs", path: "/blog/" }]
 if (parent && !parent.isCurrent) {
   breadcrumbParents.push({ title: parent.title, path: parent.path })
 }
+const currentChildrenIdx = children.findIndex((child) => child.isCurrent)
+const nextChildren =
+  currentChildrenIdx !== -1 && currentChildrenIdx !== children.length - 1 ? children[currentChildrenIdx + 1] : null
 ---
 
 <Layout {title} {description} imageSrc={image.src}>
@@ -67,7 +70,7 @@ if (parent && !parent.isCurrent) {
             <DateTime date={hasUpdated ? lastUpdatedOn : publishedOn} />
           </li>
           {
-            frontmatter.minutesRead && !parent ? (
+            frontmatter.minutesRead && !parent?.isCurrent ? (
               <li class="blog-meta-item blog-time">
                 <Icon class="icon" name="carbon:time" />
                 {frontmatter.minutesRead}
@@ -75,7 +78,7 @@ if (parent && !parent.isCurrent) {
             ) : null
           }
           {
-            parent && children.length ? (
+            parent?.isCurrent && children.length ? (
               <li class="blog-meta-item blog-time">
                 <Icon class="icon" name="carbon:time" />
                 {children.length === 1 ? "1 Blog" : `${children.length} Blogs`}
@@ -84,13 +87,30 @@ if (parent && !parent.isCurrent) {
           }
         </ul>
         <ImgFigure {image} caption={imageCredit} />
-        {parent ? <SeriesCard parent={parent} children={children} /> : <MarkdownToc {headings} {initialTocClose} />}
+
+        {
+          parent ? (
+            <SeriesCard isOpen={parent.isCurrent ? isContentSummaryOpen : true} parent={parent} children={children} />
+          ) : null
+        }
+        {!parent?.isCurrent ? <MarkdownToc {headings} isOpen={isContentSummaryOpen} /> : null}
       </Fragment>
       <Content />
-
-      <h2 class="text-5">Topics</h2>
-      <TopicTags {topics} />
     </ArticleContainer>
+
+    <hr />
+    <h2 class="text-5">Topics</h2>
+    <TopicTags {topics} />
+    {
+      nextChildren ? (
+        <>
+          <div class="next-blog">
+            <span class="text-5">Next In Series:</span>
+            <Link href={nextChildren.path}>{nextChildren.title}</Link>
+          </div>
+        </>
+      ) : null
+    }
   </main>
 </Layout>
 
@@ -129,6 +149,13 @@ if (parent && !parent.isCurrent) {
       line-height: 0;
       color: var(--sp-text-muted-color);
     }
+    .next-blog {
+      padding: var(--sp-space-6);
+      background-color: var(--sp-background-950);
+      display: flex;
+      flex-direction: column;
+      text-align: right;
+    }
 
     /* .icon {
       margin-right: var(--sp-space-4);
@@ -157,6 +184,10 @@ if (parent && !parent.isCurrent) {
       height: var(--sp-space-10);
       border-radius: 50%;
       margin-right: var(--sp-space-4);
+    }
+
+    hr {
+      margin-top: var(--sp-space-10);
     }
   }
 </style>

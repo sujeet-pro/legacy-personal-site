@@ -16,7 +16,7 @@ export async function getStaticPaths() {
 type Props = InferGetStaticPropsType<typeof getStaticPaths>
 const { entry } = Astro.props
 const { Content, headings } = await entry.render()
-const { title, description, image, imageCredit, isDraft, initialTocClose } = entry.data
+const { title, description, image, imageCredit, isDraft, isContentSummaryOpen } = entry.data
 ---
 
 <Layout {title} {description} imageSrc={image.src}>
@@ -24,7 +24,7 @@ const { title, description, image, imageCredit, isDraft, initialTocClose } = ent
     <ArticleContainer {title} {description} {isDraft}>
       <Fragment slot="post-intro">
         <ImgFigure {image} caption={imageCredit} />
-        <MarkdownToc {headings} {initialTocClose} />
+        <MarkdownToc {headings} isOpen={isContentSummaryOpen} />
       </Fragment>
       <Content />
     </ArticleContainer>

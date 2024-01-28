@@ -6,14 +6,14 @@ import Accordion from "../accordion/accordion.astro"
 
 type Props = {
   headings: MarkdownHeading[]
-  initialTocClose?: boolean | undefined
+  isOpen?: boolean | undefined
 }
 
-const { headings: allHeadings, initialTocClose = false } = Astro.props
+const { headings: allHeadings, isOpen = false } = Astro.props
 const headings = convertToNestedList(allHeadings)
 ---
 
-<Accordion initialOpen={!initialTocClose} title="Table of Contents">
+<Accordion initialOpen={isOpen} title="Table of Contents">
   <ul class="toc-content">
     {
       headings.map((heading) => (

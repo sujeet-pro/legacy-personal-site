@@ -2,11 +2,11 @@
 title: Optimizing Content Delivery by Serving Pre-compressed content
 description: Serving Pre-compressed content from CDN
 isDraft: false
-initialTocClose: true
+isContentSummaryOpen: true
 image: ./pre-compressed.svg
 imageCredit: Architecture Diagram
-publishedOn: 2024-01-21
-lastUpdatedOn: 2024-01-21
+publishedOn: 2024-01-22
+lastUpdatedOn: 2024-01-22
 topics:
   - cost-optimization
   - infra

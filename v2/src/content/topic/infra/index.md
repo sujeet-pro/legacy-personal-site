@@ -2,7 +2,7 @@
 title: Software Infrastructure
 description: Software infrastructure is the magic behind the curtain, seamlessly powering the digital experiences we rely on every day
 isDraft: false
-initialTocClose: false
+isContentSummaryOpen: false
 image: ./infra.jpg
 imageCredit: Photo by <a href="https://unsplash.com/@nampoh?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Maxim Hopman</a> on <a href="https://unsplash.com/photos/a-group-of-people-standing-around-a-display-of-video-screens-IayKLkmz6g0?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a>
 ---

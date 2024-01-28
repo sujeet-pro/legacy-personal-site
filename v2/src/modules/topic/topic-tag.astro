@@ -1,4 +1,5 @@
 ---
+import { Link } from "$components"
 import { Icon } from "astro-icon/components"
 import type { CollectionEntry } from "astro:content"
 type Props = {
@@ -13,10 +14,10 @@ const {
 } = Astro.props
 ---
 
-<a class="tag-icon" href={`/topic/${slug}`}>
+<Link class="tag-icon" href={`/topic/${slug}`}>
   <Icon name="mdi:tag-outline" />
   {title}
-</a>
+</Link>
 
 <style>
   .tag-icon {

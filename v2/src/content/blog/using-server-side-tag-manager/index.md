@@ -2,7 +2,7 @@
 title: Using Sever-Side GTM
 description: Instead of dumping all those scripts on the user's browser, move them to a server container
 isDraft: false
-initialTocClose: true
+isContentSummaryOpen: true
 image: ./ss-gtm.svg
 imageCredit: Event Flow for Server Side GTM
 publishedOn: 2024-01-26

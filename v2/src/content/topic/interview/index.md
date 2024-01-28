@@ -2,7 +2,7 @@
 title: Interview Questions
 description: Interview Question
 isDraft: false
-initialTocClose: false
+isContentSummaryOpen: false
 image: ./interview.png
 imageCredit: "hello"
 ---

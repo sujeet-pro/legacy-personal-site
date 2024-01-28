@@ -2,7 +2,7 @@
 title: Performance
 description: "performance is a sleek race car: Every byte counts, every line fuels efficiency, and crossing the finish line first means delighting users."
 isDraft: false
-initialTocClose: false
+isContentSummaryOpen: false
 image: ./performance.jpg
 imageCredit: Photo by <a href="https://unsplash.com/@spencerdavis?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Spencer Davis</a> on <a href="https://unsplash.com/photos/gray-coupe-yY9n0N4P_oY?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a>
 ---

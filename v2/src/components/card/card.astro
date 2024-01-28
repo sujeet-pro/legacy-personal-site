@@ -14,7 +14,7 @@ const { title, description, href, image } = Astro.props
 
 <article class:list={{ card: true, "card-with-image": !!image }}>
   {image ? <Image class="card-image" src={image} alt="" /> : null}
-  <Link class="card-link" {href}>{title}</Link>
+  <Link skin="no-decorate" class="card-link" {href}>{title}</Link>
   <p class="card-description">{description}</p>
   <slot class="card-content" />
 </article>

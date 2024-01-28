@@ -1,23 +1,24 @@
 ---
-import { Accordion } from "$components"
+import { Accordion, Link } from "$components"
 import type { BlogSeriesItem } from "./blog.service"
 
 type Props = {
   parent: BlogSeriesItem
   children: BlogSeriesItem[]
+  isOpen: boolean
 }
 
-const { parent, children } = Astro.props
+const { parent, children, isOpen } = Astro.props
 ---
 
-<Accordion initialOpen={parent.isCurrent} title="Series">
+<Accordion initialOpen={isOpen} title="Series">
   {
     parent.isCurrent ? (
-      <span slot="title">This series contains: {parent.title}</span>
+      <span slot="title">This series contains: </span>
     ) : (
-      <a href={parent.path} slot="title">
+      <Link href={parent.path} slot="title">
         Part of Series: {parent.title}
-      </a>
+      </Link>
     )
   }
   <ul>
@@ -29,7 +30,7 @@ const { parent, children } = Astro.props
             "current-blog-in-series": isCurrent,
           }}
         >
-          <a href={path}>{title}</a>
+          <Link href={path}>{title}</Link>
         </li>
       ))
     }

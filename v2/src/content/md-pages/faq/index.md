@@ -2,7 +2,7 @@
 title: FAQs
 description: Most frequently asked questions
 isDraft: false
-initialTocClose: false
+isContentSummaryOpen: false
 image: ./cover-faq.jpg
 imageCredit: Photo by <a href="https://unsplash.com/@camylla93?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Camylla Battani</a> on <a href="https://unsplash.com/photos/short-coated-brown-dog-AoqgGAqrLpU?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a>
 ---

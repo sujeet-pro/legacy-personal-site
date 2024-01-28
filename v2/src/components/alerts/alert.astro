@@ -6,10 +6,16 @@ type Props = {
 }
 
 const { level } = Astro.props
+const iconMap: Record<AlertLevel, string> = {
+  info: "mdi:alert-circle-outline",
+  warning: "mdi:warning-outline",
+  error: "mdi:alert-remove-outline",
+  success: "mdi:alert-circle-check-outline",
+}
 ---
 
 <div class:list={["alert", level]}>
-  <Icon name="mdi:alert" class="icon" />
+  <Icon name={iconMap[level]} class="icon" />
   <slot />
 </div>
 

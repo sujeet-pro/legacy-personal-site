@@ -2,7 +2,7 @@
 title: Vista's E-Commerce Platform
 description: "Vistaprint's E-Commerce Platform serving over 16M customers across 20 country and 25+ locales, built using micro-services, micro-front-ends and micro-sites architecture."
 isDraft: false
-initialTocClose: false
+isContentSummaryOpen: false
 startDate: 2020-09-15
 endDate: 2023-08-15
 company: vistaprint

@@ -3,7 +3,7 @@ title: Better Error Handling in JavaScript / Typescript
 description: Making errors as first-class citizens in your async function
   response, inspired by Go.
 isDraft: false
-initialTocClose: false
+isContentSummaryOpen: true
 image: ./cover-better-error-handling-in-js.jpg
 imageCredit: Photo by <a href="https://unsplash.com/@brett_jordan?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Brett Jordan</a> on <a href="https://unsplash.com/photos/brown-wooden-blocks-on-white-surface-XWar9MbNGUY?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a>
 publishedOn: 2023-03-11

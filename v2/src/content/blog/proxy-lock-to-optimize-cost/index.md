@@ -2,7 +2,7 @@
 title: Unveiling NGINX's Proxy Cache Lock for SSR-Generated Content
 description: Saves compute cost by significantly reducing origin server load
 isDraft: false
-initialTocClose: true
+isContentSummaryOpen: true
 image: ./nginx-proxy-lock.svg
 imageCredit: Nginx Proxy with proxy_cache_lock enabled
 publishedOn: 2024-01-18

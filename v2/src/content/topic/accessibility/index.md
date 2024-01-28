@@ -2,7 +2,7 @@
 title: Accessibility
 description: Web accessibility means that websites, tools, and technologies are designed and developed so that people with disabilities can use them.
 isDraft: false
-initialTocClose: false
+isContentSummaryOpen: false
 image: ./cover-accessibility.jpg
 imageCredit: Photo by <a href="https://unsplash.com/@sigmund?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Sigmund</a> on <a href="https://unsplash.com/photos/person-using-braille-writer-4MoIpDcSlr4?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a>
 ---

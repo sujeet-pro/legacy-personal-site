@@ -2,7 +2,7 @@
 title: Availability
 description: Availability in software engineering is the percentage of time a system consistently performs its intended function when needed.
 isDraft: false
-initialTocClose: false
+isContentSummaryOpen: false
 image: ./availability.svg
 imageCredit: Availability Representation
 ---

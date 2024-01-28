@@ -2,7 +2,7 @@
 title: Push
 description: Some description
 isDraft: true
-initialTocClose: true
+isContentSummaryOpen: true
 image: ../../hello/cover-hello.jpg
 imageCredit: ADD HERE
 publishedOn: 2024-01-21

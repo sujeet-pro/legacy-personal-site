@@ -2,7 +2,7 @@
 title: Cost Optimizations
 description: "Building lean, mean, coding machines: Doing more with less in software development."
 isDraft: false
-initialTocClose: false
+isContentSummaryOpen: false
 image: ./cost.jpg
 imageCredit: Photo by <a href="https://unsplash.com/@cleipelt?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Chris Leipelt</a> on <a href="https://unsplash.com/photos/person-holding-airplane-control-panel-4UgUpo3YdKk?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a>
 ---

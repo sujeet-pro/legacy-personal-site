@@ -2,7 +2,7 @@
 title: Wingspan
 description: "Helping companies in their journey to talent transformation and digital change management"
 isDraft: false
-initialTocClose: false
+isContentSummaryOpen: false
 startDate: 2016-01-01
 endDate: 2019-11-10
 company: infosys

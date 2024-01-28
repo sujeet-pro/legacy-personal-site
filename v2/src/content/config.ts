@@ -4,7 +4,7 @@ const baseConfig = () => ({
   title: z.string(),
   description: z.string(),
   isDraft: z.boolean(),
-  initialTocClose: z.boolean(),
+  isContentSummaryOpen: z.boolean(),
 })
 const commonConfig = (image: ImageFunction) => ({
   ...baseConfig(),

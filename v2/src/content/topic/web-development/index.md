@@ -2,7 +2,7 @@
 title: Web Development
 description: Weaving pixels and code into magical tapestries that light up the world, one website at a time.
 isDraft: false
-initialTocClose: false
+isContentSummaryOpen: false
 image: ./cover-web-dev.jpg
 imageCredit: "hello"
 ---

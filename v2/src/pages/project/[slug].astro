@@ -21,7 +21,7 @@ type Props = InferGetStaticPropsType<typeof getStaticPaths>
 
 // 2. For your template, you can get the entry directly from the prop
 const { entry } = Astro.props
-const { title, description, company, initialTocClose } = entry.data
+const { title, description, company, isContentSummaryOpen } = entry.data
 const { Content, headings } = await entry.render()
 const companyDetails = await getEntry(company)
 ---
@@ -30,7 +30,7 @@ const companyDetails = await getEntry(company)
   <main class="container flex-1">
     <ArticleContainer {title} {description} breadcrumbParents={[{ title: "Projects", path: "/project/" }]}>
       <CompanyCard slot="post-intro" entry={companyDetails} variant="card" displayDuration />
-      <MarkdownToc {headings} {initialTocClose} />
+      <MarkdownToc {headings} isOpen={isContentSummaryOpen} />
       <Content />
     </ArticleContainer>
   </main>

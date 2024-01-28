@@ -2,7 +2,7 @@
 title: Streamlining Infra Costs with Responsive Images
 description: Using responsive images powered by a image transofrormation service on a site with high traffic, results in high cost. We saved around 70% by using just a CDN in front!
 isDraft: false
-initialTocClose: true
+isContentSummaryOpen: true
 image: ./cost-reduction.jpg
 imageCredit: Photo by <a href="https://unsplash.com/@blankerwahnsinn?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Fabian Blank</a> on <a href="https://unsplash.com/photos/pink-pig-figurine-on-white-surface-pElSkGRA2NU?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a>
 publishedOn: 2024-01-19

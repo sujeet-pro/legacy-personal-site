@@ -2,7 +2,7 @@
 title: Quince Web Ecommerce
 description: "Quince is a fashion retail e-commerce startup operating Manufacturing to Consumer model with ~$400M revenue, ~4M MAU, and peak RPS of 2600."
 isDraft: false
-initialTocClose: false
+isContentSummaryOpen: false
 startDate: 2023-05-28
 endDate: 2024-12-31
 company: quince

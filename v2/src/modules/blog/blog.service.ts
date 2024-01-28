@@ -47,16 +47,16 @@ export async function getBlogs(): Promise<BlogContent[]> {
       path: `/blog/${entry.slug}`,
       parent: seriesParent
         ? {
-            title: seriesParent.data.title,
-            path: `/blog/${seriesParent.slug}`,
-            isCurrent: seriesParent.slug === entry.slug,
-          }
+          title: seriesParent.data.title,
+          path: `/blog/${seriesParent.slug}`,
+          isCurrent: seriesParent.slug === entry.slug,
+        }
         : null,
       children: (seriesInfo?.children ?? []).map((childBlog) => ({
         title: childBlog.data.title,
         path: `/blog/${childBlog.slug}`,
         isCurrent: childBlog.slug === entry.slug,
-      })),
+      })).toReversed(),
     }
   })
 }
