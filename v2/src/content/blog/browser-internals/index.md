@@ -1,14 +1,14 @@
 ---
-title: Hello world!
+title: Browser Internals
 description: Some description
 isDraft: true
 isContentSummaryOpen: true
 image: ../hello/cover-hello.jpg
 imageCredit: ADD HERE
-publishedOn: 2024-03-21
-lastUpdatedOn: 2024-03-21
+publishedOn: 2024-01-03
+lastUpdatedOn: 2024-01-03
 topics:
   - performance
 ---
 
-Hello World! This is a begining of new world!
+TODO

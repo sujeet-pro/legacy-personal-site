@@ -83,3 +83,7 @@ img {
   font-size: 85%;
   background-color: var(--sp-background-950);
 }
+
+.yt-embed {
+  max-width: 100%;
+}
