@@ -1,7 +1,7 @@
 ---
 title: Render tree construction
-description: TODO
-isDraft: true
+description: DOM + CSSOM = Render Tree
+isDraft: false
 isContentSummaryOpen: true
 image: ./render-tree.png
 imageCredit: ADD HERE

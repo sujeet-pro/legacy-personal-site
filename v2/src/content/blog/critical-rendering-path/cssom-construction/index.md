@@ -1,7 +1,7 @@
 ---
 title: CSSOM Construction
 description: Bytes → characters → tokens → nodes → CSSOM
-isDraft: true
+isDraft: false
 isContentSummaryOpen: false
 image: ./cssom.svg
 imageCredit: CSSOM Construction
@@ -12,11 +12,16 @@ topics:
   - web-development
 ---
 
-## Process
+## Render Blocking - CSS
 
-![CSSOM Constructed Tree](./cssom-tree.png)
+CSS is render blocking as its blocks rendering of parsed content until CSS Object Model (CSSOM) is constructed.
+The browser does this to prevent Flash of Unstyled Content (FOUC)
 
-#### Sample Code
+<!-- ## Process -->
+
+<!-- ![CSSOM Constructed Tree](./cssom-tree.png) -->
+
+### Code for the CSSOM
 
 ```css
 body {
@@ -35,11 +40,6 @@ img {
   float: right;
 }
 ```
-
-## Render Blocking - CSS
-
-CSS is render blocking as its blocks rendering of parsed content until CSS Object Model (CSSOM) is constructed.
-The browser does this to prevent Flash of Unstyled Content (FOUC)
 
 ## References
 
