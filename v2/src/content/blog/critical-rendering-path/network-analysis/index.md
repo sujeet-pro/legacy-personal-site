@@ -1,6 +1,6 @@
 ---
 title: Network Analysis
-description: d
+description: Analysing request and rendering flow for differnt setups
 isDraft: false
 isContentSummaryOpen: true
 image: ../../hello/cover-hello.jpg
