@@ -1,12 +1,12 @@
 ---
-title: Network Analysis
+title: Analysing CRP
 description: Analysing request and rendering flow for differnt setups
 isDraft: false
-isContentSummaryOpen: true
-image: ../../hello/cover-hello.jpg
-imageCredit: Critical Rendering Path Components
-publishedOn: 2024-01-18
-lastUpdatedOn: 2024-01-18
+isContentSummaryOpen: false
+image: ./crp-network.svg
+imageCredit: Critical Rendering Path Flow
+publishedOn: 2023-08-11
+lastUpdatedOn: 2023-08-11
 topics:
   - performance
   - web-development

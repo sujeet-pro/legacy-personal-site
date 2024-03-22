@@ -5,8 +5,8 @@ isDraft: false
 isContentSummaryOpen: false
 image: ./cssom.svg
 imageCredit: CSSOM Construction
-publishedOn: 2024-01-12
-lastUpdatedOn: 2024-01-12
+publishedOn: 2023-08-08
+lastUpdatedOn: 2023-08-08
 topics:
   - performance
   - web-development

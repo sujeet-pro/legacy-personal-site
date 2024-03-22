@@ -5,8 +5,8 @@ isDraft: false
 isContentSummaryOpen: true
 image: ./asyncdefer.svg
 imageCredit: Script Download and Execution
-publishedOn: 2024-01-13
-lastUpdatedOn: 2024-01-13
+publishedOn: 2023-08-09
+lastUpdatedOn: 2023-08-09
 topics:
   - performance
 ---

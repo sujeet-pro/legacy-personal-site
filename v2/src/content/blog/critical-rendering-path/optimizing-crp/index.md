@@ -1,18 +1,16 @@
 ---
 title: Optmizing Critical Rendering Path
-description: TODO
-isDraft: true
+description: Browser Optimizations and custom optimizations to improve the CRP
+isDraft: false
 isContentSummaryOpen: false
-image: ../../hello/cover-hello.jpg
-imageCredit: ADD HERE
-publishedOn: 2024-01-20
-lastUpdatedOn: 2024-01-20
+image: ./optimize-crp.svg
+imageCredit: Resource loading optimizations
+publishedOn: 2023-08-12
+lastUpdatedOn: 2023-08-12
 topics:
   - performance
   - web-development
 ---
-
-TODO
 
 ## The preload scanner
 
@@ -27,7 +25,16 @@ The general sequence of steps to optimize the critical rendering path is:
 - Optimize the number of critical bytes to reduce the download time (number of roundtrips).
 - Optimize the order in which the remaining critical resources are loaded: download all critical assets as early as possible to shorten the critical path length.
 
+### Action Items
+
+- Move to Server Side Rendering
+- Deffering Javascript
+- Preload fonts and using `font-display: swap`
+- Prioritize Above the flod.
+
 ## Reference
 
 - [Optimizing Resource Loading](https://web.dev/learn/performance/optimize-resource-loading)
 - [Optimizing the Critical Rendering Path](https://web.dev/articles/critical-rendering-path/optimizing-critical-rendering-path)
+
+<iframe width="560" height="315" class="yt-embed" src="https://www.youtube.com/embed/25fkjIIk2_o?si=3cxf1u6rv_7UK_MU" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>

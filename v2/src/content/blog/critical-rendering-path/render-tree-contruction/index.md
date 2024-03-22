@@ -4,9 +4,9 @@ description: DOM + CSSOM = Render Tree
 isDraft: false
 isContentSummaryOpen: true
 image: ./render-tree.png
-imageCredit: ADD HERE
-publishedOn: 2024-01-16
-lastUpdatedOn: 2024-01-16
+imageCredit: Render Tree
+publishedOn: 2023-08-10
+lastUpdatedOn: 2023-08-10
 topics:
   - performance
   - web-development

@@ -5,8 +5,8 @@ isDraft: false
 isContentSummaryOpen: true
 image: ./crp.svg
 imageCredit: Critical Rendering Path Components
-publishedOn: 2024-01-10
-lastUpdatedOn: 2024-01-10
+publishedOn: 2023-08-06
+lastUpdatedOn: 2023-08-06
 topics:
   - performance
   - web-development

@@ -5,8 +5,8 @@ isDraft: false
 isContentSummaryOpen: false
 image: ./dom-construction.svg
 imageCredit: Dom Construction
-publishedOn: 2024-01-11
-lastUpdatedOn: 2024-01-11
+publishedOn: 2023-08-07
+lastUpdatedOn: 2023-08-07
 topics:
   - performance
   - web-development

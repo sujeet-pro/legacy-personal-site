@@ -5,9 +5,11 @@ export type Props = Record<string, never>
 <script is:inline>
   // On page load or when changing themes, best to add inline in `head` to avoid FOUC
   function setDark() {
-    const isDark =
-      localStorage.getItem("theme") === "theme-dark" ||
-      (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches)
+    // const isDark =
+    //   localStorage.getItem("theme") === "theme-dark" ||
+    //   (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches)
+
+    const isDark = localStorage.getItem("theme") === "theme-dark"
 
     if (isDark) {
       document.documentElement.classList.add("theme-dark")
