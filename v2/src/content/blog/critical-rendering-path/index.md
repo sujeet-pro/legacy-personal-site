@@ -27,6 +27,22 @@ Add details here
 
 <!-- ![Critical Rendering Flow Steps](./crp-flow.svg) -->
 
+## Resources & CRP
+
+### Resources for Initial Render
+
+- Part of the HTML.
+- Render-blocking CSS in the `<head>` element.
+- Render-blocking JavaScript in the `<head>` element.
+
+Importantly, for the initial render, the browser will not typically wait for:
+
+- All of the HTML.
+- Fonts.
+- Images.
+- Non-render-blocking JavaScript outside of the `<head>` element (for example, `<script>` elements placed at the end of the HTML).
+- Non-render-blocking CSS outside of the `<head>` element, or CSS with a media attribute value that does not apply to the current viewport.
+
 ## Resource Loading
 
 - CSS is render blocking

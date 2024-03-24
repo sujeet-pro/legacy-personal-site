@@ -5,8 +5,8 @@ isDraft: false
 isContentSummaryOpen: false
 image: ./crp-network.svg
 imageCredit: Critical Rendering Path Flow
-publishedOn: 2023-08-11
-lastUpdatedOn: 2023-08-11
+publishedOn: 2023-08-12
+lastUpdatedOn: 2023-08-12
 topics:
   - performance
   - web-development

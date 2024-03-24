@@ -5,8 +5,8 @@ isDraft: false
 isContentSummaryOpen: false
 image: ./optimize-crp.svg
 imageCredit: Resource loading optimizations
-publishedOn: 2023-08-12
-lastUpdatedOn: 2023-08-12
+publishedOn: 2023-08-13
+lastUpdatedOn: 2023-08-13
 topics:
   - performance
   - web-development

@@ -12,4 +12,28 @@ topics:
   - web-development
 ---
 
-TODO Web Performance
+## Connection
+
+### DNS Resolution
+
+## RAW Notes
+
+- Networking
+
+  - Latency Optimize
+  - DNS Resolution
+  - TCP Connection
+  - SSL Conversion
+  - HTTP Connection Conversion
+
+  - Connection: TTFB
+  - Download Time / Download Size
+
+- Rendering: CRP
+  - First Render (layout only)
+  - First Contentful Paint (some text - company name)
+  - First meaningful pain (product info)
+  - LCP - Largest contentful Paint
+  - CLS - Cumulative Layout Shift
+  - FID - First Input Delay
+- Interaction/Interactivity - INP
