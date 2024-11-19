@@ -4,13 +4,17 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "astro dev",
+    "dev:gh": "astro dev --site https://projects.sujeet.pro --base /v3-sujeet-pro/",
     "build": "astro check && astro build",
     "preview": "astro preview",
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^5.0.0-beta.8",
     "@astrojs/check": "^0.9.4",
+    "astro": "^5.0.0-beta.8",
     "typescript": "^5.6.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.1"
   }
 }

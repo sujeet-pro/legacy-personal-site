@@ -1,5 +1,5 @@
 ---
-
+const {BASE_URL} = import.meta.env;
 ---
 
 <html lang="en">
@@ -12,5 +12,10 @@
 	</head>
 	<body>
 		<h1>Work In Progress</h1>
+    <ul>
+      <li><a href={BASE_URL}>Home</a></li>
+      <li><a href={`${BASE_URL}blog`}>Blog</a></li>
+      <li><a href={`${BASE_URL}blog/sample-1`}>Sample 1</a></li>
+    </ul>
 	</body>
 </html>

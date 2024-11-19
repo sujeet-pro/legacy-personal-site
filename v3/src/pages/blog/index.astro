@@ -1,0 +1,23 @@
+---
+import { getCollection } from "astro:content";
+
+const {BASE_URL} = import.meta.env;
+const posts = (await getCollection('blog')).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+---
+
+<section>
+  <h1>Blogs</h1>
+  <ul>
+    <li><a href={BASE_URL}>Home</a></li>
+    <li><a href={`${BASE_URL}blog`}>Blog</a></li>
+  </ul>
+  <ul>
+    {posts.map((post) => (
+      <li>
+        <a href={`${BASE_URL}blog/${post.slug}`}>{post.data.title}</a>
+      </li>
+    ))}
+  </ul>
+</section>
