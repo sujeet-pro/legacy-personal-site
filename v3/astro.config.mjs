@@ -4,10 +4,12 @@ import { defineConfig } from "astro/config";
 import sitemap from "@astrojs/sitemap";
 import { SITE_CANONICAL_ORIGIN } from "./src/constants";
 
+import tailwind from "@astrojs/tailwind";
+
 // https://astro.build/config
 export default defineConfig({
   site: SITE_CANONICAL_ORIGIN,
-  integrations: [sitemap()],
+  integrations: [sitemap(), tailwind()],
 
   prefetch: {
     prefetchAll: true,
