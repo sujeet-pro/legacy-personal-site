@@ -1,5 +1,7 @@
 ---
 import { getCollection, type CollectionEntry } from 'astro:content';
+import BaseHead from '../../components/base-head.astro';
+import Link from '../../components/link.astro';
 
 export async function getStaticPaths() {
 	const posts = await getCollection('blog');
@@ -11,12 +13,21 @@ export async function getStaticPaths() {
 type Props = CollectionEntry<'blog'>;
 
 const post = Astro.props;
+const {title, description} = post.data
 const { Content } = await post.render();
-const {BASE_URL} = import.meta.env;
 ---
 
-<ul>
-  <li><a href={BASE_URL}>Home</a></li>
-  <li><a href={`${BASE_URL}blog`}>Blog</a></li>
-</ul>
-<Content />
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <BaseHead title={title} description={description} />
+</head>
+<body>
+  <ul>
+    <li><Link href="/">Home</Link></li>
+    <li><Link href="/blog">Blog</Link></li>
+  </ul>
+  <Content />
+</body>
+</html>
+

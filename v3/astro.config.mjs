@@ -1,14 +1,18 @@
 // @ts-check
 // @ts-check
 import { defineConfig } from "astro/config";
+import sitemap from "@astrojs/sitemap";
+import { SITE_CANONICAL_ORIGIN } from "./src/constants";
 
 // https://astro.build/config
 export default defineConfig({
+  site: SITE_CANONICAL_ORIGIN,
+  integrations: [sitemap()],
+
   prefetch: {
     prefetchAll: true,
   },
   scopedStyleStrategy: "where",
-  trailingSlash: "ignore",
   output: "static",
   redirects: {
     "/gh": "https://github.com/sujeet-pro",

@@ -1,0 +1,21 @@
+---
+type Props = {
+  href: string;
+  children: string;
+};
+
+const {href: to} = Astro.props;
+const {BASE_URL} = import.meta.env;
+let href = to;
+if(BASE_URL !== '/') {
+  if(to === '/') {
+    href = BASE_URL;
+  } else {
+    href = BASE_URL + to;
+  }
+}
+
+---
+<a href={href}>
+  <slot />
+</a>
