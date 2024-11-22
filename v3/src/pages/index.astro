@@ -1,19 +1,24 @@
 ---
-import BaseHead from "../components/base-head.astro";
-import Link from "../components/link.astro";
+import { getCollection } from 'astro:content'
+import Author from '$components/author.astro'
+import Layout from '$layout'
+import PostPreviewItem from '$components/post-preview-item.astro'
 
+const posts = await getCollection('blog', (post) => true || import.meta.env.DEV || !post.data.isDraft)
+posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
 ---
-<!doctype html>
-<html lang="en">
-	<head>
-    <BaseHead title="Sujeet" description="Personal Site" />
-	</head>
-	<body>
-		<h1>Work In Progress</h1>
-    <ul>
-      <li><Link href="/">Home</Link></li>
-      <li><Link href="/blog">Blog</Link></li>
-      <li><Link href="/blog/sample-1">Sample 1</Link></li>
+
+<Layout title='Sujeet' description='Personal Site'>
+  <Author />
+  <section>
+    <p class='text-xl text-center italic font-light'>
+      Making the world a better place through <strong>quality software</strong>.
+    </p>
+  </section>
+  <section>
+    <h2 class='text-2xl my-14'>Writings</h2>
+    <ul class='grid grid-cols-1 divide-y'>
+      {posts.map((post) => <PostPreviewItem post={post} />)}
     </ul>
-	</body>
-</html>
+  </section>
+</Layout>

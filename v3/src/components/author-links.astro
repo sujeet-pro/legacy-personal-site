@@ -1,0 +1,29 @@
+---
+import { REDIRECTION_MAP } from '$configs/redirections'
+import Linkedin from '$icons/linkedin.astro'
+import CvIcon from '$icons/cv-icon.astro'
+import Link from './link.astro'
+
+const links = [
+  {
+    text: 'Connect @ LinkedIn',
+    icon: Linkedin,
+    href: REDIRECTION_MAP['/linkedin']
+  },
+  {
+    text: 'View My CV',
+    icon: CvIcon,
+    href: REDIRECTION_MAP['/cv']
+  }
+]
+---
+
+<nav class='flex gap-4'>
+  {
+    links.map((link) => (
+      <Link href={link.href} target='_blank' class='flex items-center gap-1'>
+        {link.text} <link.icon />
+      </Link>
+    ))
+  }
+</nav>

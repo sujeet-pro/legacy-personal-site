@@ -1,33 +1,88 @@
 ---
-import { getCollection, type CollectionEntry } from 'astro:content';
-import BaseHead from '../../components/base-head.astro';
-import Link from '../../components/link.astro';
+import { getCollection, type CollectionEntry } from 'astro:content'
+import FormattedDate from '$components/formatted-date.astro'
+import Layout from '$layout'
 
 export async function getStaticPaths() {
-	const posts = await getCollection('blog');
-	return posts.map((post) => ({
-		params: { slug: post.slug },
-		props: post,
-	}));
+  const posts = await getCollection('blog')
+  const postCount = posts.length
+  return posts
+    .filter((post) => import.meta.env.DEV || !post.data.isDraft)
+    .map((post, index) => ({
+      params: { slug: post.slug },
+      props: {
+        post,
+        prevPost: index + 1 !== postCount ? posts[index + 1] : null,
+        nextPost: index !== 0 ? posts[index - 1] : null
+      }
+    }))
 }
-type Props = CollectionEntry<'blog'>;
+type Props = {
+  post: CollectionEntry<'blog'>
+  prevPost: CollectionEntry<'blog'> | null
+  nextPost: CollectionEntry<'blog'> | null
+}
 
-const post = Astro.props;
-const {title, description} = post.data
-const { Content } = await post.render();
+const { post, prevPost, nextPost } = Astro.props
+const { title, description, pubDate, lastUpdatedDate } = post.data
+// console.log(post.data.tags)
+// const tags = await getEntries(post.data.tags)
+const { Content } = await post.render()
 ---
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <BaseHead title={title} description={description} />
-</head>
-<body>
-  <ul>
-    <li><Link href="/">Home</Link></li>
-    <li><Link href="/blog">Blog</Link></li>
-  </ul>
-  <Content />
-</body>
-</html>
+<Layout title={title} description={description}>
+  <article class=''>
+    <h1 class='text-4xl font-light'>{title}</h1>
 
+    <div class='my-2 flex'>
+      <FormattedDate date={pubDate} />
+      {
+        lastUpdatedDate ? (
+          <span class='ml-4'>
+            Last updated: <FormattedDate date={lastUpdatedDate} />
+          </span>
+        ) : null
+      }
+    </div>
+    <p class='my-8'>{description}</p>
+    <div class='prose dark:prose-invert max-w-none'>
+      <Content />
+    </div>
+  </article>
+  <div class='mt-8 flex flex-wrap items-center gap-6 text-sm justify-between sm:mt-12 sm:text-base'>
+    <!-- {
+      tags?.length && (
+        <div class='flex flex-wrap gap-x-5 gap-y-1 text-sm'>
+          {tags?.map((tag) => (
+            <a class='text-main hover:underline' href={`/tag/${tag.id}}`}>
+              #{tag.name}
+            </a>
+          ))}
+        </div>
+      )
+    } -->
+    <!-- <Button
+      class='copy-url-button'
+      aria-label='Copy link'
+      data-url={href}
+      data-tooltip-default='Copy link'
+      data-tooltip-success='Copied'>Share</Button
+    > -->
+  </div>
+  {
+    nextPost || prevPost ? (
+      <nav class='mt-12 flex justify-between'>
+        {prevPost ? (
+          <a href={`/blog/${prevPost.slug}`} class='text-main hover:underline'>
+            ← {prevPost.data.title}
+          </a>
+        ) : null}
+        {nextPost ? (
+          <a href={`/blog/${nextPost.slug}`} class='text-main hover:underline'>
+            {nextPost.data.title} →
+          </a>
+        ) : null}
+      </nav>
+    ) : null
+  }
+</Layout>

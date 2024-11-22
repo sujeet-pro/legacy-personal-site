@@ -1,0 +1,44 @@
+---
+import { SITE_CANONICAL_ORIGIN, SITE_CANONICAL_PATH } from '$configs/site.constants'
+
+type Props = {
+  title: string
+  description: string
+  image?: string | undefined
+  pageType?: 'website' | 'article'
+}
+const { title, description, image, pageType = 'website' } = Astro.props
+
+function getCanonicalURL() {
+  // Canonical URL
+  let pathname = Astro.url.pathname
+  const { BASE_URL } = import.meta.env
+  if (BASE_URL != SITE_CANONICAL_PATH) {
+    pathname = pathname.replace(BASE_URL, SITE_CANONICAL_PATH)
+  }
+  const canonicalURL = new URL(pathname, SITE_CANONICAL_ORIGIN)
+  return canonicalURL
+}
+const canonicalURL = getCanonicalURL()
+---
+
+<!-- Canonical URL -->
+<link rel='canonical' href={canonicalURL} />
+<!-- Primary Meta Tags -->
+<title>{title}</title>
+<meta name='title' content={title} />
+<meta name='description' content={description} />
+
+<!-- Open Graph / Facebook -->
+<meta property='og:type' content={pageType} />
+<meta property='og:url' content={canonicalURL} />
+<meta property='og:title' content={title} />
+<meta property='og:description' content={description} />
+{image ? <meta property='og:image' content={new URL(image, Astro.url)} /> : null}
+
+<!-- Twitter / X -->
+<meta property='twitter:card' content='summary_large_image' />
+<meta property='twitter:url' content={canonicalURL} />
+<meta property='twitter:title' content={title} />
+<meta property='twitter:description' content={description} />
+{image ? <meta property='twitter:image' content={new URL(image, Astro.url)} /> : null}

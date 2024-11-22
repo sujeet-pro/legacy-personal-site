@@ -1,0 +1,9 @@
+---
+import { getCollection } from 'astro:content'
+
+const tags = await getCollection('tag')
+---
+
+<pre>
+  {JSON.stringify(tags, null, 2)}
+</pre>

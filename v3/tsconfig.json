@@ -1,10 +1,17 @@
 {
   "extends": "astro/tsconfigs/strictest",
-  "include": [
-    ".astro/types.d.ts",
-    "**/*"
-  ],
-  "exclude": [
-    "dist"
-  ]
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "$assets/*": ["src/assets/*"],
+      "$components/*": ["src/components/*"],
+      "$configs/*": ["src/configs/*"],
+      "$icons/*": ["src/icons/*"],
+      "$layout": ["src/layout/index.astro"]
+    },
+    "verbatimModuleSyntax": true,
+    "strictNullChecks": true
+  },
+  "include": [".astro/types.d.ts", "**/*"],
+  "exclude": ["dist"]
 }

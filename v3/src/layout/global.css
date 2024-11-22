@@ -1,0 +1,12 @@
+@tailwind base; /* Preflight will be injected here */
+@tailwind components;
+@tailwind utilities;
+body {
+  font-family: "Open Sans Variable", sans-serif;
+}
+
+code {
+  display: inline-block;
+  width: 100%;
+  overflow-x: auto;
+}

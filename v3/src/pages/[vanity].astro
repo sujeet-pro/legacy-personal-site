@@ -1,0 +1,29 @@
+---
+import { REDIRECTION_MAP } from '$configs/redirections'
+
+export async function getStaticPaths() {
+  return Object.entries(REDIRECTION_MAP).map(([source, target]) => {
+    return {
+      params: { vanity: source },
+      props: { source, target }
+    }
+  })
+}
+
+const { source, target } = Astro.props
+---
+
+<!doctype html>
+<html lang='en'>
+  <head>
+    <title>Redirecting to: {target}</title>
+    <meta http-equiv='refresh' content={`0;url=${target}`} />
+    <meta name='robots' content='noindex' />
+    <link rel='canonical' href={target} />
+  </head>
+  <body>
+    <a href={target}>
+      Redirecting from <code>{source}</code> to <code>{target}</code>
+    </a>
+  </body>
+</html>

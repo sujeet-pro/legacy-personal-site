@@ -1,21 +1,22 @@
 ---
 type Props = {
-  href: string;
-  children: string;
-};
-
-const {href: to} = Astro.props;
-const {BASE_URL} = import.meta.env;
-let href = to;
-if(BASE_URL !== '/') {
-  if(to === '/') {
-    href = BASE_URL;
-  } else {
-    href = BASE_URL + to;
-  }
+  href: string
+  class?: string | undefined
+  target?: '_blank' | undefined
 }
 
+const { href: to, class: className, target } = Astro.props
+const { BASE_URL } = import.meta.env
+let href = to
+if (BASE_URL !== '/') {
+  if (to === '/') {
+    href = BASE_URL
+  } else {
+    href = BASE_URL + to
+  }
+}
 ---
-<a href={href}>
+
+<a href={href} target={target} class:list={['hover:underline underline-offset-2 decoration-dotted', className]}>
   <slot />
 </a>

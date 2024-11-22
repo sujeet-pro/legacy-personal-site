@@ -1,0 +1,23 @@
+---
+import type { CollectionEntry } from 'astro:content'
+import Link from './link.astro'
+import FormattedDate from './formatted-date.astro'
+
+type Props = {
+  post: CollectionEntry<'blog'>
+}
+
+const { post } = Astro.props
+const { title, description, pubDate } = post.data
+---
+
+<li class='py-4 relative flex flex-col gap-y-1'>
+  <h3 class='text-xl'>
+    <Link
+      href={`/blog/${post.slug}`}
+      class="after:absolute after:top-0 after:left-0 after:right-0 after:bottom-0 after:content-[' ']">{title}</Link
+    >
+  </h3>
+  <FormattedDate date={pubDate} />
+  <p>{description}</p>
+</li>
