@@ -9,6 +9,7 @@
     "clean": "rm -rf dist .astro",
     "preview": "astro preview",
     "astro": "astro",
+    "sync": "astro sync",
     "format": "prettier --write  \"**/*.{js,jsx,ts,tsx,md,mdx,astro}\"",
     "lint": "eslint --fix \"src/**/*.{js,ts,jsx,tsx,astro}\""
   },

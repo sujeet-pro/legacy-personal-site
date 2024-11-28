@@ -10,7 +10,8 @@
       "$layout": ["src/layout/index.astro"]
     },
     "verbatimModuleSyntax": true,
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "allowJs": true
   },
   "include": [".astro/types.d.ts", "**/*"],
   "exclude": ["dist"]

@@ -1,21 +1,23 @@
 ---
-import { getCollection, type CollectionEntry } from 'astro:content'
+import { getCollection, type CollectionEntry, render } from 'astro:content'
 import FormattedDate from '$components/formatted-date.astro'
 import Layout from '$layout'
+import { getEntries } from 'astro:content'
+import Tag from '$components/tag.astro'
+import PostPreviewItem from '$components/post-preview-item.astro'
+import TableOfContents from '$components/table-of-contents.astro'
 
 export async function getStaticPaths() {
-  const posts = await getCollection('blog')
+  const posts = await getCollection('blog', (post) => import.meta.env.DEV || !post.data.isDraft)
   const postCount = posts.length
-  return posts
-    .filter((post) => import.meta.env.DEV || !post.data.isDraft)
-    .map((post, index) => ({
-      params: { slug: post.slug },
-      props: {
-        post,
-        prevPost: index + 1 !== postCount ? posts[index + 1] : null,
-        nextPost: index !== 0 ? posts[index - 1] : null
-      }
-    }))
+  return posts.map((post, index) => ({
+    params: { slug: post.id },
+    props: {
+      post,
+      prevPost: index + 1 !== postCount ? posts[index + 1] : null,
+      nextPost: index !== 0 ? posts[index - 1] : null
+    }
+  }))
 }
 type Props = {
   post: CollectionEntry<'blog'>
@@ -26,8 +28,8 @@ type Props = {
 const { post, prevPost, nextPost } = Astro.props
 const { title, description, pubDate, lastUpdatedDate } = post.data
 // console.log(post.data.tags)
-// const tags = await getEntries(post.data.tags)
-const { Content } = await post.render()
+const tags = await getEntries(post.data.tags)
+const { Content, headings } = await render(post)
 ---
 
 <Layout title={title} description={description}>
@@ -45,44 +47,20 @@ const { Content } = await post.render()
       }
     </div>
     <p class='my-8'>{description}</p>
+    <TableOfContents headings={headings} />
     <div class='prose dark:prose-invert max-w-none'>
       <Content />
     </div>
   </article>
-  <div class='mt-8 flex flex-wrap items-center gap-6 text-sm justify-between sm:mt-12 sm:text-base'>
-    <!-- {
-      tags?.length && (
-        <div class='flex flex-wrap gap-x-5 gap-y-1 text-sm'>
-          {tags?.map((tag) => (
-            <a class='text-main hover:underline' href={`/tag/${tag.id}}`}>
-              #{tag.name}
-            </a>
-          ))}
-        </div>
-      )
-    } -->
-    <!-- <Button
-      class='copy-url-button'
-      aria-label='Copy link'
-      data-url={href}
-      data-tooltip-default='Copy link'
-      data-tooltip-success='Copied'>Share</Button
-    > -->
+
+  <div class='flex flex-wrap gap-x-5 gap-y-1 text-sm'>
+    {tags.map((tag) => <Tag tag={tag} />)}
   </div>
-  {
-    nextPost || prevPost ? (
-      <nav class='mt-12 flex justify-between'>
-        {prevPost ? (
-          <a href={`/blog/${prevPost.slug}`} class='text-main hover:underline'>
-            ← {prevPost.data.title}
-          </a>
-        ) : null}
-        {nextPost ? (
-          <a href={`/blog/${nextPost.slug}`} class='text-main hover:underline'>
-            {nextPost.data.title} →
-          </a>
-        ) : null}
-      </nav>
-    ) : null
-  }
+
+  <nav class='mt-12'>
+    <ul>
+      {prevPost ? <PostPreviewItem post={prevPost} /> : null}
+      {nextPost ? <PostPreviewItem post={nextPost} /> : null}
+    </ul>
+  </nav>
 </Layout>

@@ -1,9 +1,20 @@
 ---
 import { getCollection } from 'astro:content'
+import Layout from '$layout'
+import Tag from '$components/tag.astro'
 
 const tags = await getCollection('tag')
 ---
 
-<pre>
-  {JSON.stringify(tags, null, 2)}
-</pre>
+<Layout title='Tags' description='Tags'>
+  <h1>Tags</h1>
+  <ul>
+    {
+      tags.map((tag) => (
+        <li>
+          <Tag tag={tag} />
+        </li>
+      ))
+    }
+  </ul></Layout
+>

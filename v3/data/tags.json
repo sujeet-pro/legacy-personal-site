@@ -1,0 +1,35 @@
+{
+  "full-stack-development": {
+    "name": "Full Stack Development"
+  },
+  "performance-optimization": {
+    "name": "Performance Optimization"
+  },
+  "system-design": {
+    "name": "System Design"
+  },
+  "scalability": {
+    "name": "Scalability"
+  },
+  "microservices": {
+    "name": "Microservices"
+  },
+  "load-balancing": {
+    "name": "Load Balancing"
+  },
+  "caching": {
+    "name": "Caching"
+  },
+  "database-optimization": {
+    "name": "Database Optimization"
+  },
+  "api-design": {
+    "name": "API Design"
+  },
+  "serverless-architecture": {
+    "name": "Serverless Architecture"
+  },
+  "web-performance": {
+    "name": "Web Performance"
+  }
+}

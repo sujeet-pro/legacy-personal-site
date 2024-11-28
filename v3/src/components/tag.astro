@@ -1,0 +1,12 @@
+---
+import type { CollectionEntry } from 'astro:content'
+import Link from './link.astro'
+
+type Props = {
+  tag: CollectionEntry<'tag'>
+}
+
+const { tag } = Astro.props
+---
+
+<Link href={`/tag/${tag.id}`}>#{tag.data.name}</Link>

@@ -3,9 +3,9 @@ title: Web Performance
 description: TODO
 isDraft: true
 pubDate: 2021-08-01
+lastUpdatedDate: 2024-11-24
 tags:
-  - api
-  - web-performance
+  - performance-optimization
 ---
 
 Some quoates from the book
