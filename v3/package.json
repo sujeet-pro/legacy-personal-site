@@ -6,6 +6,7 @@
     "dev": "astro dev",
     "dev:gh": "astro dev --site 'http://projects.sujeet.pro' --base '/v3.sujeet.pro'",
     "build": "astro check && astro build",
+    "build:gh": "astro check && astro build --site 'http://projects.sujeet.pro' --base '/v3.sujeet.pro'",
     "clean": "rm -rf dist .astro",
     "preview": "astro preview",
     "astro": "astro",

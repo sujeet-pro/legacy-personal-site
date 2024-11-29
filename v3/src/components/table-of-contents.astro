@@ -1,5 +1,8 @@
 ---
 import type { MarkdownHeading } from 'astro'
+import Accordion from './accordion.astro'
+import Link from './link.astro'
+import { COLOR_BG_MUTED } from '$configs/colors'
 
 type Props = {
   headings: MarkdownHeading[]
@@ -21,21 +24,25 @@ function nestedHeading(headings: MarkdownHeading[]): NestedHeading[] {
 const nestedHeadings = nestedHeading(Astro.props.headings)
 ---
 
-<nav class='toc'>
-  <ul>
-    {
-      nestedHeadings.map((heading) => (
-        <li>
-          <a href={`#${heading.slug}`}>{heading.text}</a>
-          <ul>
-            {heading.children.map((child) => (
-              <li>
-                <a href={`#${child.slug}`}>{child.text}</a>
-              </li>
-            ))}
-          </ul>
-        </li>
-      ))
-    }
-  </ul>
-</nav>
+<section class:list={[COLOR_BG_MUTED, 'my-4']}>
+  <Accordion title='Table of Contents'>
+    <nav class='toc'>
+      <ul class='list-disc list-inside'>
+        {
+          nestedHeadings.map((heading) => (
+            <li>
+              <Link href={`#${heading.slug}`}>{heading.text}</Link>
+              <ul class='list-[circle] list-inside ml-6'>
+                {heading.children.map((child) => (
+                  <li>
+                    <Link href={`#${child.slug}`}>{child.text}</Link>
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </Accordion>
+</section>

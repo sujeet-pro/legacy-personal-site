@@ -1,0 +1,6 @@
+export const COLOR_BASE = 'bg-neutral-100 text-neutral-900 dark:bg-neutral-900 dark:text-neutral-200'
+export const COLOR_BG_MUTED = 'bg-neutral-200/50 dark:bg-neutral-800/50'
+export const COLOR_TEXT_MUTED = 'text-neutral-500 dark:text-neutral-500'
+export const CLS_SECTION_HEADINGS = 'text-2xl font-light italic'
+export const CLS_COLOR_DIVIDER = 'divide-neutral-300 dark:divide-neutral-700'
+export const CLS_COLOR_BORDER = 'broder-neutral-700 dark:border-neutral-500'

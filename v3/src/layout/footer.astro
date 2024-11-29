@@ -1,8 +1,9 @@
 ---
 import AuthorLinks from '../components/author-links.astro'
+import { CLS_COLOR_BORDER } from '$configs/colors'
 ---
 
-<footer class='border-t my-4 p-2 flex flex-col-reverse md:flex-row justify-between'>
+<footer class:list={['border-t my-4 p-2 flex flex-col-reverse md:flex-row justify-between', CLS_COLOR_BORDER]}>
   <div>
     &copy; {new Date().getFullYear()} Sujeet Jaiswal. All rights reserved.
   </div>

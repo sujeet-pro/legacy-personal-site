@@ -1,6 +1,8 @@
 ---
 import { getCollection } from 'astro:content'
-
+import { getBlogPostContent } from 'src/utils/content.utils'
+import Layout from '$layout'
+import PostList from '$components/post-list.astro'
 export async function getStaticPaths() {
   const posts = await getCollection('tag')
   return posts.map((tag) => ({
@@ -10,6 +12,13 @@ export async function getStaticPaths() {
     }
   }))
 }
+
+const { tag } = Astro.props
+const posts = await getBlogPostContent({ onlyTag: tag.id })
+const { name } = tag.data
 ---
 
-<h1 class='text-3xl'>Whatever</h1>
+<Layout title={name} description={`Post related to ${name}`}>
+  <h1 class='text-4xl font-light text-center my-14'># {name}</h1>
+  <PostList posts={posts} />
+</Layout>

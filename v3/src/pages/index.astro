@@ -1,24 +1,22 @@
 ---
-import { getCollection } from 'astro:content'
 import Author from '$components/author.astro'
 import Layout from '$layout'
-import PostPreviewItem from '$components/post-preview-item.astro'
+import { getBlogPostContent } from 'src/utils/content.utils'
+import { CLS_SECTION_HEADINGS } from '$configs/colors'
+import PostList from '$components/post-list.astro'
 
-const posts = await getCollection('blog', (post) => true || import.meta.env.DEV || !post.data.isDraft)
-posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+const posts = await getBlogPostContent()
 ---
 
 <Layout title='Sujeet' description='Personal Site'>
   <Author />
   <section>
-    <p class='text-xl text-center italic font-light'>
+    <p class='text-xl font-light'>
       Making the world a better place through <strong>quality software</strong>.
     </p>
   </section>
   <section>
-    <h2 class='text-2xl my-14'>Writings</h2>
-    <ul class='grid grid-cols-1 divide-y'>
-      {posts.map((post) => <PostPreviewItem post={post} />)}
-    </ul>
+    <h2 class:list={[CLS_SECTION_HEADINGS, 'mt-14 mb-8']}>Writings</h2>
+    <PostList posts={posts} />
   </section>
 </Layout>

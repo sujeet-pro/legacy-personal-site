@@ -5,12 +5,12 @@ import imgSujeet from '$assets/sujeet.jpg'
 import AuthorLinks from './author-links.astro'
 ---
 
-<section class='flex gap-2 items-center my-8'>
+<section class='flex flex-col md:flex-row gap-y-2 gap-x-4 items-center my-8'>
   <div>
     <Image src={imgSujeet} alt='Sujeet Jaiswal' class='rounded-full w-24 h-24' />
   </div>
   <div>
-    <h1 class='text-4xl'>Sujeet Jaiswal</h1>
+    <h1 class='text-4xl font-light text-center md:text-left'>Sujeet Jaiswal</h1>
     <p class='my-2'>Principal Software Engineer, Bangalore - India</p>
     <AuthorLinks />
   </div>

@@ -1,0 +1,23 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content'
+import Layout from '$layout'
+export async function getStaticPaths() {
+  const pages = await getCollection('page', (page) => import.meta.env.DEV || !page.data.isDraft)
+  return pages.map((page) => ({
+    params: { slug: page.id },
+    props: { page }
+  }))
+}
+type Props = {
+  page: CollectionEntry<'page'>
+}
+const { page } = Astro.props
+const { seoTitle, seoDescription } = page.data
+const { Content } = await render(page)
+---
+
+<Layout title={seoTitle} description={seoDescription}>
+  <article class='prose dark:prose-invert max-w-none'>
+    <Content />
+  </article>
+</Layout>

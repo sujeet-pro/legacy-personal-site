@@ -2,8 +2,8 @@
   "full-stack-development": {
     "name": "Full Stack Development"
   },
-  "performance-optimization": {
-    "name": "Performance Optimization"
+  "web-development": {
+    "name": "Web Development"
   },
   "system-design": {
     "name": "System Design"
@@ -29,7 +29,19 @@
   "serverless-architecture": {
     "name": "Serverless Architecture"
   },
+  "performance": {
+    "name": "Performance"
+  },
+  "performance-optimization": {
+    "name": "Performance Optimization"
+  },
   "web-performance": {
     "name": "Web Performance"
+  },
+  "programming-patterns": {
+    "name": "Programming Patterns"
+  },
+  "javascript": {
+    "name": "JavaScript"
   }
 }

@@ -17,8 +17,8 @@ export default defineConfig({
     defaultStrategy: 'viewport'
   },
   experimental: {
-    contentIntellisense: true,
-    clientPrerender: true
+    contentIntellisense: true
+    // clientPrerender: true
   },
   scopedStyleStrategy: 'where',
   output: 'static'

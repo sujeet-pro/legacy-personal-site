@@ -1,5 +1,6 @@
 ---
 import Link from '$components/link.astro'
+import { CLS_COLOR_BORDER } from '$configs/colors'
 type Props = {
   class?: string | undefined
 }
@@ -24,9 +25,15 @@ const { class: className } = Astro.props
   setInitialThemeValueBasedOnUserPreference()
 </script>
 
-<header class={`${className} bg-inherit sticky top-0 border-b p-2 text-2xl flex items-center justify-between`}>
+<header
+  class:list={[
+    `bg-inherit sticky top-0 border-b p-2 text-2xl flex items-center justify-between`,
+    CLS_COLOR_BORDER,
+    className
+  ]}
+>
   <nav>
-    <ul class='header-nav-list'>
+    <ul class='header-nav-list font-light'>
       <li><Link href='/'>Sujeet</Link></li>
     </ul>
   </nav>
