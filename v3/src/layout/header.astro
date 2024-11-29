@@ -27,14 +27,15 @@ const { class: className } = Astro.props
 
 <header
   class:list={[
-    `bg-inherit sticky top-0 border-b p-2 text-2xl flex items-center justify-between`,
+    `bg-inherit sticky top-0 border-b p-2 flex items-center justify-between z-10`,
     CLS_COLOR_BORDER,
     className
   ]}
 >
   <nav>
-    <ul class='header-nav-list font-light'>
-      <li><Link href='/'>Sujeet</Link></li>
+    <ul class='header-nav-list font-light flex gap-2'>
+      <li><Link href='/'>Home</Link></li>
+      <li><Link href='/blog'>Blogs</Link></li>
     </ul>
   </nav>
   <button id='toggle-theme'>

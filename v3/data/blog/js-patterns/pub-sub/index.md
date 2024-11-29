@@ -2,7 +2,7 @@
 title: Pub Sub
 description: Publisher Subscriber Pattern for decoupling
 isDraft: false
-isContentSummaryOpen: false
+featuredRank: 0
 image: ./pub-sub.svg
 imageCredit: Pub-Sub data flow
 pubDate: 2023-03-01

@@ -1,0 +1,12 @@
+---
+import Layout from '$layout'
+import PostList from '$components/post-list.astro'
+import { getBlogPostContent } from 'src/utils/content.utils'
+
+const posts = await getBlogPostContent()
+---
+
+<Layout title="Sujeet's Blogs" description='List of all the published blogs'>
+  <h1 class='text-4xl font-light text-center my-14'>Blogs</h1>
+  <PostList posts={posts} />
+</Layout>

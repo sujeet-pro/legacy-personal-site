@@ -10,7 +10,7 @@ const tag = defineCollection({
 })
 
 const blog = defineCollection({
-  loader: glob({ pattern: '**/[^_]*.md', base: './data/blog' }),
+  loader: glob({ pattern: '**/[^_]*.(md|mdx)', base: './data/blog' }),
   schema: ({ image }: SchemaContext) =>
     z.object({
       title: z.string(),
@@ -18,6 +18,7 @@ const blog = defineCollection({
       pubDate: z.coerce.date(),
       lastUpdatedDate: z.coerce.date(),
       isDraft: z.boolean(),
+      featuredRank: z.number(),
       tags: z.array(reference('tag')),
       image: image().optional(), // z.string().optional(),
       imageCredit: z.string().optional()
@@ -44,4 +45,8 @@ const page = defineCollection({
   })
 })
 
-export const collections = { tag, blog, page }
+export const collections = {
+  tag,
+  blog,
+  page
+}

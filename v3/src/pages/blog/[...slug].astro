@@ -29,7 +29,6 @@ type Props = {
 
 const { post, prevPost, nextPost } = Astro.props
 const { title, description, pubDate, lastUpdatedDate, image, imageCredit } = post.data
-// console.log(post.data.tags)
 const tags = await getEntries(post.data.tags)
 const { Content, headings } = await render(post)
 ---
@@ -38,10 +37,10 @@ const { Content, headings } = await render(post)
   <article class=''>
     <h1 class='text-4xl font-light'>{title}</h1>
 
-    <div class:list={['my-2 flex', COLOR_TEXT_MUTED]}>
+    <div class:list={['my-2 flex text-sm', COLOR_TEXT_MUTED]}>
       <FormattedDate date={pubDate} />
       {
-        lastUpdatedDate ? (
+        lastUpdatedDate && pubDate.toISOString() !== lastUpdatedDate.toISOString() ? (
           <span class='ml-4'>
             Last updated: <FormattedDate date={lastUpdatedDate} />
           </span>
