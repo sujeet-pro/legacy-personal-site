@@ -2,7 +2,7 @@
 #
 # To get started with Astro see: https://docs.astro.build/en/getting-started/
 #
-name: Deploy Sujeet.pro V3 to Github Pages
+name: Deploy Sujeet.pro V2 to Github Pages
 
 on:
   # Runs on pushes targeting the default branch

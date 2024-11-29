@@ -1,5 +1,7 @@
 # Personal Portfolio site (v2)
 
+> Archiving this in favour of v3. Explore the v3.sujeet.pro branch for the latest version.
+
 ## Deployments
 
 - Github Pages (https://v2.sujeet.pro): Deployed manually from any branch. (Pre-prod)
