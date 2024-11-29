@@ -7,11 +7,11 @@ import type { RehypePlugins, RemarkPlugins } from "astro"
 import icon from "astro-icon"
 
 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-const SITE = process.env.SITE || process.env.CF_PAGES_URL || "http://v2.sujeet.pro"
 
 // https://astro.build/config
 export default defineConfig({
-  site: SITE,
+  site: "https://projects.sujeet.pro",
+  base: "/v3.sujeet.pro",
   prefetch: true,
   scopedStyleStrategy: "where",
   markdown: {
@@ -33,7 +33,7 @@ export default defineConfig({
     "/cv": "https://docs.google.com/document/d/1G-zdwqHLTJ9eoDAnyMeWKkb2Bf-0i8dfQ6NWYJ_osL0/edit?usp=sharing",
     "/blog/length-of-a-string/": "blog/js-interview-treats/length-of-a-string",
     "/blog/ssg-mobile-desktop-cls-and-redirection": "/blog/ssg",
-    "/blog/serving-pre-compressed-assets": "/blog/ssg/serving-pre-compressed-assets"
+    "/blog/serving-pre-compressed-assets": "/blog/ssg/serving-pre-compressed-assets",
   },
   integrations: [icon(), sitemap(), prefetch()],
 })

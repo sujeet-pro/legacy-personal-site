@@ -2,16 +2,27 @@
 import type { HTMLAttributes } from "astro/types"
 import { isExternalUrl } from "$utils/link.util"
 
-type Props = HTMLAttributes<"a"> & {
+type Props = Omit<HTMLAttributes<"a">, "href"> & {
   class?: string
   skin?: "no-decorate" | "cta"
   isExternal?: boolean | undefined
+  href: string
 }
 
-const { href, class: className, skin, isExternal: isExternalProp, ...extraProps } = Astro.props
-if (!href) {
+const { href: to, class: className, skin, isExternal: isExternalProp, ...extraProps } = Astro.props
+const { BASE_URL } = import.meta.env
+if (!to) {
   throw new Error("Href must be provided")
 }
+let href = to
+if (BASE_URL !== "/") {
+  if (to === "/") {
+    href = BASE_URL
+  } else {
+    href = BASE_URL + to
+  }
+}
+
 const isExternal = isExternalProp ?? isExternalUrl(href)
 const isCta = skin === "cta"
 const isCurrent = href === Astro.url.href || href === Astro.url.pathname

@@ -18,6 +18,10 @@ type Props = {
 }
 
 const { title, description, imageSrc, class: className } = Astro.props
+let assetPrefix = ""
+if (import.meta.env.BASE_URL !== "/") {
+  assetPrefix = import.meta.env.BASE_URL
+}
 ---
 
 <html lang="en">
@@ -25,8 +29,8 @@ const { title, description, imageSrc, class: className } = Astro.props
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
-    <FavIcons />
-    <link rel="sitemap" href="/sitemap-index.xml" />
+    <FavIcons {assetPrefix} />
+    <link rel="sitemap" href={`${assetPrefix}/sitemap-index.xml`} />
     <Seo {title} {description} {imageSrc}>
       <slot name="seo" />
     </Seo>
