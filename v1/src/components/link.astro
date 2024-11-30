@@ -1,5 +1,5 @@
 ---
-import { Icon } from "astro-icon";
+import { Icon } from 'astro-icon/components'
 import type { LinkConfig } from "../types/link.type";
 type CommonProps = {
   class?: string;
@@ -24,7 +24,7 @@ const {
 } = Astro.props as Props;
 
 const text = linkConfig?.text;
-const href = overridenLinkConfig.href || linkConfig?.href;
+const to = overridenLinkConfig.href || linkConfig?.href;
 const isExternal = overridenLinkConfig.isExternal ?? linkConfig?.isExternal;
 const iconName =
   overridenLinkConfig.iconName !== null
@@ -32,6 +32,20 @@ const iconName =
     : null;
 const iconPosition =
   overridenLinkConfig.iconPosition || linkConfig?.iconPosition || "left";
+
+  const { BASE_URL } = import.meta.env
+if (!to) {
+  throw new Error("Href must be provided")
+}
+let href = to
+if (BASE_URL !== "/") {
+  if (to === "/") {
+    href = BASE_URL
+  } else {
+    href = BASE_URL + to
+    href.replace(/\/\//, '/')
+  }
+}
 
 const isCurrent = href === Astro.url.href || href === Astro.url.pathname;
 // const isSubPath =

@@ -7,10 +7,12 @@ import remarkToc from "remark-toc";
 import { rehypeAccessibleEmojis } from "rehype-accessible-emojis";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
+import icon from "astro-icon";
 
 // https://astro.build/config
 export default defineConfig({
-  site: "https://v1.sujeet.pro",
+  site: "https://projects.sujeet.pro",
+  base: "/v1.sujeet.pro",
   experimental: {
     assets: true,
   },
@@ -37,5 +39,5 @@ export default defineConfig({
       rehypeAccessibleEmojis,
     ],
   },
-  integrations: [tailwind(), sitemap(), mdx()],
+  integrations: [tailwind(), sitemap(), mdx(), icon()],
 });

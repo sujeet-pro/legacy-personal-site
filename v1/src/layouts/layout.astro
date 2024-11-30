@@ -27,6 +27,11 @@ const {
   ...seoProps
 } = Astro.props as Props;
 const canonicalUrl = Astro.site?.origin + Astro.url.pathname;
+
+let assetPrefix = ""
+if (import.meta.env.BASE_URL !== "/") {
+  assetPrefix = import.meta.env.BASE_URL
+}
 ---
 
 <html lang="en-IN">
@@ -35,12 +40,12 @@ const canonicalUrl = Astro.site?.origin + Astro.url.pathname;
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
     {noIndex ? <meta name="robots" content="noindex" /> : null}
-    <PageIcons />
+    <PageIcons assetPrefix={assetPrefix} />
     <link rel="manifest" href="/assets/favicons/manifest.json" />
     <meta name="msapplication-TileImage" content="/ms-icon-144x144.png" />
     <meta name="msapplication-TileColor" content="#e4e7eb" />
     <meta name="theme-color" content="#e4e7eb" />
-    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="sitemap" href={`${assetPrefix}/sitemap-index.xml`} />
     <link rel="canonical" href={canonicalUrl} />
     <Seo {...seoProps} />
     <ThemeSetter />
