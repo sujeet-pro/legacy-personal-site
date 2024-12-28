@@ -6,10 +6,31 @@ import ReadingItem from '$components/reading-list-item.astro'
 
 const itemsRead = await getCollection('readingList')
 itemsRead.sort((a, b) => b.data.readingDate.getTime() - a.data.readingDate.getTime())
+
+const counts = itemsRead.reduce(
+  (acc, { data }) => {
+    acc[data.category] = (acc[data.category] || 0) + 1
+    return acc
+  },
+  {} as Record<string, number>
+)
+
+const tagEntries = Object.entries(counts)
+  .sort((a, b) => b[1] - a[1])
+  .map(([category, count]) => ({ category, count }))
 ---
 
 <Layout title='Reading list' description='List of all the blogs I have read'>
   <h1 class='text-4xl font-light text-center my-14'>Reading List</h1>
+  <ul class='flex flex-row flex-wrap gap-3 my-6'>
+    {
+      tagEntries.map(({ category, count }) => (
+        <li class=''>
+          {category} ({count})
+        </li>
+      ))
+    }
+  </ul>
   <ul class:list={['grid grid-cols-1 divide-y divide-dashed', CLS_COLOR_DIVIDER]}>
     {itemsRead.map((item) => <ReadingItem item={item} />)}
   </ul>
