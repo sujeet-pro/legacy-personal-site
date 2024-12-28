@@ -1,0 +1,20 @@
+---
+import type { CollectionEntry } from 'astro:content'
+import Link from './link.astro'
+import FormattedDate from './formatted-date.astro'
+import { COLOR_TEXT_MUTED } from '$configs/colors'
+
+type Props = {
+  item: CollectionEntry<'readingList'>
+}
+
+const { item } = Astro.props
+---
+
+<li class='flex flex-col gap-2 p-4'>
+  <Link href={item.data.url}>{item.data.title}</Link>
+  <span class:list={[COLOR_TEXT_MUTED, 'text-xs']}>
+    <FormattedDate date={item.data.readingDate} /> -
+    <span>{item.data.category}</span>
+  </span>
+</li>

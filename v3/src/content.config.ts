@@ -9,6 +9,16 @@ const tag = defineCollection({
   })
 })
 
+const readingList = defineCollection({
+  loader: file('./data/reading-list.json'),
+  schema: z.object({
+    title: z.string(),
+    url: z.string(),
+    readingDate: z.coerce.date(),
+    category: z.enum(['Blog', 'LinkedIn Post']) // Only allow specific list of strings
+  })
+})
+
 const blog = defineCollection({
   loader: glob({ pattern: '**/[^_]*.(md|mdx)', base: './data/blog' }),
   schema: ({ image }: SchemaContext) =>
@@ -48,5 +58,6 @@ const page = defineCollection({
 export const collections = {
   tag,
   blog,
-  page
+  page,
+  readingList
 }
