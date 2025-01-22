@@ -1,7 +1,6 @@
 ---
 import FormattedDate from '@/components/formatted-date.astro'
 import TableOfContents from '@/components/table-of-contents.astro'
-import { COLOR_TEXT_MUTED } from '@/configs/colors'
 import Layout from '@/layout/index.astro'
 import BlogList from '@/modules/blog/blog-list.astro'
 import Tag from '@/modules/tag/tag.astro'
@@ -36,7 +35,7 @@ const { Content, headings } = await render(post)
   <article class=''>
     <h1 class='text-4xl font-light'>{title}</h1>
 
-    <div class:list={['my-2 flex text-sm', COLOR_TEXT_MUTED]}>
+    <div class:list={['my-2 flex text-sm']}>
       <FormattedDate date={pubDate} />
       {
         lastUpdatedDate && pubDate.toISOString() !== lastUpdatedDate.toISOString() ? (
@@ -69,6 +68,6 @@ const { Content, headings } = await render(post)
 
   <nav class='mt-12'>
     <h2 class='text-lg italic'>Read Next</h2>
-    <BlogList blogs={[]} nextBlog={nextPost} prevBlog={prevPost} />
+    <BlogList blogs={[]} nextBlog={nextPost} prevBlog={prevPost} headingLevel='h3' />
   </nav>
 </Layout>

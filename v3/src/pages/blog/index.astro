@@ -13,5 +13,5 @@ const tagsWithCount = await getTagsWithCount({ countBlog: true, countReview: fal
 <Layout title="Sujeet's Blogs" description='List of all the published blogs'>
   <h1 class='text-4xl font-light text-center my-14'>{SITE_BLOG_TITLE}</h1>
   <TagListAccordion tagsWithCount={tagsWithCount} />
-  <BlogList blogs={posts} />
+  <BlogList blogs={posts} headingLevel='h2' />
 </Layout>

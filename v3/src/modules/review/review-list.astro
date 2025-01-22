@@ -7,12 +7,13 @@ type Props = {
   reviews: CollectionEntry<'review'>[]
   nextReview?: CollectionEntry<'review'> | null | undefined
   prevRreview?: CollectionEntry<'review'> | null | undefined
+  headingLevel: 'h2' | 'h3'
 }
-const { reviews, nextReview, prevRreview } = Astro.props
+const { reviews, nextReview, prevRreview, headingLevel } = Astro.props
 ---
 
 <ul class:list={['grid grid-cols-1 divide-y divide-dashed', CLS_COLOR_DIVIDER]}>
-  {reviews.map((review) => <ReviewListItem review={review} />)}
-  {nextReview ? <ReviewListItem review={nextReview} arrow='next' /> : null}
-  {prevRreview ? <ReviewListItem review={prevRreview} arrow='prev' /> : null}
+  {reviews.map((review) => <ReviewListItem {review} {headingLevel} />)}
+  {nextReview ? <ReviewListItem review={nextReview} {headingLevel} arrow='next' /> : null}
+  {prevRreview ? <ReviewListItem review={prevRreview} {headingLevel} arrow='prev' /> : null}
 </ul>

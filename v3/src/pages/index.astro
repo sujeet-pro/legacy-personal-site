@@ -21,6 +21,6 @@ const posts = await getBlogs({ onlyFeatured: true })
       <h2 class:list={[CLS_SECTION_HEADINGS]}>Writings</h2>
       <Link href='/blog'>Read all posts</Link>
     </header>
-    <BlogList blogs={posts} />
+    <BlogList headingLevel='h3' blogs={posts} />
   </section>
 </Layout>

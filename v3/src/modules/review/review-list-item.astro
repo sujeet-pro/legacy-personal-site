@@ -1,20 +1,20 @@
 ---
 import FormattedDate from '@/components/formatted-date.astro'
 import Link from '@/components/link.astro'
-import { COLOR_TEXT_MUTED } from '@/configs/colors'
 import type { CollectionEntry } from 'astro:content'
 
 type Props = {
   review: CollectionEntry<'review'>
   arrow?: 'next' | 'prev' | 'none' | undefined
+  headingLevel: 'h2' | 'h3'
 }
 
-const { review, arrow = 'none' } = Astro.props
+const { review, arrow = 'none', headingLevel: Hx } = Astro.props
 const { title, description, readingDate, isDraft } = review.data
 ---
 
 <li class='px-4 py-4 relative flex flex-col gap-y-1 hover:shadow'>
-  <h3 class='text-xl'>
+  <Hx class='text-xl'>
     <Link
       href={`/review/${review.id}`}
       class="after:absolute after:top-0 after:left-0 after:right-0 after:bottom-0 after:content-[' '] flex items-center"
@@ -22,14 +22,14 @@ const { title, description, readingDate, isDraft } = review.data
       {arrow === 'prev' ? <span class='mr-2'>←</span> : null}
       <span>{title}</span>
       {arrow === 'next' ? <span class='ml-2'>→</span> : null}
-      {isDraft ? <span class='inline-block ml-2 px-1 border opacity-50 text-xs'>Draft</span> : null}
+      {isDraft ? <span class='inline-block ml-2 px-1 border text-xs'>Draft</span> : null}
     </Link>
-  </h3>
+  </Hx>
   <p>
-    <span class:list={[COLOR_TEXT_MUTED, 'text-xs']}>Research Paper</span>
+    <span class:list={['text-xs']}>Research Paper</span>
     {
       readingDate ? (
-        <span class:list={[COLOR_TEXT_MUTED, 'text-xs']}>
+        <span class:list={['text-xs']}>
           <FormattedDate date={readingDate} />
         </span>
       ) : null

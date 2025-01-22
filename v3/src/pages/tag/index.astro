@@ -1,7 +1,7 @@
 ---
 import FormattedDate from '@/components/formatted-date.astro'
 import Link from '@/components/link.astro'
-import { CLS_COLOR_DIVIDER, COLOR_TEXT_MUTED } from '@/configs/colors'
+import { CLS_COLOR_DIVIDER } from '@/configs/colors'
 import { SITE_BLOG_TITLE, SITE_REVIEW_TITLE } from '@/configs/site.constants'
 import Layout from '@/layout/index.astro'
 import Tag from '@/modules/tag/tag.astro'
@@ -22,13 +22,13 @@ const tagsDetail = await getTagsWithCount({ countBlog: true, countReview: true }
             </h2>
             {blogs.length > 0 ? (
               <>
-                <h3 class:list={[COLOR_TEXT_MUTED, 'text-lg mb-2 text-center']}>{SITE_BLOG_TITLE}</h3>
+                <h3 class:list={['text-lg mb-2 text-center']}>{SITE_BLOG_TITLE}</h3>
                 <ul class='flex flex-col gap-y-2'>
                   {blogs.map((blog) => (
                     <li>
                       <Link href={`/blog/${blog.id}`} class='flex block truncate'>
                         <span class='flex-auto truncate'>{blog.data.title}</span>
-                        <span class:list={[COLOR_TEXT_MUTED, 'pl-2 sm:pl-4']}>
+                        <span class:list={['pl-2 sm:pl-4']}>
                           <FormattedDate date={blog.data.pubDate} />
                         </span>
                       </Link>
@@ -39,14 +39,14 @@ const tagsDetail = await getTagsWithCount({ countBlog: true, countReview: true }
             ) : null}
             {reviews.length > 0 ? (
               <>
-                <h3 class:list={[COLOR_TEXT_MUTED, 'text-lg mb-2 text-center']}>{SITE_REVIEW_TITLE}</h3>
+                <h3 class:list={['text-lg mb-2 text-center']}>{SITE_REVIEW_TITLE}</h3>
                 <ul class='flex flex-col gap-y-2'>
                   {reviews.map((review) => (
                     <li>
                       <Link href={`/blog/${review.id}`} class='flex block truncate'>
                         <span class='flex-auto truncate'>{review.data.title}</span>
                         {review.data.readingDate ? (
-                          <span class:list={[COLOR_TEXT_MUTED, 'pl-2 sm:pl-4']}>
+                          <span class:list={['pl-2 sm:pl-4']}>
                             <FormattedDate date={review.data.readingDate} />
                           </span>
                         ) : null}

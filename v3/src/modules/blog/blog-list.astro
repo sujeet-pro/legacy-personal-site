@@ -7,12 +7,13 @@ type Props = {
   blogs: CollectionEntry<'blog'>[]
   nextBlog?: CollectionEntry<'blog'> | null | undefined
   prevBlog?: CollectionEntry<'blog'> | null | undefined
+  headingLevel: 'h2' | 'h3'
 }
-const { blogs, nextBlog, prevBlog } = Astro.props
+const { blogs, nextBlog, prevBlog, headingLevel } = Astro.props
 ---
 
 <ul class:list={['grid grid-cols-1 divide-y divide-dashed', CLS_COLOR_DIVIDER]}>
-  {blogs.map((blog) => <BlogListItem blog={blog} />)}
-  {nextBlog ? <BlogListItem blog={nextBlog} arrow='next' /> : null}
-  {prevBlog ? <BlogListItem blog={prevBlog} arrow='prev' /> : null}
+  {blogs.map((blog) => <BlogListItem blog={blog} {headingLevel} />)}
+  {nextBlog ? <BlogListItem blog={nextBlog} arrow='next' {headingLevel} /> : null}
+  {prevBlog ? <BlogListItem blog={prevBlog} arrow='prev' {headingLevel} /> : null}
 </ul>

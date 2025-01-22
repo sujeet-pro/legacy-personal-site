@@ -1,5 +1,4 @@
 ---
-import { COLOR_TEXT_MUTED } from '@/configs/colors'
 import { SITE_BLOG_TITLE, SITE_REVIEW_TITLE } from '@/configs/site.constants'
 import Layout from '@/layout/index.astro'
 import BlogList from '@/modules/blog/blog-list.astro'
@@ -32,17 +31,17 @@ const { name } = tag.data
   {
     blogs.length ? (
       <h2 class='text-xl my-7'>
-        {SITE_BLOG_TITLE} <span class:list={[COLOR_TEXT_MUTED]}>({blogs.length})</span>
+        {SITE_BLOG_TITLE} <span>({blogs.length})</span>
       </h2>
     ) : null
   }
-  <BlogList blogs={blogs} />
+  <BlogList blogs={blogs} headingLevel='h3' />
   {
     reviews.length ? (
       <h2 class='text-xl my-7'>
-        {SITE_REVIEW_TITLE} <span class:list={[COLOR_TEXT_MUTED]}>({reviews.length})</span>
+        {SITE_REVIEW_TITLE} <span>({reviews.length})</span>
       </h2>
     ) : null
   }
-  <ReviewList reviews={reviews} />
+  <ReviewList reviews={reviews} headingLevel='h3' />
 </Layout>
