@@ -6,7 +6,7 @@ featuredRank: 0
 image: ./pub-sub.svg
 imageCredit: Pub-Sub data flow
 pubDate: 2023-03-01
-lastUpdatedDate: 2023-03-01
+lastUpdatedDate: 2024-01-22
 tags:
   - javascript
   - programming-patterns
@@ -61,4 +61,24 @@ pubSub.notify('message3')
 
 // In future, on certain condition: all the subscribers will unsubscribe
 unsubscribe()
+```
+
+## Comparison DOM CustomEvent
+
+We can achive similar functionality using `CustomEvent` dispatched over any DOM Node.
+
+The primary bottleneck for this is the dom dependency which makes the code non-usable outside the main thread on the browser environment (not even on worker).
+
+As compared to PubSub, which has extra 16 lines of code for creating the abstraction,
+makes your code work on all the runtime.
+
+```js
+// Publisher -> Similar to pubSub.notify
+const myEvent = new CustomEvent('myCustomEvent', { detail: { message: 'Some data' } })
+document.dispatchEvent(myEvent)
+
+// Consumer
+document.addEventListener('myCustomEvent', (event) => {
+  console.log(event.detail.message)
+})
 ```

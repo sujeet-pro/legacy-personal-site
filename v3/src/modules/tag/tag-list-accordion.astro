@@ -1,0 +1,22 @@
+---
+import Accordion from '@/components/accordion.astro'
+import Link from '@/components/link.astro'
+import { COLOR_BG_MUTED } from '@/configs/colors'
+import type { TagDetails } from '@/utils/tag-content.utils'
+import Tag from './tag.astro'
+type Props = {
+  tagsWithCount: TagDetails[]
+}
+const { tagsWithCount } = Astro.props
+---
+
+<section class:list={[COLOR_BG_MUTED, 'my-4']}>
+  <Accordion title='Tags'>
+    <div class='flex flex-wrap gap-x-5 gap-y-1 text-sm'>
+      {tagsWithCount.map(({ tag, count }) => <Tag tag={tag} count={count} />)}
+    </div>
+    <p class='mt-4 text-right'>
+      <Link href='/tag'>View all tags</Link>
+    </p>
+  </Accordion>
+</section>

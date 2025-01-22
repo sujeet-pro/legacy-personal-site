@@ -1,0 +1,18 @@
+---
+import { CLS_COLOR_DIVIDER } from '@/configs/colors'
+import type { CollectionEntry } from 'astro:content'
+import ReviewListItem from './review-list-item.astro'
+
+type Props = {
+  reviews: CollectionEntry<'review'>[]
+  nextReview?: CollectionEntry<'review'> | null | undefined
+  prevRreview?: CollectionEntry<'review'> | null | undefined
+}
+const { reviews, nextReview, prevRreview } = Astro.props
+---
+
+<ul class:list={['grid grid-cols-1 divide-y divide-dashed', CLS_COLOR_DIVIDER]}>
+  {reviews.map((review) => <ReviewListItem review={review} />)}
+  {nextReview ? <ReviewListItem review={nextReview} arrow='next' /> : null}
+  {prevRreview ? <ReviewListItem review={prevRreview} arrow='prev' /> : null}
+</ul>

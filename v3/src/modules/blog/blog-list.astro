@@ -1,0 +1,18 @@
+---
+import { CLS_COLOR_DIVIDER } from '@/configs/colors'
+import type { CollectionEntry } from 'astro:content'
+import BlogListItem from './blog-list-item.astro'
+
+type Props = {
+  blogs: CollectionEntry<'blog'>[]
+  nextBlog?: CollectionEntry<'blog'> | null | undefined
+  prevBlog?: CollectionEntry<'blog'> | null | undefined
+}
+const { blogs, nextBlog, prevBlog } = Astro.props
+---
+
+<ul class:list={['grid grid-cols-1 divide-y divide-dashed', CLS_COLOR_DIVIDER]}>
+  {blogs.map((blog) => <BlogListItem blog={blog} />)}
+  {nextBlog ? <BlogListItem blog={nextBlog} arrow='next' /> : null}
+  {prevBlog ? <BlogListItem blog={prevBlog} arrow='prev' /> : null}
+</ul>

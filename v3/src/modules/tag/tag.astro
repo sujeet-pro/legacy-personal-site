@@ -1,0 +1,16 @@
+---
+import Link from '@/components/link.astro'
+import type { CollectionEntry } from 'astro:content'
+
+type Props = {
+  tag: CollectionEntry<'tag'>
+  count?: number | undefined
+}
+
+const { tag, count } = Astro.props
+---
+
+<Link href={`/tag/${tag.id}`}>
+  #{tag.data.name}
+  {count && ` (${count})`}
+</Link>

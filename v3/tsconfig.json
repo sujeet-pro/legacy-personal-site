@@ -3,11 +3,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "$assets/*": ["src/assets/*"],
-      "$components/*": ["src/components/*"],
-      "$configs/*": ["src/configs/*"],
-      "$icons/*": ["src/icons/*"],
-      "$layout": ["src/layout/index.astro"]
+      "@/*": ["src/*"]
     },
     "verbatimModuleSyntax": true,
     "strictNullChecks": true,

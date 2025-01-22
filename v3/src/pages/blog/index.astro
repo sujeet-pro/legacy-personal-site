@@ -1,12 +1,17 @@
 ---
-import Layout from '$layout'
-import PostList from '$components/post-list.astro'
-import { getBlogPostContent } from 'src/utils/content.utils'
+import { SITE_BLOG_TITLE } from '@/configs/site.constants'
+import Layout from '@/layout/index.astro'
+import BlogList from '@/modules/blog/blog-list.astro'
+import TagListAccordion from '@/modules/tag/tag-list-accordion.astro'
+import { getBlogs } from '@/utils/blog-content.utils'
+import { getTagsWithCount } from '@/utils/tag-content.utils.ts'
 
-const posts = await getBlogPostContent()
+const posts = await getBlogs()
+const tagsWithCount = await getTagsWithCount({ countBlog: true, countReview: false })
 ---
 
 <Layout title="Sujeet's Blogs" description='List of all the published blogs'>
-  <h1 class='text-4xl font-light text-center my-14'>Blogs</h1>
-  <PostList posts={posts} />
+  <h1 class='text-4xl font-light text-center my-14'>{SITE_BLOG_TITLE}</h1>
+  <TagListAccordion tagsWithCount={tagsWithCount} />
+  <BlogList blogs={posts} />
 </Layout>

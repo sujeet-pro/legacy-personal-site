@@ -1,13 +1,14 @@
 ---
-import ChevronUp from '$icons/chevron-up.astro'
+import ChevronUp from '@/icons/chevron-up.astro'
 
 type Props = {
   title: string
+  open?: boolean
 }
-const { title } = Astro.props
+const { title, open = true } = Astro.props
 ---
 
-<details open class='p-4 bg-blend-lighten'>
+<details open={open} class='p-4 bg-blend-lighten'>
   <summary class='cursor-pointer list-none flex items-center justify-between'>
     <span class='font-semibold'>{title}</span>
     <ChevronUp class='accordion-icon' />

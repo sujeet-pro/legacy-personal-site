@@ -1,21 +1,22 @@
 ---
+import FormattedDate from '@/components/formatted-date.astro'
+import Link from '@/components/link.astro'
+import { COLOR_TEXT_MUTED } from '@/configs/colors'
 import type { CollectionEntry } from 'astro:content'
-import Link from './link.astro'
-import FormattedDate from './formatted-date.astro'
-import { COLOR_TEXT_MUTED } from '$configs/colors'
+
 type Props = {
-  post: CollectionEntry<'blog'>
+  blog: CollectionEntry<'blog'>
   arrow?: 'next' | 'prev' | 'none' | undefined
 }
 
-const { post, arrow = 'none' } = Astro.props
-const { title, description, pubDate, isDraft } = post.data
+const { blog, arrow = 'none' } = Astro.props
+const { title, description, pubDate, isDraft } = blog.data
 ---
 
 <li class='px-4 py-4 relative flex flex-col gap-y-1 hover:shadow'>
   <h3 class='text-xl'>
     <Link
-      href={`/blog/${post.id}`}
+      href={`/blog/${blog.id}`}
       class="after:absolute after:top-0 after:left-0 after:right-0 after:bottom-0 after:content-[' '] flex items-center"
     >
       {arrow === 'prev' ? <span class='mr-2'>←</span> : null}

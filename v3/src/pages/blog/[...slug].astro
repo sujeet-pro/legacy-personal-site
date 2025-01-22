@@ -1,16 +1,15 @@
 ---
-import { type CollectionEntry, render } from 'astro:content'
+import FormattedDate from '@/components/formatted-date.astro'
+import TableOfContents from '@/components/table-of-contents.astro'
+import { COLOR_TEXT_MUTED } from '@/configs/colors'
+import Layout from '@/layout/index.astro'
+import BlogList from '@/modules/blog/blog-list.astro'
+import Tag from '@/modules/tag/tag.astro'
+import { getBlogs } from '@/utils/blog-content.utils'
 import { Image } from 'astro:assets'
-import FormattedDate from '$components/formatted-date.astro'
-import Layout from '$layout'
-import { getEntries } from 'astro:content'
-import Tag from '$components/tag.astro'
-import TableOfContents from '$components/table-of-contents.astro'
-import { getBlogPostContent } from 'src/utils/content.utils'
-import { COLOR_TEXT_MUTED } from '$configs/colors'
-import PostList from '$components/post-list.astro'
+import { type CollectionEntry, getEntries, render } from 'astro:content'
 export async function getStaticPaths() {
-  const posts = await getBlogPostContent()
+  const posts = await getBlogs()
   const postCount = posts.length
   return posts.map((post, index) => ({
     params: { slug: post.id },
@@ -51,7 +50,7 @@ const { Content, headings } = await render(post)
     {
       image ? (
         <figure class='my-8'>
-          <Image src={image} alt={title} />
+          <Image src={image} alt={title} class='w-full' />
           {imageCredit ? <figcaption class='text-center text-xs italic' set:html={imageCredit} /> : null}
         </figure>
       ) : null
@@ -70,6 +69,6 @@ const { Content, headings } = await render(post)
 
   <nav class='mt-12'>
     <h2 class='text-lg italic'>Read Next</h2>
-    <PostList posts={[]} nextPost={nextPost} prevPost={prevPost} />
+    <BlogList blogs={[]} nextBlog={nextPost} prevBlog={prevPost} />
   </nav>
 </Layout>

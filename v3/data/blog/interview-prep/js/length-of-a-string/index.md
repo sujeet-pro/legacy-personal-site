@@ -117,7 +117,7 @@ not useful.
 
 ```typescript
 const segmenterEn = new Intl.Segmenter('en')
-;[...segmenterEn.segment('👩‍👩‍👦‍👦🌦️🧘🏻‍♂️')].forEach((seg) => {
+[...segmenterEn.segment('👩‍👩‍👦‍👦🌦️🧘🏻‍♂️')].forEach((seg) => {
   console.log(`'${seg.segment}' starting at index ${seg.index}`)
 })
 // '👩‍👩‍👦‍👦' starting at index 0

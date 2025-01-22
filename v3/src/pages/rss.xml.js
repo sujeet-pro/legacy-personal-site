@@ -1,5 +1,5 @@
+import { SITE_DESCRIPTION, SITE_TITLE } from '@/configs/site.constants'
 import rss from '@astrojs/rss'
-import { SITE_DESCRIPTION, SITE_TITLE } from '$configs/site.constants'
 import { getCollection } from 'astro:content'
 
 // StyleSheeet for RSS Feed is from: https://github.com/genmon/aboutfeeds/blob/main/tools/pretty-feed-v3.xsl

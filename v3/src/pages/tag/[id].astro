@@ -1,24 +1,48 @@
 ---
-import { getCollection } from 'astro:content'
-import { getBlogPostContent } from 'src/utils/content.utils'
-import Layout from '$layout'
-import PostList from '$components/post-list.astro'
+import { COLOR_TEXT_MUTED } from '@/configs/colors'
+import { SITE_BLOG_TITLE, SITE_REVIEW_TITLE } from '@/configs/site.constants'
+import Layout from '@/layout/index.astro'
+import BlogList from '@/modules/blog/blog-list.astro'
+import ReviewList from '@/modules/review/review-list.astro'
+import TagListAccordion from '@/modules/tag/tag-list-accordion.astro'
+import { getTagsWithCount } from '@/utils/tag-content.utils'
+
 export async function getStaticPaths() {
-  const posts = await getCollection('tag')
-  return posts.map((tag) => ({
+  const tagsDetails = await getTagsWithCount({ countBlog: true, countReview: true })
+  return tagsDetails.map(({ tag, count, blogs, reviews }) => ({
     params: { id: tag.id },
     props: {
-      tag
+      tag,
+      count,
+      tagsDetails,
+      blogs,
+      reviews
     }
   }))
 }
 
-const { tag } = Astro.props
-const posts = await getBlogPostContent({ onlyTag: tag.id })
+const { tag, count, blogs, reviews, tagsDetails } = Astro.props
+
 const { name } = tag.data
 ---
 
 <Layout title={name} description={`Post related to ${name}`}>
-  <h1 class='text-4xl font-light text-center my-14'># {name}</h1>
-  <PostList posts={posts} />
+  <h1 class='text-4xl font-light text-center my-14'># {name} ({count})</h1>
+  <TagListAccordion tagsWithCount={tagsDetails} />
+  {
+    blogs.length ? (
+      <h2 class='text-xl my-7'>
+        {SITE_BLOG_TITLE} <span class:list={[COLOR_TEXT_MUTED]}>({blogs.length})</span>
+      </h2>
+    ) : null
+  }
+  <BlogList blogs={blogs} />
+  {
+    reviews.length ? (
+      <h2 class='text-xl my-7'>
+        {SITE_REVIEW_TITLE} <span class:list={[COLOR_TEXT_MUTED]}>({reviews.length})</span>
+      </h2>
+    ) : null
+  }
+  <ReviewList reviews={reviews} />
 </Layout>

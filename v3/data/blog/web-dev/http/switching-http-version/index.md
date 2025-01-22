@@ -5,6 +5,8 @@ isDraft: false
 featuredRank: 2
 pubDate: 2023-09-01
 lastUpdatedDate: 2023-09-01
+image: null
+imageCredit: null
 tags:
   - performance
   - performance-optimization

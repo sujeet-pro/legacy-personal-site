@@ -1,20 +1,64 @@
 ---
-import { getCollection } from 'astro:content'
-import Layout from '$layout'
-import Tag from '$components/tag.astro'
+import FormattedDate from '@/components/formatted-date.astro'
+import Link from '@/components/link.astro'
+import { CLS_COLOR_DIVIDER, COLOR_TEXT_MUTED } from '@/configs/colors'
+import { SITE_BLOG_TITLE, SITE_REVIEW_TITLE } from '@/configs/site.constants'
+import Layout from '@/layout/index.astro'
+import Tag from '@/modules/tag/tag.astro'
+import { getTagsWithCount } from '@/utils/tag-content.utils.ts'
 
-const tags = await getCollection('tag')
+const tagsDetail = await getTagsWithCount({ countBlog: true, countReview: true })
 ---
 
 <Layout title='Tags' description='Tags'>
-  <h1>Tags</h1>
-  <ul>
+  <h1 class='text-4xl font-light text-center my-14'>Tags</h1>
+  <ul class:list={['grid grid-cols-1 divide-y divide-dashed', CLS_COLOR_DIVIDER]}>
     {
-      tags.map((tag) => (
-        <li>
-          <Tag tag={tag} />
-        </li>
-      ))
+      tagsDetail.map(({ tag, count, blogs, reviews }) =>
+        count > 0 ? (
+          <li class='px-4 py-4'>
+            <h2 class='text-xl mb-4'>
+              <Tag tag={tag} count={count} />
+            </h2>
+            {blogs.length > 0 ? (
+              <>
+                <h3 class:list={[COLOR_TEXT_MUTED, 'text-lg mb-2 text-center']}>{SITE_BLOG_TITLE}</h3>
+                <ul class='flex flex-col gap-y-2'>
+                  {blogs.map((blog) => (
+                    <li>
+                      <Link href={`/blog/${blog.id}`} class='flex block truncate'>
+                        <span class='flex-auto truncate'>{blog.data.title}</span>
+                        <span class:list={[COLOR_TEXT_MUTED, 'pl-2 sm:pl-4']}>
+                          <FormattedDate date={blog.data.pubDate} />
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : null}
+            {reviews.length > 0 ? (
+              <>
+                <h3 class:list={[COLOR_TEXT_MUTED, 'text-lg mb-2 text-center']}>{SITE_REVIEW_TITLE}</h3>
+                <ul class='flex flex-col gap-y-2'>
+                  {reviews.map((review) => (
+                    <li>
+                      <Link href={`/blog/${review.id}`} class='flex block truncate'>
+                        <span class='flex-auto truncate'>{review.data.title}</span>
+                        {review.data.readingDate ? (
+                          <span class:list={[COLOR_TEXT_MUTED, 'pl-2 sm:pl-4']}>
+                            <FormattedDate date={review.data.readingDate} />
+                          </span>
+                        ) : null}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : null}
+          </li>
+        ) : null
+      )
     }
   </ul></Layout
 >

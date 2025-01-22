@@ -1,13 +1,13 @@
 ---
 title: Better Error Handling in JavaScript / Typescript
 description: Making errors as first-class citizens in your async function
-  response, inspired by Go.
+  response, inspired by Go. JS Now Try Statement (In Proposal Stage)
 isDraft: false
 featuredRank: 0
 image: ./cover-better-error-handling-in-js.jpg
 imageCredit: Photo by <a href="https://unsplash.com/@brett_jordan?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Brett Jordan</a> on <a href="https://unsplash.com/photos/brown-wooden-blocks-on-white-surface-XWar9MbNGUY?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a>
 pubDate: 2023-03-11
-lastUpdatedDate: 2023-03-13
+lastUpdatedDate: 2024-01-2
 tags:
   - javascript
   - programming-patterns
@@ -15,6 +15,15 @@ tags:
   - performance-optimization
   - web-performance
 ---
+
+## Update: Safe Assignment Operator
+
+- [Try Statements Proposal](https://github.com/arthurfiorette/proposal-try-statements) (originally "Safe Assignment Operator") is similar to below.
+- In the past around 2019, similar proposal titled ["One Liner Try-Catch"](https://es.discourse.group/t/try-catch-oneliner/107) was floated.
+
+```js
+const [ok, error, value] = try await fetch("https://sujeet.pro/some-endpoint")
+```
 
 ## The Inspiration
 

@@ -1,7 +1,7 @@
 ---
 title: Microfrontends And Microsites
 description: Microfrontends And Microsites are Architectural patterns for building front-end application
-isDraft: false
+isDraft: true
 featuredRank: 0
 image: ./arch-representation.jpg
 imageCredit: Photo by <a href="https://unsplash.com/@sumitkumar8?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">sumit kumar</a> on <a href="https://unsplash.com/photos/a-very-old-building-with-a-lot-of-windows-1SeKKdCLPXg?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a>

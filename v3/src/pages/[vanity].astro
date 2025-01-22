@@ -1,5 +1,5 @@
 ---
-import { REDIRECTION_MAP } from '$configs/redirections'
+import { REDIRECTION_MAP } from '@/configs/redirections'
 
 export async function getStaticPaths() {
   return Object.entries(REDIRECTION_MAP).map(([source, target]) => {
