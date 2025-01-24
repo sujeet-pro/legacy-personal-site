@@ -1,6 +1,6 @@
 ---
-title: Pub Sub
-description: Publisher Subscriber Pattern for decoupling
+title: Pub Sub Pattern Loose Decoupling
+description: This pattern allows for better modularity and scalability by decoupling the event producers from the event consumers.
 isDraft: false
 featuredRank: 0
 image: ./pub-sub.svg
@@ -10,9 +10,6 @@ lastUpdatedDate: 2024-01-22
 tags:
   - javascript
   - programming-patterns
-  - performance
-  - performance-optimization
-  - web-performance
 ---
 
 The Publish-Subscribe (Pub/Sub) pattern is a software design pattern that facilitates communication between different parts of your application without tight coupling. It establishes a central communication hub, often called a "message broker" or "event bus," that enables components to:

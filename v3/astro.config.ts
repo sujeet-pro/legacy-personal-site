@@ -23,6 +23,9 @@ export default defineConfig({
   scopedStyleStrategy: 'where',
   output: 'static',
   markdown: {
+    shikiConfig: {
+      theme: 'dracula'
+    }
     // shikiConfig: {
     //   themes: {
     //     light: 'github-light',
