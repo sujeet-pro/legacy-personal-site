@@ -1,0 +1,36 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@import './code-block.css';
+
+body {
+  font-family: 'Open Sans Variable', sans-serif;
+  scrollbar-gutter: stable;
+  overflow: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+p img {
+  max-width: 100%;
+  /* width: 100%; */
+  height: auto;
+  margin: 0 auto;
+}
+
+.bg-img-light {
+  background-color: rgb(245, 245, 245);
+}
+:target {
+  scroll-margin-block: 5ex;
+}
+svg {
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.yt-embed {
+  max-width: 100%;
+  width: 100%;
+}

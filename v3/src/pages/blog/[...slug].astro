@@ -1,5 +1,6 @@
 ---
 import FormattedDate from '@/components/formatted-date.astro'
+import Markdown from '@/components/markdown.astro'
 import TableOfContents from '@/components/table-of-contents.astro'
 import Layout from '@/layout/index.astro'
 import BlogList from '@/modules/blog/blog-list.astro'
@@ -55,9 +56,9 @@ const { Content, headings } = await render(post)
       ) : null
     }
     {headings.length ? <TableOfContents headings={headings} /> : null}
-    <div class='prose dark:prose-invert max-w-none'>
+    <Markdown elem='div'>
       <Content />
-    </div>
+    </Markdown>
   </article>
 
   <hr class='my-8' />

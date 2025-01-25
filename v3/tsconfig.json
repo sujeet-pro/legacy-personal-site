@@ -10,5 +10,6 @@
     "allowJs": true
   },
   "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist"]
+  "exclude": ["dist"],
+  "files": ["astro.config.ts", "tailwind.config.ts"]
 }
