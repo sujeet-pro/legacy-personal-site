@@ -77,7 +77,6 @@ async function retryAsync<T>(fn: AsyncFunction<T>, retries: number, delay: numbe
 
 ### Strategy 3: Retry with exponential Wait
 
-
 ```ts
 function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -86,7 +85,7 @@ export async function exponentialBackoffRetryRecursive<T>(
   asyncFunction: () => Promise<T>,
   retries: number,
   delay: number,
-  attempt: number = 0,
+  attempt: number = 0
 ): Promise<T> {
   try {
     return await asyncFunction()
@@ -95,17 +94,12 @@ export async function exponentialBackoffRetryRecursive<T>(
       throw error
     }
     await wait(delay * Math.pow(2, attempt))
-    return exponentialBackoffRetryRecursive(
-      asyncFunction,
-      retries,
-      delay,
-      attempt + 1,
-    )
+    return exponentialBackoffRetryRecursive(asyncFunction, retries, delay, attempt + 1)
   }
 }
 ```
 
-### Final Code: Abortable Retry with Expontial Back-off 
+### Final Code: Abortable Retry with Expontial Back-off
 
 The Functions should be abortable in production code.
 
@@ -115,7 +109,7 @@ export async function exponentialBackoffRetryRecursive<T>(
   retries: number,
   delay: number,
   attempt: number = 0,
-  signal?: AbortSignal,
+  signal?: AbortSignal
 ): Promise<T> {
   if (signal?.aborted) {
     throw new Error('Operation aborted')
@@ -128,13 +122,7 @@ export async function exponentialBackoffRetryRecursive<T>(
       throw error
     }
     await wait(delay * Math.pow(2, attempt), signal)
-    return exponentialBackoffRetryRecursive(
-      asyncFunction,
-      retries,
-      delay,
-      attempt + 1,
-      signal,
-    )
+    return exponentialBackoffRetryRecursive(asyncFunction, retries, delay, attempt + 1, signal)
   }
 }
 
@@ -153,5 +141,6 @@ function wait(ms: number, signal?: AbortSignal): Promise<void> {
 ```
 
 ## References
+
 - [Code Samples With Tests](https://github.com/sujeet-pro/code-samples/tree/main/patterns/exponential-backoff)
 - [Wikipedia Exponential backoff](https://en.wikipedia.org/wiki/Exponential_backoff)
