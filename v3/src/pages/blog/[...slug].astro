@@ -27,7 +27,7 @@ type Props = {
 }
 
 const { post, prevPost, nextPost } = Astro.props
-const { title, description, pubDate, lastUpdatedDate, image, imageCredit } = post.data
+const { title, description, publishedOn, lastUpdatedOn, image, imageCredit } = post.data
 const tags = await getEntries(post.data.tags)
 const { Content, headings } = await render(post)
 ---
@@ -37,11 +37,11 @@ const { Content, headings } = await render(post)
     <h1 class='text-4xl font-light'>{title}</h1>
 
     <div class:list={['my-2 flex text-sm']}>
-      <FormattedDate date={pubDate} />
+      {publishedOn ? <FormattedDate date={publishedOn} /> : null}
       {
-        lastUpdatedDate && pubDate.toISOString() !== lastUpdatedDate.toISOString() ? (
+        lastUpdatedOn && publishedOn && publishedOn.toISOString() !== lastUpdatedOn.toISOString() ? (
           <span class='ml-4'>
-            Last updated: <FormattedDate date={lastUpdatedDate} />
+            Last updated: <FormattedDate date={lastUpdatedOn} />
           </span>
         ) : null
       }
@@ -64,7 +64,7 @@ const { Content, headings } = await render(post)
   <hr class='my-8' />
 
   <div class='flex flex-wrap gap-x-5 gap-y-1 text-sm'>
-    {tags.map((tag) => <Tag tag={tag} />)}
+    {tags.map((tag) => <Tag tag={tag} type='link' />)}
   </div>
 
   <nav class='mt-12'>

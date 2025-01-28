@@ -250,6 +250,10 @@
     "name": "Distributed Systems",
     "isFeatured": false
   },
+  "p2p": {
+    "name": "Peer to Peer",
+    "isFeatured": false
+  },
 
   // Performance
   "performance": {
@@ -258,6 +262,28 @@
   },
   "web-performance": {
     "name": "Web Performance",
+    "isFeatured": false
+  },
+
+  // Industry
+  "fin-tech": {
+    "name": "Fin-tech",
+    "isFeatured": false
+  },
+  "ad-tech": {
+    "name": "Ad-tech",
+    "isFeatured": false
+  },
+  "health-tech": {
+    "name": "Health-tech",
+    "isFeatured": false
+  },
+  "ed-tech": {
+    "name": "Ed-tech",
+    "isFeatured": false
+  },
+  "e-commerce": {
+    "name": "E-commerce",
     "isFeatured": false
   }
 }

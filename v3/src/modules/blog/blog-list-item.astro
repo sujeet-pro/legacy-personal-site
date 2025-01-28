@@ -10,10 +10,19 @@ type Props = {
 }
 
 const { blog, arrow = 'none', headingLevel: Hx } = Astro.props
-const { title, description, pubDate, isDraft } = blog.data
+const { title, description, publishedOn } = blog.data
+const tagsClassNames = blog.data.tags.map((tagRef) => `tag-${tagRef.id}`)
+const categoryClassNames = `category-${blog.data.category.id}`
 ---
 
-<li class='px-4 py-4 relative flex flex-col gap-y-1 hover:shadow'>
+<li
+  class:list={[
+    'px-4 py-4 relative flex flex-col gap-y-1 hover:shadow',
+    ...tagsClassNames,
+    categoryClassNames,
+    'blog-item'
+  ]}
+>
   <Hx class='text-xl'>
     <Link
       href={`/blog/${blog.id}`}
@@ -22,9 +31,15 @@ const { title, description, pubDate, isDraft } = blog.data
       {arrow === 'prev' ? <span class='mr-2'>←</span> : null}
       <span>{title}</span>
       {arrow === 'next' ? <span class='ml-2'>→</span> : null}
-      {isDraft ? <span class='inline-block ml-2 px-1 border text-xs'>Draft</span> : null}
+      {!publishedOn ? <span class='inline-block ml-2 px-1 border text-xs'>Draft</span> : null}
     </Link>
   </Hx>
-  <span class:list={['text-xs']}><FormattedDate date={pubDate} /></span>
+  {
+    publishedOn ? (
+      <span class:list={['text-xs']}>
+        <FormattedDate date={publishedOn} />
+      </span>
+    ) : null
+  }
   <p>{description}</p>
 </li>

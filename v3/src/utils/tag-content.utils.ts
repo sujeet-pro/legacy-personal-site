@@ -9,7 +9,6 @@ export type TagDetails = {
 
 export type TagWithCountOptions = {
   countBlog: boolean
-  countReview: boolean
 }
 
 export async function getTagsWithCount(option: TagWithCountOptions) {

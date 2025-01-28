@@ -10,5 +10,6 @@
   "files.associations": {
     "*.css": "tailwindcss"
   },
-  "astro.content-intellisense": true
+  "astro.content-intellisense": true,
+  "cSpell.words": ["fontsource", "wght"]
 }

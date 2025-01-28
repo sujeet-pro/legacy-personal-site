@@ -19,12 +19,12 @@
     "name": "How It Works",
     "isFeatured": true
   },
-  "misc": {
-    "name": "Miscellaneous",
-    "isFeatured": false
-  },
   "reviews": {
     "name": "Review",
+    "isFeatured": false
+  },
+  "misc": {
+    "name": "Miscellaneous",
     "isFeatured": false
   }
 }

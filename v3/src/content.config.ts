@@ -33,14 +33,14 @@ const blog = defineCollection({
     z.object({
       title: z.string(),
       description: z.string(),
-      pubDate: z.coerce.date(),
-      lastUpdatedDate: z.coerce.date(),
-      isDraft: z.boolean(),
+      publishedOn: z.coerce.date().nullable(),
+      lastUpdatedOn: z.coerce.date(),
       featuredRank: z.number(),
-      tags: z.array(reference('tag')),
-      category: reference('category'),
       image: image().nullable(), // z.string().optional(),
-      imageCredit: z.string().nullable()
+      imageCredit: z.string().nullable(),
+      articleLink: z.string().url().nullable(),
+      category: reference('category'),
+      tags: z.array(reference('tag'))
     })
 })
 
