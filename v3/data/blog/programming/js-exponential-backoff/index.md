@@ -1,16 +1,17 @@
 ---
 title: Exponential Backoff Retry Strategy
 description: It is a technique where an application progressively increases the waiting time between retry attempts after a failed operation
-isDraft: false
-featuredRank: 0
+publishedOn: 2025-01-23
+lastUpdatedOn: 2025-01-25
+featuredRank: -1
 image: null
 imageCredit: null
-pubDate: 2025-01-23
-lastUpdatedDate: 2025-01-25
+articleLink: null
 category: programming
 tags:
-  - javascript
-  - programming-patterns
+  - js
+  - ts
+  - design-patterns
 ---
 
 ## TL;DR

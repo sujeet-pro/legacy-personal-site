@@ -4,17 +4,16 @@ description: >
   What you see is not always what you get!.
   The length of "👩‍👩‍👦‍👦🌦️🧘🏻‍♂️" is  21.
   Let us explore why is it 21 and how to get 3.
-isDraft: false
+publishedOn: 2023-03-20
+lastUpdatedOn: 2023-03-20
 featuredRank: 3
 image: ./cover-length-of-a-string.jpg
 imageCredit: Photo by <a href="https://unsplash.com/@rikku72?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Maria Cappelli</a> on <a href="https://unsplash.com/photos/assorted-color-and-shape-plastic-toy-fXjG59gqZxo?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a>
-pubDate: 2023-03-20
-lastUpdatedDate: 2023-03-20
+articleLink: null
 category: programming
 tags:
-  - interview-questions
-  - dsa
-  - javascript
+  - js
+  - ts
 ---
 
 ## TL;DR

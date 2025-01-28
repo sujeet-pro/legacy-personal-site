@@ -15,8 +15,8 @@
     "name": "Programming",
     "isFeatured": true
   },
-  "how-it-works": {
-    "name": "How It Works",
+  "internals": {
+    "name": "Internals",
     "isFeatured": true
   },
   "reviews": {

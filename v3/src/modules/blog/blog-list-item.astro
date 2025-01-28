@@ -5,7 +5,7 @@ import type { CollectionEntry } from 'astro:content'
 
 type Props = {
   blog: CollectionEntry<'blog'>
-  arrow?: 'next' | 'prev' | 'none' | undefined
+  arrow?: 'to-left' | 'to-right' | 'none' | undefined
   headingLevel: 'h2' | 'h3'
 }
 
@@ -28,9 +28,9 @@ const categoryClassNames = `category-${blog.data.category.id}`
       href={`/blog/${blog.id}`}
       class="after:absolute after:top-0 after:left-0 after:right-0 after:bottom-0 after:content-[' '] flex items-center"
     >
-      {arrow === 'prev' ? <span class='mr-2'>←</span> : null}
+      {arrow === 'to-left' ? <span class='mr-2'>←</span> : null}
       <span>{title}</span>
-      {arrow === 'next' ? <span class='ml-2'>→</span> : null}
+      {arrow === 'to-right' ? <span class='ml-2'>→</span> : null}
       {!publishedOn ? <span class='inline-block ml-2 px-1 border text-xs'>Draft</span> : null}
     </Link>
   </Hx>

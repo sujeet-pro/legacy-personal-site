@@ -1,24 +1,26 @@
 ---
 title: LRU Implementation
 description: Implement a in-memory cache in JS with LRU as cache-eviction policy
-isDraft: false
-featuredRank: 0
+publishedOn: 2023-03-21
+lastUpdatedOn: 2023-03-21
+featuredRank: -1
 image: ./lru.svg
-imageCredit: LRU Implemenation
-pubDate: 2023-03-21
-lastUpdatedDate: 2023-03-21
+imageCredit: LRU Implementation
+articleLink: null
 category: programming
 tags:
-  - interview-questions
+  - js
+  - ts
+  - caching
   - dsa
-  - javascript
+  - data-structures
 ---
 
 LRU stands for Least Recently Used. In the context of a cache, the Least Recently Used policy dictates that when the cache reaches its maximum capacity and a new item needs to be added, the least recently accessed item in the cache will be removed to make space for the new item. This helps optimize cache performance by keeping the most frequently accessed items in the cache while discarding the least recently used ones.
 
 ## Implementation
 
-### Utilitizing the property of JS Map to maintain order of insertion
+### Utilizing the property of JS Map to maintain order of insertion
 
 ```ts
 class LRUCache {

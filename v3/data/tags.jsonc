@@ -232,6 +232,10 @@
   },
 
   // Programming
+  "dsa": {
+    "name": "Data Structures & Algorithms",
+    "isFeatured": false
+  },
   "data-structures": {
     "name": "Data Structures",
     "isFeatured": false
@@ -284,6 +288,29 @@
   },
   "e-commerce": {
     "name": "E-commerce",
+    "isFeatured": false
+  },
+
+  // Programming Topics
+  "error-handling": {
+    "name": "Error Handling",
+    "isFeatured": false
+  },
+  "testing": {
+    "name": "Testing",
+    "isFeatured": false
+  },
+  "design-patterns": {
+    "name": "Design Patterns",
+    "isFeatured": false
+  },
+  // Programming Paradigms
+  "oop": {
+    "name": "Object Oriented Programming",
+    "isFeatured": false
+  },
+  "fp": {
+    "name": "Functional Programming",
     "isFeatured": false
   }
 }

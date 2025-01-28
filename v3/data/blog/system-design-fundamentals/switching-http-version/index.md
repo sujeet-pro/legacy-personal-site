@@ -1,16 +1,16 @@
 ---
 title: Switching HTTP Versions on browser
 description: How and when browser decides to switch HTTP Versions
-isDraft: false
+publishedOn: 2023-09-01
+lastUpdatedOn: 2023-09-01
 featuredRank: 2
-pubDate: 2023-09-01
-lastUpdatedDate: 2023-09-01
 image: null
 imageCredit: null
+articleLink: null
+category: system-design-fundamentals
 tags:
-  - performance-optimization
+  - performance
   - web-performance
-  - web-development
 ---
 
 ## HTTP/1.x
