@@ -1,0 +1,263 @@
+{
+  // Frontend - Languages
+  "js": {
+    "name": "Javascript",
+    "isFeatured": false
+  },
+  "ts": {
+    "name": "Typescript",
+    "isFeatured": false
+  },
+  "html": {
+    "name": "HTML",
+    "isFeatured": false
+  },
+  "css": {
+    "name": "CSS",
+    "isFeatured": false
+  },
+  // Frontend - Frameworks
+  "react": {
+    "name": "React",
+    "isFeatured": false
+  },
+  "nextjs": {
+    "name": "Next.js",
+    "isFeatured": false
+  },
+
+  // Frontend - Rendering Patterns
+  "ssg": {
+    "name": "Static Site Generation",
+    "isFeatured": false
+  },
+  "ssr": {
+    "name": "Server Side Rendering",
+    "isFeatured": false
+  },
+  "spa": {
+    "name": "Single Page Application",
+    "isFeatured": false
+  },
+  "pwa": {
+    "name": "Progressive Web App",
+    "isFeatured": false
+  },
+
+  // Backend - Languages
+  "node": {
+    "name": "Node.js",
+    "isFeatured": false
+  },
+  "python": {
+    "name": "Python",
+    "isFeatured": false
+  },
+  "java": {
+    "name": "Java",
+    "isFeatured": false
+  },
+  "scala": {
+    "name": "Scala",
+    "isFeatured": false
+  },
+  "kotlin": {
+    "name": "Kotlin",
+    "isFeatured": false
+  },
+  "csharp": {
+    "name": "C#",
+    "isFeatured": false
+  },
+  "zig": {
+    "name": "Zig",
+    "isFeatured": false
+  },
+  "bash": {
+    "name": "Bash",
+    "isFeatured": false
+  },
+
+  // Backend - Frameworks
+  "express": {
+    "name": "Express",
+    "isFeatured": false
+  },
+  "nestjs": {
+    "name": "NestJS",
+    "isFeatured": false
+  },
+  "flask": {
+    "name": "Flask",
+    "isFeatured": false
+  },
+  "spring-boot": {
+    "name": "Spring Boot",
+    "isFeatured": false
+  },
+
+  // Backend - Databases
+  "sqlite": {
+    "name": "SQLite",
+    "isFeatured": false
+  },
+  "mysql": {
+    "name": "MySQL",
+    "isFeatured": false
+  },
+  "postgres": {
+    "name": "PostgreSQL",
+    "isFeatured": false
+  },
+  "dynamodb": {
+    "name": "DynamoDB",
+    "isFeatured": false
+  },
+
+  // Backend - Tools
+  "redis": {
+    "name": "Redis",
+    "isFeatured": false
+  },
+  "rabbit-mq": {
+    "name": "RabbitMQ",
+    "isFeatured": false
+  },
+  "kafka": {
+    "name": "Kafka",
+    "isFeatured": false
+  },
+
+  // Infrastructure
+  "docker": {
+    "name": "Docker",
+    "isFeatured": false
+  },
+  "k8s": {
+    "name": "Kubernetes",
+    "isFeatured": false
+  },
+  "jenkins": {
+    "name": "Jenkins",
+    "isFeatured": false
+  },
+  "terraform": {
+    "name": "Terraform",
+    "isFeatured": false
+  },
+  // Cloud Providers & Services
+  "aws": {
+    "name": "AWS",
+    "isFeatured": false
+  },
+  "s3": {
+    "name": "S3",
+    "isFeatured": false
+  },
+  "ec2": {
+    "name": "EC2",
+    "isFeatured": false
+  },
+  "rds": {
+    "name": "RDS",
+    "isFeatured": false
+  },
+  "lambda": {
+    "name": "Lambda",
+    "isFeatured": false
+  },
+  "cloudfront": {
+    "name": "CloudFront",
+    "isFeatured": false
+  },
+  "route53": {
+    "name": "Route 53",
+    "isFeatured": false
+  },
+  "cloudwatch": {
+    "name": "CloudWatch",
+    "isFeatured": false
+  },
+  "cognito": {
+    "name": "Cognito",
+    "isFeatured": false
+  },
+
+  // Testing
+  "jest": {
+    "name": "Jest",
+    "isFeatured": false
+  },
+  "vitest": {
+    "name": "Vitest",
+    "isFeatured": false
+  },
+  "playwright": {
+    "name": "Playwright",
+    "isFeatured": false
+  },
+
+  // Load Testing
+  "k6": {
+    "name": "k6",
+    "isFeatured": false
+  },
+  "locust": {
+    "name": "Locust",
+    "isFeatured": false
+  },
+
+  // Monitoring
+  "datadog": {
+    "name": "Datadog",
+    "isFeatured": false
+  },
+  "sentry": {
+    "name": "sentry",
+    "isFeatured": false
+  },
+
+  // CI/CD
+  "github-actions": {
+    "name": "GitHub Actions",
+    "isFeatured": false
+  },
+  "gitlab-ci": {
+    "name": "GitLab CI",
+    "isFeatured": false
+  },
+  "bitbucket-pipelines": {
+    "name": "Bitbucket Pipelines",
+    "isFeatured": false
+  },
+
+  // Programming
+  "data-structures": {
+    "name": "Data Structures",
+    "isFeatured": false
+  },
+  "algorithms": {
+    "name": "Algorithms",
+    "isFeatured": false
+  },
+
+  // Design
+  "caching": {
+    "name": "Caching",
+    "isFeatured": false
+  },
+  "distributed-systems": {
+    "name": "Distributed Systems",
+    "isFeatured": false
+  },
+
+  // Performance
+  "performance": {
+    "name": "Performance",
+    "isFeatured": false
+  },
+  "web-performance": {
+    "name": "Web Performance",
+    "isFeatured": false
+  }
+}

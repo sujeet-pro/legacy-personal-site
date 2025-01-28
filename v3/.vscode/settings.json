@@ -1,11 +1,5 @@
 {
-  "eslint.validate": [
-    "javascript",
-    "javascriptreact",
-    "astro",
-    "typescript",
-    "typescriptreact"
-  ],
+  "eslint.validate": ["javascript", "javascriptreact", "astro", "typescript", "typescriptreact"],
   "[astro]": {
     "editor.defaultFormatter": "astro-build.astro-vscode"
   },
@@ -15,5 +9,6 @@
   },
   "files.associations": {
     "*.css": "tailwindcss"
-  }
+  },
+  "astro.content-intellisense": true
 }

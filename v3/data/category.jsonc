@@ -1,0 +1,30 @@
+{
+  "system-design-fundamentals": {
+    "name": "System Design Fundamentals",
+    "isFeatured": true
+  },
+  "high-level-design": {
+    "name": "High Level Design",
+    "isFeatured": true
+  },
+  "low-level-design": {
+    "name": "Low Level Design",
+    "isFeatured": true
+  },
+  "programming": {
+    "name": "Programming",
+    "isFeatured": true
+  },
+  "how-it-works": {
+    "name": "How It Works",
+    "isFeatured": true
+  },
+  "misc": {
+    "name": "Miscellaneous",
+    "isFeatured": false
+  },
+  "reviews": {
+    "name": "Review",
+    "isFeatured": false
+  }
+}
