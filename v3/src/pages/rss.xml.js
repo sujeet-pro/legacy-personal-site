@@ -10,13 +10,15 @@ export async function GET(context) {
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
     site: context.site,
-    items: posts.map((post) => ({
-      title: post.data.title,
-      pubDate: post.data.publishedOn,
-      description: post.data.description,
-      // Compute RSS link from post `slug`
-      link: `/blog/${post.slug}/`
-    })),
+    items: posts
+      .filter((u) => u.data.publishedOn)
+      .map((post) => ({
+        title: post.data.title,
+        pubDate: post.data.publishedOn,
+        description: post.data.description,
+        // Compute RSS link from post `slug`
+        link: `/blog/${post.slug}/`
+      })),
     // (optional) inject custom xml
     customData: `<language>en</language>`,
     // TODO: account for base URL

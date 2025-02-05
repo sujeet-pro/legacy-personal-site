@@ -1,17 +1,37 @@
 ---
+import Breadcrumb from '@/components/breadcrumb.astro'
 import { SITE_BLOG_TITLE } from '@/configs/site.constants'
 import Layout from '@/layout/index.astro'
 import BlogList from '@/modules/blog/blog-list.astro'
 import TagListAccordion from '@/modules/tag/tag-list-accordion.astro'
 import { getBlogs } from '@/utils/blog-content.utils'
-import { getTagsWithCount } from '@/utils/tag-content.utils.ts'
+import { getTags } from '@/utils/tag-content.utils.ts'
 
 const posts = await getBlogs()
-const tagsWithCount = await getTagsWithCount({ countBlog: true, countReview: false })
+const tagsWithCount = await getTags()
 ---
 
 <Layout title="Sujeet's Blogs" description='List of all the published blogs'>
+  <Breadcrumb crumbs={[{ name: 'Blog', href: '/blog' }]} />
   <h1 class='text-4xl font-light text-center my-14'>{SITE_BLOG_TITLE}</h1>
-  <TagListAccordion tagsWithCount={tagsWithCount} />
-  <BlogList blogs={posts} headingLevel='h2' />
+  <TagListAccordion tagsWithCount={tagsWithCount} type='input' />
+  <BlogList blogs={posts} headingLevel='h2' type='detailed' filterable={true} />
 </Layout>
+
+<script>
+  function markTagsFromQuery() {
+    const urlParams = new URLSearchParams(window.location.search)
+    const tags = urlParams.getAll('tag')
+    tags.forEach((tagId) => {
+      const tagElement = document.querySelector<HTMLInputElement>(
+        `input[type="checkbox"][value="${tagId}"].tag-selector`
+      )
+      console.log('tagElement', tagElement)
+      if (tagElement) {
+        tagElement.checked = true
+      }
+    })
+  }
+
+  document.addEventListener('DOMContentLoaded', markTagsFromQuery)
+</script>

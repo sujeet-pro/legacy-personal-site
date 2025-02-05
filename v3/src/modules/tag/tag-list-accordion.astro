@@ -6,17 +6,34 @@ import type { TagDetails } from '@/utils/tag-content.utils'
 import Tag from './tag.astro'
 type Props = {
   tagsWithCount: TagDetails[]
+  type: 'input' | 'text'
 }
-const { tagsWithCount } = Astro.props
+const { tagsWithCount, type: tagType } = Astro.props
+const tagStyles = `
+    .tags-list-filter:has(.tag-selector:checked) ~ .blog-list .blog-item {
+      display: none;
+    }
+    ${tagsWithCount
+      .map(
+        ({ tag }) => `
+      .tags-list-filter:has(.tag-selector[value="${tag.id}"]:checked) ~ .blog-list .blog-item.tag-${tag.id} {
+        display: flex;
+      }
+    `
+      )
+      .join('\n')}
+`
 ---
 
-<section class:list={[COLOR_BG_MUTED, 'my-4']}>
-  <Accordion title='Tags'>
+<section class:list={['tags-list-filter', COLOR_BG_MUTED, 'my-4']}>
+  <Accordion title='Tags' open={false}>
     <div class='flex flex-wrap gap-x-5 gap-y-1 text-sm'>
-      {tagsWithCount.map(({ tag, count }) => <Tag tag={tag} count={count} />)}
+      {tagsWithCount.map(({ tag, count }) => <Tag tag={tag} count={count} type={tagType} />)}
     </div>
     <p class='mt-4 text-right'>
       <Link href='/tag'>View all tags</Link>
     </p>
   </Accordion>
 </section>
+
+<style is:global set:html={tagStyles}></style>

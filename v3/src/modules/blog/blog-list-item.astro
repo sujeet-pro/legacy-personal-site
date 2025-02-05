@@ -1,30 +1,67 @@
 ---
 import FormattedDate from '@/components/formatted-date.astro'
 import Link from '@/components/link.astro'
+import { CLS_COLOR_DIVIDER } from '@/configs/colors'
 import type { CollectionEntry } from 'astro:content'
+import { getEntry } from 'astro:content'
 
 type Props = {
   blog: CollectionEntry<'blog'>
-  arrow?: 'next' | 'prev' | 'none' | undefined
+  arrow: 'to-left' | 'to-right' | 'none' | undefined
   headingLevel: 'h2' | 'h3'
+  filterable: boolean
+  type: 'simple' | 'detailed'
 }
 
-const { blog, arrow = 'none', headingLevel: Hx } = Astro.props
-const { title, description, pubDate, isDraft } = blog.data
+const { blog, arrow, filterable, type, headingLevel: Hx } = Astro.props
+const { title, description, publishedOn, category: categoryRef } = blog.data
+const category = await getEntry(categoryRef)
+const tagsClassNames = filterable ? blog.data.tags.map((tagRef) => `tag-${tagRef.id}`) : []
+const categoryClassNames = filterable ? `category-${blog.data.category.id}` : null
 ---
 
-<li class='px-4 py-4 relative flex flex-col gap-y-1 hover:shadow'>
-  <Hx class='text-xl'>
+<li
+  class:list={[
+    'px-4 py-4 relative flex flex-col gap-y-1 hover:shadow',
+    ...tagsClassNames,
+    categoryClassNames,
+    'blog-item'
+  ]}
+>
+  <Hx
+    class:list={[
+      'flex items-center',
+      {
+        'text-lg': type === 'simple',
+        'text-xl': type === 'detailed'
+      }
+    ]}
+  >
     <Link
       href={`/blog/${blog.id}`}
       class="after:absolute after:top-0 after:left-0 after:right-0 after:bottom-0 after:content-[' '] flex items-center"
     >
-      {arrow === 'prev' ? <span class='mr-2'>←</span> : null}
+      {arrow === 'to-left' ? <span class='mr-2'>←</span> : null}
       <span>{title}</span>
-      {arrow === 'next' ? <span class='ml-2'>→</span> : null}
-      {isDraft ? <span class='inline-block ml-2 px-1 border text-xs'>Draft</span> : null}
+      {arrow === 'to-right' ? <span class='ml-2'>→</span> : null}
     </Link>
+    {!publishedOn ? <span class='inline-block ml-2 px-1 border text-xs'>Draft</span> : null}
   </Hx>
-  <span class:list={['text-xs']}><FormattedDate date={pubDate} /></span>
-  <p>{description}</p>
+  {
+    type === 'detailed' ? (
+      <>
+        <div class:list={['text-xs divide-x', CLS_COLOR_DIVIDER]}>
+          <span class='pr-2'>
+            <Link href={`/blog/category/${category.id}`}>{category.data.name}</Link>
+          </span>
+          {publishedOn ? (
+            <span class='px-2'>
+              <FormattedDate date={publishedOn} />
+            </span>
+          ) : null}
+        </div>
+        <p>{description}</p>
+      </>
+    ) : null
+  }
 </li>
