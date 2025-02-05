@@ -38,9 +38,10 @@ const { Content, headings } = await render(post)
       { name: title, href: '' }
     ]}
   />
-  <article>
+  <article data-pagefind-body>
     <h1 class='text-4xl font-light'>{title}</h1>
     <div class:list={['my-2 flex text-sm']}>
+      <span data-pagefind-filter='category'>{category.data.name}</span>
       {publishedOn ? <FormattedDate date={publishedOn} /> : null}
       {
         lastUpdatedOn && publishedOn && publishedOn.toISOString() !== lastUpdatedOn.toISOString() ? (
@@ -68,7 +69,7 @@ const { Content, headings } = await render(post)
   <hr class='my-8' />
 
   <div class='flex flex-wrap gap-x-5 gap-y-1 text-sm'>
-    {tags.map((tag) => <Tag tag={tag} type='link' />)}
+    {tags.map((tag) => <Tag tag={tag} type='link' filterTag='tag' />)}
   </div>
 
   <nav class='mt-12'>

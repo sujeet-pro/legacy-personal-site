@@ -6,9 +6,10 @@ type Props = {
   tag: CollectionEntry<'tag'>
   count?: number | undefined
   type: 'input' | 'text' | 'link'
+  filterTag?: string
 }
 
-const { tag, count, type = 'text' } = Astro.props
+const { tag, count, type = 'text', filterTag } = Astro.props
 ---
 
 {
@@ -30,7 +31,7 @@ const { tag, count, type = 'text' } = Astro.props
 {
   type === 'link' ? (
     <Link href={`/tag/${tag.id}`} class='hover:underline'>
-      #{tag.data.name}
+      #<span data-pagefind-filter={filterTag}>{tag.data.name}</span>
       {count && ` (${count})`}
     </Link>
   ) : null

@@ -52,7 +52,7 @@ const categoryClassNames = filterable ? `category-${blog.data.category.id}` : nu
       <>
         <div class:list={['text-xs divide-x', CLS_COLOR_DIVIDER]}>
           <span class='pr-2'>
-            <Link href={`/blog/category/${category.id}`}>{category.data.name}</Link>
+            <Link href={`/category/${category.id}`}>{category.data.name}</Link>
           </span>
           {publishedOn ? (
             <span class='px-2'>

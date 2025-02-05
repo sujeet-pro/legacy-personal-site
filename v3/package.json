@@ -5,12 +5,14 @@
   "scripts": {
     "start": "npm run clean && npm run sync && npm run build && npm run dev",
     "start:preview": "npm run clean && npm run sync && npm run build && npm run preview",
+    "start:preview:gh": "npm run clean && npm run sync && npm run build:gh && npm run preview:gh",
     "dev": "astro dev",
-    "dev:gh": "astro dev --site 'http://projects.sujeet.pro' --base '/v3.sujeet.pro'",
+    "dev:gh": "astro dev --site 'http://projects.sujeet.pro' --base '/v3.sujeet.pro/'",
     "build": "astro check && astro build",
-    "build:gh": "astro check && astro build --site 'http://projects.sujeet.pro' --base '/v3.sujeet.pro'",
+    "build:gh": "astro check && astro build --site 'http://projects.sujeet.pro' --base '/v3.sujeet.pro/'",
     "clean": "rm -rf dist .astro",
     "preview": "astro preview",
+    "preview:gh": "astro preview --site 'http://projects.sujeet.pro' --base '/v3.sujeet.pro/'",
     "astro": "astro",
     "sync": "astro sync",
     "format": "prettier --write  \"**/*.{js,jsx,ts,tsx,md,mdx,astro}\"",
@@ -40,5 +42,8 @@
     "rehype-pretty-code": "^0.14.0",
     "tailwindcss": "^4.0.3",
     "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "astro-pagefind": "^1.8.0"
   }
 }

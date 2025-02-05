@@ -11,5 +11,5 @@
     "*.css": "tailwindcss"
   },
   "astro.content-intellisense": true,
-  "cSpell.words": ["fontsource", "frontends", "wght"]
+  "cSpell.words": ["fontsource", "frontends", "pagefind", "wght"]
 }

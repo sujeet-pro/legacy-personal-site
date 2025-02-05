@@ -13,6 +13,8 @@ let rel: string | null = null
 if (BASE_URL !== '/' && !to.startsWith('http')) {
   if (to === '/') {
     href = BASE_URL
+  } else if (to.startsWith('/')) {
+    href = BASE_URL + to.substring(1) // ignore the starting slash
   } else {
     href = BASE_URL + to
   }
