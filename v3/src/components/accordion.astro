@@ -24,9 +24,10 @@ const { title, open = true } = Astro.props
   }
 
   details[open] .accordion-icon {
-    transform: rotate(180deg);
+    transform: rotate(0deg);
   }
   .accordion-icon {
+    transform: rotate(180deg);
     transition: transform 0.2s;
   }
 </style>

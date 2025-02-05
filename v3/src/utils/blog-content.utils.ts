@@ -9,7 +9,7 @@ type GetBlogOptions = {
 export async function getBlogs({ onlyTag, onlyFeatured, onlyCategory }: GetBlogOptions = {}) {
   const blogs = await getCollection('blog', (post) => {
     // Only return published posts, unless in dev mode
-    const isPublished = import.meta.env.DEV || !post.data.publishedOn
+    const isPublished = import.meta.env.DEV || !!post.data.publishedOn
     if (!isPublished) return false
     // Only return posts with a specific tag
     if (onlyTag && !post.data.tags.some((tag) => tag.id === onlyTag)) return false

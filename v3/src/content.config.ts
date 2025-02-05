@@ -34,7 +34,7 @@ const blog = defineCollection({
       title: z.string(),
       description: z.string(),
       publishedOn: z.coerce.date().nullable(),
-      lastUpdatedOn: z.coerce.date(),
+      lastUpdatedOn: z.coerce.date().nullable(),
       featuredRank: z.number(),
       image: image().nullable(), // z.string().optional(),
       imageCredit: z.string().nullable(),
