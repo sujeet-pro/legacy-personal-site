@@ -1,4 +1,5 @@
 ---
+import Breadcrumb from '@/components/breadcrumb.astro'
 import FormattedDate from '@/components/formatted-date.astro'
 import Markdown from '@/components/markdown.astro'
 import TableOfContents from '@/components/table-of-contents.astro'
@@ -7,7 +8,8 @@ import BlogList from '@/modules/blog/blog-list.astro'
 import Tag from '@/modules/tag/tag.astro'
 import { getBlogs } from '@/utils/blog-content.utils'
 import { Image } from 'astro:assets'
-import { type CollectionEntry, getEntries, render } from 'astro:content'
+import { getEntries, getEntry, render } from 'astro:content'
+
 export async function getStaticPaths() {
   const posts = await getBlogs()
   const postCount = posts.length
@@ -20,22 +22,24 @@ export async function getStaticPaths() {
     }
   }))
 }
-type Props = {
-  post: CollectionEntry<'blog'>
-  prevPost: CollectionEntry<'blog'> | null
-  nextPost: CollectionEntry<'blog'> | null
-}
 
 const { post, prevPost, nextPost } = Astro.props
 const { title, description, publishedOn, lastUpdatedOn, image, imageCredit } = post.data
 const tags = await getEntries(post.data.tags)
+const category = await getEntry(post.data.category)
 const { Content, headings } = await render(post)
 ---
 
 <Layout title={title} description={description}>
-  <article class=''>
+  <Breadcrumb
+    crumbs={[
+      { name: 'Blog', href: '/blog' },
+      { name: category.data.name, href: `/category/${category.id}` },
+      { name: title, href: '' }
+    ]}
+  />
+  <article>
     <h1 class='text-4xl font-light'>{title}</h1>
-
     <div class:list={['my-2 flex text-sm']}>
       {publishedOn ? <FormattedDate date={publishedOn} /> : null}
       {
@@ -69,6 +73,6 @@ const { Content, headings } = await render(post)
 
   <nav class='mt-12'>
     <h2 class='text-lg italic'>Read Next</h2>
-    <BlogList blogs={[]} nextBlog={nextPost} prevBlog={prevPost} headingLevel='h3' />
+    <BlogList nextBlog={nextPost} prevBlog={prevPost} type='next-prev' />
   </nav>
 </Layout>

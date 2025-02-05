@@ -3,17 +3,61 @@ import { CLS_COLOR_DIVIDER } from '@/configs/colors'
 import type { CollectionEntry } from 'astro:content'
 import BlogListItem from './blog-list-item.astro'
 
-type Props = {
-  blogs: CollectionEntry<'blog'>[]
-  nextBlog?: CollectionEntry<'blog'> | null | undefined
-  prevBlog?: CollectionEntry<'blog'> | null | undefined
-  headingLevel: 'h2' | 'h3'
+type Props =
+  | {
+      type: 'detailed'
+      blogs: CollectionEntry<'blog'>[]
+      headingLevel: 'h2' | 'h3'
+      filterable: boolean
+    }
+  | {
+      type: 'simple'
+      blogs: CollectionEntry<'blog'>[]
+    }
+  | {
+      type: 'next-prev'
+      nextBlog?: CollectionEntry<'blog'> | null | undefined
+      prevBlog?: CollectionEntry<'blog'> | null | undefined
+    }
+
+if (Astro.props.type === 'next-prev') {
+  if (!Astro.props.nextBlog && !Astro.props.prevBlog) {
+    throw new Error('At least one of nextBlog or prevBlog should be provided.')
+  }
 }
-const { blogs, nextBlog, prevBlog, headingLevel } = Astro.props
+const props = Astro.props
 ---
 
 <ul class:list={['grid grid-cols-1 divide-y divide-dashed', CLS_COLOR_DIVIDER, 'blog-list']}>
-  {blogs.map((blog) => <BlogListItem blog={blog} {headingLevel} />)}
-  {nextBlog ? <BlogListItem blog={nextBlog} arrow='to-left' {headingLevel} /> : null}
-  {prevBlog ? <BlogListItem blog={prevBlog} arrow='to-right' {headingLevel} /> : null}
+  {
+    props.type === 'detailed'
+      ? props.blogs.map((blog) => (
+          <BlogListItem
+            blog={blog}
+            filterable={props.filterable}
+            headingLevel={props.headingLevel}
+            arrow='none'
+            type='detailed'
+          />
+        ))
+      : null
+  }
+  {
+    props.type === 'simple'
+      ? props.blogs.map((blog) => (
+          <BlogListItem blog={blog} filterable={false} headingLevel='h3' arrow='none' type='simple' />
+        ))
+      : null
+  }
+
+  {
+    props.type === 'next-prev' && props.nextBlog ? (
+      <BlogListItem blog={props.nextBlog} filterable={false} headingLevel='h3' arrow='to-left' type='detailed' />
+    ) : null
+  }
+  {
+    props.type === 'next-prev' && props.prevBlog ? (
+      <BlogListItem blog={props.prevBlog} filterable={false} headingLevel='h3' arrow='to-right' type='detailed' />
+    ) : null
+  }
 </ul>

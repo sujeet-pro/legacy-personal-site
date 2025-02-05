@@ -1,16 +1,16 @@
 ---
 title: Micro-frontend with Cloudflare ESI
 description: Explores ESI for dynamic injection of header and footer (as microfrontent) in a microsite architecture implemented with SSG
-isDraft: false
-featuredRank: 0
+publishedOn: 2024-01-27
+lastUpdatedOn: 2024-01-27
+featuredRank: -1
 image: ./esi-bookends.svg
 imageCredit: ESI from <a href="https://blog.cloudflare.com/edge-side-includes-with-cloudflare-workers">Cloudflare blog</a>
-pubDate: 2024-01-27
-lastUpdatedDate: 2024-01-27
+articleLink: null
+category: features
 tags:
-  - infrastructure
   - web-performance
-  - web-development
+  - micro-frontends
 ---
 
 This blog delves into how Vistaprint overcame challenges in synchronizing common components like headers and footers across a microsite architecture. It explores the implementation of Edge-Side Includes (ESI) with Cloudflare Workers to achieve dynamic injection and content updates without compromising user experience.

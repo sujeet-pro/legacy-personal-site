@@ -1,0 +1,33 @@
+---
+import Accordion from '@/components/accordion.astro'
+import Breadcrumb from '@/components/breadcrumb.astro'
+import Link from '@/components/link.astro'
+import Layout from '@/layout/index.astro'
+import BlogList from '@/modules/blog/blog-list.astro'
+import { getTags } from '@/utils/tag-content.utils'
+
+const tagsDetails = await getTags()
+---
+
+<Layout title='Tags | Sujeet.pro' description='List of all the tags, I write about.'>
+  <Breadcrumb
+    crumbs={[
+      { name: 'Blog', href: '/blog' },
+      { name: 'All Tags', href: '' }
+    ]}
+  />
+  <h1 class='text-4xl font-light text-center my-14'>Tags</h1>
+
+  {
+    tagsDetails.map(({ blogs, tag, count }) => (
+      <Accordion title={tag.data.name}>
+        <h2 class='text-2xl' slot='title'>
+          <Link href={`/tag/${tag.id}`}>
+            {tag.data.name} ({count})
+          </Link>
+        </h2>
+        <BlogList blogs={blogs} type='simple' />
+      </Accordion>
+    ))
+  }
+</Layout>

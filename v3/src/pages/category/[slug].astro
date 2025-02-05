@@ -1,0 +1,30 @@
+---
+import Breadcrumb from '@/components/breadcrumb.astro'
+import Layout from '@/layout/index.astro'
+import BlogList from '@/modules/blog/blog-list.astro'
+import { getCategories } from '@/utils/category-content.utils'
+
+export async function getStaticPaths() {
+  const categories = await getCategories()
+  return categories.map((categoryDetails) => ({
+    params: { slug: categoryDetails.category.id },
+    props: {
+      category: categoryDetails.category,
+      blogs: categoryDetails.blogs
+    }
+  }))
+}
+const { category, blogs } = Astro.props
+---
+
+<Layout title={category.data.name} description={`List of all the blogs related to category: ${category.data.name}`}>
+  <Breadcrumb
+    crumbs={[
+      { name: 'Blog', href: '/blog' },
+      { name: 'Category', href: '/category' },
+      { name: category.data.name, href: '' }
+    ]}
+  />
+  <h1 class='text-4xl font-light text-center my-14'>{category.data.name}</h1>
+  <BlogList blogs={blogs} headingLevel='h2' type='detailed' filterable={false} />
+</Layout>

@@ -1,15 +1,16 @@
 ---
 title: Implementing Rollback in SSG with Cloudfront
 description: Since entire site is pre-rendered, difference in layout between mobile/desktop causes higher CLS.
-isDraft: false
-featuredRank: 0
+publishedOn: 2024-01-24
+lastUpdatedOn: 2024-01-24
+featuredRank: -1
 image: ./ssg-rollback.svg
 imageCredit: Rollback using buildNumber
-pubDate: 2024-01-24
-lastUpdatedDate: 2024-01-24
+articleLink: null
+category: features
 tags:
-  - performance
-  - web-development
+  - ssg
+  - web-performance
 ---
 
 ## The Problem

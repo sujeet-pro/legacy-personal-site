@@ -29,7 +29,7 @@ const { tag, count, type = 'text' } = Astro.props
 }
 {
   type === 'link' ? (
-    <Link href={`/blog?tag=${tag.id}`} class='hover:underline'>
+    <Link href={`/tag/${tag.id}`} class='hover:underline'>
       #{tag.data.name}
       {count && ` (${count})`}
     </Link>

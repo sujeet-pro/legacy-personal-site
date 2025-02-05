@@ -3,9 +3,10 @@ import { getCollection } from 'astro:content'
 type GetBlogOptions = {
   onlyTag?: string
   onlyFeatured?: boolean
+  onlyCategory?: string
 }
 
-export async function getBlogs({ onlyTag, onlyFeatured }: GetBlogOptions = {}) {
+export async function getBlogs({ onlyTag, onlyFeatured, onlyCategory }: GetBlogOptions = {}) {
   const blogs = await getCollection('blog', (post) => {
     // Only return published posts, unless in dev mode
     const isPublished = import.meta.env.DEV || !post.data.publishedOn
@@ -13,6 +14,7 @@ export async function getBlogs({ onlyTag, onlyFeatured }: GetBlogOptions = {}) {
     // Only return posts with a specific tag
     if (onlyTag && !post.data.tags.some((tag) => tag.id === onlyTag)) return false
     if (onlyFeatured && post.data.featuredRank <= 0) return false
+    if (onlyCategory && post.data.category.id !== onlyCategory) return false
     return true
   })
 

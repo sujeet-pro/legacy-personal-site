@@ -1,17 +1,16 @@
 ---
 title: Optimizing Content Delivery by Serving Pre-compressed content
 description: Serving Pre-compressed content from CDN
-isDraft: false
-featuredRank: 0
+publishedOn: 2024-01-22
+lastUpdatedOn: 2024-01-22
+featuredRank: -1
 image: ./pre-compressed.svg
 imageCredit: Architecture Diagram
-pubDate: 2024-01-22
-lastUpdatedDate: 2024-01-22
+articleLink: null
+category: features
 tags:
-  - cost-optimization
-  - infrastructure
-  - performance
-  - web-development
+  - ssg
+  - web-performance
 ---
 
 At our organization, we leverage Amazon CloudFront to distribute content globally, ensuring low-latency access to our web assets. However, we encountered challenges with automatic compression settings that led to unexpected cost spikes and suboptimal compression results.

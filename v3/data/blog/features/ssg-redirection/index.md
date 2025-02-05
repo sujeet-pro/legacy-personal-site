@@ -1,15 +1,16 @@
 ---
 title: Implementing Redirections for Static Sites
 description: This blogs talks about handling redirects in Static Sites
-isDraft: false
-featuredRank: 0
+publishedOn: 2024-01-21
+lastUpdatedOn: 2024-01-21
+featuredRank: -1
 image: ./ssg-redirection.svg
 imageCredit: Server Side Redirection
-pubDate: 2024-01-21
-lastUpdatedDate: 2024-01-21
+articleLink: null
+category: features
 tags:
-  - performance
-  - web-development
+  - ssg
+  - web-performance
 ---
 
 This approach is a two fold implementation

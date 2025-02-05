@@ -1,18 +1,19 @@
 ---
 title: Improving CLS
 description: Since entire site is pre-rendered, difference in layout between mobile/desktop causes higher CLS.
-isDraft: false
 featuredRank: 0
+publishedOn: 2024-01-23
+lastUpdatedOn: 2024-01-23
 image: ./ssg-cls.svg
 imageCredit: Serving Mobile/Desktop build output based on header
-pubDate: 2024-01-23
-lastUpdatedDate: 2024-01-23
+articleLink: null
+category: features
 tags:
-  - performance
-  - web-development
+  - ssg
+  - web-performance
 ---
 
-## Introduing the problem
+## Introducing the problem
 
 You have a page, which renderes different UI component when in mobile vs desktop, e.g header menu bar.
 The page is statically generated at build time, but what do you render? For mobile or for desktop or both or nothing?
@@ -24,7 +25,7 @@ This approach will fail, when you different DOM structures for the component.
 
 ### Render both and hide one with CSS
 
-This is a good approach when you have few components/sections in a page. You render both the componnents and use CSS to hide one. In context of react, during server build and first render, you will render both the components and afterwards just 1 component.
+This is a good approach when you have few components/sections in a page. You render both the components and use CSS to hide one. In context of react, during server build and first render, you will render both the components and afterwards just 1 component.
 
 What happens when there are too many such components? The dom size will increase resulting in larger payload and the initial hydration will also take time, resulting in poor performance as well.
 

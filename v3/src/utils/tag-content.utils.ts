@@ -7,11 +7,7 @@ export type TagDetails = {
   blogs: CollectionEntry<'blog'>[]
 }
 
-export type TagWithCountOptions = {
-  countBlog: boolean
-}
-
-export async function getTagsWithCount(option: TagWithCountOptions) {
+export async function getTags() {
   const tags = await getCollection('tag')
   const allResults: TagDetails[] = []
   for (const tag of tags) {
@@ -20,11 +16,10 @@ export async function getTagsWithCount(option: TagWithCountOptions) {
       count: 0,
       blogs: []
     }
-    if (option.countBlog) {
-      const blogs = await getBlogs({ onlyTag: tag.id })
-      result.blogs = blogs
-      result.count += blogs.length
-    }
+    const blogs = await getBlogs({ onlyTag: tag.id })
+    result.blogs = blogs
+    result.count += blogs.length
+
     if (result.count > 0) {
       allResults.push(result)
     }

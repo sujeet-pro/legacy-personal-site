@@ -23,6 +23,10 @@
     "name": "Review",
     "isFeatured": false
   },
+  "features": {
+    "name": "Features",
+    "isFeatured": false
+  },
   "misc": {
     "name": "Miscellaneous",
     "isFeatured": false

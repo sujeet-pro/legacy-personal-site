@@ -26,12 +26,12 @@ const tagStyles = `
 ---
 
 <section class:list={['tags-list-filter', COLOR_BG_MUTED, 'my-4']}>
-  <Accordion title='Tags'>
+  <Accordion title='Tags' open={false}>
     <div class='flex flex-wrap gap-x-5 gap-y-1 text-sm'>
       {tagsWithCount.map(({ tag, count }) => <Tag tag={tag} count={count} type={tagType} />)}
     </div>
     <p class='mt-4 text-right'>
-      <Link href='/blog'>View all tags</Link>
+      <Link href='/tag'>View all tags</Link>
     </p>
   </Accordion>
 </section>

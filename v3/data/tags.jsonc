@@ -77,7 +77,15 @@
     "name": "Bash",
     "isFeatured": false
   },
-
+  // Architecture Types
+  "microservices": {
+    "name": "Microservices",
+    "isFeatured": false
+  },
+  "micro-frontends": {
+    "name": "Micro Frontends",
+    "isFeatured": false
+  },
   // Backend - Frameworks
   "express": {
     "name": "Express",
@@ -125,6 +133,14 @@
   },
   "kafka": {
     "name": "Kafka",
+    "isFeatured": false
+  },
+  "elasticsearch": {
+    "name": "Elasticsearch",
+    "isFeatured": false
+  },
+  "nginx": {
+    "name": "Nginx",
     "isFeatured": false
   },
 
