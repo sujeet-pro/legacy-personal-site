@@ -54,11 +54,7 @@ const categoryClassNames = filterable ? `category-${blog.data.category.id}` : nu
           <span class='pr-2'>
             <Link href={`/category/${category.id}`}>{category.data.name}</Link>
           </span>
-          {publishedOn ? (
-            <span class='px-2'>
-              <FormattedDate date={publishedOn} />
-            </span>
-          ) : null}
+          {publishedOn ? <FormattedDate date={publishedOn} /> : null}
         </div>
         <p>{description}</p>
       </>

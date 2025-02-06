@@ -1,0 +1,39 @@
+---
+import { Code } from 'astro-expressive-code/components'
+import { randomUUID } from 'crypto'
+import Tab from './tab.astro'
+import Tabs from './tabs.astro'
+
+type Props = {
+  codes: {
+    code: string
+    lang: string
+    title: string
+    defaultActive?: boolean
+  }[]
+}
+
+const groupId = randomUUID()
+const { codes } = Astro.props
+
+const activeTabs = codes.reduce((agg, config) => agg + (config.defaultActive ? 1 : 0), 0)
+if (codes.length === 0) {
+  throw new Error('At least one tab is required')
+}
+if (activeTabs > 1) {
+  throw new Error('Only one tab can be active at a time')
+}
+if (activeTabs === 0) {
+  codes[0]!.defaultActive = true
+}
+---
+
+<Tabs>
+  {
+    codes.map((codeConfig) => (
+      <Tab tabGroupId={groupId} title={codeConfig.title} checked={codeConfig.defaultActive}>
+        <Code code={codeConfig.code} lang={codeConfig.lang} />
+      </Tab>
+    ))
+  }
+</Tabs>

@@ -3,6 +3,7 @@ import Breadcrumb from '@/components/breadcrumb.astro'
 import FormattedDate from '@/components/formatted-date.astro'
 import Markdown from '@/components/markdown.astro'
 import TableOfContents from '@/components/table-of-contents.astro'
+import { CLS_COLOR_DIVIDER } from '@/configs/colors'
 import Layout from '@/layout/index.astro'
 import BlogList from '@/modules/blog/blog-list.astro'
 import Tag from '@/modules/tag/tag.astro'
@@ -40,8 +41,8 @@ const { Content, headings } = await render(post)
   />
   <article data-pagefind-body>
     <h1 class='text-4xl font-light'>{title}</h1>
-    <div class:list={['my-2 flex text-sm']}>
-      <span data-pagefind-filter='category'>{category.data.name}</span>
+    <div class:list={['my-2 flex text-sm divide-x', CLS_COLOR_DIVIDER]}>
+      <span data-pagefind-filter='category' class='pr-2'>{category.data.name}</span>
       {publishedOn ? <FormattedDate date={publishedOn} /> : null}
       {
         lastUpdatedOn && publishedOn && publishedOn.toISOString() !== lastUpdatedOn.toISOString() ? (

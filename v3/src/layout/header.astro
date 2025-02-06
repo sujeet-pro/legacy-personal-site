@@ -18,9 +18,9 @@ const { class: className } = Astro.props
     }
 
     if (theme === 'dark') {
-      document.documentElement.classList.add('dark')
+      document.documentElement.setAttribute('data-theme', 'dark')
     } else if (theme === 'light') {
-      document.documentElement.classList.remove('dark')
+      document.documentElement.setAttribute('data-theme', 'light')
     }
   }
   setInitialThemeValueBasedOnUserPreference()
@@ -74,24 +74,19 @@ const { class: className } = Astro.props
       return storedTheme === 'dark' || storedTheme === 'light'
     }
 
-    function changeTheme(newColorScheme: 'dark' | 'light') {
-      document.documentElement.classList.remove('dark', 'light')
-      document.documentElement.classList.add(newColorScheme)
-    }
-
     let hasStoredThemePreference = hasValidStoredThemePreference()
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e: MediaQueryListEvent) => {
       if (!hasStoredThemePreference) {
         const newColorScheme = e.matches ? 'dark' : 'light'
-        changeTheme(newColorScheme)
+        document.documentElement.setAttribute('data-theme', newColorScheme)
       }
     })
 
     const toggleThemeBtn = document.getElementById('toggle-theme')
     toggleThemeBtn?.addEventListener('click', () => {
-      const isCurrentThemeDark = document.documentElement.classList.contains('dark')
+      const isCurrentThemeDark = document.documentElement.getAttribute('data-theme') === 'dark'
       const nextTheme = isCurrentThemeDark ? 'light' : 'dark'
-      changeTheme(nextTheme)
+      document.documentElement.setAttribute('data-theme', nextTheme)
       localStorage.setItem('theme', nextTheme)
       hasStoredThemePreference = true
     })

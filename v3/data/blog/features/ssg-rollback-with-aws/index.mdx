@@ -13,6 +13,10 @@ tags:
   - web-performance
 ---
 
+import { Code } from 'astro-expressive-code/components'
+import { Image } from 'astro:assets'
+import versionDeploymentCode from './code-samples/version-deployement.sh?raw'
+
 ## The Problem
 
 SSG Generates all the pages at build time, and hence with increasing pages, the build time increases.
@@ -24,9 +28,32 @@ During an incident, re-generating the entire site after a fix will take time. Si
 
 In your S3 bucket, while pushing the changes for a new build, instead of replacing the old files, we can just push into a new directory with buildNumber.
 
+```ascii title="S3 Bucket Folder Structure"
+S3 Bucket
+├── build_001
+│   ├── index.html
+│   ├── ...
+├── build_002
+│   ├── ...
+├── build_003
+│   ├── ...
+└── build_004
+    ├── ...
+```
+
 ### Configure a custom origin header in CF
 
-Add a header in CDN's origin configuration. This is always udpated with the new release post syncing all the files to S3
+Add a header in CDN's origin configuration. This is always updated with the new release post syncing all the files to S3
+
+To add `buildVersion`, navigate to the CF distribution and Select Origins -> Select Origin -> Edit -> Origin Custom Headers
+
+import buildVersionScreenshot from './add-build-version.jpg'
+
+<Image src={buildVersionScreenshot} alt='Add Build Version' class='w-full' />
+
+### Make a given version live (forward / rollback)
+
+<Code code={versionDeploymentCode} title='version-deployment.sh' lang='bash' />
 
 ### Use lambda@edge to add prefix in request URI
 

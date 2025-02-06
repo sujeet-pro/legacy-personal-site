@@ -1,5 +1,5 @@
 ---
-title: Implementing Redirections for Static Sites
+title: Implementing Redirection for Static Sites
 description: This blogs talks about handling redirects in Static Sites
 publishedOn: 2024-01-21
 lastUpdatedOn: 2024-01-21
@@ -92,16 +92,16 @@ exports.handler = (event, context, callback) => {
         location: [
           {
             key: 'Location',
-            value: '/somecampaign/index.html'
-          }
+            value: '/somecampaign/index.html',
+          },
         ],
         'cache-control': [
           {
             key: 'Cache-Control',
-            value: 'max-age=3600'
-          }
-        ]
-      }
+            value: 'max-age=3600',
+          },
+        ],
+      },
     }
     callback(null, redirectResponse)
   } else {

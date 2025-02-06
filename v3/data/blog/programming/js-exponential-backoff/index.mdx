@@ -1,0 +1,75 @@
+---
+title: Exponential Backoff Retry Strategy
+description: It is a technique where an application progressively increases the waiting time between retry attempts after a failed operation
+publishedOn: 2025-01-23
+lastUpdatedOn: 2025-01-25
+featuredRank: -1
+image: null
+imageCredit: null
+articleLink: null
+category: programming
+tags:
+  - js
+  - ts
+  - design-patterns
+---
+
+import CodeTabs from '@/components/code-tabs.astro'
+import { Code } from 'astro-expressive-code/components'
+import exponentialBackoffAbortableCode from './code-samples/exponential-backoff-abortable.ts?raw'
+import simpleRetryWithDelayCode from './code-samples/simple-retry-with-delay.ts?raw'
+import simpleRetryWithExponentialDelayCode from './code-samples/simple-retry-with-exponential-delay.ts?raw'
+import simpleRetryCode from './code-samples/simple-retry.ts?raw'
+import waitAbortableCode from './code-samples/wait-abortable.ts?raw'
+
+## TL;DR
+
+- Transient Failures do happen, for which we can retry with a limit
+- Retry increases load on already overloaded servers
+- Retry by adding a delay that increases exponentially, will reduce the load.
+
+## Sample Scenario
+
+- You have an UI, which shows some data.
+- The data is fetched at client side via some API
+- The server serving the request is overloaded or some throttling is implemented, hence the server is rejecting new calls.
+- Making the api call again may succeed.
+- So this application needs to add retries.
+- But then, if we add retry, would it not add load on an already overloaded system, increasing the failure rates?
+
+## Strategy 1 - Simple Retry
+
+- We want the users to see the data ASAP
+- So we will retry ASAP
+
+<Code code={simpleRetryCode} lang='ts' />
+
+### Problem with Immediate Retry
+
+- The server on load will increase drastically, You would be calling this `1000/response-time-in-ms`
+- Eg: For an API with response time of 50ms, it would now make 20 calls per second.
+- So we should probably add some waiting time before the next call
+
+### Strategy 2: Retry with constant wait
+
+<Code code={simpleRetryWithDelayCode} lang='ts' />
+
+### Strategy 3: Retry with exponential Wait
+
+<Code code={simpleRetryWithExponentialDelayCode} lang='ts' />
+
+### Final Code: Abortable Retry with Exponential Back-off
+
+The Functions should be abortable in production code.
+
+<CodeTabs
+  codes={[
+    { code: exponentialBackoffAbortableCode, lang: 'ts', title: 'exponential-backoff.ts' },
+    { code: waitAbortableCode, lang: 'ts', title: 'wait-abortable.ts' }
+  ]}
+/>
+
+## References
+
+- [Code Samples With Tests](https://github.com/sujeet-pro/code-samples/tree/main/patterns/exponential-backoff)
+- [Wikipedia Exponential backoff](https://en.wikipedia.org/wiki/Exponential_backoff)

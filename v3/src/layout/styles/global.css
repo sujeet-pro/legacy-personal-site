@@ -1,14 +1,20 @@
 @import 'tailwindcss';
 @plugin "@tailwindcss/typography";
-@custom-variant dark (&:where(.dark, .dark *));
+@plugin "daisyui" {
+  include: tab;
+}
+/* @custom-variant dark (&:where(.dark, .dark *)); */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
-@import './code-block.css';
+/* @import './code-block.css'; */
 
 html {
   scrollbar-gutter: stable both-edges;
 }
+
 body {
   font-family: 'Open Sans Variable', sans-serif;
+
   scrollbar-gutter: stable both-edges;
   scroll-behavior: smooth;
   /* overflow: auto; */
@@ -39,4 +45,31 @@ svg {
 .yt-embed {
   max-width: 100%;
   width: 100%;
+}
+
+/* Search */
+.pagefind-ui {
+  --pagefind-ui-font: 'Open Sans Variable', sans-serif;
+  --pagefind-ui-border-width: 1px;
+}
+html[data-theme='dark'] {
+  --pagefind-ui-primary: var(--color-neutral-200);
+  --pagefind-ui-text: var(--color-neutral-200);
+  --pagefind-ui-background: var(--color-neutral-900);
+  --pagefind-ui-border: var(--color-neutral-700);
+  --pagefind-ui-tag: #152028;
+}
+
+html[data-theme='light'] {
+  --pagefind-ui-primary: var(--color-neutral-900);
+  --pagefind-ui-text: var(--color-neutral-900);
+  --pagefind-ui-background: var(--color-neutral-100);
+  --pagefind-ui-border: var(--color-neutral-500);
+  --pagefind-ui-tag: #152028;
+}
+.pagefind-ui__result-link {
+  @apply font-medium!;
+}
+.pagefind-ui__search-input {
+  @apply font-medium! placeholder:text-green-400 placeholder:italic;
 }

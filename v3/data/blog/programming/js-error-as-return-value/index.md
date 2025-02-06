@@ -3,7 +3,7 @@ title: Better Error Handling in JavaScript / Typescript
 description: Making errors as first-class citizens in your async function
   response, inspired by Go. JS Now Try Statement (In Proposal Stage)
 publishedOn: 2023-03-11
-lastUpdatedOn: 2024-01-2
+lastUpdatedOn: 2024-01-20
 featuredRank: -1
 image: ./cover-better-error-handling-in-js.jpg
 imageCredit: Photo by <a href="https://unsplash.com/@brett_jordan?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Brett Jordan</a> on <a href="https://unsplash.com/photos/brown-wooden-blocks-on-white-surface-XWar9MbNGUY?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a>
@@ -63,7 +63,7 @@ const [result, err] = await getAsyncDataWithError(options)
 ```typescript
 function withError<E = unknown, F extends (...args: any) => Promise<any> = (...args: unknown[]) => Promise<unknown>>(
   func: F,
-  ctx?: unknown
+  ctx?: unknown,
 ) {
   return async (...args: Parameters<F>) => {
     let res: ReturnType<F> | null = null
@@ -224,7 +224,7 @@ The above example only showed the use case for async operation but would work wi
 ```typescript
 function withErrorSync<E = unknown, F extends (...args: any) => any = (...args: unknown[]) => unknown>(
   func: F,
-  ctx?: unknown
+  ctx?: unknown,
 ) {
   return (...args: Parameters<F>) => {
     let res: ReturnType<F> | null = null
