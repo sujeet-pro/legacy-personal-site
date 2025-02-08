@@ -3,7 +3,6 @@
 @plugin "daisyui" {
   include: tab;
 }
-/* @custom-variant dark (&:where(.dark, .dark *)); */
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
 /* @import './code-block.css'; */
@@ -14,7 +13,6 @@ html {
 
 body {
   font-family: 'Open Sans Variable', sans-serif;
-
   scrollbar-gutter: stable both-edges;
   scroll-behavior: smooth;
   /* overflow: auto; */
@@ -22,12 +20,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-p img {
+/* p img {
   max-width: 100%;
-  /* width: 100%; */
   height: auto;
   margin: 0 auto;
-}
+} */
 
 .bg-img-light {
   background-color: rgb(245, 245, 245);
@@ -70,6 +67,15 @@ html[data-theme='light'] {
 .pagefind-ui__result-link {
   @apply font-medium!;
 }
+
 .pagefind-ui__search-input {
   @apply font-medium! placeholder:text-green-400 placeholder:italic;
+}
+
+/* Image Captions for Markdown Images */
+.md-figure img {
+  @apply mx-auto max-w-full;
+}
+.md-figure figcaption {
+  @apply text-center text-xs italic;
 }

@@ -1,8 +1,10 @@
 import mdx from '@astrojs/mdx'
 import sitemap from '@astrojs/sitemap'
+import rehypeFigure from '@microflash/rehype-figure'
 import tailwindcss from '@tailwindcss/vite'
 import pagefind from 'astro-pagefind'
 import { defineConfig } from 'astro/config'
+import rehypeExternalLinks from 'rehype-external-links'
 
 // TODO: path alias doesn't work on astro.config.ts
 import { SITE_CANONICAL_ORIGIN } from './src/configs/site.constants'
@@ -36,33 +38,16 @@ export default defineConfig({
   },
   scopedStyleStrategy: 'where',
   output: 'static',
-  // markdown: {
-  // rehypePlugins: [
-  //   [
-  //     rehypePrettyCode,
-  //     {
-  //       theme: {
-  //         dark: 'github-dark',
-  //         light: 'github-light'
-  //       },
-  //       transformers: [
-  //         transformerCopyButton({
-  //           visibility: 'hover',
-  //           feedbackDuration: 2_500
-  //         })
-  //       ]
-  //     }
-  //   ]
-  // ],
-  // syntaxHighlight: false
-  // shikiConfig: {
-  //   theme: 'dracula'
-  // }
-  // shikiConfig: {
-  //   themes: {
-  //     light: 'github-light',
-  //     dark: 'github-dark'
-  //   }
-  // }
-  // }
+  markdown: {
+    rehypePlugins: [
+      [
+        rehypeExternalLinks,
+        {
+          target: '_blank',
+          rel: ['noopener', 'noreferrer'],
+        },
+      ],
+      [rehypeFigure, { className: 'md-figure' }],
+    ],
+  },
 })

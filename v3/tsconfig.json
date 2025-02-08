@@ -9,7 +9,7 @@
     "strictNullChecks": true,
     "allowJs": true
   },
-  "include": [".astro/types.d.ts", "**/*"],
+  "include": [".astro/types.d.ts", "./global.d.ts", "**/*"],
   "exclude": ["dist"],
-  "files": ["astro.config.ts", "tailwind.config.ts"]
+  "files": ["astro.config.ts", "global.d.ts"]
 }
