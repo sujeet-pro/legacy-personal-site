@@ -7,7 +7,7 @@ lastUpdatedOn: null
 featuredRank: -1
 image: null
 imageCredit: null
-articleLink: https://github.com/sujeet-pro/zotero-sync/blob/main/zotero-attachments/research-papers/gfs-sosp2003.pdf
+articleLink: https://github.com/sujeet-pro/learning-resources/blob/main/reviews/gfs-sosp2003.pdf
 category: reviews
 tags:
   - distributed-systems

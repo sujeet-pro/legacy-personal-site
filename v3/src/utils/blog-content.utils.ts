@@ -4,12 +4,13 @@ type GetBlogOptions = {
   onlyTag?: string
   onlyFeatured?: boolean
   onlyCategory?: string
+  allowUnpublished?: boolean
 }
 
-export async function getBlogs({ onlyTag, onlyFeatured, onlyCategory }: GetBlogOptions = {}) {
+export async function getBlogs({ onlyTag, onlyFeatured, onlyCategory, allowUnpublished }: GetBlogOptions = {}) {
   const blogs = await getCollection('blog', (post) => {
     // Only return published posts, unless in dev mode
-    const isPublished = import.meta.env.DEV || !!post.data.publishedOn
+    const isPublished = import.meta.env.DEV || !!post.data.publishedOn || allowUnpublished
     if (!isPublished) return false
     // Only return posts with a specific tag
     if (onlyTag && !post.data.tags.some((tag) => tag.id === onlyTag)) return false
@@ -17,20 +18,26 @@ export async function getBlogs({ onlyTag, onlyFeatured, onlyCategory }: GetBlogO
     if (onlyCategory && post.data.category.id !== onlyCategory) return false
     return true
   })
-
   blogs.sort((a, b) => {
-    // Sort it on published data
-    if (a.data.publishedOn && b.data.publishedOn) {
-      const diff = b.data.publishedOn.valueOf() - a.data.publishedOn.valueOf()
-      if (diff !== 0) return diff
+    // Bring items without publishedOn to the front
+    if (!a.data.publishedOn && b.data.publishedOn) return -1
+    if (a.data.publishedOn && !b.data.publishedOn) return 1
+    if (!a.data.publishedOn && !b.data.publishedOn) return 0
+
+    if (a.data.publishedOn && a.data.lastUpdatedOn && b.data.publishedOn && b.data.lastUpdatedOn) {
+      // Sort it on published date
+      const publishedDiff = b.data.publishedOn.valueOf() - a.data.publishedOn.valueOf()
+      if (publishedDiff !== 0) return publishedDiff
+
+      // For same published date, sort on last updated date
+      const updatedDiff = b.data.lastUpdatedOn.valueOf() - a.data.lastUpdatedOn.valueOf()
+      if (updatedDiff !== 0) return updatedDiff
+
+      // For same last updated date, sort on title
+      return a.data.title.localeCompare(b.data.title)
     }
-    // for same published date, sort on last updated date
-    if (a.data.lastUpdatedOn && b.data.lastUpdatedOn) {
-      const diff = b.data.lastUpdatedOn.valueOf() - a.data.lastUpdatedOn.valueOf()
-      if (diff !== 0) return diff
-    }
-    // for same last updated date, sort on title
-    return b.data.title.localeCompare(a.data.title)
+    // for anything else
+    return 0
   })
 
   if (onlyFeatured) {

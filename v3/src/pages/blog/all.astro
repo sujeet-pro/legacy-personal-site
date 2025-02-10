@@ -1,0 +1,21 @@
+---
+import Breadcrumb from '@/components/breadcrumb.astro'
+import Layout from '@/layout/index.astro'
+import BlogList from '@/modules/blog/blog-list.astro'
+import { getBlogs } from '@/utils/blog-content.utils'
+
+const posts = await getBlogs({ allowUnpublished: true })
+---
+
+<Layout title="Sujeet's Blogs" description='List of all the blogs' noIndex={true}>
+  <Breadcrumb
+    crumbs={[
+      { name: 'Blog', href: '/blog' },
+      { name: 'All Blogs', href: '/blog/all' },
+    ]}
+  />
+  <h1 class='text-4xl font-light text-center my-14'>All Blogs</h1>
+  <p class='my-8 text-2xl font-light'>This page has list of all the blogs, including the ones which are in draft.</p>
+
+  <BlogList blogs={posts} headingLevel='h2' type='detailed' filterable={false} />
+</Layout>

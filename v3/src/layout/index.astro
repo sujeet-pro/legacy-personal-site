@@ -17,14 +17,16 @@ type Props = {
   title: string
   description: string
   image?: string | undefined
+  noIndex?: boolean | undefined
 }
-const { title, description, image } = Astro.props
+const { title, description, image, noIndex } = Astro.props
 ---
 
 <!doctype html>
 <html lang='en' class='scroll-smooth focus:scroll-auto' data-theme='dark'>
   <head>
     <meta charset='utf-8' />
+    {noIndex ? <meta name='robots' content='noindex' /> : null}
     <meta name='viewport' content='width=device-width,initial-scale=1' />
     <meta name='generator' content={Astro.generator} />
     <link rel='preload' as='font' type='font/woff2' href={openSansWoff2} crossorigin='anonymous' />

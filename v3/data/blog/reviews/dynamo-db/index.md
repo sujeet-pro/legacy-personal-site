@@ -7,7 +7,7 @@ lastUpdatedOn: null
 featuredRank: -1
 image: null
 imageCredit: null
-articleLink: https://github.com/sujeet-pro/zotero-sync/blob/main/zotero-attachments/research-papers/amazon-dynamo-sosp2007.pdf
+articleLink: https://github.com/sujeet-pro/learning-resources/blob/main/reviews/amazon-dynamo-sosp2007.pdf
 category: reviews
 tags:
   - distributed-systems

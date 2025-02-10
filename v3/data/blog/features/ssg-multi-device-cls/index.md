@@ -1,7 +1,7 @@
 ---
 title: Improving CLS
 description: Since entire site is pre-rendered, difference in layout between mobile/desktop causes higher CLS.
-featuredRank: 0
+featuredRank: -1
 publishedOn: 2024-01-23
 lastUpdatedOn: 2024-01-23
 image: ./ssg-cls.svg

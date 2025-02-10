@@ -8,7 +8,7 @@ lastUpdatedOn: null
 featuredRank: -1
 image: null
 imageCredit: null
-articleLink: https://github.com/sujeet-pro/zotero-sync/blob/main/zotero-attachments/research-papers/bitcoin.pdf
+articleLink: https://github.com/sujeet-pro/learning-resources/blob/main/reviews/bitcoin.pdf
 category: reviews
 tags:
   - distributed-systems

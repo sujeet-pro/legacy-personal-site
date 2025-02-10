@@ -3,7 +3,7 @@ title: The Node.js Architecture
 description: Deep dive into Node.js internal architecture
 publishedOn: 2025-02-06
 lastUpdatedOn: 2025-02-08
-featuredRank: 1
+featuredRank: 10
 image: null
 imageCredit: null
 articleLink: null

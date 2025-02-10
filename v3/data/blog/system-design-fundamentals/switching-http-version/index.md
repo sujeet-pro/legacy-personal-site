@@ -3,7 +3,7 @@ title: Switching HTTP Versions on browser
 description: How and when browser decides to switch HTTP Versions
 publishedOn: 2023-09-01
 lastUpdatedOn: 2023-09-01
-featuredRank: 2
+featuredRank: 5
 image: null
 imageCredit: null
 articleLink: null

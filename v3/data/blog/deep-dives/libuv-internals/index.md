@@ -3,7 +3,7 @@ title: Libuv Internals
 description: libuv is a multi-platform support library with a focus on asynchronous I/O
 publishedOn: 2025-02-08
 lastUpdatedOn: 2025-02-08
-featuredRank: 1
+featuredRank: 3
 image: null
 imageCredit: null
 articleLink: null

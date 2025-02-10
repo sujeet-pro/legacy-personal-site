@@ -1,6 +1,7 @@
 ---
 import Breadcrumb from '@/components/breadcrumb.astro'
 import FormattedDate from '@/components/formatted-date.astro'
+import Link from '@/components/link.astro'
 import Markdown from '@/components/markdown.astro'
 import TableOfContents from '@/components/table-of-contents.astro'
 import { CLS_COLOR_DIVIDER } from '@/configs/colors'
@@ -12,15 +13,15 @@ import { Image } from 'astro:assets'
 import { getEntries, getEntry, render } from 'astro:content'
 
 export async function getStaticPaths() {
-  const posts = await getBlogs()
+  const posts = await getBlogs({ allowUnpublished: true })
   const postCount = posts.length
   return posts.map((post, index) => ({
     params: { slug: post.id },
     props: {
       post,
       prevPost: index + 1 !== postCount ? posts[index + 1] : null,
-      nextPost: index !== 0 ? posts[index - 1] : null
-    }
+      nextPost: index !== 0 ? posts[index - 1] : null,
+    },
   }))
 }
 
@@ -29,30 +30,45 @@ const { title, description, publishedOn, lastUpdatedOn, image, imageCredit } = p
 const tags = await getEntries(post.data.tags)
 const category = await getEntry(post.data.category)
 const { Content, headings } = await render(post)
+
+// All the reviews must have a article Link
+if (category.id === 'reviews') {
+  const articleLink = post.data.articleLink
+  if (!articleLink) {
+    throw new Error('Review must have an article link')
+  }
+}
 ---
 
-<Layout title={title} description={description}>
+<Layout title={title} description={description} noIndex={!publishedOn}>
   <Breadcrumb
     crumbs={[
       { name: 'Blog', href: '/blog' },
       { name: category.data.name, href: `/category/${category.id}` },
-      { name: title, href: '' }
+      { name: title, href: '' },
     ]}
   />
-  <article data-pagefind-body>
+  <article data-pagefind-body={publishedOn ? '' : null}>
     <h1 class='text-4xl font-light'>{title}</h1>
     <div class:list={['my-2 flex text-sm divide-x', CLS_COLOR_DIVIDER]}>
       <span data-pagefind-filter='category' class='pr-2'>{category.data.name}</span>
-      {publishedOn ? <FormattedDate date={publishedOn} /> : null}
+      {publishedOn ? <FormattedDate date={publishedOn} class='px-2' /> : <span class='px-2'>In Draft</span>}
       {
         lastUpdatedOn && publishedOn && publishedOn.toISOString() !== lastUpdatedOn.toISOString() ? (
-          <span class='ml-4'>
+          <span class='px-2'>
             Last updated: <FormattedDate date={lastUpdatedOn} />
           </span>
         ) : null
       }
     </div>
     <p class='my-8 text-2xl font-light'>{description}</p>
+    {
+      category.id === 'reviews' && post.data.articleLink ? (
+        <Link href={post.data.articleLink} target='_blank' class=''>
+          Read the original article
+        </Link>
+      ) : null
+    }
     {
       image ? (
         <figure class='my-8'>
