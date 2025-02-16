@@ -2,8 +2,9 @@
 import Accordion from '@/components/accordion.astro'
 import Breadcrumb from '@/components/breadcrumb.astro'
 import Link from '@/components/link.astro'
+import { SITE_POST_TITLE } from '@/configs/site.constants'
 import Layout from '@/layout/index.astro'
-import BlogList from '@/modules/blog/blog-list.astro'
+import PostList from '@/modules/post/post-list.astro'
 import { getCategories } from '@/utils/category-content.utils'
 
 const categoriesDetails = await getCategories()
@@ -12,21 +13,21 @@ const categoriesDetails = await getCategories()
 <Layout title='Categories | Sujeet.pro' description='List of all the categories, I write about.'>
   <Breadcrumb
     crumbs={[
-      { name: 'Blog', href: '/blog' },
-      { name: 'All Categories', href: '' }
+      { name: SITE_POST_TITLE, href: '/post' },
+      { name: 'All Categories', href: '' },
     ]}
   />
   <h1 class='text-4xl font-light text-center my-14'>Categories</h1>
 
   {
-    categoriesDetails.map(({ blogs, category, count }) => (
+    categoriesDetails.map(({ posts, category, count }) => (
       <Accordion title={category.data.name}>
         <h2 class='text-2xl ' slot='title'>
           <Link href={`/category/${category.id}`}>
             {category.data.name} ({count})
           </Link>
         </h2>
-        <BlogList blogs={blogs} type='simple' />
+        <PostList posts={posts} type='simple' />
       </Accordion>
     ))
   }

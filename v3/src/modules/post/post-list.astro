@@ -1,0 +1,63 @@
+---
+import { CLS_COLOR_DIVIDER } from '@/configs/colors'
+import type { CollectionEntry } from 'astro:content'
+import PostListItem from './post-list-item.astro'
+
+type Props =
+  | {
+      type: 'detailed'
+      posts: CollectionEntry<'post'>[]
+      headingLevel: 'h2' | 'h3'
+      filterable: boolean
+    }
+  | {
+      type: 'simple'
+      posts: CollectionEntry<'post'>[]
+    }
+  | {
+      type: 'next-prev'
+      nextPost?: CollectionEntry<'post'> | null | undefined
+      prevPost?: CollectionEntry<'post'> | null | undefined
+    }
+
+if (Astro.props.type === 'next-prev') {
+  if (!Astro.props.nextPost && !Astro.props.prevPost) {
+    throw new Error('At least one of nextPost or prevPost should be provided.')
+  }
+}
+const props = Astro.props
+---
+
+<ul class:list={['grid grid-cols-1 divide-y divide-dashed', CLS_COLOR_DIVIDER, 'post-list']}>
+  {
+    props.type === 'detailed'
+      ? props.posts.map((post) => (
+          <PostListItem
+            post={post}
+            filterable={props.filterable}
+            headingLevel={props.headingLevel}
+            arrow='none'
+            type='detailed'
+          />
+        ))
+      : null
+  }
+  {
+    props.type === 'simple'
+      ? props.posts.map((post) => (
+          <PostListItem post={post} filterable={false} headingLevel='h3' arrow='none' type='simple' />
+        ))
+      : null
+  }
+
+  {
+    props.type === 'next-prev' && props.nextPost ? (
+      <PostListItem post={props.nextPost} filterable={false} headingLevel='h3' arrow='to-left' type='detailed' />
+    ) : null
+  }
+  {
+    props.type === 'next-prev' && props.prevPost ? (
+      <PostListItem post={props.prevPost} filterable={false} headingLevel='h3' arrow='to-right' type='detailed' />
+    ) : null
+  }
+</ul>

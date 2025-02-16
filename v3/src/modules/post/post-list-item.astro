@@ -6,18 +6,18 @@ import type { CollectionEntry } from 'astro:content'
 import { getEntry } from 'astro:content'
 
 type Props = {
-  blog: CollectionEntry<'blog'>
+  post: CollectionEntry<'post'>
   arrow: 'to-left' | 'to-right' | 'none' | undefined
   headingLevel: 'h2' | 'h3'
   filterable: boolean
   type: 'simple' | 'detailed'
 }
 
-const { blog, arrow, filterable, type, headingLevel: Hx } = Astro.props
-const { title, description, publishedOn, category: categoryRef } = blog.data
+const { post, arrow, filterable, type, headingLevel: Hx } = Astro.props
+const { title, description, publishedOn, category: categoryRef } = post.data
 const category = await getEntry(categoryRef)
-const tagsClassNames = filterable ? blog.data.tags.map((tagRef) => `tag-${tagRef.id}`) : []
-const categoryClassNames = filterable ? `category-${blog.data.category.id}` : null
+const tagsClassNames = filterable ? post.data.tags.map((tagRef) => `tag-${tagRef.id}`) : []
+const categoryClassNames = filterable ? `category-${post.data.category.id}` : null
 ---
 
 <li
@@ -25,7 +25,7 @@ const categoryClassNames = filterable ? `category-${blog.data.category.id}` : nu
     'px-4 py-4 relative flex flex-col gap-y-1 hover:shadow',
     ...tagsClassNames,
     categoryClassNames,
-    'blog-item',
+    'post-item',
   ]}
 >
   <Hx
@@ -38,7 +38,7 @@ const categoryClassNames = filterable ? `category-${blog.data.category.id}` : nu
     ]}
   >
     <Link
-      href={`/blog/${blog.id}`}
+      href={`/post/${post.id}`}
       class="after:absolute after:top-0 after:left-0 after:right-0 after:bottom-0 after:content-[' '] flex items-center"
     >
       {arrow === 'to-left' ? <span class='mr-2'>←</span> : null}

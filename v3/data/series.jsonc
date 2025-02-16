@@ -1,0 +1,17 @@
+{
+  "v8": {
+    "name": "V8 Deep dive",
+    "posts": [
+      "deep-dives/v8-internals",
+      "deep-dives/v8-interpreter-ignition",
+      "deep-dives/v8-jit-compiler-turbo-fan",
+      "deep-dives/v8-gc-orinoco",
+    ],
+    "series": null,
+  },
+  "node-js": {
+    "name": "Node.js",
+    "posts": ["deep-dives/nodejs-architecture", "deep-dives/nodejs-event-loop", "deep-dives/nodejs-libuv"],
+    "series": ["v8"],
+  },
+}

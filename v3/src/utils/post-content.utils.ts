@@ -1,14 +1,14 @@
 import { getCollection } from 'astro:content'
 
-type GetBlogOptions = {
+type GetPostOptions = {
   onlyTag?: string
   onlyFeatured?: boolean
   onlyCategory?: string
   allowUnpublished?: boolean
 }
 
-export async function getBlogs({ onlyTag, onlyFeatured, onlyCategory, allowUnpublished }: GetBlogOptions = {}) {
-  const blogs = await getCollection('blog', (post) => {
+export async function getPosts({ onlyTag, onlyFeatured, onlyCategory, allowUnpublished }: GetPostOptions = {}) {
+  const posts = await getCollection('post', (post) => {
     // Only return published posts, unless in dev mode
     const isPublished = import.meta.env.DEV || !!post.data.publishedOn || allowUnpublished
     if (!isPublished) return false
@@ -18,7 +18,7 @@ export async function getBlogs({ onlyTag, onlyFeatured, onlyCategory, allowUnpub
     if (onlyCategory && post.data.category.id !== onlyCategory) return false
     return true
   })
-  blogs.sort((a, b) => {
+  posts.sort((a, b) => {
     // Bring items without publishedOn to the front
     if (!a.data.publishedOn && b.data.publishedOn) return -1
     if (a.data.publishedOn && !b.data.publishedOn) return 1
@@ -41,8 +41,8 @@ export async function getBlogs({ onlyTag, onlyFeatured, onlyCategory, allowUnpub
   })
 
   if (onlyFeatured) {
-    blogs.sort((a, b) => a.data.featuredRank - b.data.featuredRank)
+    posts.sort((a, b) => a.data.featuredRank - b.data.featuredRank)
   }
 
-  return blogs
+  return posts
 }

@@ -5,15 +5,18 @@ import Link from '@/components/link.astro'
 import Markdown from '@/components/markdown.astro'
 import TableOfContents from '@/components/table-of-contents.astro'
 import { CLS_COLOR_DIVIDER } from '@/configs/colors'
+import { SITE_POST_TITLE } from '@/configs/site.constants'
 import Layout from '@/layout/index.astro'
-import BlogList from '@/modules/blog/blog-list.astro'
+import PostList from '@/modules/post/post-list.astro'
+import SeriesInfo from '@/modules/series/series-info.astro'
 import Tag from '@/modules/tag/tag.astro'
-import { getBlogs } from '@/utils/blog-content.utils'
+import { getPosts } from '@/utils/post-content.utils'
+import { getAllSeriesByPostId } from '@/utils/series-content.utils'
 import { Image } from 'astro:assets'
 import { getEntries, getEntry, render } from 'astro:content'
 
 export async function getStaticPaths() {
-  const posts = await getBlogs({ allowUnpublished: true })
+  const posts = await getPosts({ allowUnpublished: true })
   const postCount = posts.length
   return posts.map((post, index) => ({
     params: { slug: post.id },
@@ -30,7 +33,7 @@ const { title, description, publishedOn, lastUpdatedOn, image, imageCredit } = p
 const tags = await getEntries(post.data.tags)
 const category = await getEntry(post.data.category)
 const { Content, headings } = await render(post)
-
+const seriesList = await getAllSeriesByPostId(post.id)
 // All the reviews must have a article Link
 if (category.id === 'reviews') {
   const articleLink = post.data.articleLink
@@ -43,7 +46,7 @@ if (category.id === 'reviews') {
 <Layout title={title} description={description} noIndex={!publishedOn}>
   <Breadcrumb
     crumbs={[
-      { name: 'Blog', href: '/blog' },
+      { name: SITE_POST_TITLE, href: '/post' },
       { name: category.data.name, href: `/category/${category.id}` },
       { name: title, href: '' },
     ]}
@@ -77,6 +80,7 @@ if (category.id === 'reviews') {
         </figure>
       ) : null
     }
+    {seriesList.map((series) => (series.posts.length > 1 ? <SeriesInfo series={series} postId={post.id} /> : null))}
     {headings.length ? <TableOfContents headings={headings} /> : null}
     <Markdown elem='div'>
       <Content />
@@ -91,6 +95,6 @@ if (category.id === 'reviews') {
 
   <nav class='mt-12'>
     <h2 class='text-lg italic'>Read Next</h2>
-    <BlogList nextBlog={nextPost} prevBlog={prevPost} type='next-prev' />
+    <PostList nextPost={nextPost} prevPost={prevPost} type='next-prev' />
   </nav>
 </Layout>

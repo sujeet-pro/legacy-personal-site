@@ -10,16 +10,16 @@ type Props = {
 }
 const { tagsWithCount, type: tagType } = Astro.props
 const tagStyles = `
-    .tags-list-filter:has(.tag-selector:checked) ~ .blog-list .blog-item {
+    .tags-list-filter:has(.tag-selector:checked) ~ .post-list .post-item {
       display: none;
     }
     ${tagsWithCount
       .map(
         ({ tag }) => `
-      .tags-list-filter:has(.tag-selector[value="${tag.id}"]:checked) ~ .blog-list .blog-item.tag-${tag.id} {
+      .tags-list-filter:has(.tag-selector[value="${tag.id}"]:checked) ~ .post-list .post-item.tag-${tag.id} {
         display: flex;
       }
-    `
+    `,
       )
       .join('\n')}
 `

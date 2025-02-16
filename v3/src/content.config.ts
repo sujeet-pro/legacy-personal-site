@@ -7,28 +7,28 @@ const tag = defineCollection({
   loader: file('./data/tags.jsonc', {
     parser: (fileContent) => {
       return json5.parse(fileContent)
-    }
+    },
   }),
   schema: z.object({
     name: z.string(),
-    isFeatured: z.boolean()
-  })
+    isFeatured: z.boolean(),
+  }),
 })
 
 const category = defineCollection({
-  loader: file('./data/category.jsonc', {
+  loader: file('./data/categories.jsonc', {
     parser: (fileContent) => {
       return json5.parse(fileContent)
-    }
+    },
   }),
   schema: z.object({
     name: z.string(),
-    isFeatured: z.boolean()
-  })
+    isFeatured: z.boolean(),
+  }),
 })
 
-const blog = defineCollection({
-  loader: glob({ pattern: '**/[^_]*.(md|mdx)', base: './data/blog' }),
+const post = defineCollection({
+  loader: glob({ pattern: '**/[^_]*.(md|mdx)', base: './data/posts' }),
   schema: ({ image }: SchemaContext) =>
     z.object({
       title: z.string(),
@@ -40,12 +40,26 @@ const blog = defineCollection({
       imageCredit: z.string().nullable(),
       articleLink: z.string().url().nullable(),
       category: reference('category'),
-      tags: z.array(reference('tag'))
-    })
+      tags: z.array(reference('tag')),
+    }),
+})
+
+const series = defineCollection({
+  loader: file('./data/series.jsonc', {
+    parser: (fileContent) => {
+      return json5.parse(fileContent)
+    },
+  }),
+  schema: z.object({
+    name: z.string(),
+    posts: z.array(reference('post')),
+    series: z.array(reference('series')).nullable(),
+  }),
 })
 
 export const collections = {
   tag,
-  blog,
-  category
+  post,
+  category,
+  series,
 }

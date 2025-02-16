@@ -1,0 +1,35 @@
+---
+type Props = {
+  postId: string
+  prefixTitle?: string
+  headingId?: string
+}
+import Link from '@/components/link.astro'
+import { COLOR_BG_MUTED } from '@/configs/colors'
+import { getEntry, render } from 'astro:content'
+
+const { postId, prefixTitle = 'More details @ ', headingId } = Astro.props
+const post = await getEntry('post', postId)
+
+if (!post) {
+  throw new Error(`Post with id ${postId} not found`)
+}
+let heading = null
+let href = `/post/${post.id}`
+if (headingId) {
+  const { headings } = await render(post)
+  heading = headings.find((h) => h.slug === headingId)
+  if (!heading) {
+    throw new Error(`Heading with id ${headingId} not found`)
+  }
+  href += `#${headingId}`
+}
+---
+
+<div class:list={['my-4 p-4', COLOR_BG_MUTED]}>
+  {prefixTitle}
+  <Link href={href}>
+    {post.data.title}
+    ({heading ? heading.text : null})
+  </Link>
+</div>

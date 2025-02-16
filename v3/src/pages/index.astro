@@ -3,10 +3,10 @@ import Author from '@/components/author.astro'
 import Link from '@/components/link.astro'
 import { CLS_SECTION_HEADINGS } from '@/configs/colors'
 import Layout from '@/layout/index.astro'
-import BlogList from '@/modules/blog/blog-list.astro'
-import { getBlogs } from '@/utils/blog-content.utils'
+import PostList from '@/modules/post/post-list.astro'
+import { getPosts } from '@/utils/post-content.utils'
 
-const posts = await getBlogs({ onlyFeatured: true })
+const posts = await getPosts({ onlyFeatured: true })
 ---
 
 <Layout title='Sujeet' description='Personal Site'>
@@ -19,8 +19,8 @@ const posts = await getBlogs({ onlyFeatured: true })
   <section>
     <header class='flex justify-between items-center mt-14 mb-8'>
       <h2 class:list={[CLS_SECTION_HEADINGS]}>Writings</h2>
-      <Link href='/blog'>Read all blogs</Link>
+      <Link href='/post'>Read all posts</Link>
     </header>
-    <BlogList headingLevel='h3' blogs={posts} type='detailed' filterable={false} />
+    <PostList headingLevel='h3' posts={posts} type='detailed' filterable={false} />
   </section>
 </Layout>

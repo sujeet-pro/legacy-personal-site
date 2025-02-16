@@ -1,7 +1,8 @@
 ---
 import Breadcrumb from '@/components/breadcrumb.astro'
+import { SITE_POST_TITLE } from '@/configs/site.constants'
 import Layout from '@/layout/index.astro'
-import BlogList from '@/modules/blog/blog-list.astro'
+import PostList from '@/modules/post/post-list.astro'
 import { getTags } from '@/utils/tag-content.utils'
 
 export async function getStaticPaths() {
@@ -10,21 +11,21 @@ export async function getStaticPaths() {
     params: { slug: tagDetails.tag.id },
     props: {
       tag: tagDetails.tag,
-      blogs: tagDetails.blogs
-    }
+      posts: tagDetails.posts,
+    },
   }))
 }
-const { tag, blogs } = Astro.props
+const { tag, posts } = Astro.props
 ---
 
-<Layout title={tag.data.name} description={`List of all the blogs related to category: ${tag.data.name}`}>
+<Layout title={tag.data.name} description={`List of all the posts related to category: ${tag.data.name}`}>
   <Breadcrumb
     crumbs={[
-      { name: 'Blog', href: '/blog' },
+      { name: SITE_POST_TITLE, href: '/post' },
       { name: 'Tags', href: '/tag' },
-      { name: tag.data.name, href: '' }
+      { name: tag.data.name, href: '' },
     ]}
   />
   <h1 class='text-4xl font-light text-center my-14'>{tag.data.name}</h1>
-  <BlogList blogs={blogs} headingLevel='h2' type='detailed' filterable={false} />
+  <PostList posts={posts} headingLevel='h2' type='detailed' filterable={false} />
 </Layout>

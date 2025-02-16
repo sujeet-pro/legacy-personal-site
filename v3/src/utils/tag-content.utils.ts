@@ -1,10 +1,10 @@
 import { getCollection, type CollectionEntry } from 'astro:content'
-import { getBlogs } from './blog-content.utils'
+import { getPosts } from './post-content.utils'
 
 export type TagDetails = {
   tag: CollectionEntry<'tag'>
   count: number
-  blogs: CollectionEntry<'blog'>[]
+  posts: CollectionEntry<'post'>[]
 }
 
 export async function getTags() {
@@ -14,11 +14,11 @@ export async function getTags() {
     const result: TagDetails = {
       tag,
       count: 0,
-      blogs: []
+      posts: [],
     }
-    const blogs = await getBlogs({ onlyTag: tag.id })
-    result.blogs = blogs
-    result.count += blogs.length
+    const posts = await getPosts({ onlyTag: tag.id })
+    result.posts = posts
+    result.count += posts.length
 
     if (result.count > 0) {
       allResults.push(result)

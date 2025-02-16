@@ -1,10 +1,10 @@
 import { getCollection, type CollectionEntry } from 'astro:content'
-import { getBlogs } from './blog-content.utils'
+import { getPosts } from './post-content.utils'
 
 export type CategoryDetails = {
   category: CollectionEntry<'category'>
   count: number
-  blogs: CollectionEntry<'blog'>[]
+  posts: CollectionEntry<'post'>[]
 }
 
 export async function getCategories() {
@@ -14,11 +14,11 @@ export async function getCategories() {
     const result: CategoryDetails = {
       category,
       count: 0,
-      blogs: []
+      posts: [],
     }
-    const blogs = await getBlogs({ onlyCategory: category.id })
-    result.blogs = blogs
-    result.count += blogs.length
+    const posts = await getPosts({ onlyCategory: category.id })
+    result.posts = posts
+    result.count += posts.length
 
     if (result.count > 0) {
       allResults.push(result)
