@@ -3,6 +3,7 @@ import Breadcrumb from '@/components/breadcrumb.astro'
 import FormattedDate from '@/components/formatted-date.astro'
 import Link from '@/components/link.astro'
 import Markdown from '@/components/markdown.astro'
+import ResponsiveImage from '@/components/responsive-image.astro'
 import TableOfContents from '@/components/table-of-contents.astro'
 import { CLS_COLOR_DIVIDER } from '@/configs/colors'
 import { SITE_POST_TITLE } from '@/configs/site.constants'
@@ -12,7 +13,6 @@ import SeriesInfo from '@/modules/series/series-info.astro'
 import Tag from '@/modules/tag/tag.astro'
 import { getPosts } from '@/utils/post-content.utils'
 import { getAllSeriesByPostId } from '@/utils/series-content.utils'
-import { Image } from 'astro:assets'
 import { getEntries, getEntry, render } from 'astro:content'
 
 export async function getStaticPaths() {
@@ -74,10 +74,9 @@ if (category.id === 'reviews') {
     }
     {
       image ? (
-        <figure class='my-8'>
-          <Image src={image} alt={title} class='w-full' />
-          {imageCredit ? <figcaption class='text-center text-xs italic' set:html={imageCredit} /> : null}
-        </figure>
+        <ResponsiveImage src={image} alt={title} priority>
+          {imageCredit ? <span class='text-center text-xs italic' set:html={imageCredit} /> : null}
+        </ResponsiveImage>
       ) : null
     }
     {seriesList.map((series) => (series.posts.length > 1 ? <SeriesInfo series={series} postId={post.id} /> : null))}

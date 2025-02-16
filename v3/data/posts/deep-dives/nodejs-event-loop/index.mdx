@@ -14,6 +14,12 @@ tags:
   - performance
 ---
 
+import ReadMorePost from '@/modules/post/read-more-post.astro'
+import ResponsiveImage from '@/components/responsive-image.astro'
+import nextTickAndPromises from './nexttick-and-promises.jpg'
+import nodejsEventLoopWithExample from './nodejs-event-loop-with-example.png'
+import phasesOverview from './phases-overview.jpg'
+
 ## What is Event Loop in Node.js?
 
 The event loop in Node.js is a mechanism that manages asynchronous
@@ -66,7 +72,9 @@ The below diagram shows simplified overview of event loop's order of operation.
 
 ### Overview
 
-![Phases by Bert Belder at Node Interactive - 2016](./phases-overview.jpg)
+<ResponsiveImage src={phasesOverview} alt='Phases by Bert Belder at Node Interactive - 2016'>
+  Phases by Bert Belder at Node Interactive - 2016
+</ResponsiveImage>
 
 - **timers**: this phase executes callbacks scheduled by `setTimeout()` and `setInterval()`.
 - **pending callbacks**: executes I/O callbacks deferred to the next loop iteration.
@@ -101,8 +109,6 @@ The poll phase has two main functions:
 
 - Calculating how long it should block or poll for I/O
 - Processing events in the poll queue
-
-import ReadMorePost from '@/modules/post/read-more-post.astro'
 
 <ReadMorePost postId='deep-dives/nodejs-libuv' headingId='poll-timeout-is-calculated' />
 
@@ -155,7 +161,9 @@ If a socket or handle is closed abruptly (e.g. socket.destroy()), the `'close'` 
 
 - Once the event loop, starts processing callbacks from micro-tasks, nextTick will not be executed.
 
-![NextTick & Promises Slide by Bert Belder at Node Interactive - 2016](./nexttick-and-promises.jpg)
+<ResponsiveImage alt='NextTick & Promises Slide by Bert Belder at Node Interactive - 2016' src={nextTickAndPromises}>
+  NextTick & Promises Slide by Bert Belder at Node Interactive - 2016
+</ResponsiveImage>
 
 ## References
 
