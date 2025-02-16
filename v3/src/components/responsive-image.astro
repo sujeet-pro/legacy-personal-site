@@ -1,0 +1,25 @@
+---
+import { Picture, type LocalImageProps } from 'astro:assets'
+type Props = {
+  src: LocalImageProps['src']
+  alt: string
+  priority?: boolean
+}
+const { src, alt, priority } = Astro.props
+---
+
+<figure>
+  <Picture
+    src={src}
+    alt={alt}
+    layout='responsive'
+    formats={['avif', 'webp', 'jpeg']}
+    fit='cover'
+    position='center'
+    priority={!!priority}
+    sizes='48rem'
+  />
+  <figcaption class='text-center text-xs italic'>
+    <slot>{alt}</slot>
+  </figcaption>
+</figure>

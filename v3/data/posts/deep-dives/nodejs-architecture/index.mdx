@@ -16,6 +16,9 @@ tags:
   - performance
 ---
 
+import ResponsiveImage from '@/components/responsive-image.astro'
+import ReadMorePost from '@/modules/post/read-more-post.astro'
+
 ## What is Node.js
 
 Node.js is a powerful, open-source, and cross-platform JavaScript
@@ -45,9 +48,15 @@ Node.js follows event-driven, non-blocking I/O Architecture.
 
 ### Terminology
 
-- **Synchronous (Blocking) I/O**: In synchronous I/O, when a program initiates an I/O operation, it blocks (waits) until that operation is fully completed. The program's execution pauses, and no other tasks can be performed during this waiting period. Think of it like waiting in line at the post office – you can't do anything else until it's your turn.
+- **Synchronous (Blocking) I/O**: In synchronous I/O, when a program initiates an I/O operation, it blocks (waits)
+  until that operation is fully completed. The program's execution pauses, and no other tasks can be performed
+  during this waiting period. Think of it like waiting in line at the post office – you can't do anything else
+  until it's your turn.
 
-- **Asynchronous (Non-Blocking) I/O**: In asynchronous I/O, when a program starts an I/O operation, it doesn't wait for it to finish. Instead, it continues executing other code. When the I/O operation eventually completes, the program is notified (often through a callback function or an event), and it can then process the result of the I/O operation. It's like ordering a pizza online – you don't wait at the restaurant; you get a notification when it's ready.
+- **Asynchronous (Non-Blocking) I/O**: In asynchronous I/O, when a program starts an I/O operation,
+  it doesn't wait for it to finish. Instead, it continues executing other code. When the I/O operation eventually completes,
+  the program is notified (often through a callback function or an event), and it can then process the result of the I/O operation.
+  It's like ordering a pizza online – you don't wait at the restaurant; you get a notification when it's ready.
 
 ## Node.js Components
 
@@ -82,11 +91,16 @@ Node.js follows event-driven, non-blocking I/O Architecture.
 
 This is the high-performance JavaScript engine developed by Google for Chrome. Node.js uses V8 to execute JavaScript code. It's a core component that significantly impacts Node.js's speed and efficiency.
 
-import ReadMorePost from '@/modules/post/read-more-post.astro'
+import v8Flow from './v8-flow.webp'
 
 <ReadMorePost postId='deep-dives/v8-internals' />
 
-![V8 Compiler pipeline from the blog Understanding V8’s Bytecode by Franziska Hinkelmann](./v8-flow.webp)
+<ResponsiveImage
+  src={v8Flow}
+  alt='V8 Compiler pipeline from the blog Understanding V8’s Bytecode by Franziska Hinkelmann'
+>
+  [Javascript Engines by Franziska Hinkelmann](https://youtu.be/p-iiEDtpy6I?si=dSPAO3YcAvksJRpy&t=727)
+</ResponsiveImage>
 
 ### libuv
 
@@ -129,14 +143,20 @@ This library parses HTTP requests and responses. It's used for handling network 
 
 ### zlib
 
-Node.js uses zlib for compression and decompression. This is useful for handling data efficiently, especially in network applications.
+Node.js uses [zlib](https://github.com/madler/zlib) for compression and decompression. This is useful for handling data efficiently, especially in network applications.
 
-- The [node:zlib](https://nodejs.org/api/zlib.html#zlib) module provides compression functionality implemented using Gzip, Deflate/Inflate, Brotli, and Zstd.
-- [zlib](https://github.com/madler/zlib)
+The [node:zlib](https://nodejs.org/api/zlib.html#zlib) module provides compression functionality implemented using Gzip, Deflate/Inflate, Brotli, and Zstd.
 
-## Is it Single or Multi threaded?
+## Is Node Single or Multi threaded?
 
-It's complicated! - few things are multi threaded, few things are not.
+import asyncOperations from './async-operations.jpg'
+
+<ResponsiveImage src={asyncOperations} alt='Async Operations Slide by Bert Belder at Node Interactive - 2016'>
+  Async Operations Slide by [Bert Belder at Node Interactive
+  -2016](https://youtu.be/PNa9OMajw9w?si=VDodCKJ_Xok7YEZY&t=707)
+</ResponsiveImage>
+
+It's both! - few things are multi threaded, few things are not.
 
 - The user code runs on the single thread (main thread)
 - Event loop runs on the single thread.
@@ -152,13 +172,9 @@ So, its multi-threaded, but then the user code doesn't have the control to decid
 
 Node.js workers leverage the worker_threads module. Each worker runs in its own process. This means they do not share memory directly.
 
-## Async Operations
-
-![Async Operations Slide by Bert Belder at Node Interactive - 2016](./async-operations.jpg)
-
 ## Node.js Event Loop (Simplified)
 
-This is a over-simplified explanation, for details read the blog on [The Node.js Event Loop](./nodejs-event-loop)
+<ReadMorePost postId='deep-dives/nodejs-event-loop' prefixTitle='This is a over-simplified explanation. Read more @ ' />
 
 - **Initiate I/O**: The program starts an asynchronous I/O operation (e.g., reading data from a file).
 - **Continue Execution**: The program doesn't wait. It moves on to execute other code.
@@ -166,7 +182,15 @@ This is a over-simplified explanation, for details read the blog on [The Node.js
 - **Notification/Callback**: When the I/O operation is complete (e.g., the data has been read from the file), the operating system notifies the program. This notification might trigger a callback function that was associated with the I/O operation.
 - **Process Result**: The program now executes the callback function to process the data or result of the I/O operation.
 
-![Node.js Event Loop Example Diagram by Tyler Hawkins as presented in UtahJS Conf](./nodejs-event-loop-with-example.png)
+import eventLoopImg from './nodejs-event-loop-with-example.png'
+
+<ResponsiveImage
+  src={eventLoopImg}
+  alt='Node.js Event Loop Example Diagram by Tyler Hawkins as presented in UtahJS Conf'
+>
+  Node.js Event Loop Example Diagram by Tyler Hawkins as presented in [UtahJS
+  Conf](https://youtu.be/KKM_4-uQpow?si=ih-K1_2iI38Gv1TT&t=1498)
+</ResponsiveImage>
 
 ## References
 

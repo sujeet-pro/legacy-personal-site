@@ -30,6 +30,6 @@ if (headingId) {
   {prefixTitle}
   <Link href={href}>
     {post.data.title}
-    ({heading ? heading.text : null})
+    {heading ? `(${heading.text})` : null}
   </Link>
 </div>

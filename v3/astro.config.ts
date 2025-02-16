@@ -34,8 +34,9 @@ export default defineConfig({
   },
   experimental: {
     contentIntellisense: true,
-    // clientPrerender: true
+    clientPrerender: true,
     svg: true,
+    responsiveImages: true,
   },
   scopedStyleStrategy: 'where',
   output: 'static',
