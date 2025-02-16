@@ -3,7 +3,6 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "postinstall": "npx playwright install --with-deps chromium",
     "start": "npm run clean && npm run sync && npm run build && npm run dev",
     "start:preview": "npm run clean && npm run sync && npm run build && npm run preview",
     "start:preview:gh": "npm run clean && npm run sync && npm run build:gh && npm run preview:gh",
