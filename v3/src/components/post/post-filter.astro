@@ -11,20 +11,19 @@ const { tagDetails, categoryDetails } = Astro.props
 
 function cssFactory(name: 'tag' | 'category', value: string) {
   return `
-    .post-filter:has(.checkbox[name="${name}-selector"][value="${value}"]:checked) ~ #main-content .post-list .post-item.${name}-${value} {
+    .post-filter:has(.tab[name="filter-list"][value="${name}"]:checked):has(.checkbox[name="${name}-selector"][value="${value}"]:checked) ~ #main-content .post-list .post-item.${name}-${value} {
       display: flex;
     }
   `
 }
 
 const tagStyles = `
-    .post-filter:has(.checkbox:checked) ~ #main-content .post-list .post-item {
+    .post-filter:has(.tab[name="filter-list"][value="category"]:checked):has(.checkbox[name="category-selector"]:checked) ~ #main-content .post-list .post-item {
       display: none;
     }
-    .post-filter:has(.tab[name="filter-list"][value="all"]:checked) ~ #main-content .post-list .post-item {
-      display: flex;
+    .post-filter:has(.tab[name="filter-list"][value="tag"]:checked):has(.checkbox[name="tag-selector"]:checked) ~ #main-content .post-list .post-item {
+      display: none;
     }
-
     ${categoryDetails.map((config) => cssFactory('category', config.category.id)).join('\n')}
     ${tagDetails.map((config) => cssFactory('tag', config.tag.id)).join('\n')}
     
