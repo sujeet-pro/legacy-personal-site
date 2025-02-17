@@ -1,16 +1,15 @@
 ---
-import Breadcrumb from '@/components/breadcrumb.astro'
-import FormattedDate from '@/components/formatted-date.astro'
-import Link from '@/components/link.astro'
-import Markdown from '@/components/markdown.astro'
-import ResponsiveImage from '@/components/responsive-image.astro'
-import TableOfContents from '@/components/table-of-contents.astro'
-import { CLS_COLOR_DIVIDER } from '@/configs/colors'
+import Breadcrumb from '@/components/core/breadcrumb.astro'
+import FormattedDate from '@/components/core/formatted-date.astro'
+import Link from '@/components/core/link.astro'
+import Markdown from '@/components/core/markdown.astro'
+import ResponsiveImage from '@/components/core/responsive-image.astro'
+import TableOfContents from '@/components/core/table-of-contents.astro'
+import Layout from '@/components/layout/index.astro'
+import PostList from '@/components/post/post-list.astro'
+import SeriesInfo from '@/components/series/series-info.astro'
+import Tag from '@/components/tag/tag.astro'
 import { SITE_POST_TITLE } from '@/configs/site.constants'
-import Layout from '@/layout/index.astro'
-import PostList from '@/modules/post/post-list.astro'
-import SeriesInfo from '@/modules/series/series-info.astro'
-import Tag from '@/modules/tag/tag.astro'
 import { getPosts } from '@/utils/post-content.utils'
 import { getAllSeriesByPostId } from '@/utils/series-content.utils'
 import { getEntries, getEntry, render } from 'astro:content'
@@ -53,7 +52,7 @@ if (category.id === 'reviews') {
   />
   <article data-pagefind-body={publishedOn ? '' : null}>
     <h1 class='text-4xl font-light'>{title}</h1>
-    <div class:list={['my-2 flex text-sm divide-x', CLS_COLOR_DIVIDER]}>
+    <div class='my-2 flex text-sm divide-x divide-base-300'>
       <span data-pagefind-filter='category' class='pr-2'>{category.data.name}</span>
       {publishedOn ? <FormattedDate date={publishedOn} class='px-2' /> : <span class='px-2'>In Draft</span>}
       {
@@ -81,19 +80,20 @@ if (category.id === 'reviews') {
     }
     {seriesList.map((series) => (series.posts.length > 1 ? <SeriesInfo series={series} postId={post.id} /> : null))}
     {headings.length ? <TableOfContents headings={headings} /> : null}
-    <Markdown elem='div'>
+    <Markdown elem='main' id='main-content'>
       <Content />
     </Markdown>
   </article>
 
-  <hr class='my-8' />
-
-  <div class='flex flex-wrap gap-x-5 gap-y-1 text-sm'>
-    {tags.map((tag) => <Tag tag={tag} type='link' filterTag='tag' />)}
-  </div>
+  <section class='mt-12'>
+    <h2 class='text-lg italic divider divider-start'>Tags</h2>
+    <div class='flex flex-wrap gap-x-5 gap-y-1 text-sm'>
+      {tags.map((tag) => <Tag tag={tag} type='link' filterTag='tag' />)}
+    </div>
+  </section>
 
   <nav class='mt-12'>
-    <h2 class='text-lg italic'>Read Next</h2>
+    <h2 class='text-lg italic divider divider-start'>Read Next</h2>
     <PostList nextPost={nextPost} prevPost={prevPost} type='next-prev' />
   </nav>
 </Layout>

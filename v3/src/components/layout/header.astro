@@ -1,0 +1,58 @@
+---
+import Link from '@/components/core/link.astro'
+import Search from '@/components/icons/search.astro'
+import ThemeSelector from './theme-selector.astro'
+---
+
+<header class='navbar bg-base-200 shadow-sm sticky top-0 z-10'>
+  <div class='navbar-start'>
+    <Link href='/' class='btn btn-ghost text-xl'>sujeet.pro</Link>
+  </div>
+  <div class='navbar-end'>
+    <Link href='/search' class='btn btn-ghost md:hidden' id='search-input-anchor-element'
+      ><Search /><span class='sr-only'>Search</span></Link
+    >
+    <label class='input hidden md:inline-flex'>
+      <Search class='h-[1em] opacity-50' />
+      <input type='search' class='grow' placeholder='Search' enterkeyhint='search' id='search-input-element' />
+      <kbd class='kbd kbd-sm'>⌘</kbd>
+      <kbd class='kbd kbd-sm'>K</kbd>
+    </label>
+    <ThemeSelector />
+  </div>
+</header>
+
+<script>
+  document.addEventListener('keydown', (event) => {
+    if (event.metaKey && event.key === 'k') {
+      event.preventDefault()
+      // If pagefind search is available, focus on it (on search page)
+      const pageFindSearchInput = document.querySelector<HTMLInputElement>('.pagefind-ui__search-input')
+      if (pageFindSearchInput) {
+        pageFindSearchInput.focus()
+        return
+      }
+      // Focus on the search input element, if visible (hidden on mobile)
+      const searchInput = document.querySelector<HTMLInputElement>('#search-input-element')
+      if (!!searchInput?.offsetParent) {
+        searchInput.focus()
+        return
+      }
+      // Focus on the search input anchor element, if visible (hidden on desktop)
+      const searchAnchor = document.querySelector<HTMLAnchorElement>('#search-input-anchor-element')
+      if (!!searchAnchor?.offsetParent) {
+        searchAnchor.click()
+        return
+      }
+    }
+  })
+
+  document.querySelector<HTMLInputElement>('#search-input-element')?.addEventListener('keyup', (event) => {
+    if (event.key === 'Enter') {
+      const query = (event.target as HTMLInputElement | undefined)?.value
+      if (query) {
+        window.location.href = `/search?q=${encodeURIComponent(query)}`
+      }
+    }
+  })
+</script>

@@ -1,0 +1,42 @@
+@import 'tailwindcss';
+@plugin "@tailwindcss/typography";
+@plugin "daisyui" {
+  themes:
+    light --default,
+    dark --prefersdark;
+}
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+@theme {
+  --font-primary: 'Open Sans Variable', sans-serif;
+}
+
+.pagefind-ui {
+  --pagefind-ui-font: var(--font-primary);
+  --pagefind-ui-border-width: var(--border);
+  --pagefind-ui-primary: var(--color-primary);
+  --pagefind-ui-text: var(--color-base-content);
+  --pagefind-ui-background: var(--color-base-100);
+  --pagefind-ui-border: var(--color-base-200);
+  --pagefind-ui-tag: var(--color-secondary-content);
+}
+
+.pagefind-ui__result-link {
+  @apply font-medium!;
+}
+
+.pagefind-ui__search-input {
+  @apply input font-medium!;
+}
+
+figcaption {
+  @apply text-center;
+}
+
+img,
+video,
+iframe,
+svg:not(.icon) {
+  max-width: 100%;
+  @apply mx-auto max-w-full;
+}

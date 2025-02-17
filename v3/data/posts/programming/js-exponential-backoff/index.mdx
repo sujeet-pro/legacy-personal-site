@@ -14,7 +14,7 @@ tags:
   - design-patterns
 ---
 
-import CodeTabs from '@/components/code-tabs.astro'
+import CodeTabs from '@/components/core/code-tabs.astro'
 import { Code } from 'astro-expressive-code/components'
 import exponentialBackoffAbortableCode from './code-samples/exponential-backoff-abortable.ts?raw'
 import simpleRetryWithDelayCode from './code-samples/simple-retry-with-delay.ts?raw'
@@ -65,7 +65,7 @@ The Functions should be abortable in production code.
 <CodeTabs
   codes={[
     { code: exponentialBackoffAbortableCode, lang: 'ts', title: 'exponential-backoff.ts' },
-    { code: waitAbortableCode, lang: 'ts', title: 'wait-abortable.ts' }
+    { code: waitAbortableCode, lang: 'ts', title: 'wait-abortable.ts' },
   ]}
 />
 

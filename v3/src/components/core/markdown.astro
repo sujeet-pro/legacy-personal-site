@@ -1,0 +1,12 @@
+---
+type Props = {
+  elem?: 'div' | 'article' | 'main'
+  id?: string
+}
+const { elem: Elem = 'article', id } = Astro.props
+// dark:prose-invert max-w-none code-blocks prose-headings:font-medium
+---
+
+<Elem class='prose max-w-none prose-headings:font-medium' {id}>
+  <slot />
+</Elem>

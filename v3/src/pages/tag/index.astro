@@ -1,10 +1,10 @@
 ---
-import Accordion from '@/components/accordion.astro'
-import Breadcrumb from '@/components/breadcrumb.astro'
-import Link from '@/components/link.astro'
+import Accordion from '@/components/core/accordion.astro'
+import Breadcrumb from '@/components/core/breadcrumb.astro'
+import Link from '@/components/core/link.astro'
+import Layout from '@/components/layout/index.astro'
+import PostList from '@/components/post/post-list.astro'
 import { SITE_POST_TITLE } from '@/configs/site.constants'
-import Layout from '@/layout/index.astro'
-import PostList from '@/modules/post/post-list.astro'
 import { getTags } from '@/utils/tag-content.utils'
 
 const tagsDetails = await getTags()
@@ -17,18 +17,19 @@ const tagsDetails = await getTags()
       { name: 'All Tags', href: '' },
     ]}
   />
-  <h1 class='text-4xl font-light text-center my-14'>Tags</h1>
-
-  {
-    tagsDetails.map(({ posts, tag, count }) => (
-      <Accordion title={tag.data.name}>
-        <h2 class='text-2xl' slot='title'>
-          <Link href={`/tag/${tag.id}`}>
-            {tag.data.name} ({count})
-          </Link>
-        </h2>
-        <PostList posts={posts} type='simple' />
-      </Accordion>
-    ))
-  }
+  <main id='main-content'>
+    <h1 class='text-4xl font-light text-center my-14'>Tags</h1>
+    {
+      tagsDetails.map(({ posts, tag, count }) => (
+        <Accordion title={tag.data.name}>
+          <h2 class='text-2xl' slot='title'>
+            <Link href={`/tag/${tag.id}`}>
+              {tag.data.name} ({count})
+            </Link>
+          </h2>
+          <PostList posts={posts} type='simple' />
+        </Accordion>
+      ))
+    }
+  </main>
 </Layout>

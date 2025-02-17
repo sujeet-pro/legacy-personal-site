@@ -1,0 +1,32 @@
+---
+import Home from '@/components/icons/home.astro'
+import Link from './link.astro'
+
+type Props = {
+  crumbs: { name: string; href: string }[]
+}
+const { crumbs } = Astro.props
+// TODO: For Home, use the home icon
+---
+
+<nav class='breadcrumbs text-sm my-6'>
+  <ul>
+    <li>
+      <Link href='/'>
+        <Home />
+        Home
+      </Link>
+    </li>
+    {
+      crumbs.map((crumb, index) =>
+        index < crumbs.length - 1 ? (
+          <li>
+            <Link href={crumb.href}>{crumb.name}</Link>
+          </li>
+        ) : (
+          <li>{crumb.name}</li>
+        ),
+      )
+    }
+  </ul>
+</nav>

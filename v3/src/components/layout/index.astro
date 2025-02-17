@@ -1,5 +1,4 @@
 ---
-import { COLOR_BASE } from '@/configs/colors'
 import { SITE_CANONICAL_ORIGIN, SITE_TITLE } from '@/configs/site.constants'
 import '@fontsource-variable/open-sans'
 import openSansWoff2 from '@fontsource-variable/open-sans/files/open-sans-latin-wght-normal.woff2?url'
@@ -23,7 +22,7 @@ const { title, description, image, noIndex } = Astro.props
 ---
 
 <!doctype html>
-<html lang='en' class='scroll-smooth focus:scroll-auto' data-theme='dark'>
+<html lang='en' class='scroll-smooth focus:scroll-auto'>
   <head>
     <meta charset='utf-8' />
     {noIndex ? <meta name='robots' content='noindex' /> : null}
@@ -42,12 +41,13 @@ const { title, description, image, noIndex } = Astro.props
     <!-- SiteMap -->
     <link rel='sitemap' href={new URL('sitemap-index.xml', SITE_CANONICAL_ORIGIN)} />
   </head>
-  <body class:list={['antialiased break-words', COLOR_BASE]}>
+  <body class='antialiased break-words font-primary'>
+    <a href='#main-content' class='sr-only focus:not-sr-only'>Skip to main content</a>
     <div class='bg-inherit max-w-3xl mx-auto px-4 md:px-8 flex flex-col gap-y-6 min-h-screen'>
       <Header />
-      <main class='grow w-full'>
+      <div class='grow w-full'>
         <slot />
-      </main>
+      </div>
       <Footer />
     </div>
     <Analytics />

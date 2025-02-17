@@ -1,7 +1,6 @@
 ---
-import FormattedDate from '@/components/formatted-date.astro'
-import Link from '@/components/link.astro'
-import { CLS_COLOR_DIVIDER } from '@/configs/colors'
+import FormattedDate from '@/components/core/formatted-date.astro'
+import Link from '@/components/core/link.astro'
 import type { CollectionEntry } from 'astro:content'
 import { getEntry } from 'astro:content'
 
@@ -25,7 +24,7 @@ const categoryClassNames = filterable ? `category-${post.data.category.id}` : nu
     'px-4 py-4 relative flex flex-col gap-y-1 hover:shadow',
     ...tagsClassNames,
     categoryClassNames,
-    'post-item',
+    { 'post-item': filterable },
   ]}
 >
   <Hx
@@ -50,7 +49,7 @@ const categoryClassNames = filterable ? `category-${post.data.category.id}` : nu
   {
     type === 'detailed' ? (
       <>
-        <div class:list={['text-xs divide-x', CLS_COLOR_DIVIDER]}>
+        <div class='text-xs divide-x divide-base-300'>
           <span class='pr-2'>
             <Link href={`/category/${category.id}`}>{category.data.name}</Link>
           </span>

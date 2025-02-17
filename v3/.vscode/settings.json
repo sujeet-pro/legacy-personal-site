@@ -11,7 +11,17 @@
     "*.css": "tailwindcss"
   },
   "astro.content-intellisense": true,
-  "cSpell.words": ["fontsource", "frontends", "libuv", "llhttp", "microflash", "microtask", "pagefind", "wght"],
+  "cSpell.words": [
+    "fontsource",
+    "frontends",
+    "libuv",
+    "llhttp",
+    "microflash",
+    "microtask",
+    "pagefind",
+    "prefersdark",
+    "wght"
+  ],
   "json.schemas": [
     {
       "fileMatch": ["*.jsonc"],

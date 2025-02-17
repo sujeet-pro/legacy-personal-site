@@ -10,8 +10,19 @@
     "series": null,
   },
   "node-js": {
-    "name": "Node.js",
+    "name": "Node.js Deep dive",
     "posts": ["deep-dives/nodejs-architecture", "deep-dives/nodejs-event-loop", "deep-dives/nodejs-libuv"],
     "series": ["v8"],
+  },
+  "ssg": {
+    "name": "Statically Generated Sites",
+    "posts": [
+      "features/ssg",
+      "features/ssg-multi-device-cls",
+      "features/ssg-redirection",
+      "features/ssg-rollback-with-aws",
+      "features/ssg-serving-pre-compressed",
+    ],
+    "series": null,
   },
 }

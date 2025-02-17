@@ -1,5 +1,4 @@
 ---
-import { COLOR_BG_MUTED } from '@/configs/colors'
 import type { MarkdownHeading } from 'astro'
 import Accordion from './accordion.astro'
 import Link from './link.astro'
@@ -25,7 +24,7 @@ function nestedHeading(headings: MarkdownHeading[]): NestedHeading[] {
 const nestedHeadings = nestedHeading(Astro.props.headings)
 ---
 
-<section class:list={[COLOR_BG_MUTED, 'my-4']}>
+<section class='bg-base-200 my-4'>
   <Accordion title='Table of Contents'>
     <nav class='toc'>
       <ul class='list-disc list-inside'>

@@ -1,11 +1,11 @@
 ---
-import Link from '@/components/link.astro'
+import Link from '@/components/core/link.astro'
 import type { CollectionEntry } from 'astro:content'
 
 type Props = {
   tag: CollectionEntry<'tag'>
   count?: number | undefined
-  type: 'input' | 'text' | 'link'
+  type: 'input' | 'link'
   filterTag?: string
 }
 
@@ -15,22 +15,15 @@ const { tag, count, type = 'text', filterTag } = Astro.props
 {
   type === 'input' ? (
     <label class='flex gap-1 items-center has-checked:font-semibold'>
-      <input type='checkbox' class='tag-selector' value={tag.id} />#{tag.data.name}
+      <input type='checkbox' class='tag-selector checkbox' value={tag.id} />#{tag.data.name}
       {count && ` (${count})`}
     </label>
   ) : null
 }
-{
-  type === 'text' ? (
-    <span>
-      #{tag.data.name}
-      {count && ` (${count})`}
-    </span>
-  ) : null
-}
+
 {
   type === 'link' ? (
-    <Link href={`/tag/${tag.id}`} class='hover:underline'>
+    <Link href={`/tag/${tag.id}`}>
       #<span data-pagefind-filter={filterTag}>{tag.data.name}</span>
       {count && ` (${count})`}
     </Link>

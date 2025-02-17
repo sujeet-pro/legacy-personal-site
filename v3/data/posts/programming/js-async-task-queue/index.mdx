@@ -14,7 +14,7 @@ tags:
   - design-patterns
 ---
 
-import CodeTabs from '@/components/code-tabs.astro'
+import CodeTabs from '@/components/core/code-tabs.astro'
 import asyncQueueCode from './code-samples/async-queue.ts?raw'
 import taskExampleCode from './code-samples/task-example.ts?raw'
 import taskQueueCode from './code-samples/task-queue.ts?raw'
@@ -37,7 +37,7 @@ Overall, async task queues are a powerful tool for managing asynchronous operati
   codes={[
     { code: asyncQueueCode, lang: 'ts', title: 'async-queue.ts' },
     { code: taskQueueCode, lang: 'ts', title: 'task-queue.ts' },
-    { code: taskExampleCode, lang: 'ts', title: 'example.ts' }
+    { code: taskExampleCode, lang: 'ts', title: 'example.ts' },
   ]}
 />
 

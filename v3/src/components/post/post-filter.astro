@@ -1,0 +1,83 @@
+---
+import Link from '@/components/core/link.astro'
+import type { CategoryDetails } from '@/utils/category-content.utils'
+import type { TagDetails } from '@/utils/tag-content.utils'
+
+type Props = {
+  tagDetails: TagDetails[]
+  categoryDetails: CategoryDetails[]
+}
+const { tagDetails, categoryDetails } = Astro.props
+
+function cssFactory(name: 'tag' | 'category', value: string) {
+  return `
+    .post-filter:has(.checkbox[name="${name}-selector"][value="${value}"]:checked) ~ #main-content .post-list .post-item.${name}-${value} {
+      display: flex;
+    }
+  `
+}
+
+const tagStyles = `
+    .post-filter:has(.checkbox:checked) ~ #main-content .post-list .post-item {
+      display: none;
+    }
+    .post-filter:has(.tab[name="filter-list"][value="all"]:checked) ~ #main-content .post-list .post-item {
+      display: flex;
+    }
+
+    ${categoryDetails.map((config) => cssFactory('category', config.category.id)).join('\n')}
+    ${tagDetails.map((config) => cssFactory('tag', config.tag.id)).join('\n')}
+    
+
+`
+---
+
+<section class='post-filter bg-base-200 my-4'>
+  <div class='tabs tabs-border'>
+    <input type='radio' name='filter-list' class='tab' value='all' aria-label='All Blogs' checked='checked' />
+    <div class='tab-content border-base-300 bg-base-100'></div>
+
+    <input type='radio' name='filter-list' class='tab' value='category' aria-label='Categories' />
+    <div class='tab-content border-base-300 bg-base-100 p-4 text-sm'>
+      <div class='flex flex-wrap gap-4'>
+        {
+          categoryDetails.map(({ category, count }) => (
+            <label class='flex gap-1 items-center'>
+              <input
+                type='checkbox'
+                name='category-selector'
+                class='category-selector checkbox checkbox-sm'
+                value={category.id}
+              />
+              #{category.data.name}
+              {count && ` (${count})`}
+            </label>
+          ))
+        }
+      </div>
+      <p class='mt-4 text-right'>
+        <Link href='/category'>View all Categories</Link>
+      </p>
+    </div>
+
+    <input type='radio' name='filter-list' class='tab' value='tag' aria-label='Tags' />
+    <div class='tab-content border-base-300 bg-base-100 p-4 text-sm'>
+      <div class='flex flex-wrap gap-4'>
+        {
+          tagDetails.map(({ tag, count }) => (
+            <label class='flex gap-1 items-center'>
+              <input type='checkbox' name='tag-selector' class='tag-selector checkbox checkbox-sm' value={tag.id} />#
+              {tag.data.name}
+              {count && ` (${count})`}
+            </label>
+          ))
+        }
+      </div>
+      <p class='mt-4 text-right'>
+        <Link href='/tag'>View all Tags</Link>
+      </p>
+    </div>
+  </div>
+</section>
+
+<style is:global set:html={tagStyles}></style>

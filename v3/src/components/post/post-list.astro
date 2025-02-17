@@ -1,5 +1,4 @@
 ---
-import { CLS_COLOR_DIVIDER } from '@/configs/colors'
 import type { CollectionEntry } from 'astro:content'
 import PostListItem from './post-list-item.astro'
 
@@ -28,7 +27,12 @@ if (Astro.props.type === 'next-prev') {
 const props = Astro.props
 ---
 
-<ul class:list={['grid grid-cols-1 divide-y divide-dashed', CLS_COLOR_DIVIDER, 'post-list']}>
+<ul
+  class:list={[
+    'grid grid-cols-1 divide-y divide-dashed divide-base-300',
+    { 'post-list': props.type === 'detailed' && props.filterable },
+  ]}
+>
   {
     props.type === 'detailed'
       ? props.posts.map((post) => (
