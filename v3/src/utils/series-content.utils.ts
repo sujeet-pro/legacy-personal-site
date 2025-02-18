@@ -1,32 +1,25 @@
-import { getCollection, getEntries } from 'astro:content'
+import { getCollection, type CollectionEntry } from 'astro:content'
+import { getPostContentsByPostRefs, type PostContent } from './post-content.utils'
 
-export type SeriesEntry = {
-  name: string
-  posts: {
-    id: string
-    title: string
-  }[]
+export type SeriesContent = {
+  series: CollectionEntry<'series'>
+  postContents: PostContent[]
 }
 
-export async function getAllSeriesByPostId(postId: string) {
+export type GetSeriesOptions = {
+  postId?: string
+}
+
+export async function getSeriesContents(options: GetSeriesOptions = {}): Promise<SeriesContent[]> {
   const seriesList = await getCollection('series', (series) => {
-    return series.data.posts.some((post) => post.id === postId)
+    if (options.postId === undefined) return true
+    return series.data.posts.some((post) => post.id === options.postId)
   })
-  const seriesEntries: SeriesEntry[] = []
-  for (const series of seriesList) {
-    const posts = await getEntries(series.data.posts)
-    seriesEntries.push({
-      name: series.data.name,
-      posts: posts
-        .filter((post) => {
-          const isPublished = import.meta.env.DEV || !!post.data.publishedOn
-          return isPublished
-        })
-        .map((post) => ({
-          id: post.id,
-          title: post.data.title,
-        })),
-    })
-  }
-  return seriesEntries
+
+  return Promise.all(
+    seriesList.map(async (series) => ({
+      series,
+      postContents: await getPostContentsByPostRefs(series.data.posts),
+    })),
+  )
 }

@@ -6,33 +6,32 @@ import Markdown from '@/components/core/markdown.astro'
 import ResponsiveImage from '@/components/core/responsive-image.astro'
 import TableOfContents from '@/components/core/table-of-contents.astro'
 import Layout from '@/components/layout/index.astro'
-import PostList from '@/components/post/post-list.astro'
+import PostDetailedCard from '@/components/post/post-detailed-card.astro'
 import SeriesInfo from '@/components/series/series-info.astro'
 import Tag from '@/components/tag/tag.astro'
 import { SITE_POST_TITLE } from '@/configs/site.constants'
-import { getPosts } from '@/utils/post-content.utils'
-import { getAllSeriesByPostId } from '@/utils/series-content.utils'
-import { getEntries, getEntry, render } from 'astro:content'
+import { getPostContents } from '@/utils/post-content.utils'
+import { getSeriesContents } from '@/utils/series-content.utils'
+import { render } from 'astro:content'
 
 export async function getStaticPaths() {
-  const posts = await getPosts({ allowUnpublished: true })
-  const postCount = posts.length
-  return posts.map((post, index) => ({
-    params: { slug: post.id },
+  const postContents = await getPostContents({ allowUnpublished: true })
+  const postCount = postContents.length
+  return postContents.map((postContent, index, allPostContents) => ({
+    params: { slug: postContent.post.id },
     props: {
-      post,
-      prevPost: index + 1 !== postCount ? posts[index + 1] : null,
-      nextPost: index !== 0 ? posts[index - 1] : null,
+      postContent,
+      nextPostContent: index + 1 !== postCount ? allPostContents[index + 1] : null,
+      prevPostContent: index !== 0 ? allPostContents[index - 1] : null,
     },
   }))
 }
 
-const { post, prevPost, nextPost } = Astro.props
+const { postContent, prevPostContent, nextPostContent } = Astro.props
+const { category, tags, post } = postContent
 const { title, description, publishedOn, lastUpdatedOn, image, imageCredit } = post.data
-const tags = await getEntries(post.data.tags)
-const category = await getEntry(post.data.category)
 const { Content, headings } = await render(post)
-const seriesList = await getAllSeriesByPostId(post.id)
+const seriesContents = await getSeriesContents({ postId: post.id })
 // All the reviews must have a article Link
 if (category.id === 'reviews') {
   const articleLink = post.data.articleLink
@@ -78,7 +77,11 @@ if (category.id === 'reviews') {
         </ResponsiveImage>
       ) : null
     }
-    {seriesList.map((series) => (series.posts.length > 1 ? <SeriesInfo series={series} postId={post.id} /> : null))}
+    {
+      seriesContents.map((seriesContent) =>
+        seriesContent.postContents.length > 1 ? <SeriesInfo {seriesContent} currentPostId={post.id} /> : null,
+      )
+    }
     {headings.length ? <TableOfContents headings={headings} /> : null}
     <Markdown elem='main' id='main-content'>
       <Content />
@@ -88,12 +91,20 @@ if (category.id === 'reviews') {
   <section class='mt-12'>
     <h2 class='text-lg italic divider divider-start'>Tags</h2>
     <div class='flex flex-wrap gap-x-5 gap-y-1 text-sm'>
-      {tags.map((tag) => <Tag tag={tag} type='link' filterTag='tag' />)}
+      {tags.map((tag) => <Tag tag={tag} filterTag='tag' />)}
     </div>
   </section>
 
   <nav class='mt-12'>
-    <h2 class='text-lg italic divider divider-start'>Read Next</h2>
-    <PostList nextPost={nextPost} prevPost={prevPost} type='next-prev' />
+    <h2 class='text-lg italic divider divider-start'>Read More</h2>
+    <div class='flex w-full flex-col lg:flex-row'>
+      <div class='card bg-base-300 rounded-box grid h-32 grow place-items-center'>
+        {prevPostContent ? <PostDetailedCard postContent={prevPostContent} headingLevel='h3' arrow='to-left' /> : null}
+      </div>
+      {nextPostContent && prevPostContent ? <div class='divider lg:divider-horizontal'>OR</div> : null}
+      <div class='card bg-base-300 rounded-box grid h-32 grow place-items-center'>
+        {nextPostContent ? <PostDetailedCard postContent={nextPostContent} headingLevel='h3' arrow='to-right' /> : null}
+      </div>
+    </div>
   </nav>
 </Layout>

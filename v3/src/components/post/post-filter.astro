@@ -1,13 +1,16 @@
 ---
 import Link from '@/components/core/link.astro'
-import type { CategoryDetails } from '@/utils/category-content.utils'
-import type { TagDetails } from '@/utils/tag-content.utils'
+import type { PostContent } from '@/utils/post-content.utils'
+import { getGroupedPostContentsByCategory } from '@/utils/post-contents-by-category'
+import { getGroupedPostContentsByTag } from '@/utils/post-contents-by-tag'
 
 type Props = {
-  tagDetails: TagDetails[]
-  categoryDetails: CategoryDetails[]
+  postContents: PostContent[]
 }
-const { tagDetails, categoryDetails } = Astro.props
+
+const { postContents } = Astro.props
+const categories = getGroupedPostContentsByCategory(postContents)
+const tags = getGroupedPostContentsByTag(postContents)
 
 function cssFactory(name: 'tag' | 'category', value: string) {
   return `
@@ -24,8 +27,8 @@ const tagStyles = `
     .post-filter:has(.tab[name="filter-list"][value="tag"]:checked):has(.checkbox[name="tag-selector"]:checked) ~ #main-content .post-list .post-item {
       display: none;
     }
-    ${categoryDetails.map((config) => cssFactory('category', config.category.id)).join('\n')}
-    ${tagDetails.map((config) => cssFactory('tag', config.tag.id)).join('\n')}
+    ${categories.map(({ category }) => cssFactory('category', category.id)).join('\n')}
+    ${tags.map(({ tag }) => cssFactory('tag', tag.id)).join('\n')}
     
 
 `
@@ -40,7 +43,7 @@ const tagStyles = `
     <div class='tab-content border-base-300 bg-base-100 p-4 text-sm'>
       <div class='flex flex-wrap gap-4'>
         {
-          categoryDetails.map(({ category, count }) => (
+          categories.map(({ category, postCount }) => (
             <label class='flex gap-1 items-center'>
               <input
                 type='checkbox'
@@ -49,7 +52,7 @@ const tagStyles = `
                 value={category.id}
               />
               #{category.data.name}
-              {count && ` (${count})`}
+              {postCount && ` (${postCount})`}
             </label>
           ))
         }
@@ -63,11 +66,11 @@ const tagStyles = `
     <div class='tab-content border-base-300 bg-base-100 p-4 text-sm'>
       <div class='flex flex-wrap gap-4'>
         {
-          tagDetails.map(({ tag, count }) => (
+          tags.map(({ tag, postCount }) => (
             <label class='flex gap-1 items-center'>
               <input type='checkbox' name='tag-selector' class='tag-selector checkbox checkbox-sm' value={tag.id} />#
               {tag.data.name}
-              {count && ` (${count})`}
+              {postCount && ` (${postCount})`}
             </label>
           ))
         }

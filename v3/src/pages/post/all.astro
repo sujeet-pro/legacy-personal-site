@@ -1,11 +1,11 @@
 ---
 import Breadcrumb from '@/components/core/breadcrumb.astro'
 import Layout from '@/components/layout/index.astro'
-import PostList from '@/components/post/post-list.astro'
+import PostDetailedList from '@/components/post/post-detailed-list.astro'
 import { SITE_POST_TITLE } from '@/configs/site.constants'
-import { getPosts } from '@/utils/post-content.utils'
+import { getPostContents } from '@/utils/post-content.utils'
 
-const posts = await getPosts({ allowUnpublished: true })
+const postContents = await getPostContents({ allowUnpublished: true })
 ---
 
 <Layout title="Sujeet's Posts" description='List of all the posts' noIndex={true}>
@@ -18,6 +18,6 @@ const posts = await getPosts({ allowUnpublished: true })
   <main id='main-content'>
     <h1 class='text-4xl font-light text-center my-14'>All Posts</h1>
     <p class='my-8 text-2xl font-light'>This page has list of all the posts, including the ones which are in draft.</p>
-    <PostList posts={posts} headingLevel='h2' type='detailed' filterable={false} />
+    <PostDetailedList {postContents} filterable={false} />
   </main>
 </Layout>

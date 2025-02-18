@@ -1,23 +1,48 @@
-import { getCollection } from 'astro:content'
+import { getCollection, getEntries, getEntry, type CollectionEntry, type ReferenceDataEntry } from 'astro:content'
 
 type GetPostOptions = {
-  onlyTag?: string
   onlyFeatured?: boolean
-  onlyCategory?: string
   allowUnpublished?: boolean
 }
 
-export async function getPosts({ onlyTag, onlyFeatured, onlyCategory, allowUnpublished }: GetPostOptions = {}) {
+export type PostContent = {
+  post: CollectionEntry<'post'>
+  category: CollectionEntry<'category'>
+  tags: CollectionEntry<'tag'>[]
+}
+
+export async function getPostContentsByPostRefs(postRefs: ReferenceDataEntry<'post'>[]): Promise<PostContent[]> {
+  const posts = await getEntries(postRefs)
+  const postContents = await Promise.all(posts.map((post) => resolvePostContent(post)))
+  return postContents
+}
+
+export async function getPostContents(options: GetPostOptions = {}): Promise<PostContent[]> {
   const posts = await getCollection('post', (post) => {
     // Only return published posts, unless in dev mode
-    const isPublished = import.meta.env.DEV || !!post.data.publishedOn || allowUnpublished
+    const isPublished = import.meta.env.DEV || !!post.data.publishedOn || options.allowUnpublished
     if (!isPublished) return false
-    // Only return posts with a specific tag
-    if (onlyTag && !post.data.tags.some((tag) => tag.id === onlyTag)) return false
-    if (onlyFeatured && post.data.featuredRank <= 0) return false
-    if (onlyCategory && post.data.category.id !== onlyCategory) return false
+    if (options.onlyFeatured && post.data.featuredRank <= 0) return false
     return true
   })
+
+  sortPosts(posts, !!options.onlyFeatured)
+
+  const postContents = await Promise.all(posts.map((post) => resolvePostContent(post)))
+  return postContents
+}
+
+async function resolvePostContent(post: CollectionEntry<'post'>): Promise<PostContent> {
+  const tagsPromise = getEntries(post.data.tags)
+  const category = await getEntry(post.data.category)
+  return {
+    post,
+    category,
+    tags: await tagsPromise,
+  }
+}
+
+function sortPosts(posts: CollectionEntry<'post'>[], sortByFeatured: boolean) {
   posts.sort((a, b) => {
     // Bring items without publishedOn to the front
     if (!a.data.publishedOn && b.data.publishedOn) return -1
@@ -39,10 +64,8 @@ export async function getPosts({ onlyTag, onlyFeatured, onlyCategory, allowUnpub
     // for anything else
     return 0
   })
-
-  if (onlyFeatured) {
+  if (sortByFeatured) {
     posts.sort((a, b) => a.data.featuredRank - b.data.featuredRank)
   }
-
   return posts
 }

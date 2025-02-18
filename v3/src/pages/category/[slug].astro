@@ -1,21 +1,24 @@
 ---
 import Breadcrumb from '@/components/core/breadcrumb.astro'
 import Layout from '@/components/layout/index.astro'
-import PostList from '@/components/post/post-list.astro'
+import PostDetailedList from '@/components/post/post-detailed-list.astro'
 import { SITE_POST_TITLE } from '@/configs/site.constants'
-import { getCategories } from '@/utils/category-content.utils'
+import { getPostContents } from '@/utils/post-content.utils'
+import { getGroupedPostContentsByCategory } from '@/utils/post-contents-by-category'
 
 export async function getStaticPaths() {
-  const categories = await getCategories()
-  return categories.map((categoryDetails) => ({
-    params: { slug: categoryDetails.category.id },
+  const postContents = await getPostContents()
+  const postContentsByCategories = getGroupedPostContentsByCategory(postContents)
+  return postContentsByCategories.map((postContentsByCategory) => ({
+    params: { slug: postContentsByCategory.category.id },
     props: {
-      category: categoryDetails.category,
-      posts: categoryDetails.posts,
+      postContentsByCategory,
     },
   }))
 }
-const { category, posts } = Astro.props
+const {
+  postContentsByCategory: { category, postContents },
+} = Astro.props
 ---
 
 <Layout title={category.data.name} description={`List of all the posts related to category: ${category.data.name}`}>
@@ -28,6 +31,6 @@ const { category, posts } = Astro.props
   />
   <main id='main-content'>
     <h1 class='text-4xl font-light text-center my-14'>{category.data.name}</h1>
-    <PostList posts={posts} headingLevel='h2' type='detailed' filterable={false} />
+    <PostDetailedList {postContents} filterable={false} />
   </main>
 </Layout>

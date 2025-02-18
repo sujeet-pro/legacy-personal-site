@@ -1,0 +1,30 @@
+---
+import type { PostContent } from '@/utils/post-content.utils'
+import PostDetailedCard from './post-detailed-card.astro'
+
+type Props = {
+  postContents: PostContent[]
+  filterable: boolean
+  headingLevel?: 'h2' | 'h3' | undefined
+}
+
+const { postContents, filterable, headingLevel = 'h2' } = Astro.props
+
+function postItemClasses(post: PostContent) {
+  if (!filterable) return []
+  const { category, tags } = post
+  const tagsClassNames = tags.map((tag) => `tag-${tag.id}`)
+  const categoryClassNames = `category-${category.id}`
+  return ['post-item', ...tagsClassNames, categoryClassNames]
+}
+---
+
+<ul class:list={['grid grid-cols-1 divide-y divide-dashed divide-base-300', { 'post-list': filterable }]}>
+  {
+    postContents.map((postContent) => (
+      <li class:list={postItemClasses(postContent)}>
+        <PostDetailedCard {headingLevel} {postContent} arrow='none' />
+      </li>
+    ))
+  }
+</ul>

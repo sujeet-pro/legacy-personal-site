@@ -1,0 +1,36 @@
+---
+import type { PostContent } from '@/utils/post-content.utils'
+import FormattedDate from '../core/formatted-date.astro'
+import Link from '../core/link.astro'
+
+type Props = {
+  postContents: PostContent[]
+}
+
+const { postContents } = Astro.props
+---
+
+<ul class='grid grid-cols-1 divide-y divide-dashed divide-base-300'>
+  {
+    postContents.map(({ post, category }) => (
+      <li class='px-4 py-4 relative flex flex-col gap-y-1 hover:shadow'>
+        <h3 class='text-base'>
+          <Link
+            href={`/post/${post.id}`}
+            class="after:absolute after:top-0 after:left-0 after:right-0 after:bottom-0 after:content-[' ']"
+          >
+            {post.data.title}
+          </Link>
+        </h3>
+        <div class='text-sm divide-x divide-base-300'>
+          <span class='pr-2'>{category.data.name}</span>
+          {post.data.publishedOn ? (
+            <FormattedDate date={post.data.publishedOn} class='px-2' />
+          ) : (
+            <span class='px-2'>In Draft</span>
+          )}
+        </div>
+      </li>
+    ))
+  }
+</ul>

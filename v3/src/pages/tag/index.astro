@@ -3,11 +3,13 @@ import Accordion from '@/components/core/accordion.astro'
 import Breadcrumb from '@/components/core/breadcrumb.astro'
 import Link from '@/components/core/link.astro'
 import Layout from '@/components/layout/index.astro'
-import PostList from '@/components/post/post-list.astro'
+import PostSimpleList from '@/components/post/post-simple-list.astro'
 import { SITE_POST_TITLE } from '@/configs/site.constants'
-import { getTags } from '@/utils/tag-content.utils'
+import { getPostContents } from '@/utils/post-content.utils'
+import { getGroupedPostContentsByTag } from '@/utils/post-contents-by-tag'
 
-const tagsDetails = await getTags()
+const postContents = await getPostContents()
+const postContentsByTags = getGroupedPostContentsByTag(postContents)
 ---
 
 <Layout title='Tags | Sujeet.pro' description='List of all the tags, I write about.'>
@@ -20,14 +22,14 @@ const tagsDetails = await getTags()
   <main id='main-content'>
     <h1 class='text-4xl font-light text-center my-14'>Tags</h1>
     {
-      tagsDetails.map(({ posts, tag, count }) => (
+      postContentsByTags.map(({ postContents, tag, postCount }) => (
         <Accordion title={tag.data.name}>
-          <h2 class='text-2xl' slot='title'>
+          <h2 class='text-xl' slot='title'>
             <Link href={`/tag/${tag.id}`}>
-              {tag.data.name} ({count})
+              {tag.data.name} ({postCount})
             </Link>
           </h2>
-          <PostList posts={posts} type='simple' />
+          <PostSimpleList {postContents} />
         </Accordion>
       ))
     }
