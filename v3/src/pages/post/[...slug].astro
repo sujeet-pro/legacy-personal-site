@@ -6,7 +6,6 @@ import Markdown from '@/components/core/markdown.astro'
 import ResponsiveImage from '@/components/core/responsive-image.astro'
 import TableOfContents from '@/components/core/table-of-contents.astro'
 import Layout from '@/components/layout/index.astro'
-import PostDetailedCard from '@/components/post/post-detailed-card.astro'
 import SeriesInfo from '@/components/series/series-info.astro'
 import Tag from '@/components/tag/tag.astro'
 import { SITE_POST_TITLE } from '@/configs/site.constants'
@@ -97,14 +96,39 @@ if (category.id === 'reviews') {
 
   <nav class='mt-12'>
     <h2 class='text-lg italic divider divider-start'>Read More</h2>
-    <div class='flex w-full flex-col lg:flex-row'>
-      <div class='card bg-base-300 rounded-box grid h-32 grow place-items-center'>
-        {prevPostContent ? <PostDetailedCard postContent={prevPostContent} headingLevel='h3' arrow='to-left' /> : null}
-      </div>
-      {nextPostContent && prevPostContent ? <div class='divider lg:divider-horizontal'>OR</div> : null}
-      <div class='card bg-base-300 rounded-box grid h-32 grow place-items-center'>
-        {nextPostContent ? <PostDetailedCard postContent={nextPostContent} headingLevel='h3' arrow='to-right' /> : null}
-      </div>
+
+    <div class='flex w-full flex-col md:flex-row'>
+      {
+        prevPostContent ? (
+          <div class='card bg-base-200 rounded-box relative flex flex-col gap-4 p-4 flex-grow'>
+            <div class=''>
+              <span class='mr-2'>←</span> Read Prev
+            </div>
+            <Link
+              href={`/post/${prevPostContent.post.id}`}
+              class="after:absolute after:top-0 after:left-0 after:right-0 after:bottom-0 after:content-[' ']"
+            >
+              {prevPostContent.post.data.title}
+            </Link>
+          </div>
+        ) : null
+      }
+      {nextPostContent && prevPostContent ? <div class='divider md:divider-horizontal' /> : null}
+      {
+        nextPostContent ? (
+          <div class='card bg-base-200 rounded-box relative flex flex-col gap-4 p-4 flex-grow'>
+            <div class='text-right'>
+              Read Next <span class='ml-2'>→</span>
+            </div>
+            <Link
+              href={`/post/${nextPostContent.post.id}`}
+              class="after:absolute after:top-0 after:left-0 after:right-0 after:bottom-0 after:content-[' ']"
+            >
+              {nextPostContent.post.data.title}
+            </Link>{' '}
+          </div>
+        ) : null
+      }
     </div>
   </nav>
 </Layout>
