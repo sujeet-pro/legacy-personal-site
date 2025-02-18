@@ -24,7 +24,7 @@ const { title, description, publishedOn } = post.data
   </Hx>
   <div class='text-xs divide-x divide-base-300'>
     <span class='pr-2'>
-      <Link href={`/category/${category.id}`}>{category.data.name}</Link>
+      {category.data.name}
     </span>
     {publishedOn ? <FormattedDate date={publishedOn} class='px-2' /> : <span class='px-2'>In Draft</span>}
   </div>
