@@ -1,6 +1,6 @@
 ---
 import Link from '@/components/core/link.astro'
-import Search from '@/components/icons/search.astro'
+import { Icon } from 'astro-icon/components'
 import ThemeSelector from './theme-selector.astro'
 ---
 
@@ -10,10 +10,10 @@ import ThemeSelector from './theme-selector.astro'
   </div>
   <div class='navbar-end'>
     <Link href='/search' class='btn btn-ghost md:hidden' id='search-input-anchor-element'
-      ><Search /><span class='sr-only'>Search</span></Link
+      ><Icon name='carbon:search' /><span class='sr-only'>Search</span></Link
     >
     <label class='input hidden md:inline-flex'>
-      <Search class='h-[1em] opacity-50' />
+      <Icon name='carbon:search' />
       <input type='search' class='grow' placeholder='Search' enterkeyhint='search' id='search-input-element' />
       <kbd class='kbd kbd-sm'>⌘</kbd>
       <kbd class='kbd kbd-sm'>K</kbd>

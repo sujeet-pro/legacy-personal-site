@@ -11,6 +11,8 @@ import { SITE_CANONICAL_ORIGIN } from './src/configs/site.constants'
 
 import expressiveCode from 'astro-expressive-code'
 
+import icon from 'astro-icon'
+
 // https://astro.build/config
 export default defineConfig({
   site: SITE_CANONICAL_ORIGIN,
@@ -18,6 +20,7 @@ export default defineConfig({
   integrations: [
     expressiveCode(),
     mdx(),
+    icon(),
     sitemap(),
     pagefind({
       indexConfig: {

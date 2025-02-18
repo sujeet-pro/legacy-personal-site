@@ -1,5 +1,5 @@
 ---
-import ChevronUp from '@/components/icons/chevron-up.astro'
+import { Icon } from 'astro-icon/components'
 
 type Props = {
   title: string
@@ -11,7 +11,7 @@ const { title, open = true } = Astro.props
 <details open={open} class='p-4 bg-blend-lighten'>
   <summary class='cursor-pointer list-none flex items-center justify-between'>
     <slot name='title'><span class='font-semibold'>{title}</span></slot>
-    <ChevronUp class='accordion-icon icon' />
+    <Icon name='carbon:chevron-up' class='accordion-icon' />
   </summary>
   <div class='py-4 accordion-content'>
     <slot />

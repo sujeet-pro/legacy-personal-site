@@ -46,8 +46,11 @@
   "dependencies": {
     "@expressive-code/plugin-collapsible-sections": "^0.40.2",
     "@expressive-code/plugin-line-numbers": "^0.40.2",
+    "@iconify-json/carbon": "^1.2.7",
+    "@iconify-json/devicon": "^1.2.16",
     "@microflash/rehype-figure": "^2.1.3",
     "astro-expressive-code": "^0.40.2",
+    "astro-icon": "^1.1.5",
     "astro-pagefind": "^1.8.0",
     "rehype-external-links": "^3.0.0"
   }

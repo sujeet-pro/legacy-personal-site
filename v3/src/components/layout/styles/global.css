@@ -36,7 +36,12 @@ figcaption {
 img,
 video,
 iframe,
-svg:not(.icon) {
+svg:not([data-icon]) {
   max-width: 100%;
   @apply mx-auto max-w-full;
+}
+
+.svg[data-icon] {
+  width: 1em;
+  height: 1em;
 }

@@ -1,5 +1,5 @@
 ---
-import Home from '@/components/icons/home.astro'
+import { Icon } from 'astro-icon/components'
 import Link from './link.astro'
 
 type Props = {
@@ -12,7 +12,7 @@ const { crumbs } = Astro.props
   <ul>
     <li>
       <Link href='/'>
-        <Home />
+        <Icon name='carbon:home' />
         Home
       </Link>
     </li>

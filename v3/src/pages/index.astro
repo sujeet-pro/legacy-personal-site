@@ -1,10 +1,9 @@
 ---
 import imgSujeet from '@/assets/sujeet.jpg'
+import { Icon } from 'astro-icon/components'
 import { Image } from 'astro:assets'
 
 import Link from '@/components/core/link.astro'
-import CvIcon from '@/components/icons/cv-icon.astro'
-import Linkedin from '@/components/icons/linkedin.astro'
 import Layout from '@/components/layout/index.astro'
 import PostDetailedList from '@/components/post/post-detailed-list.astro'
 import { REDIRECTION_MAP } from '@/configs/redirection'
@@ -24,10 +23,10 @@ const postContents = await getPostContents({ onlyFeatured: true })
         <p class='my-2'>Principal Software Engineer, Bangalore - India</p>
         <nav class='flex flex-wrap gap-x-4 gap-y-1'>
           <Link href={REDIRECTION_MAP['/linkedin']} target='_blank' class='flex items-center gap-1'>
-            Connect @ LinkedIn <Linkedin />
+            Connect @ LinkedIn <Icon name='devicon:linkedin' />
           </Link>
           <Link href={REDIRECTION_MAP['/cv']} target='_blank' class='flex items-center gap-1'>
-            View My CV <CvIcon />
+            View My CV <Icon name='carbon:document' />
           </Link>
         </nav>
       </div>

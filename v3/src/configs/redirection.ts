@@ -11,4 +11,5 @@ export const REDIRECTION_MAP = {
   '/medium': 'https://medium.com/sujeet-pro',
   '/stackoverflow': 'https://stackoverflow.com/users/5570700/sujeet-jaiswal',
   '/cv': 'https://docs.google.com/document/d/1pazXBfzuL9O1wCjPdKb7IS-7nXz_ZzI7EvNL1r_KKRc/edit?usp=sharing',
+  '/download-cv': 'https://docs.google.com/document/d/1pazXBfzuL9O1wCjPdKb7IS-7nXz_ZzI7EvNL1r_KKRc/export?format=pdf',
 }

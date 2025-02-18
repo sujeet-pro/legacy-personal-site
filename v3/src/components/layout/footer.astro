@@ -1,8 +1,7 @@
 ---
 import Link from '@/components/core/link.astro'
-import CvIcon from '@/components/icons/cv-icon.astro'
-import Linkedin from '@/components/icons/linkedin.astro'
 import { REDIRECTION_MAP } from '@/configs/redirection'
+import { Icon } from 'astro-icon/components'
 ---
 
 <footer class='bg-base-200 text-base-content p-10'>
@@ -17,10 +16,14 @@ import { REDIRECTION_MAP } from '@/configs/redirection'
     <nav>
       <h6 class='footer-title'>Social</h6>
       <Link href={REDIRECTION_MAP['/linkedin']} target='_blank' class='flex items-center gap-2'>
-        Connect @ <Linkedin />
+        Connect @ <Icon name='devicon:linkedin' />
       </Link>
       <Link href={REDIRECTION_MAP['/cv']} target='_blank' class='flex items-center gap-2'>
-        View My CV @ <CvIcon />
+        View My CV @ <Icon name='carbon:document' />
+      </Link>
+      <Link href={REDIRECTION_MAP['/download-cv']} target='_blank' class='flex items-center gap-2'>
+        Download My CV PDF
+        <Icon name='carbon:document-pdf' />
       </Link>
     </nav>
   </div>
