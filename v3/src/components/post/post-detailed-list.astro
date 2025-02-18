@@ -23,7 +23,7 @@ function postItemClasses(post: PostContent) {
   {
     postContents.map((postContent) => (
       <li class:list={postItemClasses(postContent)}>
-        <PostDetailedCard {headingLevel} {postContent} arrow='none' />
+        <PostDetailedCard {headingLevel} {postContent} />
       </li>
     ))
   }
