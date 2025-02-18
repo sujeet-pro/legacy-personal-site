@@ -100,7 +100,7 @@ if (category.id === 'reviews') {
     <div class='flex w-full flex-col md:flex-row'>
       {
         prevPostContent ? (
-          <div class='card bg-base-200 rounded-box relative flex flex-col gap-4 p-4 flex-grow'>
+          <div class='card bg-base-200 rounded-box relative flex flex-col gap-4 p-4 flex-1'>
             <div class=''>
               <span class='mr-2'>←</span> Read Prev
             </div>
@@ -116,7 +116,7 @@ if (category.id === 'reviews') {
       {nextPostContent && prevPostContent ? <div class='divider md:divider-horizontal' /> : null}
       {
         nextPostContent ? (
-          <div class='card bg-base-200 rounded-box relative flex flex-col gap-4 p-4 flex-grow'>
+          <div class='card bg-base-200 rounded-box relative flex flex-col gap-4 p-4 flex-1'>
             <div class='text-right'>
               Read Next <span class='ml-2'>→</span>
             </div>

@@ -1,0 +1,40 @@
+---
+import Breadcrumb from '@/components/core/breadcrumb.astro'
+import Link from '@/components/core/link.astro'
+import Layout from '@/components/layout/index.astro'
+import PostDetailedList from '@/components/post/post-detailed-list.astro'
+import { SITE_POST_TITLE } from '@/configs/site.constants'
+import { getPostContents } from '@/utils/post-content.utils'
+
+const postContentsAll = await getPostContents({ allowUnpublished: true })
+const postContents = postContentsAll.filter(({ post, category }) => {
+  // TODO: Removing the reviews from draft category
+  if (category.id === 'reviews') return false
+  return !post.data.publishedOn
+})
+---
+
+<Layout title="Sujeet's Posts" description='List of all the posts' noIndex={true}>
+  <Breadcrumb
+    crumbs={[
+      { name: SITE_POST_TITLE, href: '/post' },
+      { name: 'Drafts', href: '/drafts' },
+    ]}
+  />
+  <main id='main-content'>
+    <h1 class='text-4xl font-light text-center my-14'>Drafts</h1>
+    <div role='alert' class='alert alert-error alert-outline my-4'>
+      <svg xmlns='http://www.w3.org/2000/svg' class='h-6 w-6 shrink-0 stroke-current' fill='none' viewBox='0 0 24 24'>
+        <path
+          stroke-linecap='round'
+          stroke-linejoin='round'
+          stroke-width='2'
+          d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'
+        ></path>
+      </svg>
+      <span>Warning: These are work in progress contents.</span>
+      <Link href='/post' class='btn btn-soft btn-success btn-sm'>See Published Blogs</Link>
+    </div>
+    <PostDetailedList {postContents} filterable={false} />
+  </main>
+</Layout>
