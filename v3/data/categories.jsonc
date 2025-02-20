@@ -27,6 +27,7 @@
     "name": "Features",
     "isFeatured": false,
   },
+  
   "misc": {
     "name": "Miscellaneous",
     "isFeatured": false,

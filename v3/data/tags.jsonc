@@ -206,13 +206,26 @@
     "name": "Playwright",
     "isFeatured": false,
   },
-  // Load Testing
+  // Testing Tools
   "k6": {
     "name": "k6",
     "isFeatured": false,
   },
   "locust": {
     "name": "Locust",
+    "isFeatured": false,
+  },
+  // Testing Types
+  "load-testing": {
+    "name": "Load Testing",
+    "isFeatured": false,
+  },
+  "performance-testing": {
+    "name": "Performance Testing",
+    "isFeatured": false,
+  },
+  "stress-testing": {
+    "name": "Stress Testing",
     "isFeatured": false,
   },
   // Monitoring
@@ -315,4 +328,9 @@
     "name": "Functional Programming",
     "isFeatured": false,
   },
+  // Systems
+  "video-streaming": {
+    "name": "Video Streaming",
+    "isFeatured": false,
+  }
 }
