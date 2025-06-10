@@ -122,7 +122,7 @@ provides a (possibly buffered) UTF-16 view over the underlying Latin1, UTF-8, or
 - Tokens can be separated various types of whitespaces. eg. newline, space, tab, single line comments, multi-line comments, etc.
 - One type of whitespace can be followed by other types of whitespaces
 - Whitespace adds meaning if it causes a line break between two tokens: that possibly results in [automatic semicolon insertion](https://tc39.es/ecma262/#sec-automatic-semicolon-insertion).
-- So before scanning the next token, all whitespace is skipped keeping track of whether a newline occured.
+- So before scanning the next token, all whitespace is skipped keeping track of whether a newline occurred.
 
 Most real-world production JavaScript code is minified, and so multi-character whitespace luckily isn’t very common.
 For that reason V8 uniformly scans each type of whitespace independently as if they were regular tokens.
