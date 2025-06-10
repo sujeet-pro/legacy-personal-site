@@ -1,7 +1,7 @@
 ---
-title: 'Kafka: a Distributed Messing System for Log Processing'
+title: 'Kafka: a Distributed Messaging System for Log Processing'
 description: |
-  This review delves into the seminal paper titled 'Kafka: a Distributed Messing System for Log Processing'
+  This review delves into the seminal paper titled 'Kafka: a Distributed Messaging System for Log Processing'
 publishedOn: null
 lastUpdatedOn: null
 featuredRank: -1

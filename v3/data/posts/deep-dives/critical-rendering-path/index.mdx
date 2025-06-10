@@ -40,8 +40,8 @@ import domConstruction from './assets/dom-construction-process.svg?raw'
 
 <Fragment set:html={domConstruction} />
 
-- **Conversion**: The browser reads the raw bytes of HTML off the disk or network, and translates them to individual characters based on specified encoding of the file (for example, UTF-8).
-- **Tokenizing**: The browser converts strings of characters into distinct tokens—as specified by the W3C HTML5 standard for example, `<html>`, `<body>`—and other strings within angle brackets. Each token has a special meaning and its own set of rules.
+- **Conversion**: The browser reads the raw bytes of HTML off the disk or network, and translates them to individual characters based on the specified encoding of the file (for example, UTF-8).
+- **Tokenizing**: The browser converts strings of characters into distinct tokens—as specified by the W3C HTML5 standard, for example, `<html>`, `<body>`—and other strings within angle brackets. Each token has a special meaning and its own set of rules.
 - **Lexing**: The emitted tokens are converted into "objects," which define their properties and rules.
 - **DOM construction**: Finally, because the HTML markup defines relationships between different tags (some tags are contained within other tags) the created objects are linked in a tree data structure that also captures the parent-child relationships defined in the original markup: the HTML object is a parent of the body object, the body is a parent of the paragraph object, and so on.
 
@@ -70,7 +70,7 @@ import cssomConstruction from './assets/cssom-construction.svg?raw'
 
 <Fragment set:html={cssomConstruction} />
 
-CSS is render blocking as its blocks rendering of parsed content until CSS Object Model (CSSOM) is constructed.
+CSS is render blocking as it blocks rendering of parsed content until CSS Object Model (CSSOM) is constructed.
 The browser does this to prevent Flash of Unstyled Content (FOUC)
 
 - Render-blocking resources, like CSS, **used to** block all rendering of the page when they were discovered.
@@ -114,12 +114,12 @@ import asyncDefer from './assets/asyncdefer.svg?raw'
 
 - Script download can be sync or async.
 - Script execution is always parser-blocking
-- default - Parser Blocking everythign - Download + Execution
+- default - Parser Blocking everything - Download + Execution
 - `async` - Download in parallel, execute ASAP
 - `defer` - Download in parallel, execute after DOM
-- JS Execution wait for any inflight render-blocking CSS (CSSOM Construction)
+- JS Execution waits for any in-flight render-blocking CSS (CSSOM Construction)
 
-### Parser Bocking Scripts
+### Parser Blocking Scripts
 
 Script tags without `async` or `defer` are parser-blocking.
 
@@ -133,7 +133,7 @@ A parser-blocking `<script>` must also wait for any in-flight render-blocking CS
 
 Blocking the parser can have a huge performance cost—much more than just blocking rendering. For this reason, browsers will try to reduce this cost by using a secondary HTML parser known as the **preload scanner** to download upcoming resources while the primary HTML parser is blocked.
 
-### Oder of execution
+### Order of execution
 
 Order of execution is guaranteed in blocking scripts and when using defer.
 This is not guaranteed when using `async`, since these scripts are executed as soon as they are downloaded.
@@ -167,7 +167,7 @@ Importantly, for the initial render, the browser will not typically wait for:
 
 - CSS is render blocking
 - Scripts are parser blocking
-- Browsers have a preload scanner, that can continue to download resource, while waiting on blocked resources
+- Browsers have a preload scanner, that can continue to download resources, while waiting on blocked resources
 
 ![CRP Network](./assets/crp-network.svg)
 
@@ -195,7 +195,7 @@ import crpRenderBlockingCSS from './assets/crp-network-render-blocking-css-with-
 
 The preload scanner is a browser optimization in the form of a secondary HTML parser that scans the raw HTML response to find and speculatively fetch resources before the primary HTML parser would otherwise discover them. For example, the preload scanner would allow the browser to start downloading a resource specified in an `<img>` element, even when the HTML parser is blocked while fetching and processing resources such as CSS and JavaScript.
 
-### Best practises to optimize CRP
+### Best practices to optimize CRP
 
 The general sequence of steps to optimize the critical rendering path is:
 
@@ -207,9 +207,9 @@ The general sequence of steps to optimize the critical rendering path is:
 ### Action Items
 
 - Move to Server Side Rendering
-- Deffering Javascript
-- Preload fonts and using `font-display: swap`
-- Prioritize Above the flod.
+- Deferring JavaScript
+- Preload fonts and use `font-display: swap`
+- Prioritize Above the fold.
 
 ## References
 

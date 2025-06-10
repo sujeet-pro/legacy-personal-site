@@ -1,7 +1,7 @@
 ---
 title: Length of a string
 description: >
-  What you see is not always what you get!.
+  What you see is not always what you get!
   The length of "👩‍👩‍👦‍👦🌦️🧘🏻‍♂️" is  21.
   Let us explore why is it 21 and how to get 3.
 publishedOn: 2023-03-20
@@ -23,7 +23,7 @@ units and icons are a combination of more than one of such code units. Use
 `Intl.Segmenter` to get the length of rendered graphemes.
 
 ```typescript
-console.log('👩‍👩‍👦‍👦🌦️🧘🏻‍♂️'.length) // 21  - W
+console.log('👩‍👩‍👦‍👦🌦️🧘🏻‍♂️'.length) // 21
 console.log(getVisibleLength('👩‍👩‍👦‍👦🌦️🧘🏻‍♂️')) // 3 - How can we get this?
 ```
 

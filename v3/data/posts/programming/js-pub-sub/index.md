@@ -48,7 +48,7 @@ export class PubSub<T> {
 ```ts
 const pubSub = new PubSub<string>()
 
-// Can have one more more subscriber
+// Can have one or more subscriber
 const unsubscribe = pubSub.subscribe((data) => {
   console.log(data)
 })
@@ -64,7 +64,7 @@ unsubscribe()
 
 ## Comparison DOM CustomEvent
 
-We can achive similar functionality using `CustomEvent` dispatched over any DOM Node.
+We can achieve similar functionality using `CustomEvent` dispatched over any DOM Node.
 
 The primary bottleneck for this is the dom dependency which makes the code non-usable outside the main thread on the browser environment (not even on worker).
 
