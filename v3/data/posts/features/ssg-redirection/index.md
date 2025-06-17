@@ -15,7 +15,7 @@ tags:
 
 This approach is a two fold implementation
 
-- Generating pages which redirects the user on client side using javascript
+- Generating pages which redirects the user on client side using JavaScript
 - Implementing Redirects with CDN (This talks about cloudfront)
 
 ## Generating `index.html` for redirects
@@ -48,7 +48,7 @@ We generate an index.html page for the redirected paths. This has the below comp
 ## Configuring Redirects with \_redirects for supported hosting provider
 
 A lot of hosting providers, supports redirection using `_redirects` file.
-Eg. For `sujeet.pro`, I use cloudflare pages which supports redirection in this way.
+E.g. For `sujeet.pro`, I use cloudflare pages which supports redirection in this way.
 
 The contents of this file is space separated values in format of `redirect-from redirect-to`.
 

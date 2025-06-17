@@ -1,6 +1,6 @@
 ---
-title: Ignition - V8's Javascript Interpreter
-description: An interpreter used by V8 for javascript
+title: Ignition - V8's JavaScript Interpreter
+description: An interpreter used by V8 for JavaScript
 publishedOn: null
 lastUpdatedOn: 2025-02-15
 featuredRank: 2
@@ -20,7 +20,7 @@ tags:
 
 ## References
 
-- [Blog: Understanding V8’s Bytecode by Franziska Hinkelmann](https://medium.com/dailyjs/understanding-v8s-bytecode-317d46c94775)
+- [Blog: Understanding V8's Bytecode by Franziska Hinkelmann](https://medium.com/dailyjs/understanding-v8s-bytecode-317d46c94775)
 - [BlinkOn 6 Day 1 Talk 2: Ignition - an interpreter for V8](https://youtu.be/r5OWCtuKiAk?si=LYVeIJpVr2muOeKW),
   [Slides](https://docs.google.com/presentation/d/1OqjVqRhtwlKeKfvMdX6HaCIu9wpZsrzqpIVIwQSuiXQ/edit#slide=id.g1357e6d1a4_0_58),
   [Slides PDF](https://github.com/sujeet-pro/learning-resources/blob/main/deep-dives/v8-internals/Ignition_%20An%20Interpreter%20for%20V8%20%5BBlinkOn%5D.pdf)

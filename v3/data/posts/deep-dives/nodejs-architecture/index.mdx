@@ -27,12 +27,12 @@ that allows you to execute JavaScript code outside of a web browser.
 
 Node.js follows event-driven, non-blocking I/O Architecture.
 
-> From the Initial Talk at JSConf.eu by Ryan Dahl on Node JS
+> From the Initial Talk at JSConf.eu by Ryan Dahl on Node.js
 >
 > - I/O needs to be done differently
 > - Threaded concurrency is a leaky abstraction
 
-## Key features of Node JS
+## Key features of Node.js
 
 ### Single-Threaded Event Loop:
 
@@ -97,7 +97,7 @@ import v8Flow from './v8-flow.webp'
 
 <ResponsiveImage
   src={v8Flow}
-  alt='V8 Compiler pipeline from the blog Understanding V8’s Bytecode by Franziska Hinkelmann'
+  alt='V8 Compiler pipeline from the blog Understanding V8's Bytecode by Franziska Hinkelmann'
 >
   [Javascript Engines by Franziska Hinkelmann](https://youtu.be/p-iiEDtpy6I?si=dSPAO3YcAvksJRpy&t=727)
 </ResponsiveImage>
@@ -166,7 +166,7 @@ It's both! - few things are multi threaded, few things are not.
 > The libuv event loop (or any other API involving the loop or handles, for that matter)
 > is not thread-safe except where stated otherwise. - Libuv Design Doc
 
-So, its multi-threaded, but then the user code doesn't have the control to decide which part does or doesn't use the thread-pool.
+So, it's multi-threaded, but then the user code doesn't have the control to decide which part does or doesn't use the thread-pool.
 
 ### What about Worker Threads
 
@@ -174,7 +174,10 @@ Node.js workers leverage the worker_threads module. Each worker runs in its own 
 
 ## Node.js Event Loop (Simplified)
 
-<ReadMorePost postId='deep-dives/nodejs-event-loop' prefixTitle='This is a over-simplified explanation. Read more @ ' />
+<ReadMorePost
+  postId='deep-dives/nodejs-event-loop'
+  prefixTitle='This is an over-simplified explanation. Read more @ '
+/>
 
 - **Initiate I/O**: The program starts an asynchronous I/O operation (e.g., reading data from a file).
 - **Continue Execution**: The program doesn't wait. It moves on to execute other code.
@@ -194,7 +197,7 @@ import eventLoopImg from './nodejs-event-loop-with-example.png'
 
 ## References
 
-- [Ryan Dahl: Node JS](https://youtu.be/EeYvFl7li9E?si=Imf9EhxC_5QjQQX-)
+- [Ryan Dahl: Node.js](https://youtu.be/EeYvFl7li9E?si=Imf9EhxC_5QjQQX-)
 - [Node.js: The Documentary | An origin story](https://youtu.be/LB8KwiiUGy0?si=AVDR9sP1AeG7dQDO)
 - [Node Interactive 2016 Talk - Everything You Need to Know About Node.js Event Loop - Bert Belder, IBM](https://youtu.be/PNa9OMajw9w?si=CFxugIEBeZTGIHrD)
 - [Node Interactive 2016 Talk Presentation](https://drive.google.com/file/d/0B1ENiZwmJ_J2a09DUmZROV9oSGc/view?resourcekey=0-lR-GaBV1Bmjy086Fp3J4Uw)

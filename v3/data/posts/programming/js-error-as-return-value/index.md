@@ -1,5 +1,5 @@
 ---
-title: Better Error Handling in JavaScript / Typescript
+title: Better Error Handling in JavaScript / TypeScript
 description: Making errors as first-class citizens in your async function
   response, inspired by Go. JS Now Try Statement (In Proposal Stage)
 publishedOn: 2023-03-11

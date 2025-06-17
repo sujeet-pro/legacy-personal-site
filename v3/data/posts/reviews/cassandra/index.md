@@ -1,7 +1,7 @@
 ---
-title: 'Cassandra: A Decentrailized Structured Storage System'
+title: 'Cassandra: A Decentralized Structured Storage System'
 description: |
-  This review delves into the seminal paper titled "Cassandra: A Decentrailized Structured Storage System".
+  This review delves into the seminal paper titled "Cassandra: A Decentralized Structured Storage System".
 publishedOn: null
 lastUpdatedOn: null
 featuredRank: -1

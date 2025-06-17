@@ -1,5 +1,5 @@
 ---
-title: V8 Javascript Engine - Internals
+title: V8 JavaScript Engine - Internals
 description: JS Engine used by Chrome, Node.js, etc
 publishedOn: 2025-02-09
 lastUpdatedOn: 2025-02-15
@@ -21,10 +21,10 @@ import FigureCaption from '@/components/core/figure-caption.astro'
 
 ### What is V8
 
-V8 is Google’s open source high-performance JavaScript and WebAssembly engine, written in C++.
+V8 is Google's open source high-performance JavaScript and WebAssembly engine, written in C++.
 It is used in Chrome and in Node.js, among others.
 
-For this blog, we will focus on the Javascript engine.
+For this blog, we will focus on the JavaScript engine.
 
 ## How your js runs?
 
@@ -39,7 +39,7 @@ import v8Flow from './v8-flow.webp'
 
 <ResponsiveImage
   src={v8Flow}
-  alt='V8 Compiler pipeline from the blog Understanding V8’s Bytecode by Franziska Hinkelmann'
+  alt='V8 Compiler pipeline from the blog Understanding V8's Bytecode by Franziska Hinkelmann'
 >
   [Javascript Engines by Franziska Hinkelmann](https://youtu.be/p-iiEDtpy6I?si=dSPAO3YcAvksJRpy&t=727)
 </ResponsiveImage>
@@ -102,7 +102,7 @@ import V8JsExecution from './v8-js-execution.svg'
 
 ## Scanner
 
-> Tokens are blocks of one or more characters taht have a single semantic meaning:
+> Tokens are blocks of one or more characters that have a single semantic meaning:
 > a string, an identifier, an operator like `++`.
 
 - V8's parser consumes 'tokens' provided by the 'scanner'
@@ -119,12 +119,12 @@ provides a (possibly buffered) UTF-16 view over the underlying Latin1, UTF-8, or
 
 ### Whitespace
 
-- Tokens can be separated various types of whitespaces. eg. newline, space, tab, single line comments, multi-line comments, etc.
-- One type of whitespace can be followed by other types of whitespaces
+- Tokens can be separated by various types of whitespace. e.g. newline, space, tab, single line comments, multi-line comments, etc.
+- One type of whitespace can be followed by other types of whitespace
 - Whitespace adds meaning if it causes a line break between two tokens: that possibly results in [automatic semicolon insertion](https://tc39.es/ecma262/#sec-automatic-semicolon-insertion).
 - So before scanning the next token, all whitespace is skipped keeping track of whether a newline occurred.
 
-Most real-world production JavaScript code is minified, and so multi-character whitespace luckily isn’t very common.
+Most real-world production JavaScript code is minified, and so multi-character whitespace luckily isn't very common.
 For that reason V8 uniformly scans each type of whitespace independently as if they were regular tokens.
 
 ### Identifier scanning
@@ -141,10 +141,10 @@ which is used for variable names (among other things) in JavaScript.
 ### Keywords
 
 Keywords are a special subset of identifiers defined by the language, e.g., if, else, and function.
-V8’s scanner returns different tokens for keywords than for identifiers.
+V8's scanner returns different tokens for keywords than for identifiers.
 
 - After scanning an identifier we need to recognize whether the identifier is a keyword.
-- Since all keywords in Javascript only contains lowercase characters `a-z`, V8 keep flags indicating whether ASCII characters are possible keyword start and continue characters.
+- Since all keywords in JavaScript only contain lowercase characters `a-z`, V8 keeps flags indicating whether ASCII characters are possible keyword start and continue characters.
 - V8 uses the GNU perfect hash function generator (gperf) to generate a perfect hash function for the list of keywords.
 - Since the list of keywords is static, V8 can use a perfect hash function to map the first few characters of an identifier to a keyword token.
 - A hash from the length and first two identifier character is used to find the single candidate keyword.
@@ -207,11 +207,11 @@ These include:
 - **Type specialization** : Generating different versions of the code based on the types of variables to eliminate type checks at runtime.
 - **Register allocation** : Assigning variables to registers in the CPU to minimize memory accesses.
 
-### Deoptimization
+### De-optimization
 
 Sometimes, TurboFan makes assumptions about the types of variables to perform optimizations.
 If these assumptions turn out to be incorrect (e.g., a variable changes type), the optimized code may become invalid.
-In such cases, V8 has a mechanism called "deoptimization" to fall back to the interpreter (Ignition)
+In such cases, V8 has a mechanism called "de-optimization" to fall back to the interpreter (Ignition)
 and recompile the code with the correct assumptions.
 
 ### Key Benefits of TurboFan
@@ -251,7 +251,7 @@ A mostly parallel & concurrent compacting GC
 
 - [Blog: V8: Behind the Scenes (February Edition feat. A tale of TurboFan)](https://benediktmeurer.de/2017/03/01/v8-behind-the-scenes-february-edition/)
 - [Video: V8 and How It Listens to You - Michael Stanton](https://youtu.be/u7zRSm8jzvA?si=hli9DbYLKS1uVjDb)
-- [Blog: Understanding V8’s Bytecode by Franziska Hinkelmann](https://medium.com/dailyjs/understanding-v8s-bytecode-317d46c94775)
+- [Blog: Understanding V8's Bytecode by Franziska Hinkelmann](https://medium.com/dailyjs/understanding-v8s-bytecode-317d46c94775)
 - [BlinkOn 6 Day 1 Talk 2: Ignition - an interpreter for V8](https://youtu.be/r5OWCtuKiAk?si=LYVeIJpVr2muOeKW),
   [Slides](https://docs.google.com/presentation/d/1OqjVqRhtwlKeKfvMdX6HaCIu9wpZsrzqpIVIwQSuiXQ/edit#slide=id.g1357e6d1a4_0_58),
   [Slides PDF](https://github.com/sujeet-pro/learning-resources/blob/main/deep-dives/v8-internals/Ignition_%20An%20Interpreter%20for%20V8%20%5BBlinkOn%5D.pdf)
