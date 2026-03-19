@@ -3,7 +3,6 @@ import { ClientRouter } from "astro:transitions"
 import "@/styles/global.css"
 import Header from "./header.astro"
 import Footer from "./footer.astro"
-import KatexCSS from "./katex-css.astro"
 import Favicons from "./favicons.astro"
 import Seo from "./seo.astro"
 import type { Props as SeoProps } from "./seo.astro"
@@ -154,7 +153,6 @@ const containerClass = containerWidth === "wide" ? "content-container-wide" : "c
 
     {!(hasLeftSidebar || hasRightSidebar) && <Footer />}
     <ImageModal />
-    <KatexCSS />
     <GoogleAnalytics />
 
     {(hasLeftSidebar || hasRightSidebar) && <SidebarToggle />}

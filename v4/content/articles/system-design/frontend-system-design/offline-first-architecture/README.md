@@ -10,28 +10,7 @@ Offline-first inverts the traditional web model: instead of fetching data from s
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Client["Client (Browser)"]
-        direction TB
-        App[Application]
-        SW[Service Worker]
-        IDB[(IndexedDB)]
-        Cache[(Cache API)]
-    end
-
-    subgraph Server["Server"]
-        API[API Server]
-        DB[(Database)]
-    end
-
-    App -->|"1. Read/Write"| IDB
-    App -->|"2. UI renders immediately"| App
-    SW -->|"3. Intercept requests"| Cache
-    SW <-->|"4. Background sync"| API
-    IDB <-->|"5. Conflict resolution"| API
-    API <--> DB
-```
+![Offline-first architecture: application reads/writes to local storage first, service worker manages caching, and sync happens in the background when connectivity allows.](./offline-first-architecture-application-reads-writes-to-local-storage-first-servi.svg)
 
 <figcaption>Offline-first architecture: application reads/writes to local storage first, service worker manages caching, and sync happens in the background when connectivity allows.</figcaption>
 </figure>
@@ -858,17 +837,7 @@ text.insert(0, "Hello")
 
 ### Decision Framework
 
-```mermaid
-graph TD
-    A[Need offline?] -->|No| B[Traditional SPA]
-    A -->|Yes| C{How long offline?}
-    C -->|Minutes| D[Cache-only PWA]
-    C -->|Hours/Days| E{Multi-user edits?}
-    E -->|No| F[Sync queue]
-    E -->|Yes| G{Always online eventually?}
-    G -->|Yes| H[OT-based - Google Docs style]
-    G -->|P2P/Long offline| I[CRDT-based - Figma/Notion style]
-```
+![Diagram](./diagram-1.svg)
 
 ## Real-World Implementations
 

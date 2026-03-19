@@ -8,33 +8,7 @@ Statsig is a unified experimentation platform that combines feature flags, A/B t
 
 <figure>
 
-```mermaid
-graph TB
-    subgraph "Client Applications"
-        A[Browser SDK] --> B[Pre-computed Cache]
-        C[Mobile SDK] --> B
-    end
-
-    subgraph "Server Applications"
-        D[Node.js SDK] --> E[Local Evaluation]
-        F[Python/Go SDK] --> E
-    end
-
-    subgraph "Statsig Platform"
-        G[Config CDN] --> E
-        G --> H[Initialize Endpoint]
-        H --> B
-        I[Event Pipeline] --> J[Analytics Engine]
-    end
-
-    E --> I
-    B --> I
-
-    style G fill:#e1f5fe
-    style E fill:#fff3e0
-    style B fill:#f3e5f5
-    style J fill:#c8e6c9
-```
+![Statsig architecture overview: server SDKs perform local evaluation from CDN-delivered config specs, while client SDKs receive pre-computed values from the /initialize endpoint](./statsig-architecture-overview-server-sdks-perform-local-evaluation-from-cdn-deli.svg)
 
 <figcaption>Statsig architecture overview: server SDKs perform local evaluation from CDN-delivered config specs, while client SDKs receive pre-computed values from the /initialize endpoint</figcaption>
 
@@ -70,30 +44,7 @@ Statsig's architecture is built on several fundamental principles that enable it
 
 • **High-Performance Design**: Optimized for sub-millisecond evaluation latencies with global CDN distribution and sophisticated caching strategies.
 
-```mermaid
-graph TB
-    A[User Request] --> B{SDK Type?}
-    B -->|Server SDK| C[Local Evaluation]
-    B -->|Client SDK| D[Pre-evaluated Cache]
-
-    C --> E[In-Memory Ruleset]
-    E --> F[Deterministic Hash]
-    F --> G[Result]
-
-    D --> H[Local Storage Cache]
-    H --> I[Network Request]
-    I --> J[Statsig Backend]
-    J --> K[Pre-computed Values]
-    K --> L[Cache Update]
-    L --> G
-
-    G --> M[Feature Flag Result]
-
-    style A fill:#e1f5fe
-    style M fill:#c8e6c9
-    style C fill:#fff3e0
-    style D fill:#f3e5f5
-```
+![Figure 1: Statsig SDK Evaluation Flow - Server SDKs perform local evaluation while client SDKs use pre-computed cache](./figure-1-statsig-sdk-evaluation-flow-server-sdks-perform-local-evaluation-while-.svg)
 
 <figcaption>Figure 1: Statsig SDK Evaluation Flow - Server SDKs perform local evaluation while client SDKs use pre-computed cache</figcaption>
 
@@ -101,35 +52,7 @@ graph TB
 
 Statsig's most fundamental design tenet is its "unified system" approach where feature flags, experimentation, product analytics, and session replay all share a single, common data pipeline. This directly addresses the prevalent industry problem of "tool sprawl" where organizations employ disparate services for different functions.
 
-```mermaid
-graph LR
-    A[Feature Flags] --> E[Unified Data Pipeline]
-    B[Experimentation] --> E
-    C[Product Analytics] --> E
-    D[Session Replay] --> E
-
-    E --> F[Assignment Service]
-    E --> G[Configuration Service]
-    E --> H[Metrics Pipeline]
-    E --> I[Analysis Service]
-
-    F --> J[User Assignments]
-    G --> K[Rule Definitions]
-    H --> L[Event Processing]
-    I --> M[Statistical Analysis]
-
-    J --> N[Consistent Results]
-    K --> N
-    L --> N
-    M --> N
-
-    style E fill:#e3f2fd
-    style N fill:#c8e6c9
-    style A fill:#fff3e0
-    style B fill:#f3e5f5
-    style C fill:#e8f5e8
-    style D fill:#fce4ec
-```
+![Figure 2: Unified Platform Architecture - All components share a single data pipeline ensuring consistency](./figure-2-unified-platform-architecture-all-components-share-a-single-data-pipeli.svg)
 
 <figcaption>Figure 2: Unified Platform Architecture - All components share a single data pipeline ensuring consistency</figcaption>
 
@@ -154,36 +77,13 @@ Statsig employs two fundamentally different models for configuration synchroniza
 
 #### Server SDK Architecture
 
-```mermaid
-graph TB
-    A1[Initialize] --> A2[Download Full Config Spec]
-    A2 --> A3[Store in Memory]
-    A3 --> A4[Local Evaluation]
-    A4 --> A5[Sub-1ms Response]
-
-    A1 -.->|Secret Key| A2
-
-    style A1 fill:#fff3e0
-    style A5 fill:#c8e6c9
-```
+![Figure 3a: Server SDK Architecture - Downloads full config and evaluates locally](./figure-3a-server-sdk-architecture-downloads-full-config-and-evaluates-locally.svg)
 
 <figcaption>Figure 3a: Server SDK Architecture - Downloads full config and evaluates locally</figcaption>
 
 #### Client SDK Architecture
 
-```mermaid
-graph TB
-    B1[Initialize] --> B2[Send User to /initialize]
-    B2 --> B3[Backend Evaluation]
-    B3 --> B4[Pre-computed Values]
-    B4 --> B5[Cache Results]
-    B5 --> B6[Fast Cache Lookup]
-
-    B1 -.->|Client Key| B2
-
-    style B1 fill:#f3e5f5
-    style B6 fill:#c8e6c9
-```
+![Figure 3b: Client SDK Architecture - Receives pre-computed values and caches them](./figure-3b-client-sdk-architecture-receives-pre-computed-values-and-caches-them.svg)
 
 <figcaption>Figure 3b: Client SDK Architecture - Receives pre-computed values and caches them</figcaption>
 
@@ -270,27 +170,7 @@ const result = getFeatureFlags() // Fast cache lookup, no network calls
 
 Server SDKs maintain authoritative configuration state by downloading complete rule definitions:
 
-```mermaid
-sequenceDiagram
-    participant SDK as Server SDK
-    participant CDN as Statsig CDN
-    participant Memory as In-Memory Store
-
-    SDK->>CDN: GET /download_config_specs/{KEY}
-    CDN-->>SDK: Full Config Spec (JSON)
-    SDK->>Memory: Parse & Store Config
-    SDK->>SDK: Start Background Polling
-
-    loop Every 10 seconds
-        SDK->>CDN: GET /download_config_specs/{KEY}?lcut={timestamp}
-        alt Has Updates
-            CDN-->>SDK: Delta Updates
-            SDK->>Memory: Atomic Swap
-        else No Updates
-            CDN-->>SDK: { has_updates: false }
-        end
-    end
-```
+![Figure 4: Server-Side Configuration Synchronization - Continuous polling with delta updates](./figure-4-server-side-configuration-synchronization-continuous-polling-with-delta.svg)
 
 <figcaption>Figure 4: Server-Side Configuration Synchronization - Continuous polling with delta updates</figcaption>
 
@@ -316,24 +196,7 @@ interface ConfigSpecs {
 
 Client SDKs receive pre-evaluated results rather than raw configuration rules:
 
-```mermaid
-sequenceDiagram
-    participant Client as Client SDK
-    participant Backend as Statsig Backend
-    participant Cache as Local Storage
-
-    Client->>Cache: Check for cached values
-    alt Cache Hit
-        Cache-->>Client: Return cached evaluations
-    else Cache Miss
-        Client->>Backend: POST /initialize { user }
-        Backend->>Backend: Evaluate all rules for user
-        Backend-->>Client: Pre-computed values (JSON)
-        Client->>Cache: Store evaluations
-    end
-
-    Client->>Client: Fast cache lookup for subsequent checks
-```
+![Figure 5: Client-Side Evaluation Caching - Pre-computed values with local storage fallback](./figure-5-client-side-evaluation-caching-pre-computed-values-with-local-storage-f.svg)
 
 <figcaption>Figure 5: Client-Side Evaluation Caching - Pre-computed values with local storage fallback</figcaption>
 
@@ -364,26 +227,7 @@ sequenceDiagram
 
 Statsig's bucket assignment algorithm ensures consistent, deterministic user allocation:
 
-```mermaid
-flowchart TD
-    A[User ID] --> B[Salt Generation]
-    B --> C[Input Concatenation]
-    C --> D[SHA-256 Hashing]
-    D --> E[Extract First 8 Bytes]
-    E --> F[Convert to Integer]
-    F --> G[Modulo Operation]
-    G --> H[Bucket Assignment]
-
-    B1[Rule Salt] --> C
-    C1[Salt + UserID] --> C
-
-    G1[Mod 10,000 for Experiments] --> G
-    G2[Mod 1,000 for Layers] --> G
-
-    style A fill:#e1f5fe
-    style H fill:#c8e6c9
-    style D fill:#fff3e0
-```
+![Figure 6: Deterministic Assignment Algorithm - SHA-256 hashing with salt ensures consistent user bucketing](./figure-6-deterministic-assignment-algorithm-sha-256-hashing-with-salt-ensures-co.svg)
 
 <figcaption>Figure 6: Deterministic Assignment Algorithm - SHA-256 hashing with salt ensures consistent user bucketing</figcaption>
 
@@ -441,32 +285,7 @@ console.log(`Bucket ${result.bucket}, group: ${result.group}`)
 
 The browser SDK implements four distinct initialization strategies:
 
-```mermaid
-graph TB
-    A[Browser SDK Initialization] --> B{Strategy?}
-
-    B -->|Async Awaited| C[Block Rendering]
-    C --> D[Network Request]
-    D --> E[Fresh Values]
-
-    B -->|Bootstrap| F[Server Pre-compute]
-    F --> G[Embed in HTML]
-    G --> H[Instant Render]
-
-    B -->|Synchronous| I[Use Cache]
-    I --> J[Background Update]
-    J --> K[Next Session]
-
-    B -->|On-Device| L[Download Config Spec]
-    L --> M[Local Evaluation]
-    M --> N[Real-time Checks]
-
-    style A fill:#e1f5fe
-    style E fill:#c8e6c9
-    style H fill:#c8e6c9
-    style K fill:#fff3e0
-    style N fill:#f3e5f5
-```
+![Figure 7: Browser SDK Initialization Strategies - Four different approaches for balancing performance and freshness](./figure-7-browser-sdk-initialization-strategies-four-different-approaches-for-bal.svg)
 
 <figcaption>Figure 7: Browser SDK Initialization Strategies - Four different approaches for balancing performance and freshness</figcaption>
 
@@ -524,33 +343,7 @@ interface CachedEvaluations {
 
 ### Server-Side Architecture Patterns
 
-```mermaid
-graph TB
-    subgraph "Node.js Application"
-        A[HTTP Request] --> B[Express/Next.js Handler]
-        B --> C[Statsig SDK]
-        C --> D[In-Memory Ruleset]
-        D --> E[Local Evaluation]
-        E --> F[Response]
-    end
-
-    subgraph "Background Sync"
-        G[Background Timer] --> H[Poll CDN]
-        H --> I[Download Updates]
-        I --> J[Atomic Swap]
-        J --> D
-    end
-
-    subgraph "Data Store (Optional)"
-        K[Redis/Memory] --> L[Config Cache]
-        L --> D
-    end
-
-    style A fill:#e1f5fe
-    style F fill:#c8e6c9
-    style E fill:#fff3e0
-    style J fill:#f3e5f5
-```
+![Figure 8: Node.js Server SDK Architecture - In-memory evaluation with background synchronization](./figure-8-node-js-server-sdk-architecture-in-memory-evaluation-with-background-sy.svg)
 
 <figcaption>Figure 8: Node.js Server SDK Architecture - In-memory evaluation with background synchronization</figcaption>
 
@@ -639,26 +432,7 @@ class RedisDataAdapter implements DataAdapter {
 
 ### Bootstrap Initialization for Next.js
 
-```mermaid
-sequenceDiagram
-    participant User as User
-    participant Next as Next.js Server
-    participant Statsig as Statsig Server SDK
-    participant Client as Client SDK
-    participant Browser as Browser
-
-    User->>Next: GET /page
-    Next->>Statsig: getClientInitializeResponse(user)
-    Statsig->>Statsig: Local evaluation
-    Statsig-->>Next: Bootstrap values
-    Next->>Browser: HTML + bootstrap values
-    Browser->>Client: initializeSync(bootstrap)
-    Client->>Client: Instant cache population
-    Client->>Browser: Feature flags ready
-
-    Note over Browser: No network request needed
-    Note over Client: UI renders immediately
-```
+![Figure 9: Bootstrap Initialization Flow - Server pre-computes values for instant client-side rendering](./figure-9-bootstrap-initialization-flow-server-pre-computes-values-for-instant-cl.svg)
 
 <figcaption>Figure 9: Bootstrap Initialization Flow - Server pre-computes values for instant client-side rendering</figcaption>
 
@@ -711,27 +485,7 @@ const statsig = await Statsig.initialize("secret-key", {
 
 ### Feature Gate Overrides
 
-```mermaid
-flowchart TD
-    A[Feature Gate Check] --> B{Override Exists?}
-    B -->|Yes| C[Return Override Value]
-    B -->|No| D[Evaluate Rules]
-    D --> E[Return Rule Result]
-
-    C --> F[Final Result]
-    E --> F
-
-    subgraph "Override Types"
-        G[Console Override] --> H[User ID List]
-        I[Local Override] --> J[Programmatic]
-        K[Global Override] --> L[All Users]
-    end
-
-    style A fill:#e1f5fe
-    style F fill:#c8e6c9
-    style C fill:#fff3e0
-    style E fill:#f3e5f5
-```
+![Figure 10: Override System Hierarchy - Overrides take precedence over normal rule evaluation](./figure-10-override-system-hierarchy-overrides-take-precedence-over-normal-rule-e.svg)
 
 <figcaption>Figure 10: Override System Hierarchy - Overrides take precedence over normal rule evaluation</figcaption>
 
@@ -760,36 +514,7 @@ const statsig = await Statsig.initialize("secret-key", {
 
 ### Microservices Integration
 
-```mermaid
-graph TB
-    subgraph "Microservice A"
-        A1[Service A] --> A2[Statsig SDK A]
-        A2 --> A3[Redis Cache]
-    end
-
-    subgraph "Microservice B"
-        B1[Service B] --> B2[Statsig SDK B]
-        B2 --> A3
-    end
-
-    subgraph "Microservice C"
-        C1[Service C] --> C2[Statsig SDK C]
-        C2 --> A3
-    end
-
-    A3 --> D[Shared Configuration State]
-
-    subgraph "Load Balancer"
-        E[User Request] --> F[Route to Service]
-        F --> A1
-        F --> B1
-        F --> C1
-    end
-
-    style A3 fill:#e1f5fe
-    style D fill:#c8e6c9
-    style E fill:#fff3e0
-```
+![Figure 11: Microservices Integration - Shared Redis cache ensures consistent configuration across services](./figure-11-microservices-integration-shared-redis-cache-ensures-consistent-config.svg)
 
 <figcaption>Figure 11: Microservices Integration - Shared Redis cache ensures consistent configuration across services</figcaption>
 
@@ -807,29 +532,7 @@ const statsig = await Statsig.initialize("secret-key", {
 
 ### Serverless Architecture Considerations
 
-```mermaid
-graph TB
-    subgraph "AWS Lambda"
-        A[Lambda Function] --> B{Statsig Initialized?}
-        B -->|No| C[Initialize SDK]
-        B -->|Yes| D[Use Existing Instance]
-        C --> E[Load from Redis]
-        D --> F[Local Evaluation]
-        E --> F
-        F --> G[Return Result]
-    end
-
-    subgraph "Redis Cache"
-        H[Config Cache] --> I[Shared State]
-    end
-
-    E --> H
-    D --> H
-
-    style A fill:#e1f5fe
-    style G fill:#c8e6c9
-    style H fill:#fff3e0
-```
+![Figure 12: Serverless Architecture - Cold start optimization with shared Redis cache](./figure-12-serverless-architecture-cold-start-optimization-with-shared-redis-cach.svg)
 
 <figcaption>Figure 12: Serverless Architecture - Cold start optimization with shared Redis cache</figcaption>
 
@@ -863,28 +566,7 @@ export async function handler(event: APIGatewayEvent) {
 
 ### Next.js with Bootstrap Initialization
 
-```mermaid
-sequenceDiagram
-    participant User as User
-    participant Next as Next.js
-    participant Statsig as Statsig Server
-    participant Client as Client SDK
-    participant React as React App
-
-    User->>Next: GET /page
-    Next->>Next: getServerSideProps()
-    Next->>Statsig: getBootstrapValues(user)
-    Statsig->>Statsig: Local evaluation
-    Statsig-->>Next: Bootstrap values
-    Next->>User: HTML + bootstrap values
-
-    User->>Client: initializeSync(bootstrap)
-    Client->>React: Feature flags ready
-    React->>React: Conditional rendering
-
-    Note over React: No UI flicker
-    Note over Client: Instant initialization
-```
+![Figure 13: Next.js Bootstrap Implementation - Server-side pre-computation eliminates client-side network requests](./figure-13-next-js-bootstrap-implementation-server-side-pre-computation-eliminate.svg)
 
 <figcaption>Figure 13: Next.js Bootstrap Implementation - Server-side pre-computation eliminates client-side network requests</figcaption>
 
@@ -1000,29 +682,7 @@ router.get("/bootstrap/:userId", async (req, res) => {
 
 Statsig SDKs are designed to handle various network failure scenarios gracefully:
 
-```mermaid
-flowchart TD
-    A[SDK Request] --> B{Network Available?}
-    B -->|Yes| C[Fresh Data]
-    B -->|No| D{Has Cache?}
-    D -->|Yes| E[Use Cached Values]
-    D -->|No| F[Use Defaults]
-
-    C --> G[Success Response]
-    E --> G
-    F --> G
-
-    subgraph "Fallback Hierarchy"
-        H[Fresh Data] --> I[Cached Values]
-        I --> J[Default Values]
-        J --> K[Graceful Degradation]
-    end
-
-    style A fill:#e1f5fe
-    style G fill:#c8e6c9
-    style E fill:#fff3e0
-    style F fill:#f3e5f5
-```
+![Figure 14: Error Handling and Resilience - Multi-layered fallback mechanisms ensure system reliability](./figure-14-error-handling-and-resilience-multi-layered-fallback-mechanisms-ensure.svg)
 
 <figcaption>Figure 14: Error Handling and Resilience - Multi-layered fallback mechanisms ensure system reliability</figcaption>
 
@@ -1069,41 +729,7 @@ const statsig = await Statsig.initialize("secret-key", {
 
 ### SDK Health Monitoring
 
-```mermaid
-graph TB
-    subgraph "Application"
-        A[Statsig SDK] --> B[Health Check]
-        B --> C[Performance Metrics]
-        C --> D[Error Tracking]
-    end
-
-    subgraph "Monitoring System"
-        E[Metrics Collector] --> F[Alerting]
-        E --> G[Dashboard]
-        E --> H[Logs]
-    end
-
-    B --> E
-    C --> E
-    D --> E
-
-    subgraph "Key Metrics"
-        I[Evaluation Latency]
-        J[Cache Hit Rate]
-        K[Sync Success Rate]
-        L[Error Rates]
-    end
-
-    C --> I
-    C --> J
-    C --> K
-    D --> L
-
-    style A fill:#e1f5fe
-    style E fill:#c8e6c9
-    style I fill:#fff3e0
-    style L fill:#f3e5f5
-```
+![Figure 15: Monitoring and Observability - Comprehensive metrics collection and alerting system](./figure-15-monitoring-and-observability-comprehensive-metrics-collection-and-aler.svg)
 
 <figcaption>Figure 15: Monitoring and Observability - Comprehensive metrics collection and alerting system</figcaption>
 
@@ -1146,35 +772,7 @@ function checkGateWithMetrics(user: StatsigUser, gateName: string) {
 
 ### API Key Management
 
-```mermaid
-graph TB
-    subgraph "Environment Management"
-        A[Development] --> B[Dev Key]
-        C[Staging] --> D[Staging Key]
-        E[Production] --> F[Production Key]
-    end
-
-    subgraph "Key Rotation"
-        G[Current Key] --> H[Backup Key]
-        H --> I[New Key]
-        I --> G
-    end
-
-    subgraph "Security Layers"
-        J[HTTPS/TLS] --> K[API Key Auth]
-        K --> L[Environment Isolation]
-        L --> M[Data Encryption]
-    end
-
-    B --> J
-    D --> J
-    F --> J
-
-    style A fill:#e1f5fe
-    style F fill:#c8e6c9
-    style J fill:#fff3e0
-    style M fill:#f3e5f5
-```
+![Figure 16: Security Considerations - Multi-layered security approach with environment isolation](./figure-16-security-considerations-multi-layered-security-approach-with-environme.svg)
 
 <figcaption>Figure 16: Security Considerations - Multi-layered security approach with environment isolation</figcaption>
 

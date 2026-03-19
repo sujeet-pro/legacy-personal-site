@@ -8,72 +8,7 @@ A comprehensive system design for a location-based business discovery service. T
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Clients["Client Layer"]
-        Mobile["Mobile Apps"]
-        Web["Web App"]
-    end
-
-    subgraph Edge["Edge Layer"]
-        CDN["CDN"]
-        LB["Load Balancer"]
-    end
-
-    subgraph Services["Application Services"]
-        Gateway["API Gateway"]
-        Search["Search Service"]
-        Business["Business Service"]
-        Review["Review Service"]
-        User["User Service"]
-        Ranking["Ranking Service"]
-    end
-
-    subgraph Data["Data Layer"]
-        subgraph Primary["Primary Stores"]
-            PG[(PostgreSQL)]
-            ES[(Elasticsearch)]
-        end
-        subgraph Cache["Cache Layer"]
-            Redis[(Redis Cluster)]
-            GeoCache["Geospatial Cache"]
-        end
-        subgraph Async["Async Processing"]
-            Kafka[["Kafka"]]
-            Workers["Background Workers"]
-        end
-    end
-
-    subgraph ML["ML Pipeline"]
-        RankModel["Ranking Model"]
-        SpamDetect["Spam Detection"]
-    end
-
-    Mobile --> CDN
-    Web --> CDN
-    CDN --> LB
-    LB --> Gateway
-    Gateway --> Search
-    Gateway --> Business
-    Gateway --> Review
-    Gateway --> User
-    Search --> ES
-    Search --> GeoCache
-    Search --> Ranking
-    Ranking --> RankModel
-    Business --> PG
-    Business --> Redis
-    Review --> PG
-    Review --> Kafka
-    Kafka --> Workers
-    Workers --> SpamDetect
-    Workers --> ES
-
-    style CDN fill:#dae8fc
-    style ES fill:#d5e8d4
-    style Redis fill:#fff2cc
-    style Kafka fill:#e1d5e7
-```
+![High-level architecture: Client requests flow through edge infrastructure to application services, with geospatial indexing in Elasticsearch and real-time updates via Kafka.](./high-level-architecture-client-requests-flow-through-edge-infrastructure-to-appl.svg)
 
 <figcaption>High-level architecture: Client requests flow through edge infrastructure to application services, with geospatial indexing in Elasticsearch and real-time updates via Kafka.</figcaption>
 </figure>
@@ -165,27 +100,7 @@ Proximity services solve a fundamentally different problem than traditional text
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    subgraph Query["Query Flow"]
-        Coord["lat, lon"] --> GH["Geohash Encode"]
-        GH --> Prefix["Prefix Match"]
-        Prefix --> Neighbors["+ 8 Neighbors"]
-        Neighbors --> Results["Candidate Set"]
-    end
-
-    subgraph Index["Index Structure"]
-        GH6["geohash:dr5ru7 → [biz_ids]"]
-        GH5["geohash:dr5ru → [biz_ids]"]
-        GH4["geohash:dr5r → [biz_ids]"]
-    end
-
-    Results --> Filter["Distance Filter"]
-    Filter --> Rank["Rank & Return"]
-
-    style GH fill:#d5e8d4
-    style Neighbors fill:#fff2cc
-```
+![Diagram](./diagram-1.svg)
 
 **Key characteristics:**
 
@@ -215,30 +130,7 @@ flowchart LR
 
 **Architecture:**
 
-```mermaid
-flowchart TB
-    subgraph Tree["Quadtree Structure"]
-        Root["Root (World)"]
-        Root --> Q1["NW"]
-        Root --> Q2["NE"]
-        Root --> Q3["SW"]
-        Root --> Q4["SE"]
-        Q2 --> Q2a["NW"]
-        Q2 --> Q2b["NE"]
-        Q2 --> Q2c["SW"]
-        Q2 --> Q2d["SE"]
-        Q2b --> Leaf["Leaf: 50 businesses"]
-    end
-
-    subgraph Query["Query"]
-        Circle["Search Circle"]
-        Circle --> Intersect["Find Intersecting Cells"]
-        Intersect --> Collect["Collect All Businesses"]
-    end
-
-    style Root fill:#dae8fc
-    style Leaf fill:#d5e8d4
-```
+![Diagram](./diagram-2.svg)
 
 **Key characteristics:**
 
@@ -268,25 +160,7 @@ flowchart TB
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    subgraph ES["Elasticsearch"]
-        Query["geo_distance query"]
-        Query --> BKD["BKD Tree Index"]
-        BKD --> Filter["Attribute Filters"]
-        Filter --> Score["Relevance Scoring"]
-    end
-
-    subgraph Index["Index Structure"]
-        Doc["Document"]
-        Doc --> Loc["location: geo_point"]
-        Doc --> Attrs["attributes: nested"]
-        Doc --> Text["name: text"]
-    end
-
-    style BKD fill:#d5e8d4
-    style Score fill:#fff2cc
-```
+![Diagram](./diagram-3.svg)
 
 **Key characteristics:**
 
@@ -758,32 +632,7 @@ CREATE INDEX idx_reviews_pending ON reviews (status, created_at)
 
 ### Search Flow
 
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Gateway as API Gateway
-    participant Search as Search Service
-    participant ES as Elasticsearch
-    participant Cache as Redis Cache
-    participant Ranker as Ranking Service
-
-    Client->>Gateway: GET /search?lat=37.77&lon=-122.41&radius=5000
-    Gateway->>Search: Forward with user context
-
-    Search->>Cache: Check geohash cache (dr5ru)
-    alt Cache hit
-        Cache-->>Search: Cached business IDs
-    else Cache miss
-        Search->>ES: geo_distance query
-        ES-->>Search: Matching documents
-        Search->>Cache: Store in cache (TTL: 5min)
-    end
-
-    Search->>Ranker: Rank candidates with signals
-    Ranker-->>Search: Scored results
-    Search-->>Gateway: Paginated response
-    Gateway-->>Client: JSON response
-```
+![Diagram](./diagram-4.svg)
 
 ### Elasticsearch Query Construction
 
@@ -994,37 +843,7 @@ Where:
 
 ### Review Submission Flow
 
-```mermaid
-sequenceDiagram
-    participant User
-    participant API as Review API
-    participant DB as PostgreSQL
-    participant Queue as Kafka
-    participant Moderator as Moderation Worker
-    participant ML as Spam Detection
-    participant Index as Elasticsearch
-    participant Notify as Notification Service
-
-    User->>API: POST /reviews (rating, text, photos)
-    API->>API: Validate input
-    API->>DB: Insert review (status: pending)
-    API->>Queue: Publish ReviewCreated event
-    API-->>User: 201 Created (status: pending)
-
-    Queue->>Moderator: Consume event
-    Moderator->>ML: Analyze text
-    ML-->>Moderator: Spam score, toxicity score
-
-    alt Auto-approve (scores < threshold)
-        Moderator->>DB: Update status: approved
-        Moderator->>Index: Index review
-        Moderator->>DB: Update business rating_avg, review_count
-        Moderator->>Notify: Notify business owner
-    else Manual review needed
-        Moderator->>DB: Update status: manual_review
-        Moderator->>Queue: Publish to human review queue
-    end
-```
+![Diagram](./diagram-5.svg)
 
 ### Spam Detection Signals
 
@@ -1196,55 +1015,7 @@ interface MapSearchParams {
 
 ### Cloud-Agnostic Architecture
 
-```mermaid
-flowchart TB
-    subgraph Edge["Edge / CDN"]
-        CDN["CDN (static assets, images)"]
-        WAF["WAF / DDoS Protection"]
-    end
-
-    subgraph LB["Load Balancing"]
-        GLB["Global Load Balancer"]
-        RLB1["Regional LB - US"]
-        RLB2["Regional LB - EU"]
-    end
-
-    subgraph Compute["Compute (per region)"]
-        API["API Servers (auto-scaling)"]
-        Workers["Background Workers"]
-        ML["ML Inference"]
-    end
-
-    subgraph Data["Data (per region)"]
-        PG[(PostgreSQL Primary)]
-        PGR[(PostgreSQL Replicas)]
-        ES[(Elasticsearch Cluster)]
-        Redis[(Redis Cluster)]
-    end
-
-    subgraph Async["Async Processing"]
-        Kafka[["Message Queue"]]
-        S3[("Object Storage")]
-    end
-
-    CDN --> WAF
-    WAF --> GLB
-    GLB --> RLB1
-    GLB --> RLB2
-    RLB1 --> API
-    API --> PG
-    API --> PGR
-    API --> ES
-    API --> Redis
-    API --> Kafka
-    Kafka --> Workers
-    Workers --> S3
-    Workers --> ML
-
-    style CDN fill:#dae8fc
-    style ES fill:#d5e8d4
-    style Kafka fill:#e1d5e7
-```
+![Diagram](./diagram-6.svg)
 
 ### AWS Reference Implementation
 

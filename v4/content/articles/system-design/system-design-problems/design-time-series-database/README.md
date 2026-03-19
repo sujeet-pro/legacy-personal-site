@@ -8,57 +8,7 @@ A comprehensive system design for a metrics and monitoring time-series database 
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Ingest["Ingestion Layer"]
-        Agents[Metric Agents]
-        Collector[Collector/Aggregator]
-        LB[Load Balancer]
-    end
-
-    subgraph Write["Write Path"]
-        Router[Router/Distributor]
-        WAL[(Write-Ahead Log)]
-        MemTable[In-Memory Buffer]
-    end
-
-    subgraph Storage["Storage Engine"]
-        Compactor[Compaction Service]
-        TSM[(TSM/Block Files)]
-        Index[(Inverted Index)]
-        ObjectStore[(Object Storage<br/>Cold Tier)]
-    end
-
-    subgraph Query["Query Path"]
-        QueryEngine[Query Engine]
-        Cache[(Query Cache)]
-        Aggregator[Aggregation Engine]
-    end
-
-    subgraph Lifecycle["Data Lifecycle"]
-        Downsampler[Downsampling Service]
-        RetentionMgr[Retention Manager]
-    end
-
-    Agents --> Collector
-    Collector --> LB
-    LB --> Router
-    Router --> WAL
-    WAL --> MemTable
-    MemTable --> Compactor
-    Compactor --> TSM
-    Compactor --> Index
-    TSM --> ObjectStore
-
-    QueryEngine --> Cache
-    QueryEngine --> Index
-    QueryEngine --> TSM
-    QueryEngine --> Aggregator
-
-    Downsampler --> TSM
-    RetentionMgr --> TSM
-    RetentionMgr --> ObjectStore
-```
+![High-level architecture: Metrics flow through collectors to a write-ahead log, buffer in memory, then compact to disk. Queries traverse an inverted index to locate compressed blocks. Lifecycle services handle downsampling and retention.](./high-level-architecture-metrics-flow-through-collectors-to-a-write-ahead-log-buf.svg)
 
 <figcaption>High-level architecture: Metrics flow through collectors to a write-ahead log, buffer in memory, then compact to disk. Queries traverse an inverted index to locate compressed blocks. Lifecycle services handle downsampling and retention.</figcaption>
 </figure>
@@ -281,52 +231,11 @@ Handles data retention and downsampling:
 
 ### Data Flow: Write Path
 
-```mermaid
-sequenceDiagram
-    participant A as Agent
-    participant D as Distributor
-    participant I as Ingester
-    participant WAL as Write-Ahead Log
-    participant M as MemTable
-    participant B as Block Storage
-
-    A->>D: POST /write (batch of samples)
-    D->>D: Parse, validate, hash series
-    D->>I: Route to ingester(s)
-    I->>WAL: Append (sync write)
-    WAL-->>I: ACK
-    I->>M: Buffer in memory
-    I->>A: 204 No Content
-
-    Note over M,B: Every 2 hours
-    M->>B: Flush to block
-    B->>B: Compress, index
-```
+![Diagram](./diagram-1.svg)
 
 ### Data Flow: Query Path
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant Q as Query Engine
-    participant I as Index
-    participant B as Block Storage
-    participant Cache as Query Cache
-
-    C->>Q: GET /query?expr=...&start=...&end=...
-    Q->>Cache: Check cache
-    alt Cache hit
-        Cache->>Q: Return cached result
-    else Cache miss
-        Q->>I: Lookup series matching labels
-        I->>Q: Return series IDs + block locations
-        Q->>B: Fetch compressed chunks
-        B->>Q: Return chunks
-        Q->>Q: Decompress, aggregate
-        Q->>Cache: Store result (TTL=1min)
-    end
-    Q->>C: Return query result
-```
+![Diagram](./diagram-2.svg)
 
 ## API Design
 
@@ -901,30 +810,7 @@ class InMemoryIndex {
 
 Compaction merges small blocks into larger ones, improving query efficiency:
 
-```mermaid
-flowchart LR
-    subgraph Level0["Level 0 (2h blocks)"]
-        B1[Block 00-02]
-        B2[Block 02-04]
-        B3[Block 04-06]
-        B4[Block 06-08]
-    end
-
-    subgraph Level1["Level 1 (8h blocks)"]
-        B5[Block 00-08]
-    end
-
-    subgraph Level2["Level 2 (24h+ blocks)"]
-        B6[Block Day 1]
-    end
-
-    B1 --> B5
-    B2 --> B5
-    B3 --> B5
-    B4 --> B5
-
-    B5 --> B6
-```
+![Diagram](./diagram-3.svg)
 
 ```typescript collapse={1-10, 50-60}
 // Compaction strategy
@@ -1229,43 +1115,7 @@ async function fetchDashboard(queries: DashboardQuery[]): Promise<Map<string, Qu
 
 ### AWS Reference Architecture
 
-```mermaid
-flowchart TB
-    subgraph Edge["Edge"]
-        NLB[Network Load Balancer]
-    end
-
-    subgraph Compute["EKS Cluster"]
-        subgraph Ingest["Ingestion (Stateless)"]
-            Dist1[Distributor Pod]
-            Dist2[Distributor Pod]
-            Dist3[Distributor Pod]
-        end
-
-        subgraph Storage["Storage (StatefulSet)"]
-            Ing1[Ingester Pod<br/>+ Local NVMe]
-            Ing2[Ingester Pod<br/>+ Local NVMe]
-            Ing3[Ingester Pod<br/>+ Local NVMe]
-        end
-
-        subgraph Query["Query (Stateless)"]
-            QE1[Query Engine]
-            QE2[Query Engine]
-        end
-    end
-
-    subgraph Data["Data Layer"]
-        S3[(S3<br/>Cold Blocks)]
-        Redis[(ElastiCache<br/>Query Cache)]
-    end
-
-    NLB --> Dist1 & Dist2 & Dist3
-    Dist1 & Dist2 & Dist3 --> Ing1 & Ing2 & Ing3
-    Ing1 & Ing2 & Ing3 --> S3
-    QE1 & QE2 --> Redis
-    QE1 & QE2 --> Ing1 & Ing2 & Ing3
-    QE1 & QE2 --> S3
-```
+![Diagram](./diagram-4.svg)
 
 | Component     | AWS Service        | Configuration                           |
 | ------------- | ------------------ | --------------------------------------- |

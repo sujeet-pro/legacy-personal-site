@@ -8,52 +8,7 @@ Building a rich text editor for web applications requires choosing between funda
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Input["Input Layer"]
-        KB[Keyboard Events]
-        Mouse[Mouse/Touch]
-        IME[IME Composition]
-        Clipboard[Paste/Drop]
-    end
-
-    subgraph Core["Editor Core"]
-        direction TB
-        Schema[Schema Definition]
-        State[Editor State]
-        Trans[Transaction Engine]
-        History[Undo/Redo Stack]
-    end
-
-    subgraph Rendering["Rendering Layer"]
-        DOM[DOM Reconciler]
-        Cursor[Selection/Cursor]
-        Decorations[Marks & Decorations]
-    end
-
-    subgraph Collab["Collaboration Layer"]
-        Local[Local Operations]
-        Sync[Sync Protocol]
-        Remote[Remote Operations]
-    end
-
-    KB --> Trans
-    Mouse --> Trans
-    IME --> Trans
-    Clipboard --> Trans
-
-    Trans --> State
-    State --> History
-    Schema --> State
-
-    State --> DOM
-    DOM --> Cursor
-    DOM --> Decorations
-
-    Local --> Sync
-    Sync --> Remote
-    Trans <--> Local
-```
+![Rich text editor architecture: input events flow through the transaction engine, updating immutable state that the DOM reconciler renders. Collaboration layers intercept transactions for sync.](./rich-text-editor-architecture-input-events-flow-through-the-transaction-engine-u.svg)
 
 <figcaption>Rich text editor architecture: input events flow through the transaction engine, updating immutable state that the DOM reconciler renders. Collaboration layers intercept transactions for sync.</figcaption>
 </figure>

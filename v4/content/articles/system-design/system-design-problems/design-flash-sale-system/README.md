@@ -8,41 +8,7 @@ Building a system to handle millions of concurrent users competing for limited i
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Edge["CDN Edge Layer"]
-        WR[Virtual Waiting Room<br/>Static HTML + JS]
-        CDN[CDN Cache]
-    end
-
-    subgraph Gateway["API Gateway"]
-        RL[Rate Limiter<br/>Token Bucket]
-        Auth[Auth Service]
-    end
-
-    subgraph Core["Flash Sale Services"]
-        QS[Queue Service<br/>Token Management]
-        IS[Inventory Service<br/>Atomic Counters]
-        OS[Order Service<br/>Async Processing]
-    end
-
-    subgraph Data["Data Layer"]
-        Redis[(Redis Cluster<br/>Inventory + Queue)]
-        MQ[Message Queue<br/>SQS/Kafka]
-        DB[(PostgreSQL<br/>Orders + Users)]
-    end
-
-    Users --> WR
-    WR --> CDN
-    CDN --> RL
-    RL --> Auth
-    Auth --> QS
-    QS --> IS
-    IS --> Redis
-    IS --> OS
-    OS --> MQ
-    MQ --> DB
-```
+![Flash sale system architecture: CDN-based waiting room absorbs traffic spike, queue service manages admission, Redis handles atomic inventory, message queue decouples order processing.](./flash-sale-system-architecture-cdn-based-waiting-room-absorbs-traffic-spike-queu.svg)
 
 <figcaption>Flash sale system architecture: CDN-based waiting room absorbs traffic spike, queue service manages admission, Redis handles atomic inventory, message queue decouples order processing.</figcaption>
 </figure>
@@ -137,20 +103,7 @@ Event logs: 10M events × 200 bytes = 2GB/sale
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    subgraph PreSale["Pre-Sale Setup"]
-        INV[Inventory Count: N] --> GEN[Generate N Tokens]
-    end
-
-    subgraph SaleTime["During Sale"]
-        WR[Waiting Room] --> Q[Queue<br/>FIFO]
-        Q --> |Token assigned| GATE[Token Gate]
-        GATE --> CHECKOUT[Checkout<br/>Token = Inventory]
-    end
-
-    GEN --> GATE
-```
+![Diagram](./diagram-1.svg)
 
 **Key characteristics:**
 
@@ -180,16 +133,7 @@ flowchart LR
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    subgraph SaleTime["During Sale"]
-        WR[Waiting Room] --> RL[Rate Limiter]
-        RL --> INV[Inventory Check<br/>Redis Counter]
-        INV --> |count > 0| CHECKOUT[Checkout]
-        INV --> |count = 0| SOLD[Sold Out]
-        CHECKOUT --> DEC[Atomic Decrement]
-    end
-```
+![Diagram](./diagram-2.svg)
 
 **Key characteristics:**
 
@@ -246,36 +190,7 @@ Path B implementation details are covered in the [Variations](#variations) secti
 
 ### Request Flow
 
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant CDN as CDN/Waiting Room
-    participant Q as Queue Service
-    participant I as Inventory Service
-    participant O as Order Service
-    participant P as Payment Service
-
-    U->>CDN: Access flash sale page
-    CDN->>U: Serve waiting room HTML
-
-    loop Poll queue status
-        U->>Q: GET /queue/status
-        Q->>U: {position: 1234, estimated_wait: "2min"}
-    end
-
-    Q->>U: Token assigned (your turn)
-    U->>I: POST /checkout/start {token}
-    I->>I: Validate token, reserve inventory
-    I->>U: {checkout_session_id, expires_in: 300s}
-
-    U->>O: POST /orders {session_id, items, payment}
-    O->>P: Process payment
-    P->>O: Payment confirmed
-    O->>U: {order_id, status: "processing"}
-
-    Note over O: Async order processing
-    O-->>U: Email: Order confirmed
-```
+![Diagram](./diagram-3.svg)
 
 ## API Design
 
@@ -552,25 +467,7 @@ The waiting room is the first line of defense. It must:
 
 **Architecture:**
 
-```mermaid
-flowchart TB
-    subgraph CDN["CloudFront CDN"]
-        HTML[Static Waiting Room HTML]
-        JS[Queue Polling JS]
-    end
-
-    subgraph Backend["Backend Services"]
-        LB[Load Balancer]
-        Q[Queue Service<br/>Lambda]
-        DB[(DynamoDB<br/>Queue State)]
-    end
-
-    User --> HTML
-    HTML --> JS
-    JS --> |"GET /queue/status<br/>every 5s"| LB
-    LB --> Q
-    Q --> DB
-```
+![Diagram](./diagram-4.svg)
 
 **Static HTML design:**
 
@@ -895,14 +792,7 @@ export async function confirmReservation(productId: string, reservationId: strin
 
 **Reservation lifecycle:**
 
-```mermaid
-stateDiagram-v2
-    [*] --> Available: Initial inventory
-    Available --> Reserved: User starts checkout
-    Reserved --> Confirmed: Payment success
-    Reserved --> Available: Checkout timeout/abandon
-    Confirmed --> [*]: Order complete
-```
+![Diagram](./diagram-5.svg)
 
 **Design decisions:**
 
@@ -1094,31 +984,7 @@ export async function handleDeadLetter(record: SQSRecord): Promise<void> {
 
 ### Multi-Layer Bot Defense
 
-```mermaid
-flowchart TB
-    subgraph Layer1["Layer 1: Edge (WAF)"]
-        WAF[AWS WAF Rules]
-        IP[IP Rate Limiting]
-        GEO[Geo Blocking]
-    end
-
-    subgraph Layer2["Layer 2: Application"]
-        FP[Device Fingerprinting]
-        BEHAV[Behavioral Analysis]
-        CAPTCHA[CAPTCHA Challenge]
-    end
-
-    subgraph Layer3["Layer 3: Queue"]
-        DUP[Duplicate Detection]
-        VEL[Velocity Checks]
-        PATTERN[Pattern Detection]
-    end
-
-    Request --> Layer1
-    Layer1 --> Layer2
-    Layer2 --> Layer3
-    Layer3 --> Queue
-```
+![Diagram](./diagram-6.svg)
 
 **Layer 1: Edge defense (WAF)**
 
@@ -1394,42 +1260,7 @@ function restoreState(): FlashSaleState | null {
 
 ### AWS Reference Architecture
 
-```mermaid
-graph TB
-    subgraph Edge["Edge Layer"]
-        CF[CloudFront]
-        WAF[AWS WAF]
-    end
-
-    subgraph Compute["Compute Layer"]
-        APIGW[API Gateway]
-        Lambda[Lambda Functions]
-        ECS[ECS Fargate<br/>Order Workers]
-    end
-
-    subgraph Data["Data Layer"]
-        ElastiCache[(ElastiCache Redis)]
-        DDB[(DynamoDB)]
-        RDS[(RDS PostgreSQL)]
-        SQS[SQS FIFO]
-    end
-
-    subgraph Monitoring["Observability"]
-        CW[CloudWatch]
-        XRay[X-Ray]
-    end
-
-    Users --> CF
-    CF --> WAF
-    WAF --> APIGW
-    APIGW --> Lambda
-    Lambda --> ElastiCache
-    Lambda --> DDB
-    ECS --> SQS
-    ECS --> RDS
-    Lambda --> CW
-    ECS --> XRay
-```
+![Diagram](./diagram-7.svg)
 
 **Service configuration:**
 

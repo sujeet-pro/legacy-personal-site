@@ -8,38 +8,7 @@ How Twitter evolved from a monolithic Ruby on Rails app delivering reverse-chron
 
 <figure>
 
-```mermaid
-flowchart TD
-    subgraph "Era 1: Fanout-on-Write (2009-2016)"
-        T1[Tweet Published] --> FO[Fanout Service]
-        FO --> SG[Social Graph<br/>FlockDB]
-        FO --> RC1[Redis Timeline<br/>Follower 1]
-        FO --> RC2[Redis Timeline<br/>Follower N]
-        RC1 --> R1[Read: Pre-materialized]
-    end
-
-    subgraph "Era 2: Algorithmic Timeline (2016-2025)"
-        T2[Tweet Published] --> EB[EarlyBird<br/>Search Index]
-        T2 --> GJ[GraphJet<br/>Real-time Graph]
-        EB --> HM[Home Mixer]
-        GJ --> CR[CR-Mixer]
-        CR --> HM
-        SC[SimClusters<br/>145K communities] --> CR
-        TW[TwHIN<br/>Embeddings] --> CR
-        HM --> LR[Light Ranker<br/>Logistic Regression]
-        LR --> HR[Heavy Ranker<br/>48M param MaskNet]
-        HR --> FI[Heuristics &<br/>Filtering]
-        FI --> FY["For You" Feed]
-    end
-
-    subgraph "Era 3: Grok-Based (2026+)"
-        T3[Tweet Published] --> TH[Thunder<br/>In-Memory Store]
-        T3 --> PH[Phoenix<br/>Two-Tower + Transformer]
-        TH --> HM2[Home Mixer]
-        PH --> HM2
-        HM2 --> FY2["For You" Feed<br/>15 engagement signals]
-    end
-```
+![Three eras of Twitter's timeline: pre-materialized Redis fanout (2009-2016), multi-service ML pipeline with SimClusters/GraphJet/MaskNet (2016-2025), and the unified Grok-based Phoenix/Thunder system (2026+).](./three-eras-of-twitter-s-timeline-pre-materialized-redis-fanout-2009-2016-multi-s.svg)
 
 <figcaption>Three eras of Twitter's timeline: pre-materialized Redis fanout (2009-2016), multi-service ML pipeline with SimClusters/GraphJet/MaskNet (2016-2025), and the unified Grok-based Phoenix/Thunder system (2026+).</figcaption>
 </figure>
@@ -98,25 +67,7 @@ The canonical description comes from Raffi Krikorian's "Timelines at Scale" pres
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph "Write Path"
-        U[User tweets] --> WA[Write API]
-        WA --> TS[Tweet Store<br/>MySQL]
-        WA --> FS[Fanout Service]
-        FS --> SG[Social Graph<br/>FlockDB]
-        SG -->|Follower list| FS
-        FS -->|Insert tweet_id| R1[Redis<br/>Timeline Cache<br/>Follower 1]
-        FS -->|Insert tweet_id| R2[Redis<br/>Timeline Cache<br/>Follower 2]
-        FS -->|Insert tweet_id| RN[Redis<br/>Timeline Cache<br/>Follower N]
-    end
-
-    subgraph "Read Path"
-        RP[User opens app] --> RL[Read from Redis]
-        RL -->|List of tweet_ids| HY[Hydrate with<br/>tweet content]
-        HY --> TL[Rendered Timeline]
-    end
-```
+![Fanout-on-write: the write path does all the work (fanning tweet IDs to every follower's Redis list), so reads are simple key lookups.](./fanout-on-write-the-write-path-does-all-the-work-fanning-tweet-ids-to-every-foll.svg)
 
 <figcaption>Fanout-on-write: the write path does all the work (fanning tweet IDs to every follower's Redis list), so reads are simple key lookups.</figcaption>
 </figure>
@@ -209,38 +160,7 @@ The "For You" timeline pipeline processed approximately 500 million tweets daily
 
 <figure>
 
-```mermaid
-flowchart TD
-    subgraph "Stage 1: Candidate Sourcing (~1,500 tweets)"
-        direction TB
-        subgraph "In-Network (~50%)"
-            RG[RealGraph<br/>Edge Scores] --> EB[EarlyBird<br/>Search Index]
-            EB --> IN[~750 in-network<br/>candidates]
-        end
-        subgraph "Out-of-Network (~50%)"
-            SC[SimClusters<br/>~145K communities] --> CRM[CR-Mixer]
-            GJ[GraphJet / UTEG<br/>Real-time graph] --> CRM
-            TH[TwHIN<br/>Dense embeddings] --> CRM
-            FRS[Follow Rec<br/>Service] --> CRM
-            CRM --> ON[~750 out-of-network<br/>candidates]
-        end
-    end
-
-    subgraph "Stage 2: Ranking"
-        IN --> LR[Light Ranker<br/>Logistic Regression<br/>inside EarlyBird]
-        ON --> LR
-        LR -->|~1,500 candidates| HR[Heavy Ranker<br/>48M param MaskNet<br/>~6,000 features]
-    end
-
-    subgraph "Stage 3: Heuristics & Filtering"
-        HR --> HF[Author Diversity<br/>Content Balance<br/>Feedback Fatigue<br/>Deduplication<br/>Visibility Filtering]
-    end
-
-    subgraph "Stage 4: Mixing"
-        HF --> MX[Home Mixer<br/>Ads + WTF + Prompts]
-        MX --> FY["For You" Timeline]
-    end
-```
+![The full 2023 recommendation pipeline: four stages from candidate sourcing through mixing, orchestrated by Home Mixer on the Product Mixer Scala framework.](./the-full-2023-recommendation-pipeline-four-stages-from-candidate-sourcing-throug.svg)
 
 <figcaption>The full 2023 recommendation pipeline: four stages from candidate sourcing through mixing, orchestrated by Home Mixer on the Product Mixer Scala framework.</figcaption>
 </figure>

@@ -8,26 +8,7 @@ CSP-Sentinel is a centralized system designed to collect, process, and analyze C
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph Clients
-        B[Browsers]
-    end
-    subgraph Ingestion["Ingestion Layer"]
-        LB[Load Balancer] --> API[WebFlux API]
-    end
-    subgraph Processing["Processing Layer"]
-        K[(Kafka)] --> CONS[Consumer]
-        CONS --> R[(Redis)]
-    end
-    subgraph Storage["Storage Layer"]
-        SF[(Snowflake)]
-    end
-
-    B -->|CSP Reports| LB
-    API -->|Async| K
-    CONS -->|Batch Write| SF
-```
+![CSP-Sentinel high-level architecture: browsers send violation reports through a non-blocking API to Kafka, where consumers deduplicate and batch-write to Snowflake](./csp-sentinel-high-level-architecture-browsers-send-violation-reports-through-a-n.svg)
 
 <figcaption>CSP-Sentinel high-level architecture: browsers send violation reports through a non-blocking API to Kafka, where consumers deduplicate and batch-write to Snowflake</figcaption>
 
@@ -39,16 +20,7 @@ CSP violation reporting presents a specific scaling challenge: browsers generate
 
 <figure>
 
-```mermaid
-flowchart TD
-    subgraph "Mental Model"
-        direction TB
-        A["Browser Reports<br/>(Unpredictable Bursts)"] --> B["Fire-and-Forget API<br/>(Sub-ms Response)"]
-        B --> C["Kafka Buffer<br/>(Absorbs Spikes)"]
-        C --> D["Deduplication<br/>(70-90% Noise Reduction)"]
-        D --> E["OLAP Storage<br/>(Analytics, Not OLTP)"]
-    end
-```
+![Mental model: CSP reports flow through a pipeline optimized for eventual consistency and noise reduction, not transactional guarantees](./mental-model-csp-reports-flow-through-a-pipeline-optimized-for-eventual-consiste.svg)
 
 <figcaption>Mental model: CSP reports flow through a pipeline optimized for eventual consistency and noise reduction, not transactional guarantees</figcaption>
 
@@ -128,35 +100,7 @@ We have selected the latest Long-Term Support (LTS) and stable versions projecte
 
 The system follows a Streaming Data Pipeline pattern.
 
-```mermaid
-flowchart LR
-    subgraph Clients
-        B[Browsers<br/>CSP Reports]
-    end
-
-    subgraph AWS_EKS["Kubernetes Cluster (EKS)"]
-        LB[Load Balancer]
-        API[Ingestion Service<br/>Spring WebFlux]
-        CONS[Consumer Service<br/>Spring Boot]
-    end
-
-    subgraph AWS_Infrastructure
-        K[(Kafka / MSK<br/>Topic: csp-violations)]
-        R[(Redis / ElastiCache)]
-    end
-
-    subgraph Storage
-        SF[(Snowflake DW)]
-        PG[(Postgres Dev)]
-    end
-
-    B -->|POST /csp/report| LB --> API
-    API -->|Async Produce| K
-    K -->|Consume Batch| CONS
-    CONS -->|Check Dedup| R
-    CONS -->|Write Batch| SF
-    CONS -->|"Write (Dev)"| PG
-```
+![Diagram](./diagram-1.svg)
 
 ### 4.2 Component Breakdown
 

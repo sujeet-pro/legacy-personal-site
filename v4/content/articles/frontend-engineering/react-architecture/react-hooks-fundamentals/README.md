@@ -8,42 +8,7 @@ React Hooks enable functional components to manage state and side effects. Intro
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Hook Categories (React 19)"
-        direction TB
-        subgraph "State Hooks"
-            useState[useState]
-            useReducer[useReducer]
-            useActionState[useActionState]
-            useOptimistic[useOptimistic]
-        end
-
-        subgraph "Effect Hooks"
-            useEffect[useEffect]
-            useLayoutEffect[useLayoutEffect]
-            useInsertionEffect[useInsertionEffect]
-        end
-
-        subgraph "Performance Hooks"
-            useMemo[useMemo]
-            useCallback[useCallback]
-            useTransition[useTransition]
-            useDeferredValue[useDeferredValue]
-        end
-
-        subgraph "Other Hooks"
-            useRef[useRef]
-            useContext[useContext]
-            useId[useId]
-            useSyncExternalStore[useSyncExternalStore]
-        end
-    end
-
-    useState --> useMemo
-    useReducer --> useCallback
-    useEffect --> useSyncExternalStore
-```
+![React 19 hook categories. State hooks manage component data; effect hooks synchronize with external systems; performance hooks optimize rendering.](./react-19-hook-categories-state-hooks-manage-component-data-effect-hooks-synchron.svg)
 
 <figcaption>React 19 hook categories. State hooks manage component data; effect hooks synchronize with external systems; performance hooks optimize rendering.</figcaption>
 </figure>

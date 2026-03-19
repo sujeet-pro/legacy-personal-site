@@ -8,38 +8,7 @@ How Uber evolved from two monolithic services to 4,000+ microservices and then r
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph phase1["Phase 1: Monolith (2009-2013)"]
-        direction TB
-        M1[API Monolith<br/>Python/Flask]
-        M2[Dispatch Monolith<br/>Node.js]
-        DB[(Single PostgreSQL)]
-        M1 --> DB
-        M2 --> DB
-    end
-
-    subgraph phase2["Phase 2: Microservices (2013-2018)"]
-        direction TB
-        S1[1,000+ Services]
-        S2[8,000+ Git Repos]
-        S3[Multiple Languages]
-        S1 --- S2
-        S2 --- S3
-    end
-
-    subgraph phase3["Phase 3: DOMA (2018-2020)"]
-        direction TB
-        D1[70 Domains]
-        D2[5 Layers]
-        D3[Domain Gateways]
-        D1 --- D2
-        D2 --- D3
-    end
-
-    phase1 -->|"Scale limits<br/>65 → 400 cities"| phase2
-    phase2 -->|"Complexity crisis<br/>'Death Star' graph"| phase3
-```
+![Uber's three architectural phases. Each transition was triggered by the previous architecture hitting its operational limits at the next order of magnitude.](./uber-s-three-architectural-phases-each-transition-was-triggered-by-the-previous-.svg)
 
 <figcaption>Uber's three architectural phases. Each transition was triggered by the previous architecture hitting its operational limits at the next order of magnitude.</figcaption>
 </figure>

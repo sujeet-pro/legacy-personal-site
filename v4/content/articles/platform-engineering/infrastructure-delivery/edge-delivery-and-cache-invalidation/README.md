@@ -8,40 +8,7 @@ Production CDN caching architecture for balancing content freshness against cach
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph Origin["Origin Servers"]
-        O1[Primary Origin]
-        O2[Failover Origin]
-    end
-
-    subgraph Shield["Origin Shield"]
-        S[Shield PoP]
-    end
-
-    subgraph Edge["Edge PoPs"]
-        E1[Edge Location 1]
-        E2[Edge Location 2]
-        E3[Edge Location N]
-    end
-
-    subgraph Clients["Clients"]
-        C1[Browser]
-        C2[Mobile App]
-        C3[API Consumer]
-    end
-
-    O1 --> S
-    O2 --> S
-    S --> E1
-    S --> E2
-    S --> E3
-    E1 --> C1
-    E2 --> C2
-    E3 --> C3
-
-    style S fill:#f9f,stroke:#333
-```
+![CDN topology: clients hit edge PoPs, misses route through origin shield (single cache layer) before reaching origin. This architecture reduces origin load and enables request coalescing.](./cdn-topology-clients-hit-edge-pops-misses-route-through-origin-shield-single-cac.svg)
 
 <figcaption>CDN topology: clients hit edge PoPs, misses route through origin shield (single cache layer) before reaching origin. This architecture reduces origin load and enables request coalescing.</figcaption>
 
@@ -333,22 +300,7 @@ Cache-Control: max-age=600, stale-while-revalidate=30
 
 <figure>
 
-```mermaid
-sequenceDiagram
-    participant Client
-    participant CDN
-    participant Origin
-
-    Note over CDN: Content cached, TTL expired, within SWR window
-    Client->>CDN: GET /api/data
-    CDN->>Client: 200 OK (stale content, instant)
-    CDN->>Origin: Background revalidation
-    Origin->>CDN: 200 OK (fresh content)
-    Note over CDN: Cache updated
-
-    Client->>CDN: GET /api/data
-    CDN->>Client: 200 OK (fresh content)
-```
+![Stale-while-revalidate flow: first request after TTL expires serves stale content instantly while triggering async revalidation. Next request gets fresh content.](./stale-while-revalidate-flow-first-request-after-ttl-expires-serves-stale-content.svg)
 
 <figcaption>Stale-while-revalidate flow: first request after TTL expires serves stale content instantly while triggering async revalidation. Next request gets fresh content.</figcaption>
 
@@ -562,26 +514,7 @@ Cache hit ratio (CHR) is the primary health metric for CDN effectiveness:
 
 <figure>
 
-```mermaid
-sequenceDiagram
-    participant C1 as Client 1
-    participant C2 as Client 2
-    participant C3 as Client N
-    participant CDN
-    participant Origin
-
-    Note over CDN: Cache entry expires
-
-    C1->>CDN: GET /popular-item
-    C2->>CDN: GET /popular-item
-    C3->>CDN: GET /popular-item
-
-    CDN->>Origin: GET /popular-item
-    CDN->>Origin: GET /popular-item
-    CDN->>Origin: GET /popular-item
-
-    Note over Origin: 3x load spike!
-```
+![Cache stampede: multiple concurrent requests after cache expiry all hit origin, causing load spike proportional to concurrency.](./cache-stampede-multiple-concurrent-requests-after-cache-expiry-all-hit-origin-ca.svg)
 
 <figcaption>Cache stampede: multiple concurrent requests after cache expiry all hit origin, causing load spike proportional to concurrency.</figcaption>
 

@@ -8,32 +8,7 @@ Style Recalculation transforms the DOM and CSSOM into computed styles for every 
 
 <figure>
 
-```mermaid
-graph TD
-    subgraph Inputs
-        DOM[DOM Tree]
-        CSSOM[CSSOM Tree]
-    end
-
-    subgraph "Style Engine (Blink: StyleResolver)"
-        RI[Rule Indexing<br/>RuleSet partitions by ID/class/tag]
-        SM[Selector Matching<br/>Right-to-left with Bloom filter]
-        CA[Cascade Algorithm<br/>Origin → Layer → Specificity → Order]
-        VC[Value Computation<br/>Relative → Absolute]
-    end
-
-    subgraph Output
-        CS[ComputedStyle per Element]
-    end
-
-    DOM --> RI
-    CSSOM --> RI
-    RI --> SM
-    SM --> CA
-    CA --> VC
-    VC --> CS
-    CS --> Layout[Layout Stage]
-```
+![Figure 1: Style Recalculation pipeline in modern browser engines. Blink's StyleResolver orchestrates rule indexing, selector matching, cascading, and value computation.](./figure-1-style-recalculation-pipeline-in-modern-browser-engines-blink-s-styleres.svg)
 
 <figcaption>Figure 1: Style Recalculation pipeline in modern browser engines. Blink's StyleResolver orchestrates rule indexing, selector matching, cascading, and value computation.</figcaption>
 </figure>

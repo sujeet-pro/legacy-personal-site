@@ -8,21 +8,7 @@ Architectural principles, implementation trade-offs, and production patterns for
 
 <figure>
 
-```mermaid
-flowchart LR
-    N1[Publisher 1] -->|emit| PS[Event Bus / Broker]
-    N2[Publisher 2] -->|emit| PS
-    PS -->|dispatch| S1[Subscriber 1]
-    PS -->|dispatch| S2[Subscriber 2]
-    PS -->|dispatch| S3[Subscriber N]
-
-    style N1 fill:#dae8fc,stroke:#6c8ebf
-    style N2 fill:#dae8fc,stroke:#6c8ebf
-    style PS fill:#e1d5e7,stroke:#9673a6
-    style S1 fill:#d5e8d4,stroke:#82b366
-    style S2 fill:#d5e8d4,stroke:#82b366
-    style S3 fill:#d5e8d4,stroke:#82b366
-```
+![Pub/Sub architecture: publishers emit to a broker that dispatches to all registered subscribers](./pub-sub-architecture-publishers-emit-to-a-broker-that-dispatches-to-all-register.svg)
 
 <figcaption>Pub/Sub architecture: publishers emit to a broker that dispatches to all registered subscribers</figcaption>
 </figure>
@@ -33,17 +19,7 @@ flowchart LR
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Three Decoupling Dimensions"
-        SD[Space: Who?] --- TD[Time: When?]
-        TD --- SYD[Sync: Blocking?]
-    end
-
-    subgraph "Trade-off"
-        DC[Decoupling] <--> DF[Debuggability]
-    end
-```
+![Pub/Sub provides space, time, and synchronization decoupling—at the cost of implicit control flow](./pub-sub-provides-space-time-and-synchronization-decoupling-at-the-cost-of-implic.svg)
 
 <figcaption>Pub/Sub provides space, time, and synchronization decoupling—at the cost of implicit control flow</figcaption>
 </figure>

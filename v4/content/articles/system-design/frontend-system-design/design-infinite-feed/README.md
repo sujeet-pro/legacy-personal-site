@@ -8,36 +8,7 @@ Building infinite scrolling feed interfaces that scale from hundreds to millions
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Client["Browser"]
-        UI[Feed UI]
-        VO[Virtual List]
-        IO[Intersection Observer]
-        SM[State Manager]
-        Cache[(Memory Cache)]
-    end
-
-    subgraph API["Backend"]
-        GW[API Gateway]
-        FS[Feed Service]
-        DB[(Database)]
-    end
-
-    IO -->|"sentinel visible"| SM
-    SM -->|"fetch next page"| GW
-    GW --> FS
-    FS -->|"cursor query"| DB
-    DB -->|"items + nextCursor"| FS
-    FS --> GW
-    GW -->|"paginated response"| SM
-    SM -->|"append items"| Cache
-    Cache --> VO
-    VO -->|"render visible"| UI
-
-    style Client fill:#e3f2fd
-    style API fill:#fff3e0
-```
+![Infinite feed architecture: Intersection Observer triggers pagination when sentinel enters viewport; cursor-based queries return stable pages; virtualization renders only visible items from memory cache.](./infinite-feed-architecture-intersection-observer-triggers-pagination-when-sentin.svg)
 
 <figcaption>Infinite feed architecture: Intersection Observer triggers pagination when sentinel enters viewport; cursor-based queries return stable pages; virtualization renders only visible items from memory cache.</figcaption>
 </figure>

@@ -8,47 +8,7 @@ Client-side strategies for optimizing image delivery: lazy loading, responsive i
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Discovery["Discovery Phase"]
-        HTML["HTML Parse"]
-        Preload["Preload Scanner"]
-        CSS["CSS Parse"]
-    end
-
-    subgraph Priority["Priority Decision"]
-        InViewport{{"In Viewport?"}}
-        Critical{{"LCP Candidate?"}}
-        FetchPri["fetchpriority"]
-    end
-
-    subgraph Loading["Loading Phase"]
-        Eager["Immediate Load"]
-        Lazy["Deferred Load"]
-        Format["Format Selection"]
-    end
-
-    subgraph Rendering["Rendering Phase"]
-        Decode["Decode"]
-        Paint["Paint"]
-        CLS["Reserve Space"]
-    end
-
-    HTML --> Preload
-    Preload --> InViewport
-    CSS --> InViewport
-    InViewport -->|Yes| Critical
-    InViewport -->|No| Lazy
-    Critical -->|Yes| FetchPri
-    Critical -->|No| Eager
-    FetchPri -->|high| Eager
-    FetchPri -->|low| Lazy
-    Eager --> Format
-    Lazy -->|scroll/threshold| Format
-    Format --> Decode
-    Decode --> CLS
-    CLS --> Paint
-```
+![Image loading pipeline: from discovery through rendering. Priority decisions determine load timing; format selection happens at request time; space reservation prevents layout shift.](./image-loading-pipeline-from-discovery-through-rendering-priority-decisions-deter.svg)
 
 <figcaption>Image loading pipeline: from discovery through rendering. Priority decisions determine load timing; format selection happens at request time; space reservation prevents layout shift.</figcaption>
 </figure>

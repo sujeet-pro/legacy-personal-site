@@ -8,41 +8,7 @@ How browsers parse HTML bytes into a Document Object Model (DOM) tree, why JavaS
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph Input["Input Stream"]
-        Bytes[HTML Bytes]
-    end
-
-    subgraph Tokenizer["Tokenization"]
-        direction TB
-        T1[Character Stream]
-        T2[State Machine<br/>80+ states]
-        T3[Tokens]
-        T1 --> T2 --> T3
-    end
-
-    subgraph TreeBuilder["Tree Construction"]
-        direction TB
-        TC1[Insertion Modes]
-        TC2[Stack of Open Elements]
-        TC3[Error Recovery]
-        TC1 --> TC2 --> TC3
-    end
-
-    subgraph Output["Output"]
-        DOM[DOM Tree]
-    end
-
-    Bytes --> Tokenizer
-    Tokenizer --> TreeBuilder
-    TreeBuilder --> DOM
-
-    PS[Preload Scanner] -.->|Parallel| Tokenizer
-
-    style DOM fill:#e1f5fe
-    style PS fill:#fff3e0
-```
+![The HTML parsing pipeline: bytes flow through an 80+ state tokenizer into tree construction, which uses insertion modes and error recovery to build the DOM. The preload scanner runs in parallel to discover resources early.](./the-html-parsing-pipeline-bytes-flow-through-an-80-state-tokenizer-into-tree-con.svg)
 
 <figcaption>The HTML parsing pipeline: bytes flow through an 80+ state tokenizer into tree construction, which uses insertion modes and error recovery to build the DOM. The preload scanner runs in parallel to discover resources early.</figcaption>
 

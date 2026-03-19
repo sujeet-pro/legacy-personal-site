@@ -8,56 +8,7 @@ How Slack evolved from a PHP monolith with workspace-sharded MySQL into a distri
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Edge["Edge Layer (Multi-Region)"]
-        Envoy["Envoy<br/>(load balancing, AZ routing)"]
-        Flannel["Flannel<br/>(edge cache, consistent hashing)"]
-    end
-
-    subgraph RTM["Real-Time Messaging"]
-        GS["Gateway Servers<br/>(WebSocket connections)"]
-        CS["Channel Servers<br/>(pub/sub, consistent hashing)"]
-        AS["Admin Servers<br/>(stateless routing)"]
-        PS["Presence Servers<br/>(online status)"]
-    end
-
-    subgraph Compute["Application Layer"]
-        Webapp["Webapp Monolith<br/>(PHP/Hack on HHVM)"]
-        JobQ["Job Queue<br/>(9B jobs/day)"]
-        Search["Search<br/>(Solr + ML re-ranking)"]
-    end
-
-    subgraph Data["Data Layer"]
-        Vitess["Vitess<br/>(2.3M QPS, multi-keyspace)"]
-        MC["Memcached + Mcrouter<br/>(caching tier)"]
-        Kafka["Kafka<br/>(event streaming)"]
-        S3["S3<br/>(data warehouse)"]
-    end
-
-    subgraph Infra["Infrastructure"]
-        Consul["Consul<br/>(service discovery)"]
-        Rotor["Rotor<br/>(xDS control plane)"]
-    end
-
-    Envoy --> Flannel
-    Flannel --> GS
-    GS --> CS
-    Webapp --> AS --> CS
-    Webapp --> Vitess
-    Webapp --> MC
-    Webapp --> Search
-    Webapp --> JobQ
-    JobQ --> Vitess
-    CS --> GS
-    Vitess --> Kafka --> S3
-    Consul --> Rotor --> Envoy
-
-    style Envoy fill:#818cf8,stroke:#4338ca,color:#000
-    style Flannel fill:#818cf8,stroke:#4338ca,color:#000
-    style Vitess fill:#fb923c,stroke:#c2410c,color:#000
-    style Webapp fill:#34d399,stroke:#059669,color:#000
-```
+![Slack's distributed architecture as of ~2023. Traffic enters through Envoy, hits the Flannel edge cache, and flows into either the real-time messaging layer (Channel/Gateway Servers) or the webapp monolith. The data layer is anchored by Vitess-managed MySQL with memcached caching and Kafka for event streaming.](./slack-s-distributed-architecture-as-of-2023-traffic-enters-through-envoy-hits-th.svg)
 
 <figcaption>Slack's distributed architecture as of ~2023. Traffic enters through Envoy, hits the Flannel edge cache, and flows into either the real-time messaging layer (Channel/Gateway Servers) or the webapp monolith. The data layer is anchored by Vitess-managed MySQL with memcached caching and Kafka for event streaming.</figcaption>
 </figure>

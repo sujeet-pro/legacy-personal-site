@@ -8,35 +8,7 @@ How GitHub evolved its MySQL infrastructure from a single monolithic database to
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Phase1["Phase 1: Monolith (~2008-2014)"]
-        Single["Single MySQL<br/>(mysql1)"]
-        ROR["Ruby on Rails App"]
-        ROR --> Single
-    end
-
-    subgraph Phase2["Phase 2: Tooling & HA (2014-2019)"]
-        HA["orchestrator/raft<br/>+ Consul + GLB"]
-        GhOst["gh-ost<br/>(triggerless migrations)"]
-        Freno["freno<br/>(throttling)"]
-    end
-
-    subgraph Phase3["Phase 3: Partitioning (2019-2021)"]
-        SD["Schema Domains<br/>(logical grouping)"]
-        VP["Vertical Partitioning<br/>(mysql1 → N clusters)"]
-        Vitess["Vitess<br/>(horizontal sharding)"]
-    end
-
-    subgraph Phase4["Phase 4: Fleet Scale (2022-2024)"]
-        Fleet["1,200+ hosts<br/>50+ clusters<br/>300+ TB"]
-        M8["MySQL 5.7 → 8.0<br/>(year-long upgrade)"]
-    end
-
-    Phase1 -->|"Scale pain:<br/>single writer,<br/>schema migration risk"| Phase2
-    Phase2 -->|"950K QPS on<br/>one cluster"| Phase3
-    Phase3 -->|"50% load<br/>reduction per host"| Phase4
-```
+![GitHub's MySQL infrastructure evolution across four phases, from a single database to a distributed fleet of 1,200+ hosts.](./github-s-mysql-infrastructure-evolution-across-four-phases-from-a-single-databas.svg)
 
 <figcaption>GitHub's MySQL infrastructure evolution across four phases, from a single database to a distributed fleet of 1,200+ hosts.</figcaption>
 </figure>
@@ -156,21 +128,7 @@ GitHub runs continuous migration tests on all production tables (including table
 
 <figure>
 
-```mermaid
-sequenceDiagram
-    participant O as orchestrator/raft
-    participant C as Consul KV
-    participant H as GLB/HAProxy
-    participant R as New Primary
-
-    O->>O: Detect primary failure<br/>(holistic check)
-    O->>R: Promote optimal replica
-    O->>C: Update primary identity<br/>(all raft members)
-    C->>H: consul-template detects change
-    H->>H: Regenerate config, reload
-    H->>R: Route traffic to new primary
-    Note over O,R: Total: 10-13 seconds typical
-```
+![GitHub's MySQL failover sequence: orchestrator detects failure, promotes a replica, updates Consul, and HAProxy reroutes traffic—typically within 10–13 seconds.](./github-s-mysql-failover-sequence-orchestrator-detects-failure-promotes-a-replica.svg)
 
 <figcaption>GitHub's MySQL failover sequence: orchestrator detects failure, promotes a replica, updates Consul, and HAProxy reroutes traffic—typically within 10–13 seconds.</figcaption>
 </figure>

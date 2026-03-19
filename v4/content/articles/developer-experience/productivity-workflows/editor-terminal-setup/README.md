@@ -8,31 +8,7 @@ A production-ready development environment for macOS, designed around keyboard-d
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Bootstrap"
-        A[Install Homebrew] --> B[Install Ansible]
-        B --> C[Clone dot-files repo]
-        C --> D[Run Ansible playbook]
-    end
-
-    subgraph "Ansible Roles"
-        D --> E[homebrew role]
-        D --> F[dotfiles role]
-        E --> G[CLI tools + GUI apps]
-        F --> H[Symlink configs]
-        F --> I[VS Code extensions]
-    end
-
-    subgraph "Runtime"
-        H --> J[.zshrc]
-        H --> K[.gitconfig]
-        H --> L[starship.toml]
-        J --> M[Version managers]
-        J --> N[Shell plugins]
-        K --> O[Conditional includes]
-    end
-```
+![Bootstrap flow: Homebrew → Ansible → tool installation + config symlinking. Runtime loads shell config, git profiles, and prompt.](./bootstrap-flow-homebrew-ansible-tool-installation-config-symlinking-runtime-load.svg)
 
 <figcaption>Bootstrap flow: Homebrew → Ansible → tool installation + config symlinking. Runtime loads shell config, git profiles, and prompt.</figcaption>
 </figure>

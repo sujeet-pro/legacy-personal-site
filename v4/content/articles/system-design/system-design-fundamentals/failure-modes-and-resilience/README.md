@@ -8,42 +8,7 @@ Distributed systems fail in complex, often surprising ways. This article covers 
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Failures["Failure Modes"]
-        direction TB
-        Crash["Crash Failure"]
-        Byzantine["Byzantine Failure"]
-        Omission["Omission Failure"]
-        Timing["Timing Failure"]
-        Gray["Gray Failure"]
-    end
-
-    subgraph Detection["Detection"]
-        Heartbeat["Heartbeats"]
-        Timeout["Timeouts"]
-        HealthCheck["Health Checks"]
-        Differential["Differential Observability"]
-    end
-
-    subgraph Mitigation["Resilience Patterns"]
-        Retry["Retries + Backoff"]
-        CB["Circuit Breaker"]
-        Bulkhead["Bulkhead"]
-        Shed["Load Shedding"]
-        Fallback["Fallback"]
-    end
-
-    subgraph Isolation["Blast Radius"]
-        Cell["Cell Architecture"]
-        Shuffle["Shuffle Sharding"]
-        Zone["Zone Isolation"]
-    end
-
-    Failures --> Detection
-    Detection --> Mitigation
-    Mitigation --> Isolation
-```
+![Failure modes flow through detection mechanisms to mitigation patterns, with blast radius isolation as the outer defense layer.](./failure-modes-flow-through-detection-mechanisms-to-mitigation-patterns-with-blas.svg)
 
 <figcaption>Failure modes flow through detection mechanisms to mitigation patterns, with blast radius isolation as the outer defense layer.</figcaption>
 </figure>
@@ -391,14 +356,7 @@ Not all errors should be retried:
 
 **Mechanism:** Stop calling a failing dependency, give it time to recover.
 
-```mermaid
-stateDiagram-v2
-    [*] --> Closed
-    Closed --> Open: Failure threshold exceeded
-    Open --> HalfOpen: Reset timeout expires
-    HalfOpen --> Closed: Probe succeeds
-    HalfOpen --> Open: Probe fails
-```
+![Diagram](./diagram-1.svg)
 
 **States:**
 

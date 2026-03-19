@@ -22,7 +22,7 @@ import remarkNormalizeHeadings from "remark-normalize-headings"
 // Rehype Markdown Plugins
 import { rehypeAccessibleEmojis } from "rehype-accessible-emojis"
 import rehypeAutolinkHeadings from "rehype-autolink-headings"
-import rehypeKatex from "rehype-katex"
+import rehypeMathjaxSvg from "rehype-mathjax/svg"
 import rehypeImgClass from "./plugins/rehype-img-class"
 import rehypeInternalLinks from "./plugins/rehype-internal-links"
 
@@ -115,12 +115,7 @@ export default defineConfig({
     ],
     rehypePlugins: [
       rehypeInternalLinks,
-      [
-        rehypeKatex,
-        {
-          strict: (errorCode: string) => (errorCode === "commentAtEnd" ? "ignore" : "warn"),
-        },
-      ],
+      rehypeMathjaxSvg,
       [rehypeAccessibleEmojis as RehypePlugin, { ignore: ["title", "script", "style", "svg", "math", "pre", "code"] }],
       rehypeHeadingIds,
       [

@@ -8,30 +8,7 @@ Message queues and publish-subscribe systems decouple producers from consumers, 
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Producers
-        P1[Producer A]
-        P2[Producer B]
-    end
-
-    subgraph "Point-to-Point Queue"
-        Q[Queue]
-        P1 --> Q
-        P2 --> Q
-        Q --> C1[Consumer 1]
-        Q --> C2[Consumer 2]
-    end
-
-    subgraph "Pub/Sub Topic"
-        T[Topic]
-        P1 -.-> T
-        P2 -.-> T
-        T -.-> S1[Subscriber A]
-        T -.-> S2[Subscriber B]
-        T -.-> S3[Subscriber C]
-    end
-```
+![Queues deliver each message to one consumer (competing consumers); topics deliver each message to all subscribers (fan-out).](./queues-deliver-each-message-to-one-consumer-competing-consumers-topics-deliver-e.svg)
 
 <figcaption>Queues deliver each message to one consumer (competing consumers); topics deliver each message to all subscribers (fan-out).</figcaption>
 </figure>

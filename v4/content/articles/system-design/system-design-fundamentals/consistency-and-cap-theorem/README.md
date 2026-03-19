@@ -8,33 +8,7 @@ Understanding consistency guarantees in distributed systems: from the theoretica
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Consistency Spectrum"
-        direction LR
-        STRONG["Strong Consistency<br/>Linearizability<br/>Sequential"]
-        CAUSAL["Causal Consistency<br/>Session Guarantees<br/>PRAM"]
-        EVENTUAL["Eventual Consistency<br/>Read-Your-Writes<br/>Monotonic Reads"]
-    end
-
-    subgraph "CAP Trade-off Space"
-        direction TB
-        CP["CP Systems<br/>Choose Consistency<br/>Sacrifice Availability"]
-        AP["AP Systems<br/>Choose Availability<br/>Sacrifice Consistency"]
-        NORMAL["Normal Operation<br/>No Partition<br/>Latency vs Consistency"]
-    end
-
-    STRONG --> CP
-    EVENTUAL --> AP
-    CAUSAL --> NORMAL
-
-    style STRONG fill:#d5e8d4,stroke:#82b366
-    style CAUSAL fill:#fff2cc,stroke:#d6b656
-    style EVENTUAL fill:#f8cecc,stroke:#b85450
-    style CP fill:#dae8fc,stroke:#6c8ebf
-    style AP fill:#ffe6cc,stroke:#d79b00
-    style NORMAL fill:#e1d5e7,stroke:#9673a6
-```
+![The consistency spectrum mapped to CAP trade-offs: stronger consistency typically requires partition intolerance or reduced availability](./the-consistency-spectrum-mapped-to-cap-trade-offs-stronger-consistency-typically.svg)
 
 <figcaption>The consistency spectrum mapped to CAP trade-offs: stronger consistency typically requires partition intolerance or reduced availability</figcaption>
 

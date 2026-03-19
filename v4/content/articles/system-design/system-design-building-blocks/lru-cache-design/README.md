@@ -8,28 +8,7 @@ Learn the classic LRU cache implementation, understand its limitations, and expl
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Cache Algorithm Evolution"
-        LRU["LRU<br/>Least Recently Used<br/>✓ O(1) operations<br/>✗ Scan vulnerable"]
-        LRUK["LRU-K<br/>K-th Reference Tracking<br/>✓ Scan resistant<br/>✗ Complex, needs tuning"]
-        TwoQ["2Q<br/>Two Queue System<br/>✓ Simple, O(1)<br/>✓ Scan resistant"]
-        ARC["ARC<br/>Adaptive Replacement<br/>✓ Self-tuning<br/>✓ Patent expired 2024"]
-        SIEVE["SIEVE<br/>Lazy Promotion/Eviction<br/>✓ Simpler than LRU<br/>✓ Better hit rates"]
-    end
-
-    LRU -->|"Add frequency<br/>awareness"| LRUK
-    LRU -->|"Simplified<br/>filtering"| TwoQ
-    LRUK -->|"Adaptive<br/>balancing"| ARC
-    TwoQ -->|"Self-tuning<br/>replacement"| ARC
-    LRU -->|"Lazy promotion<br/>NSDI'24"| SIEVE
-
-    style LRU fill:#fff2cc,stroke:#d6b656
-    style LRUK fill:#dae8fc,stroke:#6c8ebf
-    style TwoQ fill:#d5e8d4,stroke:#82b366
-    style ARC fill:#f8cecc,stroke:#b85450
-    style SIEVE fill:#e1d5e7,stroke:#9673a6
-```
+![Evolution of cache replacement algorithms from basic LRU to modern alternatives](./evolution-of-cache-replacement-algorithms-from-basic-lru-to-modern-alternatives.svg)
 
 <figcaption>Evolution of cache replacement algorithms from basic LRU to modern alternatives</figcaption>
 
@@ -97,52 +76,7 @@ A cache is only useful if it's fast. Both `get` and `put` must be O(1)—anythin
 
 <figure>
 
-```mermaid
-graph LR
-    %% Hashmap section
-    subgraph HashMap ["Hashmap for O(1) access"]
-        K1["K1"]
-        K2["K2"]
-        K3["K3"]
-        K4["K4"]
-        K5["K5"]
-    end
-
-    %% Doubly linked list section
-    subgraph DLL ["Doubly Linked List for Order"]
-        N1["N1<br/>Key: K1<br/>Value: V1"]
-        N2["N2<br/>Key: K2<br/>Value: V2"]
-        N3["N3<br/>Key: K3<br/>Value: V3"]
-        N4["N4<br/>Key: K4<br/>Value: V4"]
-        N5["N5<br/>Key: K5<br/>Value: V5"]
-    end
-
-    %% Connections from hashmap to nodes
-    K1 --> N1
-    K2 --> N2
-    K3 --> N3
-    K4 --> N4
-    K5 --> N5
-
-    %% Doubly linked list connections
-    N1 <--> N2
-    N2 <--> N3
-    N3 <--> N4
-    N4 <--> N5
-
-    %% Head and Tail pointers
-    Head["Head"] --> N1
-    Tail["Tail"] --> N5
-
-    %% Styling
-    classDef hashmapStyle fill:#dae8fc,stroke:#6c8ebf,stroke-width:2px
-    classDef nodeStyle fill:#fff2cc,stroke:#d6b656,stroke-width:2px
-    classDef pointerStyle fill:#f8cecc,stroke:#b85450,stroke-width:2px
-
-    class K1,K2,K3,K4,K5 hashmapStyle
-    class N1,N2,N3,N4,N5 nodeStyle
-    class Head,Tail pointerStyle
-```
+![LRU Data Structure - hashmap with Doubly linked list](./lru-data-structure-hashmap-with-doubly-linked-list.svg)
 
 <figcaption>LRU Data Structure - hashmap with Doubly linked list</figcaption>
 </figure>

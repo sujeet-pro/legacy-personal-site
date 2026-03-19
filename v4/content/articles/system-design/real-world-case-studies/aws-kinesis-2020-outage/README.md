@@ -8,46 +8,7 @@ How a routine capacity addition to Amazon Kinesis Data Streams in US-EAST-1 exce
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Trigger["Trigger: Capacity Addition"]
-        ADD["New servers added<br/>to front-end fleet"]
-    end
-
-    subgraph FE["Front-End Fleet (monolithic)"]
-        direction TB
-        THREAD["Each server creates<br/>1 OS thread per peer"]
-        LIMIT["Thread count exceeds<br/>OS configuration limit"]
-        SHARD["Shard-map cache<br/>construction fails"]
-        ROUTE["Servers cannot route<br/>requests to back-end"]
-        THREAD --> LIMIT --> SHARD --> ROUTE
-    end
-
-    subgraph Cascade["Cascading Failures"]
-        KIN["Kinesis API errors"]
-        CW["CloudWatch<br/>(metrics + alarms down)"]
-        COG["Cognito<br/>(buffer blocks forever)"]
-        LAM["Lambda<br/>(memory contention)"]
-        AS["AutoScaling<br/>(blind to metrics)"]
-        DASH["Status Dashboard<br/>(can't post updates)"]
-        KIN --> CW & COG & LAM
-        CW --> AS
-        COG --> DASH
-    end
-
-    subgraph Recovery["Recovery: 17 Hours"]
-        RESTART["Controlled restart<br/>(few hundred servers/hour)"]
-        HERD["Thundering herd:<br/>fast restart = worse failure"]
-    end
-
-    ADD --> FE
-    FE --> Cascade
-    Cascade --> Recovery
-
-    style LIMIT fill:#f87171,stroke:#991b1b,color:#000
-    style HERD fill:#fbbf24,stroke:#92400e,color:#000
-    style DASH fill:#f87171,stroke:#991b1b,color:#000
-```
+![The failure chain: a capacity addition pushed per-server thread counts past the OS limit, collapsing the entire monolithic front-end fleet. Recovery was throttled to avoid thundering herd effects, extending the outage to 17 hours.](./the-failure-chain-a-capacity-addition-pushed-per-server-thread-counts-past-the-o.svg)
 
 <figcaption>The failure chain: a capacity addition pushed per-server thread counts past the OS limit, collapsing the entire monolithic front-end fleet. Recovery was throttled to avoid thundering herd effects, extending the outage to 17 hours.</figcaption>
 </figure>
@@ -187,17 +148,7 @@ The recovery was constrained by a fundamental resource contention problem. On ea
 
 <figure>
 
-```mermaid
-flowchart LR
-    A["Restart<br/>servers"] --> B["Shard-map<br/>construction<br/>consumes CPU"]
-    B --> C["Few resources<br/>for requests"]
-    C --> D["Health checks<br/>fail"]
-    D --> E["Servers removed<br/>from fleet"]
-    E --> A
-
-    style D fill:#f87171,stroke:#991b1b,color:#000
-    style E fill:#f87171,stroke:#991b1b,color:#000
-```
+![The thundering herd loop that constrained recovery speed. Restarting too many servers at once caused health check failures, removing servers faster than they could rejoin.](./the-thundering-herd-loop-that-constrained-recovery-speed-restarting-too-many-ser.svg)
 
 <figcaption>The thundering herd loop that constrained recovery speed. Restarting too many servers at once caused health check failures, removing servers faster than they could rejoin.</figcaption>
 </figure>

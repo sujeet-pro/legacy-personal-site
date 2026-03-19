@@ -8,50 +8,7 @@ How Shopify evolved from a single-database Rails monolith to a pod-based archite
 
 <figure>
 
-```mermaid
-flowchart TD
-    subgraph "Request Path"
-        LB["nginx + OpenResty<br/>Load Balancers"] --> SH["Sorting Hat<br/>(Lua Script)"]
-        SH -->|"Pod header injected"| APP["Shared Application<br/>Workers (Kubernetes)"]
-    end
-
-    subgraph "Pod A"
-        direction TB
-        MYA["MySQL Shard"]
-        RDA["Redis"]
-        MCA["Memcached"]
-        CRA["Cron Runners"]
-    end
-
-    subgraph "Pod B"
-        direction TB
-        MYB["MySQL Shard"]
-        RDB["Redis"]
-        MCB["Memcached"]
-        CRB["Cron Runners"]
-    end
-
-    subgraph "Pod N"
-        direction TB
-        MYN["MySQL Shard"]
-        RDN["Redis"]
-        MCN["Memcached"]
-        CRN["Cron Runners"]
-    end
-
-    APP -->|"shop_id routing"| MYA
-    APP -->|"shop_id routing"| MYB
-    APP -->|"shop_id routing"| MYN
-
-    subgraph "Cross-Pod Analytics (Read-Only)"
-        CDC["Debezium CDC"] --> KAFKA["Apache Kafka"]
-        KAFKA --> DW["Data Warehouse<br/>(Presto)"]
-    end
-
-    MYA -.->|"binlog"| CDC
-    MYB -.->|"binlog"| CDC
-    MYN -.->|"binlog"| CDC
-```
+![Shopify's pod architecture: stateless workers are shared, stateful stores are isolated per pod, and cross-pod data flows only through an eventually consistent CDC pipeline.](./shopify-s-pod-architecture-stateless-workers-are-shared-stateful-stores-are-isol.svg)
 
 <figcaption>Shopify's pod architecture: stateless workers are shared, stateful stores are isolated per pod, and cross-pod data flows only through an eventually consistent CDC pipeline.</figcaption>
 </figure>
@@ -124,16 +81,7 @@ The root cause was architectural, not operational: **sharding partitions data bu
 
 After database sharding, Shopify's architecture looked like this:
 
-```mermaid
-flowchart TD
-    LB["Load Balancer"] --> APP["Application Workers"]
-    APP --> S1["MySQL Shard 1"]
-    APP --> S2["MySQL Shard 2"]
-    APP --> SN["MySQL Shard N"]
-    APP --> R["Shared Redis"]
-    APP --> MC["Shared Memcached"]
-    APP --> CRON["Shared Cron"]
-```
+![Diagram](./diagram-1.svg)
 
 The MySQL shards were isolated from each other, but every other stateful component was shared. A shard failure affected operations for shops on that shard. A Redis failure affected _all_ shops.
 
@@ -218,16 +166,7 @@ The MySQL shards were isolated from each other, but every other stateful compone
 
 <figure>
 
-```mermaid
-flowchart TD
-    LB["Load Balancer"] --> APP["Application Workers"]
-    APP --> S1["MySQL Shard 1"]
-    APP --> S2["MySQL Shard 2"]
-    APP --> SN["MySQL Shard N"]
-    APP --> R["Shared Redis ⚠️"]
-    APP --> MC["Shared Memcached ⚠️"]
-    APP --> CRON["Shared Cron ⚠️"]
-```
+![Pre-pod architecture: MySQL shards provide write throughput scaling, but Redis, Memcached, and cron are shared across all shops — single points of failure.](./pre-pod-architecture-mysql-shards-provide-write-throughput-scaling-but-redis-mem.svg)
 
 <figcaption>Pre-pod architecture: MySQL shards provide write throughput scaling, but Redis, Memcached, and cron are shared across all shops — single points of failure.</figcaption>
 </figure>
@@ -236,25 +175,7 @@ flowchart TD
 
 <figure>
 
-```mermaid
-flowchart TD
-    LB["nginx + OpenResty"] --> SH["Sorting Hat"]
-    SH --> APP["Shared Application Workers"]
-
-    subgraph "Pod 1"
-        MY1["MySQL"] --- RD1["Redis"] --- MC1["Memcached"] --- CR1["Cron"]
-    end
-    subgraph "Pod 2"
-        MY2["MySQL"] --- RD2["Redis"] --- MC2["Memcached"] --- CR2["Cron"]
-    end
-    subgraph "Pod N (Dedicated)"
-        MYN["MySQL"] --- RDN["Redis"] --- MCN["Memcached"] --- CRN["Cron"]
-    end
-
-    APP --> MY1
-    APP --> MY2
-    APP --> MYN
-```
+![Pod architecture: each pod is a complete, isolated set of stateful infrastructure. Dedicated pods serve high-traffic merchants. Stateless workers are shared and route via shop_id.](./pod-architecture-each-pod-is-a-complete-isolated-set-of-stateful-infrastructure-.svg)
 
 <figcaption>Pod architecture: each pod is a complete, isolated set of stateful infrastructure. Dedicated pods serve high-traffic merchants. Stateless workers are shared and route via shop_id.</figcaption>
 </figure>

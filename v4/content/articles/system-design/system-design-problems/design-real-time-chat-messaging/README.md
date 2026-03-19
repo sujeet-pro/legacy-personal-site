@@ -8,62 +8,7 @@ A comprehensive system design for real-time chat and messaging covering connecti
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Clients["Clients"]
-        M1["Mobile App"]
-        M2["Mobile App"]
-        W1["Web Client"]
-    end
-
-    subgraph Edge["Edge Layer"]
-        CDN["CDN<br/>(Static Assets)"]
-        LB["Load Balancer"]
-    end
-
-    subgraph Gateway["Connection Layer"]
-        WS1["WebSocket Gateway 1"]
-        WS2["WebSocket Gateway 2"]
-        WSn["WebSocket Gateway N"]
-    end
-
-    subgraph Core["Core Services"]
-        MSG["Message Service"]
-        PRES["Presence Service"]
-        SYNC["Sync Service"]
-        FANOUT["Fan-out Service"]
-    end
-
-    subgraph Queue["Message Queue"]
-        KAFKA["Kafka Cluster"]
-    end
-
-    subgraph Storage["Storage Layer"]
-        REDIS["Redis Cluster<br/>(Presence, Sessions)"]
-        CASS[(ScyllaDB/Cassandra<br/>Messages)]
-        META[(PostgreSQL<br/>User, Group Metadata)]
-    end
-
-    subgraph Push["Push Notifications"]
-        PUSH["Push Service"]
-        APNS["APNs"]
-        FCM["FCM"]
-    end
-
-    M1 & M2 & W1 --> LB
-    LB --> WS1 & WS2 & WSn
-    WS1 & WS2 & WSn <--> MSG
-    WS1 & WS2 & WSn <--> PRES
-    MSG --> KAFKA
-    KAFKA --> FANOUT
-    FANOUT --> WS1 & WS2 & WSn
-    KAFKA --> PUSH
-    MSG --> CASS
-    MSG --> META
-    PRES --> REDIS
-    SYNC --> CASS
-    PUSH --> APNS & FCM
-```
+![High-level architecture: WebSocket gateways handle persistent connections, Kafka provides message routing, and fan-out service distributes messages to recipients.](./high-level-architecture-websocket-gateways-handle-persistent-connections-kafka-p.svg)
 
 <figcaption>High-level architecture: WebSocket gateways handle persistent connections, Kafka provides message routing, and fan-out service distributes messages to recipients.</figcaption>
 </figure>
@@ -165,24 +110,7 @@ Real-time chat systems solve three interrelated problems: **low-latency delivery
 
 **Architecture:**
 
-```mermaid
-sequenceDiagram
-    participant A as User A
-    participant GW as Gateway
-    participant MSG as Message Service
-    participant GW2 as Gateway (User B)
-    participant B as User B
-
-    A->>GW: Send message
-    GW->>MSG: Route message
-    MSG->>MSG: Persist to DB
-    MSG->>GW2: Deliver to User B's gateway
-    GW2->>B: Push via WebSocket
-    B->>GW2: Delivery ACK
-    GW2->>MSG: Update status
-    MSG->>GW: Delivery confirmation
-    GW->>A: Double-check delivered
-```
+![Diagram](./diagram-1.svg)
 
 **Key characteristics:**
 
@@ -212,33 +140,7 @@ sequenceDiagram
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    subgraph Publish
-        SENDER["Sender"]
-        GW1["Gateway"]
-        MSG["Message Service"]
-    end
-
-    subgraph Queue
-        KAFKA["Kafka<br/>(partitioned by conversation)"]
-    end
-
-    subgraph Subscribe
-        FO1["Fan-out Worker 1"]
-        FO2["Fan-out Worker 2"]
-        FOn["Fan-out Worker N"]
-    end
-
-    subgraph Deliver
-        GW2["Gateway Pool"]
-        RECIP["Recipients"]
-    end
-
-    SENDER --> GW1 --> MSG --> KAFKA
-    KAFKA --> FO1 & FO2 & FOn
-    FO1 & FO2 & FOn --> GW2 --> RECIP
-```
+![Diagram](./diagram-2.svg)
 
 **Key characteristics:**
 
@@ -267,18 +169,7 @@ flowchart LR
 
 **Architecture:**
 
-```mermaid
-flowchart TB
-    MSG["Message Service"]
-
-    MSG --> CHECK{"Group Size?"}
-
-    CHECK -->|"< 100 members"| PUSH["Direct Push<br/>(Real-time)"]
-    CHECK -->|">= 100 members"| QUEUE["Queue + Fan-out<br/>(Async)"]
-
-    PUSH --> GW1["Gateway"] --> U1["Users"]
-    QUEUE --> KAFKA["Kafka"] --> FANOUT["Fan-out Workers"] --> GW2["Gateways"] --> U2["Users"]
-```
+![Diagram](./diagram-3.svg)
 
 **Key characteristics:**
 
@@ -321,73 +212,7 @@ This article focuses on **Path C (Hybrid)** because:
 
 ### Component Overview
 
-```mermaid
-flowchart TB
-    subgraph ClientLayer["Client Layer"]
-        APP["Mobile/Web App"]
-        WS_CLIENT["WebSocket Client"]
-        LOCAL_DB["SQLite/IndexedDB<br/>(Local Cache)"]
-        SYNC_ENGINE["Sync Engine"]
-    end
-
-    subgraph EdgeLayer["Edge Layer"]
-        DNS["Route 53<br/>(GeoDNS)"]
-        LB["NLB<br/>(Layer 4)"]
-    end
-
-    subgraph GatewayLayer["Gateway Layer"]
-        WS_GW["WebSocket Gateway<br/>(Stateful)"]
-        CONN_MGR["Connection Manager"]
-        HEARTBEAT["Heartbeat Handler"]
-    end
-
-    subgraph ServiceLayer["Core Services"]
-        MSG_SVC["Message Service"]
-        USER_SVC["User Service"]
-        GROUP_SVC["Group Service"]
-        PRES_SVC["Presence Service"]
-        SYNC_SVC["Sync Service"]
-        PUSH_SVC["Push Notification Service"]
-    end
-
-    subgraph QueueLayer["Message Queue"]
-        KAFKA["Kafka Cluster"]
-        FANOUT_TOPIC["fanout.messages"]
-        PUSH_TOPIC["push.notifications"]
-    end
-
-    subgraph StorageLayer["Storage Layer"]
-        REDIS["Redis Cluster<br/>(Sessions, Presence)"]
-        SCYLLA[(ScyllaDB<br/>Messages)]
-        POSTGRES[(PostgreSQL<br/>Users, Groups)]
-        S3["S3<br/>(Media)"]
-    end
-
-    APP <--> WS_CLIENT
-    WS_CLIENT <--> SYNC_ENGINE
-    SYNC_ENGINE <--> LOCAL_DB
-
-    WS_CLIENT --> DNS --> LB --> WS_GW
-    WS_GW --> CONN_MGR
-    WS_GW --> HEARTBEAT
-    WS_GW <--> MSG_SVC
-    WS_GW <--> PRES_SVC
-
-    MSG_SVC --> KAFKA
-    MSG_SVC --> SCYLLA
-    MSG_SVC --> USER_SVC
-    MSG_SVC --> GROUP_SVC
-
-    KAFKA --> FANOUT_TOPIC
-    KAFKA --> PUSH_TOPIC
-    FANOUT_TOPIC --> WS_GW
-    PUSH_TOPIC --> PUSH_SVC
-
-    PRES_SVC --> REDIS
-    CONN_MGR --> REDIS
-    USER_SVC --> POSTGRES
-    GROUP_SVC --> POSTGRES
-```
+![Diagram](./diagram-4.svg)
 
 ### WebSocket Gateway
 
@@ -1510,51 +1335,7 @@ class VirtualMessageList {
 
 ### AWS Reference Architecture
 
-```mermaid
-flowchart TB
-    subgraph Edge
-        R53["Route 53<br/>(GeoDNS)"]
-        CF["CloudFront<br/>(Static + WebSocket)"]
-    end
-
-    subgraph Compute["EKS Cluster"]
-        subgraph Gateway["Gateway Tier"]
-            WS["WebSocket Pods<br/>(Fargate, 4CPU/8GB)"]
-        end
-        subgraph Services["Service Tier"]
-            MSG["Message Service<br/>(Fargate)"]
-            SYNC["Sync Service<br/>(Fargate)"]
-        end
-        subgraph Workers["Worker Tier"]
-            FANOUT["Fan-out Workers<br/>(Fargate Spot)"]
-            PUSH["Push Workers<br/>(Fargate Spot)"]
-        end
-    end
-
-    subgraph Data
-        REDIS["ElastiCache Redis<br/>(Cluster Mode)"]
-        KEYSPACES["Keyspaces<br/>(Cassandra-compatible)"]
-        RDS["RDS PostgreSQL<br/>(Multi-AZ)"]
-        S3["S3<br/>(Media)"]
-    end
-
-    subgraph Streaming
-        MSK["Amazon MSK<br/>(Kafka)"]
-    end
-
-    subgraph Push["Push Notifications"]
-        SNS["SNS<br/>(Mobile Push)"]
-    end
-
-    R53 --> CF --> WS
-    WS --> MSG --> MSK
-    WS --> REDIS
-    MSG --> KEYSPACES
-    MSG --> RDS
-    MSK --> FANOUT --> WS
-    MSK --> PUSH --> SNS
-    SYNC --> KEYSPACES
-```
+![Diagram](./diagram-5.svg)
 
 **Service configurations:**
 

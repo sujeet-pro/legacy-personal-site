@@ -8,41 +8,7 @@ Digital Rights Management (DRM) for streaming media combines encryption, license
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph "Content Preparation"
-        SRC[Source Video] --> ENC[Encode<br/>H.264/HEVC/AV1]
-        ENC --> PKG[Package<br/>fMP4/CMAF]
-        PKG --> CRYPT[Encrypt<br/>CENC/AES-128]
-        CRYPT --> PSSH[Add PSSH<br/>Per DRM System]
-    end
-
-    subgraph "Key Infrastructure"
-        KMS[Key Management<br/>Service] --> PSSH
-        KMS --> LIC[License Server<br/>Widevine/FairPlay/PlayReady]
-    end
-
-    subgraph "Delivery"
-        PSSH --> CDN[CDN Edge]
-        CDN --> MAN[Manifest<br/>HLS/DASH]
-    end
-
-    subgraph "Playback"
-        MAN --> PLAYER[Player<br/>EME API]
-        PLAYER --> CDM[CDM<br/>Content Decryption Module]
-        CDM <--> LIC
-        CDM --> DEC[Decrypt<br/>+ Decode]
-        DEC --> PLAY[Playback]
-    end
-
-    style SRC fill:#e1d5e7,stroke:#9673a6
-    style CRYPT fill:#f8cecc,stroke:#b85450
-    style PSSH fill:#f8cecc,stroke:#b85450
-    style KMS fill:#fff2cc,stroke:#d6b656
-    style LIC fill:#fff2cc,stroke:#d6b656
-    style CDM fill:#d5e8d4,stroke:#82b366
-    style DEC fill:#d5e8d4,stroke:#82b366
-```
+![DRM pipeline: content encryption with CENC, key management through license servers, and client-side decryption via platform CDMs](./drm-pipeline-content-encryption-with-cenc-key-management-through-license-servers.svg)
 
 <figcaption>DRM pipeline: content encryption with CENC, key management through license servers, and client-side decryption via platform CDMs</figcaption>
 
@@ -423,30 +389,7 @@ Encrypted Media Extensions (EME) is the W3C API that connects web applications t
 
 ### EME Flow
 
-```mermaid
-sequenceDiagram
-    participant App as Application
-    participant Video as HTMLMediaElement
-    participant CDM as CDM
-    participant Server as License Server
-
-    App->>Video: Set encrypted source
-    Video->>App: encrypted event (initData)
-    App->>CDM: requestMediaKeySystemAccess()
-    CDM-->>App: MediaKeySystemAccess
-    App->>CDM: createMediaKeys()
-    CDM-->>App: MediaKeys
-    App->>Video: setMediaKeys(mediaKeys)
-    App->>CDM: createSession()
-    CDM-->>App: MediaKeySession
-    App->>CDM: generateRequest(initData)
-    CDM->>App: message event (license request)
-    App->>Server: POST license request
-    Server-->>App: License response
-    App->>CDM: session.update(license)
-    CDM->>Video: Decryption enabled
-    Video->>App: Playback proceeds
-```
+![Diagram](./diagram-1.svg)
 
 ### Key API Components
 

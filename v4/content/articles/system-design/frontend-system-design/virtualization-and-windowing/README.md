@@ -8,22 +8,7 @@ Rendering large lists (1,000+ items) without virtualization creates a DOM tree s
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph "Without Virtualization"
-        direction TB
-        A1[1,000 items] --> A2[1,000 DOM nodes]
-        A2 --> A3[Layout: 200-500ms]
-        A3 --> A4[Jank/Freeze]
-    end
-
-    subgraph "With Virtualization"
-        direction TB
-        B1[1,000 items] --> B2[~30 DOM nodes]
-        B2 --> B3[Layout: 1-3ms]
-        B3 --> B4[60fps scroll]
-    end
-```
+![Virtualization trades algorithmic complexity for constant DOM size, keeping frame times under the 16ms budget.](./virtualization-trades-algorithmic-complexity-for-constant-dom-size-keeping-frame.svg)
 
 <figcaption>Virtualization trades algorithmic complexity for constant DOM size, keeping frame times under the 16ms budget.</figcaption>
 </figure>
@@ -432,18 +417,7 @@ web.dev reports a 7x rendering performance improvement on the Chrome DevRel blog
 
 ### Decision Framework
 
-```mermaid
-flowchart TD
-    A[Large list rendering] --> B{Need find-in-page?}
-    B -->|Yes| C{Item count < 10K?}
-    C -->|Yes| D[content-visibility: auto]
-    C -->|No| E[Custom search + virtualization]
-    B -->|No| F{All items same height?}
-    F -->|Yes| G[Fixed-height virtualization]
-    F -->|No| H{Performance critical?}
-    H -->|Yes| I[Variable-height + DOM recycling]
-    H -->|No| J[Variable-height virtualization]
-```
+![Diagram](./diagram-1.svg)
 
 ## Browser APIs for Virtualization
 

@@ -8,46 +8,7 @@ Building scalable video transcoding pipelines requires orchestrating CPU/GPU-int
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph "Ingest"
-        SRC[Source Upload] --> VAL[Validation<br/>Format/Duration]
-        VAL --> STORE[Source Storage<br/>S3/GCS]
-    end
-
-    subgraph "Orchestration"
-        STORE --> QUEUE[Job Queue<br/>SQS/Redis]
-        QUEUE --> SCHED[Scheduler<br/>Priority/Capacity]
-    end
-
-    subgraph "Encoding"
-        SCHED --> CHUNK[Chunker<br/>GOP Split]
-        CHUNK --> ENC1[Encoder 1]
-        CHUNK --> ENC2[Encoder 2]
-        CHUNK --> ENCN[Encoder N]
-        ENC1 --> MERGE[Merge<br/>Concatenate]
-        ENC2 --> MERGE
-        ENCN --> MERGE
-    end
-
-    subgraph "Output"
-        MERGE --> QC[Quality Check<br/>VMAF/SSIM]
-        QC --> PKG[Packaging<br/>HLS/DASH]
-        PKG --> CDN[CDN Origin]
-    end
-
-    style SRC fill:#e1d5e7,stroke:#9673a6
-    style QUEUE fill:#fff2cc,stroke:#d6b656
-    style SCHED fill:#fff2cc,stroke:#d6b656
-    style CHUNK fill:#dae8fc,stroke:#6c8ebf
-    style ENC1 fill:#dae8fc,stroke:#6c8ebf
-    style ENC2 fill:#dae8fc,stroke:#6c8ebf
-    style ENCN fill:#dae8fc,stroke:#6c8ebf
-    style MERGE fill:#dae8fc,stroke:#6c8ebf
-    style QC fill:#d5e8d4,stroke:#82b366
-    style PKG fill:#d5e8d4,stroke:#82b366
-    style CDN fill:#d5e8d4,stroke:#82b366
-```
+![End-to-end transcoding pipeline: source ingestion through job orchestration, distributed encoding with chunked parallelization, quality validation, and CDN delivery](./end-to-end-transcoding-pipeline-source-ingestion-through-job-orchestration-distr.svg)
 
 <figcaption>End-to-end transcoding pipeline: source ingestion through job orchestration, distributed encoding with chunked parallelization, quality validation, and CDN delivery</figcaption>
 
@@ -188,20 +149,7 @@ Parallel chunked (6 workers, 10 chunks):
 
 **Distributed chunking workflow (fan-out/fan-in):**
 
-```mermaid
-flowchart TD
-    SRC[Source Video] --> SPLIT[Split at GOPs<br/>ffmpeg -segment]
-    SPLIT --> C1[Chunk 1]
-    SPLIT --> C2[Chunk 2]
-    SPLIT --> CN[Chunk N]
-    C1 --> W1[Worker 1<br/>Encode]
-    C2 --> W2[Worker 2<br/>Encode]
-    CN --> WN[Worker N<br/>Encode]
-    W1 --> CONCAT[Concatenate<br/>ffmpeg -concat]
-    W2 --> CONCAT
-    WN --> CONCAT
-    CONCAT --> OUT[Final Output]
-```
+![Diagram](./diagram-1.svg)
 
 **Splitting at keyframes:**
 
@@ -360,33 +308,7 @@ Example static ladder (H.264):
 
 **Convex hull optimization:** Encode at many bitrate/resolution combinations, measure quality (VMAF), plot rate-distortion curve. Select the Pareto-optimal points (convex hull) where quality improvements justify bitrate increases.
 
-```mermaid
-graph LR
-    subgraph "Exhaustive Encoding"
-        E1[1080p @ 8M]
-        E2[1080p @ 5M]
-        E3[1080p @ 3M]
-        E4[720p @ 3M]
-        E5[720p @ 1.5M]
-        E6[480p @ 1M]
-    end
-
-    subgraph "Quality Measurement"
-        M[VMAF Scoring]
-    end
-
-    subgraph "Convex Hull"
-        H1[Select Optimal Points]
-    end
-
-    E1 --> M
-    E2 --> M
-    E3 --> M
-    E4 --> M
-    E5 --> M
-    E6 --> M
-    M --> H1
-```
+![Diagram](./diagram-2.svg)
 
 **Per-shot encoding (advanced):** Netflix's current approach varies encoding parameters per shot within a video, not just per title. Scene cuts trigger re-evaluation of optimal settings. This exploits the observation that complexity varies dramatically within a single video.
 

@@ -8,31 +8,7 @@ How Discord evolved its message storage from a single MongoDB replica set to Cas
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Phase1["Phase 1: MongoDB (2015–2016)"]
-        Mongo["Single MongoDB<br/>Replica Set"]
-        Rails1["Python/Elixir API"]
-        Rails1 --> Mongo
-    end
-
-    subgraph Phase2["Phase 2: Cassandra (2017–2021)"]
-        Cass["Cassandra Cluster<br/>12 → 177 nodes"]
-        Model["Bucketed Partitions<br/>(channel_id, bucket)"]
-        Cass --- Model
-    end
-
-    subgraph Phase3["Phase 3: ScyllaDB + Rust (2020–2022)"]
-        DS["Rust Data Services<br/>(request coalescing)"]
-        Scylla["ScyllaDB<br/>72 nodes, 9 TB/node"]
-        SuperDisk["Super-Disk<br/>(Local SSD + PD RAID)"]
-        DS --> Scylla
-        Scylla --- SuperDisk
-    end
-
-    Phase1 -->|"100M messages:<br/>index > RAM,<br/>unpredictable latency"| Phase2
-    Phase2 -->|"Trillions of messages:<br/>GC pauses, compaction<br/>backlog, hot partitions"| Phase3
-```
+![Discord's message storage evolution across three phases, from a MongoDB replica set to a ScyllaDB cluster with Rust data services.](./discord-s-message-storage-evolution-across-three-phases-from-a-mongodb-replica-s.svg)
 
 <figcaption>Discord's message storage evolution across three phases, from a MongoDB replica set to a ScyllaDB cluster with Rust data services.</figcaption>
 </figure>

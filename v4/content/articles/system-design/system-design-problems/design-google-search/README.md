@@ -8,64 +8,7 @@ Building a web-scale search engine that processes 8.5 billion queries daily acro
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Users["User Layer"]
-        WEB[Web Browser]
-        MOBILE[Mobile App]
-        API[Search API]
-    end
-
-    subgraph QueryProcessing["Query Processing"]
-        SPELL[Spell Correction<br/>680M params, <2ms]
-        INTENT[Intent Understanding<br/>NLP + Entity Recognition]
-        EXPAND[Query Expansion<br/>Synonyms + Related]
-    end
-
-    subgraph Serving["Serving Layer"]
-        ROUTER[Query Router]
-        CACHE[(Query Cache<br/>Frequent Results)]
-        AGG[Result Aggregator]
-    end
-
-    subgraph Index["Distributed Index"]
-        SHARD1[(Shard 1<br/>Inverted Index)]
-        SHARD2[(Shard 2<br/>Inverted Index)]
-        SHARDN[(Shard N<br/>Inverted Index)]
-    end
-
-    subgraph Ranking["Ranking Systems"]
-        PAGERANK[PageRank<br/>Link Analysis]
-        BERT[BERT<br/>Semantic Understanding]
-        RANKBRAIN[RankBrain<br/>Query-Result Matching]
-    end
-
-    subgraph Crawling["Crawl Infrastructure"]
-        FRONTIER[URL Frontier<br/>Prioritized Queue]
-        CRAWLER[Distributed Crawler<br/>Googlebot]
-        PARSER[Content Parser<br/>+ Deduplication]
-    end
-
-    subgraph Storage["Storage Layer"]
-        BIGTABLE[(Bigtable<br/>Page Content)]
-        COLOSSUS[(Colossus<br/>Distributed FS)]
-    end
-
-    WEB & MOBILE & API --> SPELL
-    SPELL --> INTENT --> EXPAND
-    EXPAND --> ROUTER
-    ROUTER --> CACHE
-    ROUTER --> SHARD1 & SHARD2 & SHARDN
-    SHARD1 & SHARD2 & SHARDN --> AGG
-    AGG --> PAGERANK & BERT & RANKBRAIN
-    PAGERANK & BERT & RANKBRAIN --> Users
-
-    FRONTIER --> CRAWLER
-    CRAWLER --> PARSER
-    PARSER --> BIGTABLE
-    BIGTABLE --> COLOSSUS
-    PARSER --> Index
-```
+![Google Search architecture: Queries flow through spell correction and intent understanding, then fan out to distributed index shards. Results aggregate through ranking systems (PageRank, BERT, RankBrain) before returning. Crawlers continuously feed fresh content into the index via Bigtable storage.](./google-search-architecture-queries-flow-through-spell-correction-and-intent-unde.svg)
 
 <figcaption>Google Search architecture: Queries flow through spell correction and intent understanding, then fan out to distributed index shards. Results aggregate through ranking systems (PageRank, BERT, RankBrain) before returning. Crawlers continuously feed fresh content into the index via Bigtable storage.</figcaption>
 </figure>
@@ -171,18 +114,7 @@ Replication factor: 3x minimum for durability
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    subgraph Datacenter["Single Datacenter"]
-        LB[Load Balancer]
-        APP[Query Servers]
-        INDEX[(Monolithic Index)]
-        CRAWLER[Crawler]
-    end
-
-    Users --> LB --> APP --> INDEX
-    CRAWLER --> INDEX
-```
+![Diagram](./diagram-1.svg)
 
 **Key characteristics:**
 
@@ -211,36 +143,7 @@ flowchart LR
 
 **Architecture:**
 
-```mermaid
-flowchart TB
-    subgraph Global["Global Infrastructure"]
-        DNS[GeoDNS]
-    end
-
-    subgraph DC1["Datacenter 1 (US)"]
-        LB1[Load Balancer]
-        QP1[Query Processors]
-        subgraph Index1["Index Shards"]
-            S1A[(Shard 1)]
-            S1B[(Shard 2)]
-            S1N[(Shard N)]
-        end
-    end
-
-    subgraph DC2["Datacenter 2 (EU)"]
-        LB2[Load Balancer]
-        QP2[Query Processors]
-        subgraph Index2["Index Shards"]
-            S2A[(Shard 1)]
-            S2B[(Shard 2)]
-            S2N[(Shard N)]
-        end
-    end
-
-    DNS --> LB1 & LB2
-    LB1 --> QP1 --> S1A & S1B & S1N
-    LB2 --> QP2 --> S2A & S2B & S2N
-```
+![Diagram](./diagram-2.svg)
 
 **Key characteristics:**
 
@@ -271,18 +174,7 @@ flowchart TB
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    subgraph Tiers["Index Tiers"]
-        HOT[(Hot Tier<br/>Memory/SSD<br/>Top 10% pages)]
-        WARM[(Warm Tier<br/>SSD<br/>Next 30% pages)]
-        COLD[(Cold Tier<br/>HDD<br/>Remaining 60%)]
-    end
-
-    Query --> HOT
-    HOT -->|Miss| WARM
-    WARM -->|Miss| COLD
-```
+![Diagram](./diagram-3.svg)
 
 **Key characteristics:**
 
@@ -341,82 +233,11 @@ The design sections show how to build each component (crawler, indexer, ranker, 
 
 ### Request Flow
 
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant DNS as GeoDNS
-    participant LB as Load Balancer
-    participant QP as Query Processor
-    participant CACHE as Query Cache
-    participant SHARDS as Index Shards (1000s)
-    participant RANK as Ranking Engine
-    participant AGG as Aggregator
-
-    U->>DNS: search query
-    DNS->>LB: Route to nearest DC
-    LB->>QP: Forward query
-
-    QP->>QP: Spell correction (<2ms)
-    QP->>QP: Intent understanding
-    QP->>QP: Query expansion
-
-    QP->>CACHE: Check cache
-    alt Cache hit
-        CACHE->>U: Return cached results
-    else Cache miss
-        QP->>SHARDS: Fan out to all shards (parallel)
-        SHARDS->>AGG: Return top-K per shard
-        AGG->>RANK: Merge candidates
-        RANK->>RANK: Apply PageRank, BERT, RankBrain
-        RANK->>RANK: Personalization
-        RANK->>CACHE: Store result
-        RANK->>U: Return ranked results
-    end
-```
+![Diagram](./diagram-4.svg)
 
 ### Crawl Pipeline
 
-```mermaid
-flowchart TB
-    subgraph Discovery["URL Discovery"]
-        SEED[Seed URLs]
-        SITEMAP[XML Sitemaps]
-        LINKS[Extracted Links]
-    end
-
-    subgraph Frontier["URL Frontier"]
-        PRIO[Priority Queue]
-        DEDUP[URL Deduplication]
-        POLITENESS[Politeness Scheduler]
-    end
-
-    subgraph Fetch["Fetching"]
-        DNS_R[DNS Resolution]
-        ROBOTS[robots.txt Check]
-        FETCH[HTTP Fetch]
-        RENDER[JavaScript Rendering]
-    end
-
-    subgraph Process["Processing"]
-        PARSE[HTML Parsing]
-        EXTRACT[Link Extraction]
-        CONTENT[Content Extraction]
-        FINGERPRINT[Fingerprinting]
-    end
-
-    subgraph Store["Storage"]
-        BIGTABLE[(Bigtable)]
-        INDEX[Indexer Queue]
-    end
-
-    SEED & SITEMAP & LINKS --> PRIO
-    PRIO --> DEDUP --> POLITENESS
-    POLITENESS --> DNS_R --> ROBOTS --> FETCH
-    FETCH --> RENDER --> PARSE
-    PARSE --> EXTRACT --> PRIO
-    PARSE --> CONTENT --> FINGERPRINT
-    FINGERPRINT --> BIGTABLE --> INDEX
-```
+![Diagram](./diagram-5.svg)
 
 ## API Design
 
@@ -652,33 +473,7 @@ Building an inverted index from crawled documents at web scale requires careful 
 
 **Index Build Pipeline:**
 
-```mermaid
-flowchart LR
-    subgraph Input["Input"]
-        DOCS[Crawled Documents<br/>from Bigtable]
-    end
-
-    subgraph Map["Map Phase"]
-        TOKENIZE[Tokenize]
-        NORMALIZE[Normalize<br/>lowercase, stem]
-        EMIT[Emit<br/>term → doc_id, pos, freq]
-    end
-
-    subgraph Shuffle["Shuffle"]
-        PARTITION[Partition by Term]
-        SORT[Sort by Doc ID]
-    end
-
-    subgraph Reduce["Reduce Phase"]
-        MERGE[Merge Posting Lists]
-        COMPRESS[Delta Encode<br/>+ Compress]
-        WRITE[Write to Shard]
-    end
-
-    DOCS --> TOKENIZE --> NORMALIZE --> EMIT
-    EMIT --> PARTITION --> SORT
-    SORT --> MERGE --> COMPRESS --> WRITE
-```
+![Diagram](./diagram-6.svg)
 
 **Implementation (Conceptual MapReduce):**
 
@@ -761,42 +556,7 @@ Google uses a hybrid: the main index updates incrementally, while a separate "fr
 
 ### Query Processing Pipeline
 
-```mermaid
-flowchart TB
-    subgraph Input["Query Input"]
-        RAW[Raw Query]
-    end
-
-    subgraph Preprocessing["Preprocessing"]
-        NORM[Normalize]
-        SPELL[Spell Correct]
-        ENTITY[Entity Recognition]
-    end
-
-    subgraph Understanding["Query Understanding"]
-        INTENT[Intent Classification]
-        EXPAND[Query Expansion]
-        REWRITE[Query Rewriting]
-    end
-
-    subgraph Retrieval["Index Retrieval"]
-        FANOUT[Fan out to Shards]
-        INTERSECT[Posting List Intersection]
-        TOPK[Top-K per Shard]
-    end
-
-    subgraph Ranking["Ranking"]
-        MERGE[Merge Candidates]
-        FEATURES[Feature Extraction]
-        ML[ML Ranking]
-        PERSONALIZE[Personalization]
-    end
-
-    RAW --> NORM --> SPELL --> ENTITY
-    ENTITY --> INTENT --> EXPAND --> REWRITE
-    REWRITE --> FANOUT --> INTERSECT --> TOPK
-    TOPK --> MERGE --> FEATURES --> ML --> PERSONALIZE
-```
+![Diagram](./diagram-7.svg)
 
 **Spell Correction Implementation:**
 
@@ -842,31 +602,7 @@ async function correctSpelling(query: string): Promise<SpellResult> {
 
 Google combines multiple ranking systems, each contributing different signals:
 
-```mermaid
-flowchart TB
-    subgraph Signals["Ranking Signals (200+)"]
-        QUERY[Query Signals<br/>terms, intent, freshness need]
-        DOC[Document Signals<br/>PageRank, content quality, freshness]
-        USER[User Signals<br/>location, language, history]
-        CONTEXT[Context Signals<br/>device, time of day]
-    end
-
-    subgraph Rankers["Ranking Systems"]
-        PR[PageRank<br/>Link authority]
-        TF[TF-IDF<br/>Term relevance]
-        BERT_R[BERT<br/>Semantic matching]
-        RB[RankBrain<br/>Query-doc vectors]
-        FRESH[Freshness<br/>Time decay]
-    end
-
-    subgraph Combination["Score Combination"]
-        WEIGHTS[Learned Weights]
-        FINAL[Final Score]
-    end
-
-    QUERY & DOC & USER & CONTEXT --> PR & TF & BERT_R & RB & FRESH
-    PR & TF & BERT_R & RB & FRESH --> WEIGHTS --> FINAL
-```
+![Diagram](./diagram-8.svg)
 
 **PageRank Computation:**
 
@@ -1295,45 +1031,7 @@ Google uses traditional pagination rather than infinite scroll. Design rationale
 
 ### AWS Reference Architecture
 
-```mermaid
-graph TB
-    subgraph Edge["Edge Layer"]
-        CF[CloudFront]
-        R53[Route 53<br/>GeoDNS]
-    end
-
-    subgraph Compute["Compute Layer"]
-        ALB[Application Load Balancer]
-        ECS[ECS Fargate<br/>Query Servers]
-        BATCH[AWS Batch<br/>Index Building]
-    end
-
-    subgraph Storage["Storage Layer"]
-        DYNAMO[(DynamoDB<br/>URL Frontier)]
-        S3[(S3<br/>Raw Pages)]
-        OPENSEARCH[(OpenSearch<br/>Inverted Index)]
-    end
-
-    subgraph Cache["Cache Layer"]
-        ELASTICACHE[(ElastiCache<br/>Query Cache)]
-        DAX[(DAX<br/>DynamoDB Cache)]
-    end
-
-    subgraph Queue["Queue Layer"]
-        SQS[SQS<br/>Crawl Jobs]
-        KINESIS[Kinesis<br/>Index Updates]
-    end
-
-    R53 --> CF --> ALB
-    ALB --> ECS
-    ECS --> ELASTICACHE
-    ECS --> OPENSEARCH
-    ECS --> DYNAMO
-    SQS --> BATCH
-    BATCH --> S3
-    BATCH --> OPENSEARCH
-    KINESIS --> OPENSEARCH
-```
+![Diagram](./diagram-9.svg)
 
 **Service sizing (for ~10K QPS, 1B documents):**
 

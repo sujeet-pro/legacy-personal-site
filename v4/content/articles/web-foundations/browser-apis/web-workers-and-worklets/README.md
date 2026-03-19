@@ -8,38 +8,7 @@ Concurrency primitives for keeping the main thread responsive. Workers provide g
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Main["Main Thread"]
-        JS["JavaScript"]
-        DOM["DOM / CSSOM"]
-        Layout["Layout"]
-        Paint["Paint"]
-        Composite["Composite"]
-    end
-
-    subgraph Workers["Worker Threads"]
-        DW["Dedicated Worker"]
-        SW["Shared Worker"]
-        SvcW["Service Worker"]
-    end
-
-    subgraph Worklets["Worklet Contexts"]
-        PW["Paint Worklet"]
-        AW["Animation Worklet"]
-        AudioW["Audio Worklet"]
-    end
-
-    JS <-->|"postMessage"| DW
-    JS <-->|"MessagePort"| SW
-    JS <-->|"Events"| SvcW
-
-    Paint -->|"Sync call"| PW
-    Composite -->|"Sync call"| AW
-    JS -->|"Audio graph"| AudioW
-
-    SvcW -->|"Intercepts"| Network["Network"]
-```
+![Workers communicate asynchronously via message passing. Worklets integrate synchronously at specific rendering pipeline stages.](./workers-communicate-asynchronously-via-message-passing-worklets-integrate-synchr.svg)
 
 <figcaption>Workers communicate asynchronously via message passing. Worklets integrate synchronously at specific rendering pipeline stages.</figcaption>
 </figure>

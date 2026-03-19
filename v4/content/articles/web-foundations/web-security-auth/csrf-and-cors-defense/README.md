@@ -8,33 +8,7 @@ A deep dive into Cross-Site Request Forgery (CSRF) and Cross-Origin Resource Sha
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Attack Surface"
-        CSRF["CSRF<br/>Exploits ambient authority"]
-        XSOrigin["Cross-Origin Requests<br/>Violate same-origin policy"]
-    end
-
-    subgraph "Browser Defenses"
-        SOP["Same-Origin Policy<br/>Default isolation"]
-        SameSite["SameSite Cookies<br/>Cookie scoping"]
-        FetchMeta["Fetch Metadata<br/>Sec-Fetch-* headers"]
-        CORS["CORS Protocol<br/>Controlled relaxation"]
-    end
-
-    subgraph "Server Defenses"
-        Tokens["CSRF Tokens<br/>Synchronizer / Double-Submit"]
-        OriginCheck["Origin Verification<br/>Origin/Referer headers"]
-        CustomHeaders["Custom Headers<br/>X-CSRF-Token"]
-    end
-
-    CSRF --> SameSite
-    CSRF --> Tokens
-    CSRF --> OriginCheck
-    XSOrigin --> SOP
-    XSOrigin --> CORS
-    FetchMeta --> Tokens
-```
+![CSRF exploits ambient authority (cookies sent automatically); CORS controls same-origin policy relaxation. Defense requires both browser-level and server-level controls working together.](./csrf-exploits-ambient-authority-cookies-sent-automatically-cors-controls-same-or.svg)
 
 <figcaption>CSRF exploits ambient authority (cookies sent automatically); CORS controls same-origin policy relaxation. Defense requires both browser-level and server-level controls working together.</figcaption>
 
@@ -76,23 +50,7 @@ The attack requires three conditions:
 
 **Attack flow**:
 
-```mermaid
-sequenceDiagram
-    participant User as User Browser
-    participant Attacker as attacker.com
-    participant Target as bank.com
-
-    User->>Target: Login (establishes session cookie)
-    Target-->>User: Set-Cookie: session=abc123
-
-    User->>Attacker: Visit malicious page
-    Attacker-->>User: Hidden form: POST /transfer
-
-    Note over User: Browser auto-attaches<br/>session=abc123
-
-    User->>Target: POST /transfer?to=attacker&amount=10000
-    Target-->>User: Transfer completed (cookie valid)
-```
+![Diagram](./diagram-1.svg)
 
 **Why it works**: The browser sees a request to `bank.com` and automatically includes `bank.com`'s cookies. The server cannot distinguish between a legitimate user action and an attacker-induced request—both carry the same session cookie.
 

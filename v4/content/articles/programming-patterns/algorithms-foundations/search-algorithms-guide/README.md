@@ -8,28 +8,7 @@ A comprehensive guide to search algorithms covering fundamental concepts, implem
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Array Search"
-        direction LR
-        LS["Linear O(n)<br/>Unsorted"]
-        BS["Binary O(log n)<br/>Sorted"]
-        JS["Jump O(√n)<br/>Disk-friendly"]
-        IS["Interpolation O(log log n)<br/>Uniform data"]
-    end
-
-    subgraph "Graph Search"
-        direction LR
-        BFS["BFS O(V+E)<br/>Shortest path"]
-        DFS["DFS O(V+E)<br/>Memory efficient"]
-        DIJ["Dijkstra O((V+E)logV)<br/>Weighted"]
-        ASTAR["A* O(E)<br/>Heuristic-guided"]
-    end
-
-    LS -->|"Sort first"| BS
-    BFS -->|"Add weights"| DIJ
-    DIJ -->|"Add heuristic"| ASTAR
-```
+![Search algorithm taxonomy showing array and graph search strategies with their complexity characteristics](./search-algorithm-taxonomy-showing-array-and-graph-search-strategies-with-their-c.svg)
 
 <figcaption>Search algorithm taxonomy showing array and graph search strategies with their complexity characteristics</figcaption>
 
@@ -41,24 +20,7 @@ Search algorithms answer a fundamental question: _how do I find what I'm looking
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "The Search Decision"
-        Q["What are you searching?"]
-        Q --> A["Array"]
-        Q --> G["Graph"]
-
-        A --> AS["Sorted?"]
-        AS -->|No| LS["Linear O(n)"]
-        AS -->|Yes| BS["Binary O(log n)"]
-
-        G --> GW["Weighted?"]
-        GW -->|No| BFS["BFS (shortest)"]
-        GW -->|No| DFS["DFS (any path)"]
-        GW -->|Yes| D["Dijkstra"]
-        GW -->|Yes + heuristic| ASTAR["A*"]
-    end
-```
+![The core mental model: data structure and goal determine algorithm choice](./the-core-mental-model-data-structure-and-goal-determine-algorithm-choice.svg)
 
 <figcaption>The core mental model: data structure and goal determine algorithm choice</figcaption>
 

@@ -8,30 +8,7 @@ Infrastructure optimization addresses the foundation of web performance—the la
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Infrastructure Performance Layers"
-        direction TB
-        DNS["Connection Layer<br/>DNS, HTTP/3, TLS 1.3"]
-        EDGE["Edge Network<br/>CDN, Edge Computing"]
-        PAYLOAD["Payload Optimization<br/>Compression, Minification"]
-        ORIGIN["Origin Infrastructure<br/>Load Balancing, Caching, DB"]
-    end
-
-    DNS --> EDGE
-    EDGE --> PAYLOAD
-    PAYLOAD --> ORIGIN
-
-    subgraph "Performance Targets"
-        TTFB["TTFB: <100ms"]
-        OFFLOAD["Edge Offload: >80%"]
-        CACHE["Cache Hit: >90%"]
-    end
-
-    DNS --> TTFB
-    EDGE --> OFFLOAD
-    ORIGIN --> CACHE
-```
+![Infrastructure optimization layers: connection, edge, payload, and origin working together for sub-100ms TTFB](./infrastructure-optimization-layers-connection-edge-payload-and-origin-working-to.svg)
 
 <figcaption>Infrastructure optimization layers: connection, edge, payload, and origin working together for sub-100ms TTFB</figcaption>
 
@@ -41,18 +18,7 @@ flowchart TB
 
 Infrastructure performance follows a layered model where each layer multiplies the impact of the one below it:
 
-```mermaid
-flowchart LR
-    subgraph "Request Lifecycle"
-        direction LR
-        DNS["DNS<br/>(50-300ms)"] --> CONN["Connection<br/>(100-200ms)"] --> EDGE["Edge<br/>(5-20ms)"] --> ORIGIN["Origin<br/>(50-500ms)"]
-    end
-
-    subgraph "Optimization Strategy"
-        direction TB
-        A["Eliminate RTTs"] --> B["Move closer to user"] --> C["Reduce bytes"] --> D["Cache aggressively"]
-    end
-```
+![Diagram](./diagram-1.svg)
 
 **Core mental model**: Every request traverses DNS → Connection → Edge → Origin. Optimization means either eliminating layers entirely (edge caching bypasses origin), reducing round trips within layers (HTTP/3 merges crypto and transport handshakes), or moving computation closer to the user (edge functions).
 
@@ -126,20 +92,7 @@ HTTP/3 ([RFC 9114](https://datatracker.ietf.org/doc/html/rfc9114), June 2022) ab
 
 **Adoption (2025)**: 37% of websites globally support HTTP/3 (W3Techs), with 21% of actual requests using HTTP/3 (Cloudflare Radar). Browser support is mature: Chrome 87+, Firefox 88+, Safari 16+ (enabled by default September 2024), Edge 87+.
 
-```mermaid
-graph TD
-    A[Browser Request] --> B{DNS Lookup}
-    B --> C[HTTPS Record Check]
-    C --> D{HTTP/3 Supported?}
-    D -->|Yes| E[Direct QUIC Connection]
-    D -->|No| F[TCP + TLS Handshake]
-    E --> G[HTTP/3 Streams]
-    F --> H[HTTP/2 Multiplexing]
-    G --> I[Independent Stream Processing]
-    H --> J[TCP-Level HOL Blocking Risk]
-    I --> K[Faster Page Load]
-    J --> L[Potential Delays]
-```
+![Diagram](./diagram-2.svg)
 
 **Performance Impact (2025 benchmarks):**
 
@@ -167,15 +120,7 @@ TLS 1.3 ([RFC 8446](https://datatracker.ietf.org/doc/html/rfc8446), August 2018;
 
 **Adoption (2025)**: 62-70% of websites support TLS 1.3 (SSL Labs). Browser support: Chrome 70+, Firefox 63+, Safari 12.2+, Edge 79+. Post-quantum cryptography with TLS 1.3 is emerging: 43% of Cloudflare connections use hybrid post-quantum key exchange (September 2025).
 
-```mermaid
-graph LR
-    A[TLS 1.2] --> B[2 RTT Handshake]
-    C[TLS 1.3] --> D[1 RTT Handshake]
-    E[0-RTT Resumption] --> F[0 RTT for Return Visits]
-    B --> G[~200ms Setup Time]
-    D --> H[~100ms Setup Time]
-    F --> I[~0ms Setup Time]
-```
+![Diagram](./diagram-3.svg)
 
 ### 1.4 Connection Layer Trade-offs
 

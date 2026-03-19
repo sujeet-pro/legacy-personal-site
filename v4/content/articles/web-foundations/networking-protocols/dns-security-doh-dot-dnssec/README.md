@@ -8,46 +8,7 @@ Traditional DNS transmits queries in plaintext over UDP port 53—visible to any
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Traditional["Traditional DNS (Insecure)"]
-        direction LR
-        T1["Stub Resolver"]
-        T2["Recursive Resolver"]
-        T3["Authoritative Server"]
-        T1 -->|"UDP/53<br/>Plaintext"| T2
-        T2 -->|"UDP/53<br/>Plaintext"| T3
-    end
-
-    subgraph Encrypted["Encrypted Transport"]
-        direction LR
-        E1["Stub Resolver"]
-        E2["Recursive Resolver"]
-        E3["Authoritative Server"]
-        E1 -->|"DoH (443) / DoT (853)<br/>TLS Encrypted"| E2
-        E2 -->|"UDP/53<br/>Still plaintext"| E3
-    end
-
-    subgraph Signed["DNSSEC Signed"]
-        direction LR
-        S1["Stub Resolver"]
-        S2["Validating Resolver"]
-        S3["Authoritative Server"]
-        S1 -->|"Any transport"| S2
-        S2 -->|"Query + DNSSEC"| S3
-        S3 -->|"Response + RRSIG"| S2
-        S2 -->|"Validated response"| S1
-    end
-
-    subgraph Combined["Full Protection"]
-        direction LR
-        C1["Stub Resolver"]
-        C2["Validating Resolver"]
-        C3["Signed Authoritative"]
-        C1 -->|"DoH/DoT<br/>Encrypted"| C2
-        C2 -->|"Validates signatures"| C3
-    end
-```
+![DNS security layers: encrypted transport protects the client-to-resolver path; DNSSEC authenticates responses from authoritative servers. Full protection requires both.](./dns-security-layers-encrypted-transport-protects-the-client-to-resolver-path-dns.svg)
 
 <figcaption>DNS security layers: encrypted transport protects the client-to-resolver path; DNSSEC authenticates responses from authoritative servers. Full protection requires both.</figcaption>
 </figure>

@@ -8,44 +8,7 @@ A comprehensive system design for real-time collaborative document editing cover
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Clients["Clients"]
-        C1["Client 1<br/>(Editor)"]
-        C2["Client 2<br/>(Editor)"]
-        C3["Client 3<br/>(Viewer)"]
-    end
-
-    subgraph Edge["Edge Layer"]
-        CDN["CDN<br/>(Static Assets)"]
-        LB["Load Balancer"]
-    end
-
-    subgraph Collab["Collaboration Layer"]
-        WS["WebSocket Gateway"]
-        SYNC["Sync Service<br/>(OT/CRDT Engine)"]
-        PRES["Presence Service"]
-    end
-
-    subgraph Persistence["Persistence Layer"]
-        API["Document API"]
-        CACHE["Redis Cache<br/>(Active Docs)"]
-        DB[(PostgreSQL<br/>Document Metadata)]
-        OPS[(Operation Log<br/>DynamoDB/Cassandra)]
-        BLOB["Object Storage<br/>(Snapshots, Media)"]
-    end
-
-    C1 & C2 & C3 --> CDN
-    C1 & C2 & C3 --> LB
-    LB --> WS
-    WS <--> SYNC
-    WS <--> PRES
-    SYNC --> API
-    API --> CACHE
-    API --> DB
-    API --> OPS
-    API --> BLOB
-```
+![High-level architecture: WebSocket-based real-time sync with operation log persistence and periodic snapshots.](./high-level-architecture-websocket-based-real-time-sync-with-operation-log-persis.svg)
 
 <figcaption>High-level architecture: WebSocket-based real-time sync with operation log persistence and periodic snapshots.</figcaption>
 </figure>
@@ -143,21 +106,7 @@ Collaborative document editing requires solving three interrelated problems: **r
 
 **Architecture:**
 
-```mermaid
-sequenceDiagram
-    participant C1 as Client 1
-    participant S as Server
-    participant C2 as Client 2
-
-    Note over C1,C2: Both start at revision 5
-    C1->>S: Op1 (insert 'x' at 0, rev 5)
-    C2->>S: Op2 (delete at 4, rev 5)
-    S->>S: Transform Op2 against Op1
-    S->>C1: Ack Op1 (rev 6)
-    S->>C2: Op1 (rev 6)
-    S->>C1: Op2' (delete at 5, rev 7)
-    S->>C2: Ack Op2' (rev 7)
-```
+![Diagram](./diagram-1.svg)
 
 **Key characteristics:**
 
@@ -187,24 +136,7 @@ sequenceDiagram
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    subgraph Device1["Device 1"]
-        D1_DOC["Local Document"]
-        D1_CRDT["CRDT State"]
-    end
-    subgraph Device2["Device 2"]
-        D2_DOC["Local Document"]
-        D2_CRDT["CRDT State"]
-    end
-    subgraph Server["Sync Server (Optional)"]
-        S_RELAY["Relay/Persistence"]
-    end
-
-    D1_CRDT <-->|"Deltas"| S_RELAY
-    D2_CRDT <-->|"Deltas"| S_RELAY
-    D1_CRDT <-.->|"P2P (optional)"| D2_CRDT
-```
+![Diagram](./diagram-2.svg)
 
 **Key characteristics:**
 
@@ -274,56 +206,7 @@ Path B (CRDT) details are covered in [CRDTs for Collaborative Systems](../../cor
 
 ### Component Overview
 
-```mermaid
-flowchart TB
-    subgraph ClientLayer["Client Layer"]
-        EDITOR["Rich Text Editor<br/>(ProseMirror/Slate)"]
-        OT_CLIENT["OT Client<br/>(Transform Engine)"]
-        WS_CLIENT["WebSocket Client"]
-        LOCAL_STORE["IndexedDB<br/>(Offline Buffer)"]
-    end
-
-    subgraph EdgeLayer["Edge Layer"]
-        CDN["CloudFront/Fastly<br/>(Static Assets)"]
-        ALB["Application Load Balancer"]
-    end
-
-    subgraph CollabLayer["Collaboration Layer"]
-        WS_GW["WebSocket Gateway<br/>(Sticky Sessions)"]
-        DOC_PROC["Document Processor<br/>(OT Engine)"]
-        PRESENCE["Presence Service<br/>(Ephemeral)"]
-    end
-
-    subgraph PersistenceLayer["Persistence Layer"]
-        DOC_API["Document API"]
-        REDIS["Redis Cluster<br/>(Active Doc State)"]
-        POSTGRES[(PostgreSQL<br/>Doc Metadata, ACL)]
-        OPLOG[(DynamoDB<br/>Operation Log)]
-        S3["S3<br/>(Snapshots, Media)"]
-    end
-
-    subgraph AsyncLayer["Async Processing"]
-        KAFKA["Kafka<br/>(Operation Stream)"]
-        SNAPSHOT["Snapshot Worker"]
-        INDEX["Search Indexer"]
-    end
-
-    EDITOR --> OT_CLIENT
-    OT_CLIENT <--> WS_CLIENT
-    OT_CLIENT --> LOCAL_STORE
-    WS_CLIENT --> ALB
-    ALB --> WS_GW
-    WS_GW <--> DOC_PROC
-    WS_GW <--> PRESENCE
-    DOC_PROC --> DOC_API
-    DOC_API --> REDIS
-    DOC_API --> POSTGRES
-    DOC_API --> OPLOG
-    DOC_API --> KAFKA
-    KAFKA --> SNAPSHOT
-    KAFKA --> INDEX
-    SNAPSHOT --> S3
-```
+![Diagram](./diagram-3.svg)
 
 ### WebSocket Gateway
 
@@ -1264,42 +1147,7 @@ class OfflineQueue {
 
 ### AWS Reference Architecture
 
-```mermaid
-flowchart TB
-    subgraph Edge
-        CF["CloudFront"]
-        ALB["Application Load Balancer"]
-    end
-
-    subgraph Compute["ECS/EKS Cluster"]
-        WS["WebSocket Service<br/>(Fargate)"]
-        API["Document API<br/>(Fargate)"]
-        WORKER["Snapshot Workers<br/>(Fargate Spot)"]
-    end
-
-    subgraph Data
-        REDIS["ElastiCache Redis<br/>(Cluster Mode)"]
-        RDS["RDS PostgreSQL<br/>(Multi-AZ)"]
-        DDB["DynamoDB<br/>(On-Demand)"]
-        S3["S3<br/>(Standard + Glacier)"]
-    end
-
-    subgraph Streaming
-        MSK["Amazon MSK<br/>(Kafka)"]
-    end
-
-    CF --> ALB
-    ALB --> WS
-    ALB --> API
-    WS --> REDIS
-    WS --> DDB
-    API --> RDS
-    API --> DDB
-    API --> S3
-    WS --> MSK
-    MSK --> WORKER
-    WORKER --> S3
-```
+![Diagram](./diagram-4.svg)
 
 **Service configurations:**
 

@@ -8,42 +8,7 @@ A photo-sharing social platform at Instagram scale handles 1+ billion photos upl
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Upload Pipeline"
-        U[User Upload] --> US[Upload Service<br/>Image Validation]
-        US --> RAW[(Raw Storage<br/>Original Files)]
-        US --> IP[Image Processing<br/>Resize + Filter]
-        IP --> CDN[(CDN Storage<br/>Multiple Resolutions)]
-    end
-
-    subgraph "Feed & Stories"
-        POST[Post Service] --> FO[Fan-out Service<br/>Push/Pull Hybrid]
-        FO --> TC[(Timeline Cache<br/>Redis)]
-        STORY[Stories Service] --> SC[(Stories Cache<br/>24h TTL)]
-    end
-
-    subgraph "Discovery"
-        CDN --> SEARCH[Search Index<br/>Hashtags/Users]
-        CDN --> REC[Explore<br/>1000+ ML Models]
-    end
-
-    subgraph "Engagement"
-        TC --> NOTIFY[Notification Service<br/>MQTT Push]
-        TC --> DM[Direct Messages<br/>Real-time Chat]
-    end
-
-    subgraph "Data Layer"
-        META[(PostgreSQL<br/>User/Post Metadata)]
-        SOCIAL[(Cassandra<br/>Social Graph)]
-        CACHE[(Redis Cluster<br/>Hot Data)]
-    end
-
-    US --> META
-    POST --> META
-    POST --> SOCIAL
-    FO --> CACHE
-```
+![High-level architecture: upload → process → store → deliver. Feed generation uses hybrid fan-out; Stories have separate TTL-aware caching. Discovery systems run 1000+ ML models for personalization.](./high-level-architecture-upload-process-store-deliver-feed-generation-uses-hybrid.svg)
 
 <figcaption>High-level architecture: upload → process → store → deliver. Feed generation uses hybrid fan-out; Stories have separate TTL-aware caching. Discovery systems run 1000+ ML models for personalization.</figcaption>
 </figure>
@@ -237,59 +202,7 @@ This article focuses on **Path C (Hybrid Fan-out)** because:
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Client Layer"
-        IOS[iOS App]
-        AND[Android App]
-        WEB[Web App]
-    end
-
-    subgraph "API Gateway"
-        GW[API Gateway<br/>Auth + Rate Limiting]
-        LB[Load Balancer<br/>Geographic Routing]
-    end
-
-    subgraph "Core Services"
-        UPLOAD[Upload Service<br/>Image Processing]
-        POST[Post Service<br/>CRUD Operations]
-        FEED[Feed Service<br/>Timeline Generation]
-        STORY[Stories Service<br/>Ephemeral Content]
-        SOCIAL[Social Service<br/>Follow Graph]
-        SEARCH[Search Service<br/>Discovery]
-        EXPLORE[Explore Service<br/>Recommendations]
-        DM[DM Service<br/>Real-time Chat]
-        NOTIFY[Notification Service<br/>Push + In-app]
-    end
-
-    subgraph "Processing Layer"
-        IMG[Image Processor<br/>Resize + Filter]
-        FANOUT[Fan-out Workers<br/>Timeline Population]
-        RANK[Ranking Service<br/>ML Models]
-    end
-
-    subgraph "Data Layer"
-        PG[(PostgreSQL<br/>Users, Posts, Comments)]
-        CASS[(Cassandra<br/>Social Graph, Activity)]
-        REDIS[(Redis Cluster<br/>Timeline Cache)]
-        ES[(Elasticsearch<br/>Search Index)]
-        S3[(Object Storage<br/>Media Files)]
-    end
-
-    subgraph "Delivery"
-        CDN[CDN Edge<br/>Media Delivery]
-        MQTT[MQTT Broker<br/>Real-time Push]
-    end
-
-    IOS & AND & WEB --> LB --> GW
-    GW --> UPLOAD & POST & FEED & STORY & SOCIAL & SEARCH & EXPLORE & DM & NOTIFY
-    UPLOAD --> IMG --> S3 --> CDN
-    POST --> FANOUT --> REDIS
-    FEED --> RANK --> REDIS
-    POST --> PG
-    SOCIAL --> CASS
-    NOTIFY --> MQTT --> IOS & AND
-```
+![Service architecture: API Gateway routes to domain services. Fan-out workers populate timeline caches. Ranking service applies ML models to feed generation. MQTT enables real-time push.](./service-architecture-api-gateway-routes-to-domain-services-fan-out-workers-popul.svg)
 
 <figcaption>Service architecture: API Gateway routes to domain services. Fan-out workers populate timeline caches. Ranking service applies ML models to feed generation. MQTT enables real-time push.</figcaption>
 </figure>
@@ -314,40 +227,7 @@ flowchart TB
 
 <figure>
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant GW as API Gateway
-    participant US as Upload Service
-    participant IMG as Image Processor
-    participant S3 as Object Storage
-    participant CDN as CDN
-    participant PS as Post Service
-
-    C->>GW: POST /upload (multipart)
-    GW->>US: Forward with auth context
-    US->>US: Validate (size, format, content policy)
-    US->>S3: Store original (async)
-    US->>IMG: Process image
-
-    par Parallel processing
-        IMG->>IMG: Generate 1080p variant
-        IMG->>IMG: Generate 640p variant
-        IMG->>IMG: Generate 320p variant
-        IMG->>IMG: Generate 150p thumbnail
-        IMG->>IMG: Apply filter (if selected)
-    end
-
-    IMG->>S3: Store all variants
-    IMG->>CDN: Warm cache (popular regions)
-    US-->>C: 200 OK {media_id, urls}
-
-    Note over C: User adds caption, tags
-    C->>GW: POST /posts {media_id, caption, ...}
-    GW->>PS: Create post
-    PS->>PS: Trigger fan-out (async)
-    PS-->>C: 201 Created {post_id}
-```
+![Two-phase upload: media upload returns immediately with media_id; post creation triggers fan-out asynchronously.](./two-phase-upload-media-upload-returns-immediately-with-media-id-post-creation-tr.svg)
 
 <figcaption>Two-phase upload: media upload returns immediately with media_id; post creation triggers fan-out asynchronously.</figcaption>
 </figure>
@@ -436,36 +316,7 @@ Migration policy:
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Post Creation"
-        POST[New Post Created]
-        CHECK{Followers > 10K?}
-        POST --> CHECK
-    end
-
-    subgraph "Push Path (Regular Users)"
-        CHECK -->|No| GETFOLL[Get Follower List]
-        GETFOLL --> FANOUT[Fan-out Workers]
-        FANOUT --> WRITE[Write to Timeline Caches]
-        WRITE --> REDIS1[(Redis: user:123:timeline)]
-        WRITE --> REDIS2[(Redis: user:456:timeline)]
-        WRITE --> REDISN[(Redis: user:N:timeline)]
-    end
-
-    subgraph "Pull Path (Celebrities)"
-        CHECK -->|Yes| CELEB[(Celebrity Posts Store)]
-    end
-
-    subgraph "Feed Read"
-        READ[User Opens Feed]
-        READ --> CACHE[Read Timeline Cache]
-        READ --> MERGE[Merge Celebrity Posts]
-        CACHE --> RANK[Ranking Service]
-        MERGE --> RANK
-        RANK --> RESPONSE[Ranked Feed Response]
-    end
-```
+![Hybrid fan-out: regular users trigger push to follower caches; celebrity posts stored separately and merged at read time.](./hybrid-fan-out-regular-users-trigger-push-to-follower-caches-celebrity-posts-sto.svg)
 
 <figcaption>Hybrid fan-out: regular users trigger push to follower caches; celebrity posts stored separately and merged at read time.</figcaption>
 </figure>
@@ -617,30 +468,7 @@ Stories have fundamentally different requirements than feed posts:
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph "Client"
-        APP[App] --> PREFETCH[Prefetch Manager]
-        PREFETCH --> LOCAL[(Local Cache)]
-    end
-
-    subgraph "Stories Service"
-        API[Stories API]
-        RING[Ring Ordering Service]
-        TTL[TTL Manager]
-    end
-
-    subgraph "Storage"
-        REDIS[(Redis<br/>Story Metadata<br/>24h TTL)]
-        S3[(S3<br/>Story Media)]
-        CDN[CDN Edge]
-    end
-
-    APP --> API
-    API --> RING --> REDIS
-    TTL --> REDIS
-    S3 --> CDN --> PREFETCH
-```
+![Stories architecture: aggressive client-side prefetch with TTL-synced caching. Ring ordering determines story tray sequence.](./stories-architecture-aggressive-client-side-prefetch-with-ttl-synced-caching-rin.svg)
 
 <figcaption>Stories architecture: aggressive client-side prefetch with TTL-synced caching. Ring ordering determines story tray sequence.</figcaption>
 </figure>
@@ -720,25 +548,7 @@ Instagram DMs handle real-time messaging with E2E encryption support.
 
 <figure>
 
-```mermaid
-sequenceDiagram
-    participant A as Alice (Sender)
-    participant GW as API Gateway
-    participant DM as DM Service
-    participant DMM as Mutation Manager
-    participant CASS as Cassandra
-    participant MQTT as MQTT Broker
-    participant B as Bob (Recipient)
-
-    A->>GW: Send message
-    GW->>DM: Forward with auth
-    DM->>DMM: Queue mutation
-    DMM->>CASS: Persist message
-    DMM->>MQTT: Publish to recipient channel
-    MQTT-->>B: Push notification
-    DMM-->>DM: Confirm persistence
-    DM-->>A: ACK (optimistic UI already shown)
-```
+![DM flow: mutation manager ensures durability before ACK. MQTT delivers real-time push. Client shows optimistic UI immediately.](./dm-flow-mutation-manager-ensures-durability-before-ack-mqtt-delivers-real-time-p.svg)
 
 <figcaption>DM flow: mutation manager ensures durability before ACK. MQTT delivers real-time push. Client shows optimistic UI immediately.</figcaption>
 </figure>
@@ -841,32 +651,7 @@ Instagram's Explore recommendation system:
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph "Stage 1: Retrieval"
-        EMBED[User Embedding]
-        CAND[Candidate Pool<br/>Billions of items]
-        ANN[Approximate NN<br/>Two Towers Model]
-        EMBED --> ANN
-        CAND --> ANN
-        ANN --> TOP[Top 10K Candidates]
-    end
-
-    subgraph "Stage 2: Early Ranking"
-        TOP --> LIGHT[Lightweight Model<br/>Filter + Score]
-        LIGHT --> MID[Top 500 Candidates]
-    end
-
-    subgraph "Stage 3: Late Ranking"
-        MID --> DEEP[Deep Neural Network<br/>Multi-task Ranking]
-        DEEP --> FINAL[Final 50 Items]
-    end
-
-    subgraph "Serving"
-        FINAL --> DIVERSE[Diversity Injection]
-        DIVERSE --> USER[User Feed]
-    end
-```
+![Three-stage pipeline: retrieval narrows billions to thousands; early ranking to hundreds; late ranking produces final set with diversity constraints.](./three-stage-pipeline-retrieval-narrows-billions-to-thousands-early-ranking-to-hu.svg)
 
 <figcaption>Three-stage pipeline: retrieval narrows billions to thousands; early ranking to hundreds; late ranking produces final set with diversity constraints.</figcaption>
 </figure>
@@ -1263,40 +1048,7 @@ $$ LANGUAGE PLPGSQL;
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "US-East"
-        LB1[Load Balancer]
-        APP1[App Servers]
-        DB1[(Primary DB)]
-        CACHE1[(Redis Primary)]
-    end
-
-    subgraph "US-West"
-        LB2[Load Balancer]
-        APP2[App Servers]
-        DB2[(Read Replica)]
-        CACHE2[(Redis Replica)]
-    end
-
-    subgraph "EU-West"
-        LB3[Load Balancer]
-        APP3[App Servers]
-        DB3[(Read Replica)]
-        CACHE3[(Redis Replica)]
-    end
-
-    subgraph "Global"
-        DNS[Route 53<br/>Latency Routing]
-        CDN[CloudFront<br/>Global Edge]
-        S3[(S3<br/>Cross-region Replication)]
-    end
-
-    DNS --> LB1 & LB2 & LB3
-    DB1 -->|Async Replication| DB2 & DB3
-    CACHE1 -->|Async Replication| CACHE2 & CACHE3
-    S3 --> CDN
-```
+![Multi-region deployment: primary in US-East with read replicas in other regions. CDN serves media globally. DNS routes users to nearest region.](./multi-region-deployment-primary-in-us-east-with-read-replicas-in-other-regions-c.svg)
 
 <figcaption>Multi-region deployment: primary in US-East with read replicas in other regions. CDN serves media globally. DNS routes users to nearest region.</figcaption>
 </figure>

@@ -8,37 +8,7 @@ The Draw stage is the final phase of the browser's rendering pipeline. The Viz p
 
 <figure>
 
-```mermaid
-flowchart TD
-    subgraph RendererProcess["Renderer Process (Multi-process)"]
-        CC1[Compositor Frame 1]
-        CC2[Compositor Frame 2]
-    end
-
-    subgraph VizProcess["Viz Process (GPU)"]
-        FS[FrameSink Manager]
-        Agg[Surface Aggregator]
-        Skia[Skia / Graphite Engine]
-        GPU_I[GPU Driver Interface]
-    end
-
-    subgraph Hardware["Display Hardware"]
-        Swap[Swap Chain / Overlays]
-        DC[Display Controller]
-    end
-
-    CC1 -- "SubmitFrame" --> FS
-    CC2 -- "SubmitFrame" --> FS
-    FS --> Agg
-    Agg -- "Aggregated Frame" --> Skia
-    Skia --> GPU_I
-    GPU_I -- "GL/Vulkan/Metal Commands" --> Swap
-    Swap --> DC
-    DC --> Screen[Physical Screen]
-
-    style Agg fill:#f9f,stroke:#333,stroke-width:2px
-    style Skia fill:#bbf,stroke:#333,stroke-width:2px
-```
+![The Viz architecture: Aggregating frames from multiple renderer processes and translating them into hardware-accelerated drawing commands.](./the-viz-architecture-aggregating-frames-from-multiple-renderer-processes-and-tra.svg)
 
 <figcaption>The Viz architecture: Aggregating frames from multiple renderer processes and translating them into hardware-accelerated drawing commands.</figcaption>
 
@@ -50,30 +20,7 @@ The Draw stage exists to solve a fundamental problem: multiple isolated renderer
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph Inputs["Frame Sources"]
-        BUI[Browser UI]
-        R1[Renderer: Main Page]
-        R2[Renderer: iframe A]
-        R3[Renderer: iframe B]
-    end
-
-    subgraph Viz["Viz Process"]
-        SA[Surface Aggregator]
-    end
-
-    subgraph Output["Single Output"]
-        GPU[GPU Commands]
-        Display[Display]
-    end
-
-    BUI --> SA
-    R1 --> SA
-    R2 --> SA
-    R3 --> SA
-    SA --> GPU --> Display
-```
+![Multiple frame sources converge in Viz to produce a single aggregated output.](./multiple-frame-sources-converge-in-viz-to-produce-a-single-aggregated-output.svg)
 
 <figcaption>Multiple frame sources converge in Viz to produce a single aggregated output.</figcaption>
 

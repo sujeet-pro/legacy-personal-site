@@ -8,26 +8,7 @@ Technical implementation patterns for building, migrating, and operating design 
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Architecture["Architecture Decisions"]
-        ARCH[Framework Strategy] --> TOKENS[Token Pipeline]
-        TOKENS --> COMPONENTS[Component Library]
-    end
-
-    subgraph Distribution["Distribution & Migration"]
-        COMPONENTS --> BUNDLE[Bundling & Publishing]
-        BUNDLE --> MIGRATE[Migration Strategy]
-    end
-
-    subgraph Operations["Operational Excellence"]
-        MIGRATE --> ADOPTION[Adoption Enablement]
-        ADOPTION --> METRICS[Measurement & Feedback]
-        METRICS --> CODEMODS[Technical Enablement]
-    end
-
-    CODEMODS -.->|"Continuous improvement"| Architecture
-```
+![Design system implementation lifecycle: architecture decisions flow into distribution, which feeds operational practices that inform architectural evolution.](./design-system-implementation-lifecycle-architecture-decisions-flow-into-distribu.svg)
 
 <figcaption>Design system implementation lifecycle: architecture decisions flow into distribution, which feeds operational practices that inform architectural evolution.</figcaption>
 
@@ -39,22 +20,7 @@ Design system implementation succeeds when three forces align: **architecture th
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph Core["Core Decisions"]
-        A[Hybrid Architecture] -->|"Tokens + Framework Wrappers"| B[Change Resilience]
-    end
-
-    subgraph Adoption["Adoption Multipliers"]
-        C[Codemods] -->|"Automated Migration"| D[Low Friction Upgrades]
-        E[Usage Analytics] -->|"Data-Driven"| F[Targeted Investment]
-    end
-
-    subgraph Scale["Scale Enablers"]
-        G[Shared CDN Assets] -->|"Cross-App Caching"| H[Performance]
-        I[Version Policies] -->|"Compatibility Windows"| J[Consistency]
-    end
-```
+![The mental model: architecture enables change, automation reduces friction, data drives decisions.](./the-mental-model-architecture-enables-change-automation-reduces-friction-data-dr.svg)
 
 <figcaption>The mental model: architecture enables change, automation reduces friction, data drives decisions.</figcaption>
 
@@ -804,21 +770,7 @@ Understanding adoption across the organization requires systematic scanning of a
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph "Scanner Pipeline"
-        A[Repo Discovery] --> B[Clone/Fetch]
-        B --> C[Parse package.json]
-        C --> D[Analyze Imports]
-        D --> E[Store Results]
-    end
-
-    subgraph "Data Outputs"
-        E --> F[Adoption Dashboard]
-        E --> G[Team Reports]
-        E --> H[Codemod Prioritization]
-    end
-```
+![Repository scanner pipeline: discover repos, analyze dependencies, feed into dashboards and prioritization](./repository-scanner-pipeline-discover-repos-analyze-dependencies-feed-into-dashbo.svg)
 
 <figcaption>Repository scanner pipeline: discover repos, analyze dependencies, feed into dashboards and prioritization</figcaption>
 

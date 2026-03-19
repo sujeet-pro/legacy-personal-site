@@ -8,39 +8,7 @@ Distributed caching is the backbone of high-throughput systems. This article cov
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Clients["Application Tier"]
-        C1[App Instance 1<br/>L1 Cache]
-        C2[App Instance 2<br/>L1 Cache]
-        C3[App Instance N<br/>L1 Cache]
-    end
-
-    subgraph CacheLayer["Distributed Cache Layer"]
-        subgraph Ring["Hash Ring / Slot Distribution"]
-            N1[Cache Node 1<br/>Slots 0-5460]
-            N2[Cache Node 2<br/>Slots 5461-10922]
-            N3[Cache Node 3<br/>Slots 10923-16383]
-        end
-        R1[Replica 1]
-        R2[Replica 2]
-        R3[Replica 3]
-        N1 -.->|async| R1
-        N2 -.->|async| R2
-        N3 -.->|async| R3
-    end
-
-    subgraph Storage["Persistence Layer"]
-        DB[(Primary DB)]
-    end
-
-    C1 & C2 & C3 -->|consistent hash| Ring
-    Ring -->|cache miss| DB
-    DB -->|populate| Ring
-
-    style Ring fill:#e1f5fe
-    style Clients fill:#fff3e0
-```
+![Multi-tier caching architecture: L1 per-instance caches backed by distributed cache cluster with replica nodes. Consistent hashing routes keys; cache misses fall through to the database.](./multi-tier-caching-architecture-l1-per-instance-caches-backed-by-distributed-cac.svg)
 
 <figcaption>Multi-tier caching architecture: L1 per-instance caches backed by distributed cache cluster with replica nodes. Consistent hashing routes keys; cache misses fall through to the database.</figcaption>
 </figure>

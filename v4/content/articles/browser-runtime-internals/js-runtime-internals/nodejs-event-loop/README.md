@@ -48,15 +48,7 @@ Node follows libuv's six phases, each with its own callback queue. The order is 
 
 <figure>
 
-```mermaid
-flowchart LR
-  T[timers] -->|nextTick + microtasks| P[pending callbacks]
-  P -->|nextTick + microtasks| I[idle/prepare]
-  I -->|nextTick + microtasks| PO[poll]
-  PO -->|nextTick + microtasks| C[check]
-  C -->|nextTick + microtasks| CL[close callbacks]
-  CL -->|nextTick + microtasks| T
-```
+![Phase order annotated with the post-callback drain points for `process.nextTick()` and microtasks.](./phase-order-annotated-with-the-post-callback-drain-points-for-process-nexttick-a.svg)
 
 <figcaption>Phase order annotated with the post-callback drain points for `process.nextTick()` and microtasks.</figcaption>
 </figure>

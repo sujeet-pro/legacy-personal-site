@@ -8,41 +8,7 @@ Service Level Objectives (SLOs), Service Level Indicators (SLIs), and error budg
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Measurement["Measurement Layer"]
-        Events["Valid Events<br/>(requests, operations)"]
-        Good["Good Events<br/>(successful, fast)"]
-    end
-
-    subgraph SLI["SLI Calculation"]
-        Ratio["SLI = Good / Valid × 100%"]
-    end
-
-    subgraph Target["Target Definition"]
-        SLO["SLO: 99.9%<br/>(over 30 days)"]
-    end
-
-    subgraph Budget["Error Budget"]
-        Allowed["Error Budget = 1 - SLO<br/>= 0.1% allowable failures"]
-        Consumed["Budget Consumed<br/>(actual failures)"]
-    end
-
-    subgraph Decision["Operational Decisions"]
-        direction LR
-        Release["Release Velocity"]
-        Reliability["Reliability Investment"]
-    end
-
-    Events --> Good
-    Good --> Ratio
-    Events --> Ratio
-    Ratio --> SLO
-    SLO --> Allowed
-    Allowed --> Consumed
-    Consumed --> Release
-    Consumed --> Reliability
-```
+![SLO framework: SLIs measure reliability, SLOs set targets, error budgets balance velocity and reliability investment.](./slo-framework-slis-measure-reliability-slos-set-targets-error-budgets-balance-ve.svg)
 
 <figcaption>SLO framework: SLIs measure reliability, SLOs set targets, error budgets balance velocity and reliability investment.</figcaption>
 </figure>

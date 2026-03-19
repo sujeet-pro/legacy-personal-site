@@ -8,41 +8,7 @@ Observability in distributed systems rests on three complementary signals: logs 
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph App["Application"]
-        OTelSDK["OpenTelemetry SDK"]
-    end
-
-    subgraph Signals["Three Pillars"]
-        direction LR
-        Logs["Logs<br/>Events + Context"]
-        Metrics["Metrics<br/>Aggregated Measurements"]
-        Traces["Traces<br/>Request Flow"]
-    end
-
-    subgraph Export["Export Layer"]
-        OTLP["OTLP Protocol"]
-    end
-
-    subgraph Backends["Storage Backends"]
-        direction LR
-        LogStore["Log Store<br/>(Elasticsearch, Loki)"]
-        MetricStore["Metric Store<br/>(Prometheus, InfluxDB)"]
-        TraceStore["Trace Store<br/>(Jaeger, Tempo)"]
-    end
-
-    App --> Signals
-    Logs --> OTLP
-    Metrics --> OTLP
-    Traces --> OTLP
-    OTLP --> LogStore
-    OTLP --> MetricStore
-    OTLP --> TraceStore
-
-    Traces -.->|"TraceId, SpanId"| Logs
-    Traces -.->|"Exemplars"| Metrics
-```
+![OpenTelemetry's unified instrumentation model: three signals exported via OTLP, with trace context linking them together.](./opentelemetry-s-unified-instrumentation-model-three-signals-exported-via-otlp-wi.svg)
 
 <figcaption>OpenTelemetry's unified instrumentation model: three signals exported via OTLP, with trace context linking them together.</figcaption>
 </figure>

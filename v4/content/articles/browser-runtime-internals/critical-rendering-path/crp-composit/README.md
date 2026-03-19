@@ -8,32 +8,7 @@ How the compositor thread assembles rasterized layers into compositor frames and
 
 <figure>
 
-```mermaid
-flowchart TD
-    subgraph MainThread["Main Thread"]
-        Paint["Paint Stage<br/>Record Display Lists"]
-    end
-
-    subgraph CompositorThread["Compositor Thread (cc)"]
-        Commit["Commit<br/>Sync Property Trees"]
-        Tiling["Tiling & Scheduling"]
-        Activate["Activate<br/>Pending → Active Tree"]
-        Frame["Build Compositor Frame<br/>Draw Quads + Render Passes"]
-    end
-
-    subgraph VizProcess["Viz Process"]
-        Aggregate["Surface Aggregator<br/>Combine All Frames"]
-        Draw["Display Compositor<br/>GPU Draw Commands"]
-    end
-
-    Paint --> Commit
-    Commit --> Tiling
-    Tiling --> Activate
-    Activate --> Frame
-    Frame --> Aggregate
-    Aggregate --> Draw
-    Draw --> Display[Physical Display]
-```
+![The compositing pipeline: the main thread commits property trees to the compositor thread, which builds compositor frames sent to Viz for final display.](./the-compositing-pipeline-the-main-thread-commits-property-trees-to-the-composito.svg)
 
 <figcaption>The compositing pipeline: the main thread commits property trees to the compositor thread, which builds compositor frames sent to Viz for final display.</figcaption>
 </figure>

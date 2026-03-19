@@ -8,60 +8,7 @@ A comprehensive system design for building a scalable email service like Gmail o
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Clients["Clients"]
-        WEB["Web Client"]
-        MOBILE["Mobile App"]
-        DESKTOP["Desktop Client<br/>(IMAP/SMTP)"]
-    end
-
-    subgraph Edge["Edge Layer"]
-        CDN["CDN<br/>(Static Assets)"]
-        LB["Load Balancer"]
-    end
-
-    subgraph Inbound["Inbound Mail"]
-        MX["MX Servers<br/>(SMTP Receivers)"]
-        AUTH["Authentication<br/>(SPF/DKIM/DMARC)"]
-        SPAM["Spam Filter"]
-        ROUTE["Mail Router"]
-    end
-
-    subgraph Outbound["Outbound Mail"]
-        SUBMIT["Submission Server<br/>(Port 587)"]
-        QUEUE["Delivery Queue"]
-        MTA["MTA Pool<br/>(Outbound SMTP)"]
-    end
-
-    subgraph Core["Core Services"]
-        API["API Gateway"]
-        MAILBOX["Mailbox Service"]
-        SEARCH["Search Service"]
-        THREAD["Threading Service"]
-        LABEL["Label/Folder Service"]
-    end
-
-    subgraph Storage["Storage Layer"]
-        META[(PostgreSQL<br/>User, Labels)]
-        MSG[(Cassandra<br/>Messages)]
-        IDX["Elasticsearch<br/>(Search Index)"]
-        BLOB["S3/GCS<br/>(Attachments)"]
-        CACHE["Redis<br/>(Session, Cache)"]
-    end
-
-    WEB & MOBILE --> CDN --> LB --> API
-    DESKTOP -->|IMAP| MAILBOX
-    DESKTOP -->|SMTP| SUBMIT
-
-    MX --> AUTH --> SPAM --> ROUTE --> MAILBOX
-    SUBMIT --> QUEUE --> MTA
-
-    API --> MAILBOX & SEARCH & THREAD & LABEL
-    MAILBOX --> META & MSG & BLOB
-    SEARCH --> IDX
-    MAILBOX --> CACHE
-```
+![High-level architecture: Separate inbound (receiving) and outbound (sending) mail paths with shared storage and search infrastructure.](./high-level-architecture-separate-inbound-receiving-and-outbound-sending-mail-pat.svg)
 
 <figcaption>High-level architecture: Separate inbound (receiving) and outbound (sending) mail paths with shared storage and search infrastructure.</figcaption>
 </figure>
@@ -170,12 +117,7 @@ Email systems solve four interconnected challenges: **reliable delivery** (messa
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    SMTP["SMTP<br/>(Postfix/Exim)"] --> FILTER["SpamAssassin"]
-    FILTER --> STORE["Dovecot<br/>(IMAP + Storage)"]
-    STORE --> FS["Local Filesystem<br/>(Maildir)"]
-```
+![Diagram](./diagram-1.svg)
 
 **Key characteristics:**
 
@@ -207,32 +149,7 @@ flowchart LR
 
 **Architecture:**
 
-```mermaid
-flowchart TB
-    subgraph Ingest
-        MX1["MX Pool"]
-        SPAM["Spam Service"]
-    end
-
-    subgraph Services
-        API["API Gateway"]
-        MAIL["Mailbox Service"]
-        SRCH["Search Service"]
-        SEND["Send Service"]
-    end
-
-    subgraph Storage
-        DB[(Distributed DB)]
-        IDX["Search Index"]
-        BLOB["Object Store"]
-    end
-
-    MX1 --> SPAM --> MAIL
-    API --> MAIL & SRCH & SEND
-    MAIL --> DB & BLOB
-    SRCH --> IDX
-    SEND --> MX1
-```
+![Diagram](./diagram-2.svg)
 
 **Key characteristics:**
 
@@ -265,14 +182,7 @@ flowchart TB
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    APP["Application"] --> ESP["Email Service Provider<br/>(SendGrid, Mailgun)"]
-    ESP --> RECIP["Recipient MTAs"]
-
-    MX["Inbound MX"] --> WEBHOOK["Webhook Handler"]
-    WEBHOOK --> APP
-```
+![Diagram](./diagram-3.svg)
 
 **Key characteristics:**
 
@@ -321,42 +231,7 @@ This article focuses on **Path B (Microservices)** because:
 
 When an external server sends mail to your domain:
 
-```mermaid
-sequenceDiagram
-    participant Sender as Sender MTA
-    participant DNS as DNS
-    participant MX as MX Server
-    participant Auth as Auth Service
-    participant Spam as Spam Filter
-    participant Route as Router
-    participant Store as Mailbox Service
-
-    Sender->>DNS: Query MX records
-    DNS-->>Sender: mx1.example.com (priority 10)
-
-    Sender->>MX: EHLO, MAIL FROM, RCPT TO
-    MX->>MX: Rate limit check
-    MX->>Auth: Validate SPF, DKIM, DMARC
-    Auth-->>MX: Pass/Fail + alignment
-
-    MX->>Sender: 250 OK (accept DATA)
-    Sender->>MX: DATA (message content)
-
-    MX->>Spam: Analyze message
-    Spam-->>MX: Score + classification
-
-    alt Spam score > threshold
-        MX->>Sender: 250 OK (deliver to spam)
-        MX->>Route: Route to spam folder
-    else Legitimate
-        MX->>Sender: 250 OK
-        MX->>Route: Route to inbox
-    end
-
-    Route->>Store: Store message
-    Store->>Store: Index for search
-    Store-->>Route: Stored (message_id)
-```
+![Diagram](./diagram-4.svg)
 
 **MX Server responsibilities:**
 
@@ -374,39 +249,7 @@ Rejecting spam during the SMTP transaction (5xx response) causes the sender's MT
 
 When a user sends an email:
 
-```mermaid
-sequenceDiagram
-    participant Client as Email Client
-    participant API as API/Submission
-    participant Queue as Send Queue
-    participant Sign as DKIM Signer
-    participant MTA as Outbound MTA
-    participant DNS as Recipient DNS
-    participant Recip as Recipient MTA
-
-    Client->>API: POST /send (authenticated)
-    API->>API: Validate (rate limits, recipients)
-    API->>Queue: Enqueue message
-    API-->>Client: 202 Accepted (message_id)
-
-    Queue->>Sign: Sign with DKIM
-    Sign->>MTA: Signed message
-
-    MTA->>DNS: Query MX for recipient domain
-    DNS-->>MTA: mx.recipient.com
-
-    MTA->>Recip: SMTP delivery
-    alt Success
-        Recip-->>MTA: 250 OK
-        MTA->>Queue: Mark delivered
-    else Temporary failure (4xx)
-        Recip-->>MTA: 421 Try later
-        MTA->>Queue: Retry with backoff
-    else Permanent failure (5xx)
-        Recip-->>MTA: 550 User unknown
-        MTA->>Queue: Generate bounce
-    end
-```
+![Diagram](./diagram-5.svg)
 
 **Outbound MTA responsibilities:**
 
@@ -1164,18 +1007,7 @@ class DMARCEvaluator {
 
 #### Multi-Stage Classification
 
-```mermaid
-flowchart LR
-    MSG["Incoming<br/>Message"] --> BL["Blocklist<br/>Check"]
-    BL -->|Listed| SPAM["Spam"]
-    BL -->|Clean| AUTH["Auth<br/>Check"]
-    AUTH -->|Fail| SPAM
-    AUTH -->|Pass/Partial| HEUR["Heuristic<br/>Rules"]
-    HEUR --> ML["ML<br/>Classifier"]
-    ML -->|Score| DECISION{"Score<br/>> 0.9?"}
-    DECISION -->|Yes| SPAM
-    DECISION -->|No| INBOX["Inbox"]
-```
+![Diagram](./diagram-6.svg)
 
 #### Naive Bayes Classifier
 
@@ -1690,53 +1522,7 @@ class OfflineMailbox {
 
 ### AWS Reference Architecture
 
-```mermaid
-flowchart TB
-    subgraph Edge
-        R53["Route 53<br/>(MX + A records)"]
-        CF["CloudFront<br/>(Web/API)"]
-    end
-
-    subgraph Compute["EKS Cluster"]
-        subgraph Inbound
-            MX["MX Pods<br/>(SMTP receivers)"]
-            SPAM["Spam Filter<br/>(ML inference)"]
-        end
-        subgraph API
-            APIGW["API Gateway Pods"]
-            IMAP["IMAP Pods"]
-        end
-        subgraph Workers
-            DELIVERY["Delivery Workers<br/>(Outbound SMTP)"]
-            INDEXER["Search Indexer"]
-        end
-    end
-
-    subgraph Data
-        RDS["RDS PostgreSQL<br/>(Multi-AZ)"]
-        KEYSPACES["Keyspaces<br/>(Cassandra)"]
-        OPENSEARCH["OpenSearch<br/>(Search)"]
-        S3["S3<br/>(Attachments)"]
-        ELASTICACHE["ElastiCache Redis"]
-    end
-
-    subgraph Queue
-        MSK["Amazon MSK<br/>(Kafka)"]
-    end
-
-    R53 --> MX
-    R53 --> CF --> APIGW
-
-    MX --> SPAM --> KEYSPACES
-    MX --> MSK
-    APIGW --> KEYSPACES & RDS & OPENSEARCH & ELASTICACHE
-    IMAP --> KEYSPACES & ELASTICACHE
-
-    MSK --> DELIVERY
-    MSK --> INDEXER --> OPENSEARCH
-
-    KEYSPACES --> S3
-```
+![Diagram](./diagram-7.svg)
 
 **Service configurations:**
 

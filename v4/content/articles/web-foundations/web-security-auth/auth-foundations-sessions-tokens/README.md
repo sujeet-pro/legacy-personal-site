@@ -8,31 +8,7 @@ An in-depth technical analysis of AAA frameworks for expert practitioners, explo
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "AAA Framework"
-        AuthN["Authentication<br/>Who are you?<br/>Identity verification"]
-        AuthZ["Authorization<br/>What can you do?<br/>Permission enforcement"]
-        Audit["Accounting<br/>What did you do?<br/>Activity logging"]
-    end
-
-    subgraph "Authentication Methods"
-        PWD["Password + MFA"]
-        OAUTH["OAuth 2.0 / OIDC"]
-        SAML["SAML 2.0"]
-        WEBAUTHN["WebAuthn / Passkeys"]
-    end
-
-    subgraph "Authorization Models"
-        RBAC["RBAC<br/>Role-Based"]
-        ABAC["ABAC<br/>Attribute-Based"]
-        PBAC["PBAC<br/>Policy-Based"]
-    end
-
-    AuthN --> AuthZ --> Audit
-    PWD & OAUTH & SAML & WEBAUTHN --> AuthN
-    RBAC & ABAC & PBAC --> AuthZ
-```
+![AAA (Authentication, Authorization, Accounting) framework with authentication methods and authorization models](./aaa-authentication-authorization-accounting-framework-with-authentication-method.svg)
 
 <figcaption>AAA (Authentication, Authorization, Accounting) framework with authentication methods and authorization models</figcaption>
 
@@ -42,25 +18,7 @@ flowchart TB
 
 **Mental model**: Authentication establishes _who you are_; authorization determines _what you can do_; accounting records _what you did_. The core tension in auth systems is **security vs. usability vs. operational complexity**—every design choice trades between these.
 
-```mermaid
-flowchart LR
-    subgraph "Session-Based"
-        S1[Server stores state]
-        S2[Opaque session ID]
-        S3[Immediate revocation]
-        S4[DB lookup per request]
-    end
-
-    subgraph "Token-Based"
-        T1[Self-contained]
-        T2[No server state]
-        T3[Revocation requires infrastructure]
-        T4[Scales horizontally]
-    end
-
-    S1 -.->|"Trade-off"| T1
-    S3 -.->|"Trade-off"| T3
-```
+![Diagram](./diagram-1.svg)
 
 ### Core Design Trade-offs
 

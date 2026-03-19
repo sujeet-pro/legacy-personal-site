@@ -8,53 +8,7 @@ Spotify serves 675+ million monthly active users across 180+ markets, streaming 
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Client Layer"
-        MOBILE[Mobile Apps<br/>iOS/Android]
-        DESKTOP[Desktop Apps<br/>Windows/macOS]
-        WEB[Web Player]
-        DEVICES[Smart Speakers<br/>Cars, Consoles]
-    end
-
-    subgraph "API Gateway"
-        GW[API Gateway<br/>Authentication, Routing]
-    end
-
-    subgraph "Core Services"
-        PLAYBACK[Playback Service<br/>Stream URLs, Licensing]
-        CATALOG[Catalog Service<br/>Tracks, Albums, Artists]
-        PLAYLIST[Playlist Service<br/>User Collections]
-        SEARCH[Search Service<br/>Elasticsearch]
-        REC[Recommendation Service<br/>ML Models]
-    end
-
-    subgraph "Data Layer"
-        CASSANDRA[(Cassandra<br/>User Data, Playlists)]
-        POSTGRES[(PostgreSQL<br/>Catalog Metadata)]
-        BIGTABLE[(Cloud Bigtable<br/>ML Features)]
-        CACHE[(Memcached/Redis<br/>Hot Data)]
-    end
-
-    subgraph "Content Delivery"
-        ORIGIN[(GCS Origin<br/>Audio Files)]
-        CDN[Multi-CDN<br/>Akamai, Fastly, AWS]
-    end
-
-    subgraph "Event Pipeline"
-        PUBSUB[Cloud Pub/Sub<br/>Event Ingestion]
-        DATAFLOW[Dataflow<br/>Stream Processing]
-        BIGQUERY[(BigQuery<br/>Analytics)]
-    end
-
-    MOBILE & DESKTOP & WEB & DEVICES --> GW
-    GW --> PLAYBACK & CATALOG & PLAYLIST & SEARCH & REC
-    PLAYBACK & CATALOG & PLAYLIST --> CASSANDRA & POSTGRES
-    REC --> BIGTABLE
-    PLAYBACK & CATALOG --> CACHE
-    PLAYBACK --> CDN --> ORIGIN
-    GW --> PUBSUB --> DATAFLOW --> BIGQUERY
-```
+![High-level architecture: clients connect through API gateway to microservices; audio delivered via multi-CDN; events flow through Pub/Sub to analytics.](./high-level-architecture-clients-connect-through-api-gateway-to-microservices-aud.svg)
 
 <figcaption>High-level architecture: clients connect through API gateway to microservices; audio delivered via multi-CDN; events flow through Pub/Sub to analytics.</figcaption>
 </figure>
@@ -242,74 +196,7 @@ This article focuses on **Path B (Multi-CDN)** because:
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Clients"
-        IOS[iOS App]
-        ANDROID[Android App]
-        DESKTOP[Desktop App]
-        WEB[Web Player]
-    end
-
-    subgraph "Edge Layer"
-        GW[API Gateway<br/>Envoy/gRPC]
-        AUTH[Auth Service<br/>OAuth 2.0]
-    end
-
-    subgraph "Playback Domain"
-        PLAYBACK[Playback Service]
-        LICENSE[License Service<br/>DRM Keys]
-        TRANSCODE[Transcode Service<br/>On-demand]
-    end
-
-    subgraph "Content Domain"
-        CATALOG[Catalog Service<br/>Tracks, Albums, Artists]
-        PLAYLIST[Playlist Service]
-        LIBRARY[Library Service<br/>User Saves]
-    end
-
-    subgraph "Discovery Domain"
-        SEARCH[Search Service<br/>Elasticsearch]
-        REC[Recommendation<br/>ML Models]
-        BROWSE[Browse Service<br/>Editorial]
-    end
-
-    subgraph "Social Domain"
-        SOCIAL[Social Graph<br/>Follows, Friends]
-        ACTIVITY[Activity Feed]
-    end
-
-    subgraph "Data Stores"
-        PG[(PostgreSQL<br/>Catalog)]
-        CASS[(Cassandra<br/>User Data)]
-        ES[(Elasticsearch<br/>Search Index)]
-        REDIS[(Redis<br/>Cache)]
-        BT[(Bigtable<br/>Features)]
-    end
-
-    subgraph "Delivery"
-        CDN_A[Akamai]
-        CDN_F[Fastly]
-        CDN_AWS[CloudFront]
-        GCS[(GCS Origin)]
-    end
-
-    IOS & ANDROID & DESKTOP & WEB --> GW
-    GW --> AUTH
-    GW --> PLAYBACK --> LICENSE
-    GW --> CATALOG & PLAYLIST & LIBRARY
-    GW --> SEARCH & REC & BROWSE
-    GW --> SOCIAL --> ACTIVITY
-
-    CATALOG --> PG
-    PLAYLIST & LIBRARY --> CASS
-    SEARCH --> ES
-    PLAYBACK & CATALOG --> REDIS
-    REC --> BT
-
-    PLAYBACK --> CDN_A & CDN_F & CDN_AWS
-    CDN_A & CDN_F & CDN_AWS --> GCS
-```
+![Domain-driven microservices architecture with specialized data stores per domain.](./domain-driven-microservices-architecture-with-specialized-data-stores-per-domain.svg)
 
 <figcaption>Domain-driven microservices architecture with specialized data stores per domain.</figcaption>
 </figure>
@@ -365,24 +252,7 @@ Follow event → Pub/Sub → Social graph update
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph "Ingestion"
-        MASTER[Master Audio<br/>WAV/FLAC] --> INGEST[Ingestion Service]
-    end
-
-    subgraph "Encoding"
-        INGEST --> Q96[Ogg Vorbis<br/>96 kbps]
-        INGEST --> Q160[Ogg Vorbis<br/>160 kbps]
-        INGEST --> Q320[Ogg Vorbis<br/>320 kbps]
-        INGEST --> AAC[AAC<br/>256 kbps]
-    end
-
-    subgraph "Storage"
-        Q96 & Q160 & Q320 & AAC --> GCS[(Cloud Storage)]
-        GCS --> META[(Metadata DB)]
-    end
-```
+![Multi-bitrate encoding: each track encoded to 4 quality levels for adaptive streaming.](./multi-bitrate-encoding-each-track-encoded-to-4-quality-levels-for-adaptive-strea.svg)
 
 <figcaption>Multi-bitrate encoding: each track encoded to 4 quality levels for adaptive streaming.</figcaption>
 </figure>
@@ -451,35 +321,7 @@ For seamless album listening:
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Client"
-        PLAYER[Audio Player]
-    end
-
-    subgraph "CDN Selection Service"
-        SELECTOR[CDN Router<br/>Health + Performance]
-    end
-
-    subgraph "CDN Tier 1 (Audio)"
-        AKAMAI[Akamai<br/>Global Edge]
-        AWS_CF[CloudFront<br/>AWS Regions]
-    end
-
-    subgraph "CDN Tier 2 (Assets)"
-        FASTLY[Fastly<br/>Images, UI]
-    end
-
-    subgraph "Origin"
-        GCS[(Google Cloud Storage)]
-    end
-
-    PLAYER --> SELECTOR
-    SELECTOR -->|Audio| AKAMAI & AWS_CF
-    SELECTOR -->|Images| FASTLY
-    AKAMAI & AWS_CF -->|Cache Miss| GCS
-    FASTLY -->|Cache Miss| GCS
-```
+![CDN tiering: Akamai/AWS for latency-sensitive audio, Fastly for cacheable assets.](./cdn-tiering-akamai-aws-for-latency-sensitive-audio-fastly-for-cacheable-assets.svg)
 
 <figcaption>CDN tiering: Akamai/AWS for latency-sensitive audio, Fastly for cacheable assets.</figcaption>
 </figure>
@@ -849,31 +691,7 @@ CREATE TABLE listening_history (
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Offline Training"
-        HISTORY[Listening History<br/>Billions of events] --> COLLAB[Collaborative Filtering<br/>Matrix Factorization]
-        AUDIO[Audio Features<br/>Echo Nest] --> CONTENT[Content-Based<br/>Track Similarity]
-        NLP[Playlist Titles<br/>Blog Text] --> TEXT[NLP Analysis<br/>Word2Vec]
-
-        COLLAB --> VECTORS[(User/Track Vectors<br/>128-dimensional)]
-        CONTENT --> VECTORS
-        TEXT --> VECTORS
-    end
-
-    subgraph "Index Building"
-        VECTORS --> ANNOY[Approximate NN Index<br/>Annoy/ScaNN]
-    end
-
-    subgraph "Online Serving"
-        REQ[User Request] --> RETRIEVE[Candidate Retrieval<br/>Top 1000]
-        RETRIEVE --> RANK[Ranking Model<br/>GBDT/Neural]
-        RANK --> FILTER[Business Rules<br/>Diversity, Freshness]
-        FILTER --> RESP[Personalized Results]
-    end
-
-    ANNOY --> RETRIEVE
-```
+![Two-stage recommendation: retrieve candidates via embedding similarity, rank with ML model.](./two-stage-recommendation-retrieve-candidates-via-embedding-similarity-rank-with-.svg)
 
 <figcaption>Two-stage recommendation: retrieve candidates via embedding similarity, rank with ML model.</figcaption>
 </figure>
@@ -953,29 +771,7 @@ For real-time recommendations, use Annoy (Approximate Nearest Neighbors Oh Yeah)
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "User Action"
-        USER[Download Playlist] --> QUEUE[Download Queue]
-    end
-
-    subgraph "Download Manager"
-        QUEUE --> PRIORITY[Priority Scheduler<br/>User-initiated First]
-        PRIORITY --> FETCH[Fetch Service<br/>Parallel Downloads]
-        FETCH --> DECRYPT[License Acquisition<br/>DRM Keys]
-    end
-
-    subgraph "Local Storage"
-        DECRYPT --> ENCRYPT[Encrypted Storage<br/>AES-256]
-        ENCRYPT --> DB[(SQLite<br/>Download Metadata)]
-        ENCRYPT --> FILES[Audio Files<br/>Device Storage]
-    end
-
-    subgraph "Playback"
-        FILES --> PLAYER[Offline Player]
-        DB --> PLAYER
-    end
-```
+![Offline download flow: queue → prioritize → fetch → encrypt → store locally.](./offline-download-flow-queue-prioritize-fetch-encrypt-store-locally.svg)
 
 <figcaption>Offline download flow: queue → prioritize → fetch → encrypt → store locally.</figcaption>
 </figure>
@@ -1055,28 +851,7 @@ Device storage: 2.1 GB available
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph "Query Processing"
-        QUERY[User Query] --> PARSE[Query Parser<br/>Tokenization]
-        PARSE --> CORRECT[Spell Correction<br/>Did you mean?]
-        CORRECT --> EXPAND[Query Expansion<br/>Synonyms]
-    end
-
-    subgraph "Search"
-        EXPAND --> ES[Elasticsearch<br/>Multi-index]
-        ES --> TRACKS[Track Results]
-        ES --> ARTISTS[Artist Results]
-        ES --> ALBUMS[Album Results]
-        ES --> PLAYLISTS[Playlist Results]
-    end
-
-    subgraph "Ranking"
-        TRACKS & ARTISTS & ALBUMS & PLAYLISTS --> RANK[Re-ranking<br/>Personalization]
-        RANK --> DEDUP[Deduplication]
-        DEDUP --> RESP[Response]
-    end
-```
+![Search pipeline: parse → correct → expand → search → rank → deduplicate.](./search-pipeline-parse-correct-expand-search-rank-deduplicate.svg)
 
 <figcaption>Search pipeline: parse → correct → expand → search → rank → deduplicate.</figcaption>
 </figure>
@@ -1236,38 +1011,7 @@ function crossfade(currentSource, nextSource, duration) {
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Global Load Balancing"
-        GLB[Cloud Load Balancer]
-    end
-
-    subgraph "Compute"
-        GKE[GKE Clusters<br/>300+ Microservices]
-    end
-
-    subgraph "Data"
-        SPANNER[(Cloud Spanner<br/>Global SQL)]
-        BIGTABLE[(Bigtable<br/>ML Features)]
-        GCS[(Cloud Storage<br/>Audio Files)]
-    end
-
-    subgraph "Analytics"
-        PUBSUB[Pub/Sub<br/>1T+ events/day]
-        DATAFLOW[Dataflow<br/>Stream Processing]
-        BQ[(BigQuery<br/>Data Warehouse)]
-    end
-
-    subgraph "ML"
-        VERTEX[Vertex AI<br/>Model Training]
-        TENSORRT[TensorFlow Serving<br/>Inference]
-    end
-
-    GLB --> GKE
-    GKE --> SPANNER & BIGTABLE & GCS
-    GKE --> PUBSUB --> DATAFLOW --> BQ
-    BQ --> VERTEX --> TENSORRT
-```
+![GCP deployment: GKE for microservices, managed data services, Pub/Sub for event streaming.](./gcp-deployment-gke-for-microservices-managed-data-services-pub-sub-for-event-str.svg)
 
 <figcaption>GCP deployment: GKE for microservices, managed data services, Pub/Sub for event streaming.</figcaption>
 </figure>

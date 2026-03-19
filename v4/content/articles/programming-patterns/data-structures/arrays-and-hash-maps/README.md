@@ -8,29 +8,7 @@ Theoretical complexity hides the real story. Arrays promise O(1) access but degr
 
 <figure>
 
-```mermaid
-flowchart TD
-    subgraph Arrays["Arrays"]
-        A1["PACKED_SMI_ELEMENTS<br/>fastest: all small ints"]
-        A2["PACKED_DOUBLE_ELEMENTS<br/>all floats"]
-        A3["PACKED_ELEMENTS<br/>mixed types"]
-        A4["HOLEY_*_ELEMENTS<br/>contains gaps"]
-        A5["DICTIONARY_ELEMENTS<br/>sparse: hash lookup"]
-        A1 --> A2 --> A3 --> A4 --> A5
-    end
-
-    subgraph HashMaps["Hash Maps (Map/Object)"]
-        H1["Monomorphic<br/>single shape, inline cache"]
-        H2["Polymorphic<br/>2-4 shapes, slower"]
-        H3["Megamorphic<br/>many shapes, no optimization"]
-        H4["Dictionary Mode<br/>hash table fallback"]
-        H1 --> H2 --> H3 --> H4
-    end
-
-    note1["⚠️ Transitions are ONE-WAY<br/>Cannot revert to faster mode"]
-    A4 -.-> note1
-    H3 -.-> note1
-```
+![V8's internal representation hierarchy. Both structures can irreversibly degrade from optimized to slow modes.](./v8-s-internal-representation-hierarchy-both-structures-can-irreversibly-degrade-.svg)
 
 <figcaption>V8's internal representation hierarchy. Both structures can irreversibly degrade from optimized to slow modes.</figcaption>
 </figure>
@@ -201,24 +179,7 @@ V8's Map implementation maintains two separate structures:
 1. **Hash table**: Array of bucket indices for O(1) key lookup
 2. **Data table**: Entries stored in insertion order
 
-```mermaid
-flowchart LR
-    subgraph HashTable["Hash Table (buckets)"]
-        B0["bucket[0] → 2"]
-        B1["bucket[1] → 0"]
-        B2["bucket[2] → 1"]
-    end
-
-    subgraph DataTable["Data Table (insertion order)"]
-        E0["[0] key='first', val=1"]
-        E1["[1] key='second', val=2"]
-        E2["[2] key='third', val=3"]
-    end
-
-    B0 --> E2
-    B1 --> E0
-    B2 --> E1
-```
+![Diagram](./diagram-1.svg)
 
 Lookup: hash the key → find bucket → follow index to data table entry.
 Iteration: simply walk the data table sequentially (O(n) total, O(1) per element).

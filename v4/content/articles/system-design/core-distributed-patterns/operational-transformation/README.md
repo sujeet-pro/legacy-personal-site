@@ -10,25 +10,7 @@ OT enables real-time collaborative editing by transforming concurrent operations
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph Client_A["Client A"]
-        A1["Local Op: Ins(0,'x')"]
-    end
-    subgraph Client_B["Client B"]
-        B1["Local Op: Del(2)"]
-    end
-    subgraph Server["Server"]
-        S1["Canonical Order"]
-        S2["Transform & Broadcast"]
-    end
-
-    A1 --> S1
-    B1 --> S1
-    S1 --> S2
-    S2 -->|"Transformed Del(3)"| Client_A
-    S2 -->|"Transformed Ins(0,'x')"| Client_B
-```
+![OT core flow: concurrent operations are transformed against each other to preserve intent while achieving convergence.](./ot-core-flow-concurrent-operations-are-transformed-against-each-other-to-preserv.svg)
 
 <figcaption>OT core flow: concurrent operations are transformed against each other to preserve intent while achieving convergence.</figcaption>
 </figure>
@@ -167,20 +149,7 @@ Clients maintain three states:
 
 <figure>
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant S as Server
-    participant O as Other Clients
-
-    C->>S: Op1 (based on rev 5)
-    Note over C: Buffer local ops
-    S->>S: Transform Op1 against rev 6,7
-    S->>C: Ack (rev 8 = transformed Op1)
-    S->>O: Broadcast Op1' (rev 8)
-    Note over C: Shift pending ops
-    C->>S: Op2 (based on rev 8)
-```
+![Client-server OT: server assigns canonical ordering, clients transform against operations they haven't seen.](./client-server-ot-server-assigns-canonical-ordering-clients-transform-against-ope.svg)
 
 <figcaption>Client-server OT: server assigns canonical ordering, clients transform against operations they haven't seen.</figcaption>
 </figure>
@@ -358,18 +327,7 @@ COT powers several academic and commercial systems: CoMaya (3D modeling), CoWord
 
 <figure>
 
-```mermaid
-graph TD
-    A[Need collaborative editing] --> B{Offline-first required?}
-    B -->|Yes| C{Memory constraints?}
-    B -->|No| D[Client-Server OT]
-    C -->|Tight| E[Consider CRDTs instead]
-    C -->|Flexible| F{Need provable correctness?}
-    F -->|Yes| G[TTF or COT]
-    F -->|Pragmatic| H[Client-Server + sync queue]
-    D --> I[Jupiter/Wave model]
-    I --> J[Wait for ACK between batches]
-```
+![Decision tree for OT variant selection. Client-server dominates production use.](./decision-tree-for-ot-variant-selection-client-server-dominates-production-use.svg)
 
 <figcaption>Decision tree for OT variant selection. Client-server dominates production use.</figcaption>
 </figure>
@@ -504,19 +462,7 @@ Rich text isn't a string—it's a tree (paragraphs containing spans containing t
 
 <figure>
 
-```mermaid
-graph TD
-    A[Building collaborative editor] --> B{Team experience with OT?}
-    B -->|None| C[Use existing library]
-    B -->|Some| D{Document complexity?}
-    D -->|Plain text| E[ShareDB/ot.js]
-    D -->|Rich text| F[CKEditor 5 or Quill]
-    D -->|Custom structure| G[Consider CRDTs instead]
-    C --> H{Document type?}
-    H -->|JSON/text| E
-    H -->|Rich text| F
-    H -->|Code| I[Monaco + custom sync]
-```
+![Implementation decision tree. Building OT from scratch is rarely justified.](./implementation-decision-tree-building-ot-from-scratch-is-rarely-justified.svg)
 
 <figcaption>Implementation decision tree. Building OT from scratch is rarely justified.</figcaption>
 </figure>

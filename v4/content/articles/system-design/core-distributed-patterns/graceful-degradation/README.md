@@ -8,34 +8,7 @@ Graceful degradation is the discipline of designing distributed systems that mai
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Healthy State"
-        H1[Full Functionality]
-    end
-
-    subgraph "Degraded States"
-        D1[Stale Data]
-        D2[Reduced Features]
-        D3[Read-Only Mode]
-        D4[Static Fallback]
-    end
-
-    subgraph "Failure"
-        F1[Complete Outage]
-    end
-
-    H1 -->|"Component Failure"| D1
-    H1 -->|"Overload"| D2
-    H1 -->|"Write Path Down"| D3
-    D1 -->|"Cache Miss"| D4
-    D2 -->|"Cascade"| D3
-    D3 -->|"All Fallbacks Exhausted"| F1
-
-    D1 -.->|"Recovery"| H1
-    D2 -.->|"Recovery"| H1
-    D3 -.->|"Recovery"| H1
-```
+![Graceful degradation creates multiple intermediate states between full health and complete failure, with recovery paths back to normal operation.](./graceful-degradation-creates-multiple-intermediate-states-between-full-health-an.svg)
 
 <figcaption>Graceful degradation creates multiple intermediate states between full health and complete failure, with recovery paths back to normal operation.</figcaption>
 </figure>
@@ -126,14 +99,7 @@ The circuit breaker monitors call success rates and "trips" when failures exceed
 
 **Three states:**
 
-```mermaid
-stateDiagram-v2
-    [*] --> Closed
-    Closed --> Open: Failure threshold exceeded
-    Open --> HalfOpen: Wait duration elapsed
-    HalfOpen --> Closed: Test calls succeed
-    HalfOpen --> Open: Test calls fail
-```
+![Diagram](./diagram-1.svg)
 
 - **Closed**: Normal operation, requests pass through, failures tracked
 - **Open**: Requests fail immediately without calling dependency
@@ -433,30 +399,7 @@ class Bulkhead {
 
 AWS uses cell-based architecture for blast radius containment:
 
-```mermaid
-flowchart TB
-    subgraph "Cell 1"
-        LB1[Load Balancer]
-        S1[Services]
-        DB1[(Database)]
-    end
-
-    subgraph "Cell 2"
-        LB2[Load Balancer]
-        S2[Services]
-        DB2[(Database)]
-    end
-
-    subgraph "Cell 3"
-        LB3[Load Balancer]
-        S3[Services]
-        DB3[(Database)]
-    end
-
-    Router[Global Router] --> LB1
-    Router --> LB2
-    Router --> LB3
-```
+![Diagram](./diagram-2.svg)
 
 Each cell:
 
@@ -737,26 +680,7 @@ Result: Flags work even if PostHog's servers are unreachable.
 
 ### Decision Framework
 
-```mermaid
-flowchart TD
-    A[Dependency Failure Handling?] --> B{Failure mode?}
-
-    B -->|"Slow/unresponsive"| C[Circuit Breaker + Timeout]
-    B -->|"Overloaded"| D{Control admission?}
-    B -->|"Transient errors"| E[Retry with Backoff]
-    B -->|"Complete failure"| F[Fallback Chain]
-
-    D -->|"Server-side"| G[Load Shedding]
-    D -->|"Client-side"| H[Rate Limiting]
-
-    C --> I{Need isolation?}
-    I -->|"Yes"| J[Add Bulkhead]
-    I -->|"No"| K[Circuit Breaker alone]
-
-    E --> L{Idempotent?}
-    L -->|"Yes"| M[Retry safe]
-    L -->|"No"| N[Retry only reads]
-```
+![Diagram](./diagram-3.svg)
 
 ## Production Implementations
 
@@ -880,22 +804,7 @@ Slack's Checkpoint system implements orchestration-level circuit breakers:
 
 ### Starting Point Decision
 
-```mermaid
-flowchart TD
-    A[Need graceful degradation] --> B{Team experience?}
-    B -->|"Low"| C[Start with service mesh]
-    B -->|"Medium"| D[Use resilience library]
-    B -->|"High"| E{Custom requirements?}
-    E -->|"No"| D
-    E -->|"Yes"| F[Build custom patterns]
-
-    C --> G[Istio / Linkerd]
-    D --> H{Language?}
-    H -->|"JVM"| I[Resilience4j]
-    H -->|"Node.js"| J[opossum / cockatiel]
-    H -->|"Go"| K[go-resiliency / hystrix-go]
-    H -->|"Python"| L[pybreaker / tenacity]
-```
+![Diagram](./diagram-4.svg)
 
 ### Library Options
 

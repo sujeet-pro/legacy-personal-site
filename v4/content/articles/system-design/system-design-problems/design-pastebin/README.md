@@ -8,50 +8,7 @@ A comprehensive system design for a text-sharing service like Pastebin covering 
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Clients["Clients"]
-        WEB["Web App"]
-        API_CLIENT["API Clients"]
-        CLI["CLI Tools"]
-    end
-
-    subgraph Edge["Edge Layer"]
-        CDN["CDN Edge Cache<br/>(CloudFront/Fastly)"]
-        LB["Load Balancer"]
-    end
-
-    subgraph Core["Core Services"]
-        PASTE_SVC["Paste Service"]
-        READ_SVC["Read Service"]
-        KGS["Key Generation<br/>Service"]
-        HIGHLIGHT["Syntax Highlight<br/>Worker"]
-        EXPIRY["Expiration<br/>Service"]
-    end
-
-    subgraph Storage["Storage Layer"]
-        REDIS["Redis Cluster<br/>(Hot Pastes, Rate Limits)"]
-        META_DB[(PostgreSQL<br/>Paste Metadata)]
-        OBJECT["Object Storage<br/>(S3 — Paste Content)"]
-    end
-
-    subgraph Security["Security Layer"]
-        RATELIMIT["Rate Limiter"]
-        SCANNER["Content Scanner"]
-    end
-
-    WEB & API_CLIENT & CLI --> CDN
-    CDN -->|Cache Miss| LB
-    LB --> PASTE_SVC & READ_SVC
-    PASTE_SVC --> KGS
-    PASTE_SVC --> RATELIMIT
-    PASTE_SVC --> SCANNER
-    PASTE_SVC --> REDIS & META_DB & OBJECT
-    PASTE_SVC --> HIGHLIGHT
-    READ_SVC --> REDIS
-    READ_SVC -->|Cache Miss| META_DB & OBJECT
-    EXPIRY --> META_DB & OBJECT & REDIS
-```
+![High-level architecture: CDN caches immutable paste content at the edge, core services handle creation and retrieval, object storage holds paste bodies separately from metadata for independent scaling.](./high-level-architecture-cdn-caches-immutable-paste-content-at-the-edge-core-serv.svg)
 
 <figcaption>High-level architecture: CDN caches immutable paste content at the edge, core services handle creation and retrieval, object storage holds paste bodies separately from metadata for independent scaling.</figcaption>
 </figure>
@@ -156,12 +113,7 @@ A paste service maps short unique URLs to text blobs—conceptually simple, but 
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    CLIENT["Client"] --> API["API Server"]
-    API --> DB[(PostgreSQL<br/>Metadata + Content)]
-    API --> CACHE["Redis Cache"]
-```
+![Diagram](./diagram-1.svg)
 
 **Key characteristics:**
 
@@ -192,13 +144,7 @@ flowchart LR
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    CLIENT["Client"] --> API["API Server"]
-    API --> META_DB[(PostgreSQL<br/>Metadata Only)]
-    API --> S3["S3<br/>Paste Content"]
-    API --> CACHE["Redis Cache<br/>(Hot Content)"]
-```
+![Diagram](./diagram-2.svg)
 
 **Key characteristics:**
 
@@ -229,15 +175,7 @@ flowchart LR
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    CLIENT["Client"] --> API["API Server"]
-    API --> HASH["SHA-256<br/>Content Hash"]
-    HASH --> CHECK{"Exists in S3?"}
-    CHECK -->|Yes| REUSE["Reuse existing blob"]
-    CHECK -->|No| STORE["Store new blob"]
-    REUSE & STORE --> META_DB[(PostgreSQL<br/>paste_id → content_hash)]
-```
+![Diagram](./diagram-3.svg)
 
 **Key characteristics:**
 
@@ -280,64 +218,7 @@ This article focuses on **Path B (Split Storage)** with optional content-address
 
 ### Component Overview
 
-```mermaid
-flowchart TB
-    subgraph Clients
-        BROWSER["Browser"]
-        CLI_TOOLS["CLI Tools<br/>(curl, httpie)"]
-        SDK["API SDKs"]
-    end
-
-    subgraph Edge["Edge Layer"]
-        CDN["CDN<br/>(Immutable Content Cache)"]
-        WAF["WAF<br/>(DDoS Protection)"]
-        LB["Load Balancer"]
-    end
-
-    subgraph API["API Gateway"]
-        RATE["Rate Limiter"]
-        AUTH["Auth Middleware<br/>(API Key / Session)"]
-        ROUTER["Request Router"]
-    end
-
-    subgraph Core["Core Services"]
-        PASTE["Paste Write Service"]
-        READ["Paste Read Service"]
-        KGS["Key Generation Service"]
-        EXPIRY["Expiration Service"]
-        HIGHLIGHT["Syntax Highlight Worker"]
-    end
-
-    subgraph Security["Security"]
-        CONTENT_SCAN["Content Scanner<br/>(Malware, PII, Spam)"]
-        ABUSE["Abuse Detection"]
-    end
-
-    subgraph Storage["Storage"]
-        REDIS["Redis Cluster<br/>(Hot Content + Metadata)"]
-        PG[(PostgreSQL<br/>Metadata)]
-        S3["S3<br/>(Paste Content)"]
-    end
-
-    subgraph Async["Async Processing"]
-        QUEUE["Message Queue<br/>(SQS / Kafka)"]
-        WORKERS["Background Workers"]
-    end
-
-    BROWSER & CLI_TOOLS & SDK --> CDN
-    CDN -->|Cache Miss| WAF --> LB
-    LB --> RATE --> AUTH --> ROUTER
-    ROUTER --> PASTE & READ
-    PASTE --> KGS
-    PASTE --> CONTENT_SCAN
-    PASTE --> REDIS & PG & S3
-    PASTE --> QUEUE
-    QUEUE --> HIGHLIGHT & WORKERS
-    READ --> REDIS
-    READ -->|Miss| PG & S3
-    EXPIRY --> PG & S3 & REDIS
-    ABUSE --> REDIS
-```
+![Diagram](./diagram-4.svg)
 
 ### Paste Write Service
 
@@ -345,28 +226,7 @@ Accepts text content, compresses it, stores it in S3, and persists metadata.
 
 **Write flow:**
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant API as API Server
-    participant KGS as Key Gen Service
-    participant S3 as Object Storage
-    participant DB as PostgreSQL
-    participant Q as Message Queue
-
-    C->>API: POST /api/v1/pastes {content, expiration, visibility}
-    API->>API: Validate (size, rate limit)
-    API->>KGS: Request key
-    KGS-->>API: paste_id = "aB3kF9x"
-    API->>API: zstd compress content
-    API->>API: SHA-256 hash (for dedup check)
-    API->>S3: PUT /pastes/aB3kF9x.zst
-    S3-->>API: 200 OK
-    API->>DB: INSERT metadata (paste_id, content_hash, expires_at, visibility)
-    DB-->>API: Inserted
-    API->>Q: Enqueue syntax highlighting job
-    API-->>C: 201 {paste_id, url, expires_at}
-```
+![Diagram](./diagram-5.svg)
 
 **Design decisions:**
 
@@ -383,42 +243,7 @@ The hot path. Retrieves paste content via multi-tier cache.
 
 **Read flow:**
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant CDN as CDN Edge
-    participant API as Read Service
-    participant R as Redis
-    participant DB as PostgreSQL
-    participant S3 as Object Storage
-
-    C->>CDN: GET /aB3kF9x
-    CDN->>CDN: Check edge cache
-    alt CDN Cache Hit
-        CDN-->>C: 200 (cached HTML)
-    else CDN Cache Miss
-        CDN->>API: GET /aB3kF9x
-        API->>R: GET paste:aB3kF9x
-        alt Redis Hit
-            R-->>API: {metadata + content}
-        else Redis Miss
-            API->>DB: SELECT * FROM pastes WHERE id = 'aB3kF9x'
-            DB-->>API: metadata (expires_at, visibility, content_hash)
-            API->>API: Check expiration
-            alt Expired
-                API-->>CDN: 410 Gone
-            else Valid
-                API->>S3: GET /pastes/aB3kF9x.zst
-                S3-->>API: compressed content
-                API->>API: zstd decompress
-                API->>R: SET paste:aB3kF9x (TTL 1h)
-            end
-        end
-        API-->>CDN: 200 {content + metadata}
-        CDN->>CDN: Cache (TTL 300s)
-        CDN-->>C: 200 (rendered HTML)
-    end
-```
+![Diagram](./diagram-6.svg)
 
 **Critical optimizations:**
 
@@ -461,21 +286,7 @@ Handles time-based paste expiration and burn-after-read.
 
 **Burn-after-read implementation:**
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant API as Read Service
-    participant DB as PostgreSQL
-    participant S3 as Object Storage
-
-    C->>API: GET /aB3kF9x
-    API->>DB: SELECT * FROM pastes WHERE id = 'aB3kF9x' FOR UPDATE
-    DB-->>API: {burn_after_read: true, read_count: 0}
-    API->>DB: UPDATE pastes SET read_count = 1, deleted_at = NOW()
-    API->>S3: GET /pastes/aB3kF9x.zst (then DELETE)
-    API-->>C: 200 {content} (Cache-Control: no-store)
-    Note over API,S3: Subsequent reads return 410 Gone
-```
+![Diagram](./diagram-7.svg)
 
 **Race condition handling:** The `SELECT ... FOR UPDATE` acquires a row-level lock. If two concurrent readers hit the same burn-after-read paste, only the first gets the content; the second sees `deleted_at IS NOT NULL` and receives `410 Gone`. This is the correct behavior—exactly one reader sees the content.
 
@@ -749,28 +560,7 @@ The KGS is the critical component that decouples ID generation from the write pa
 
 #### KGS Implementation Details
 
-```mermaid
-flowchart TB
-    subgraph Generator["Offline Generator (Cron)"]
-        GEN["Generate random<br/>7-char Base62 strings"]
-        DEDUP["Check uniqueness<br/>against used-keys set"]
-    end
-
-    subgraph Pool["Key Pool (PostgreSQL / DynamoDB)"]
-        AVAILABLE["Available Keys<br/>(~10M buffered)"]
-        ALLOCATED["Allocated Keys<br/>(assigned to app servers)"]
-    end
-
-    subgraph AppServers["App Servers"]
-        APP1["Server 1<br/>Local cache: 1000 keys"]
-        APP2["Server 2<br/>Local cache: 1000 keys"]
-        APP3["Server 3<br/>Local cache: 1000 keys"]
-    end
-
-    GEN --> DEDUP --> AVAILABLE
-    AVAILABLE -->|Batch of 1000| APP1 & APP2 & APP3
-    APP1 & APP2 & APP3 -.->|Unused keys on shutdown| AVAILABLE
-```
+![Diagram](./diagram-8.svg)
 
 **Batch allocation query (PostgreSQL):**
 
@@ -1045,44 +835,7 @@ Storage cost is negligible. The dominant cost is compute (API servers) and Redis
 
 ### Production Deployment
 
-```mermaid
-graph TB
-    subgraph "CDN Edge"
-        CF["CloudFront"]
-    end
-
-    subgraph "VPC"
-        subgraph "Public Subnet"
-            ALB["Application Load Balancer"]
-        end
-
-        subgraph "Private Subnet — Compute"
-            ECS["ECS Cluster<br/>(API + Read Services)"]
-            WORKERS["Highlight Workers<br/>(Fargate Spot)"]
-        end
-
-        subgraph "Private Subnet — Data"
-            RDS[("RDS PostgreSQL<br/>(Multi-AZ)")]
-            REDIS[("ElastiCache Redis<br/>Cluster")]
-        end
-    end
-
-    subgraph "Storage"
-        S3["S3<br/>(Paste Content)"]
-    end
-
-    subgraph "Async"
-        SQS["SQS<br/>(Highlight Jobs)"]
-        LAMBDA["Lambda<br/>(Expiration Sweep)"]
-    end
-
-    CF --> ALB
-    CF --> S3
-    ALB --> ECS
-    ECS --> RDS & REDIS & S3 & SQS
-    WORKERS --> S3 & SQS
-    LAMBDA --> RDS & S3
-```
+![Diagram](./diagram-9.svg)
 
 ## Variations
 

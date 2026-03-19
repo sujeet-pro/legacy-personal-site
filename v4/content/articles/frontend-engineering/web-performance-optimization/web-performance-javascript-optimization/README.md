@@ -8,30 +8,7 @@ JavaScript execution is the primary source of main-thread blocking in modern web
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "JavaScript Performance Optimization"
-        direction LR
-        LOAD["Script Loading<br/>async/defer/module"]
-        SPLIT["Code Splitting<br/>Route & component"]
-        TASK["Task Management<br/>scheduler.yield()"]
-        WORKER["Web Workers<br/>Off-main-thread"]
-    end
-
-    LOAD --> SPLIT
-    SPLIT --> TASK
-    TASK --> WORKER
-
-    subgraph "Core Web Vitals Impact"
-        INP["INP: Responsive interactions"]
-        LCP["LCP: Faster initial load"]
-        TTI["TTI: Interactive sooner"]
-    end
-
-    WORKER --> INP
-    SPLIT --> LCP
-    TASK --> TTI
-```
+![JavaScript performance optimization techniques and their impact on Core Web Vitals metrics.](./javascript-performance-optimization-techniques-and-their-impact-on-core-web-vita.svg)
 
 <figcaption>JavaScript performance optimization techniques and their impact on Core Web Vitals metrics.</figcaption>
 
@@ -80,24 +57,7 @@ The parser maintains a "list of scripts that will execute when the document has 
 
 ### `async` vs `defer` Decision Matrix
 
-```mermaid
-flowchart TD
-    A[Script to load] --> B{Depends on DOM?}
-    B -->|Yes| C{Depends on other scripts?}
-    B -->|No| D{Independent?}
-
-    C -->|Yes| E[defer]
-    C -->|No| F[defer or module]
-
-    D -->|Yes| G[async]
-    D -->|No| H{Order matters?}
-
-    H -->|Yes| E
-    H -->|No| G
-
-    style E fill:#c8e6c9
-    style G fill:#bbdefb
-```
+![Decision tree for selecting script loading attributes based on dependency requirements.](./decision-tree-for-selecting-script-loading-attributes-based-on-dependency-requir.svg)
 
 <figcaption>Decision tree for selecting script loading attributes based on dependency requirements.</figcaption>
 

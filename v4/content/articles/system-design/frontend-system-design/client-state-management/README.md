@@ -8,36 +8,7 @@ Choosing the right state management approach requires understanding that "state"
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "State Categories"
-        SS[Server State<br/>Async, cached, shared]
-        US[UI State<br/>Sync, local, ephemeral]
-        FS[Form State<br/>Validation, dirty tracking]
-        URL[URL State<br/>Shareable, persistent]
-        PS[Persistent State<br/>localStorage, IndexedDB]
-    end
-
-    subgraph "Tools by Category"
-        TQ[TanStack Query / SWR]
-        ZJ[Zustand / Jotai / Context]
-        RHF[React Hook Form]
-        USP[useSearchParams / nuqs]
-        Storage[Browser Storage APIs]
-    end
-
-    SS --> TQ
-    US --> ZJ
-    FS --> RHF
-    URL --> USP
-    PS --> Storage
-
-    style SS fill:#e3f2fd
-    style US fill:#fff3e0
-    style FS fill:#f3e5f5
-    style URL fill:#e8f5e9
-    style PS fill:#fce4ec
-```
+![State categories map to specialized tools—using the wrong tool for a category creates unnecessary complexity.](./state-categories-map-to-specialized-tools-using-the-wrong-tool-for-a-category-cr.svg)
 
 <figcaption>State categories map to specialized tools—using the wrong tool for a category creates unnecessary complexity.</figcaption>
 </figure>

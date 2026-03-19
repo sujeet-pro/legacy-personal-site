@@ -8,31 +8,7 @@ A comprehensive guide to sorting algorithms covering fundamental concepts, imple
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Comparison Sorts O(n log n)"
-        direction LR
-        QS["Quick Sort<br/>In-place, Cache-friendly"]
-        MS["Merge Sort<br/>Stable, External"]
-        HS["Heap Sort<br/>Guaranteed O(n log n)"]
-    end
-
-    subgraph "Linear Time Sorts O(n)"
-        direction LR
-        CS["Counting Sort<br/>Small range integers"]
-        RS["Radix Sort<br/>Fixed-width keys"]
-        BS["Bucket Sort<br/>Uniform distribution"]
-    end
-
-    subgraph "Simple Sorts O(n²)"
-        direction LR
-        IS["Insertion Sort<br/>Small arrays, adaptive"]
-        SS["Selection Sort<br/>Minimal swaps"]
-    end
-
-    QS -->|"Production hybrid"| IS
-    MS -->|"Tim Sort"| IS
-```
+![Sorting algorithm taxonomy showing complexity classes and key characteristics](./sorting-algorithm-taxonomy-showing-complexity-classes-and-key-characteristics.svg)
 
 <figcaption>Sorting algorithm taxonomy showing complexity classes and key characteristics</figcaption>
 
@@ -44,18 +20,7 @@ Sorting algorithms exist on a spectrum defined by three fundamental constraints:
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph "The Sorting Triangle"
-        TIME["Time Complexity<br/>O(n²) → O(n log n) → O(n)"]
-        SPACE["Space Complexity<br/>O(1) → O(log n) → O(n)"]
-        STABILITY["Stability<br/>Preserves equal-element order"]
-    end
-
-    TIME <--> SPACE
-    SPACE <--> STABILITY
-    STABILITY <--> TIME
-```
+![Every sorting algorithm makes trade-offs between time, space, and stability—optimizing one often sacrifices another.](./every-sorting-algorithm-makes-trade-offs-between-time-space-and-stability-optimi.svg)
 
 <figcaption>Every sorting algorithm makes trade-offs between time, space, and stability—optimizing one often sacrifices another.</figcaption>
 </figure>
@@ -561,26 +526,7 @@ function bucketSort(arr: number[], bucketCount: number = 10): number[] {
 
 <figure>
 
-```mermaid
-flowchart TD
-    START["Need to sort"] --> Q1{"Data type?"}
-
-    Q1 -->|"Integers, small range k ≤ n"| COUNTING["Counting Sort<br/>O(n + k)"]
-    Q1 -->|"Fixed-width integers"| RADIX["Radix Sort<br/>O(d × n)"]
-    Q1 -->|"Uniform floats [0,1)"| BUCKET["Bucket Sort<br/>O(n) expected"]
-    Q1 -->|"General comparable"| Q2{"Stability needed?"}
-
-    Q2 -->|"Yes"| Q3{"Array or linked list?"}
-    Q2 -->|"No"| Q4{"Guaranteed O(n log n)?"}
-
-    Q3 -->|"Linked list"| MERGE["Merge Sort<br/>O(1) space for lists"]
-    Q3 -->|"Array, n < 50"| INSERT["Insertion Sort"]
-    Q3 -->|"Array, n ≥ 50"| MERGE
-
-    Q4 -->|"Yes, O(1) space"| HEAP["Heap Sort"]
-    Q4 -->|"Yes, O(n) space OK"| MERGE
-    Q4 -->|"No, fastest average"| QUICK["Quick Sort<br/>(randomized pivot)"]
-```
+![Algorithm selection based on data constraints and requirements](./algorithm-selection-based-on-data-constraints-and-requirements.svg)
 
 <figcaption>Algorithm selection based on data constraints and requirements</figcaption>
 </figure>

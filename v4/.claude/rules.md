@@ -4,7 +4,7 @@
 
 Astro-based technical blog for experienced software professionals (senior/staff/principal engineers). Content is highly technical and structured for cohesive reading.
 
-**Documentation**: Canonical guidance lives in `llm_docs/guidelines-content/` and `llm_docs/guidelines-code/`.
+**Documentation**: Canonical guidance lives in `guidelines/document/` and `guidelines/coding/`.
 
 ## Project Structure
 
@@ -25,35 +25,34 @@ Astro-based technical blog for experienced software professionals (senior/staff/
 
 **IMPORTANT**: Before executing any skill, read the relevant documentation files using absolute paths from the project root:
 
-| Document                 | Path (from project root)                                    | Description                             |
-| ------------------------ | ----------------------------------------------------------- | --------------------------------------- |
-| Content Structure        | `llm_docs/guidelines-content/content-structure.md`          | Content hierarchy and metadata pipeline |
-| Content Guidelines       | `llm_docs/guidelines-content/content-guidelines.md`         | Writing and review rules                |
-| Research & Fact-Checking | `llm_docs/guidelines-content/research-and-fact-checking.md` | Source quality and verification         |
-| Markdown Features        | `llm_docs/guidelines-content/markdown-features.md`          | Expressive Code, Mermaid, KaTeX         |
-| Persona                  | `llm_docs/guidelines-content/persona.md`                    | Voice and audience                      |
-| Coding Standards         | `llm_docs/guidelines-code/coding-standards.md`              | TypeScript/CSS/accessibility            |
-| Skills Registry          | `llm_docs/skills/README.md`                                 | Agent-agnostic skills                   |
-| Agent Rules              | `llm_docs/agents/claude.md`                                 | Claude-specific mapping                 |
+| Document             | Path (from project root)                              | Description                             |
+| -------------------- | ----------------------------------------------------- | --------------------------------------- |
+| Content Structure    | `guidelines/document/content-structure.md`            | Content hierarchy and metadata pipeline |
+| Content Guidelines   | `guidelines/document/content-guidelines.md`           | Writing and review rules                |
+| Markdown Features    | `guidelines/document/markdown-features.md`            | GFM, Expressive Code, Mermaid           |
+| Persona              | `guidelines/document/persona.md`                      | Voice and audience                      |
+| Coding Standards     | `guidelines/coding/coding-standards.md`               | TypeScript/CSS/accessibility            |
 
 **Note**: These paths are relative to the project root, NOT relative to the `.claude/` directory.
 
-## Claude Skills
+## Skills
 
-### Content Skills
+This project uses global devkit skills. No local skill wrappers are needed.
 
-| Skill             | Trigger                           | Description                                |
-| ----------------- | --------------------------------- | ------------------------------------------ |
-| `/write-article`  | `/write-article <topic>`          | Write new article with deep research       |
-| `/update-article` | `/update-article <path> <prompt>` | Update existing article with deep research |
+| Skill           | Command                                    | Description                                |
+| --------------- | ------------------------------------------ | ------------------------------------------ |
+| `/article`      | `/article <topic>`                         | Write new article with deep research       |
+| `/article`      | `/article update <path> <prompt>`          | Update existing article                    |
+| `/project-docs` | `/project-docs <folder>`                   | Write/update project page from local code  |
+| `/blog`         | `/blog <topic>`                            | Write a blog post                          |
 
 ## When to Use Coding Guidelines
 
 If the user prompt is about **changing site functionality** (code changes in `src/`, `plugins/`, `scripts/`, etc.), read and follow:
 
-- `llm_docs/guidelines-code/coding-standards.md`
+- `guidelines/coding/coding-standards.md`
 
-Content skills (`/write-article`, `/update-article`) only require `llm_docs/guidelines-content/*`.
+Content skills only require `guidelines/document/*`.
 
 ## Critical Rules
 

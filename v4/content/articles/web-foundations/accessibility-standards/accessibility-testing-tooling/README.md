@@ -8,40 +8,7 @@ A practical workflow for automated and manual accessibility testing, covering to
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Development Time"
-        Lint["eslint-plugin-jsx-a11y<br/>Static AST analysis"]
-        IDE["IDE Extensions<br/>Real-time feedback"]
-    end
-
-    subgraph "Automated Testing"
-        Unit["Component Tests<br/>@axe-core/react"]
-        E2E["E2E Tests<br/>Playwright + axe-core"]
-        CI["CI Pipeline<br/>Pa11y-CI / Cypress"]
-    end
-
-    subgraph "Manual Testing"
-        KB["Keyboard Navigation<br/>Tab order, focus traps"]
-        SR["Screen Reader<br/>NVDA, JAWS, VoiceOver"]
-        Browser["Browser Extensions<br/>WAVE, axe DevTools"]
-    end
-
-    subgraph "Coverage"
-        Auto["~57% of issues<br/>Automated"]
-        Manual["~43% of issues<br/>Manual + User Testing"]
-    end
-
-    Lint --> Unit
-    IDE --> Unit
-    Unit --> E2E
-    E2E --> CI
-    CI --> Auto
-
-    KB --> Manual
-    SR --> Manual
-    Browser --> Manual
-```
+![Accessibility testing workflow: automated tools catch structural issues early; manual testing catches semantic and experiential issues that require human judgment](./accessibility-testing-workflow-automated-tools-catch-structural-issues-early-man.svg)
 
 <figcaption>Accessibility testing workflow: automated tools catch structural issues early; manual testing catches semantic and experiential issues that require human judgment</figcaption>
 

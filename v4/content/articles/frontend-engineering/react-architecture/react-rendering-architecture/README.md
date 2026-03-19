@@ -8,29 +8,7 @@ React's rendering architecture has evolved from a synchronous stack-based reconc
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Fiber["Fiber Reconciler"]
-        direction LR
-        Render["Render Phase<br/>(Interruptible, 5ms slices)"]
-        Commit["Commit Phase<br/>(Synchronous)"]
-        Render --> Commit
-    end
-
-    subgraph Execution["Rendering Models"]
-        direction TB
-        CSR["CSR<br/>Client builds DOM"]
-        SSR["SSR/Streaming<br/>Server renders HTML"]
-        RSC["RSC<br/>Server components + Flight"]
-    end
-
-    Fiber --> CSR
-    Fiber --> SSR
-    Fiber --> RSC
-
-    SSR --> Hydration["Hydration<br/>Attach React to HTML"]
-    RSC --> Hydration
-```
+![All rendering models (CSR, SSR, RSC) use the Fiber reconciler. SSR and RSC require hydration on the client to become interactive.](./all-rendering-models-csr-ssr-rsc-use-the-fiber-reconciler-ssr-and-rsc-require-hy.svg)
 
 <figcaption>All rendering models (CSR, SSR, RSC) use the Fiber reconciler. SSR and RSC require hydration on the client to become interactive.</figcaption>
 </figure>
@@ -41,27 +19,7 @@ React's rendering architecture rests on three interdependent pillars:
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph Foundation["Foundation Layer"]
-        Fiber["Fiber<br/>Virtual call stack"]
-    end
-
-    subgraph Scheduling["Priority Layer"]
-        Lanes["Lanes<br/>31-bit priority bitmask"]
-    end
-
-    subgraph Execution["Execution Models"]
-        CSR["CSR"]
-        SSR["SSR/Streaming"]
-        RSC["RSC"]
-    end
-
-    Fiber --> Lanes
-    Lanes --> CSR
-    Lanes --> SSR
-    Lanes --> RSC
-```
+![Fiber enables interruptible work; Lanes determine priority; execution models determine where rendering occurs.](./fiber-enables-interruptible-work-lanes-determine-priority-execution-models-deter.svg)
 
 <figcaption>Fiber enables interruptible work; Lanes determine priority; execution models determine where rendering occurs.</figcaption>
 </figure>

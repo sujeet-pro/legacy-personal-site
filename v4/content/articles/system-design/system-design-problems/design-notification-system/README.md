@@ -8,65 +8,7 @@ A comprehensive system design for multi-channel notifications covering event ing
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Producers["Event Producers"]
-        SVC1["Service A"]
-        SVC2["Service B"]
-        SVC3["Service N"]
-    end
-
-    subgraph Ingestion["Ingestion Layer"]
-        API["Notification API"]
-        VALID["Validator"]
-        ENRICH["Enrichment"]
-    end
-
-    subgraph Queue["Message Queue"]
-        KAFKA["Kafka Cluster<br/>(Partitioned by User)"]
-        PRIORITY["Priority Queues<br/>(Critical/High/Normal/Low)"]
-    end
-
-    subgraph Routing["Routing Layer"]
-        ROUTER["Router Service"]
-        PREFS["Preference Service"]
-        THROTTLE["Rate Limiter"]
-        DEDUP["Deduplication"]
-    end
-
-    subgraph Channels["Channel Processors"]
-        PUSH["Push Processor<br/>(APNs/FCM)"]
-        EMAIL["Email Processor<br/>(SMTP/SES)"]
-        SMS["SMS Processor<br/>(Twilio)"]
-        INAPP["In-App Processor<br/>(WebSocket)"]
-    end
-
-    subgraph Storage["Storage Layer"]
-        REDIS["Redis Cluster<br/>(Tokens, Prefs, Dedup)"]
-        PG[(PostgreSQL<br/>Templates, History)]
-        CASS[(Cassandra<br/>Notification Log)]
-    end
-
-    subgraph External["External Providers"]
-        APNS["Apple APNs"]
-        FCM["Google FCM"]
-        SMTP["Email Provider"]
-        TWILIO["Twilio SMS"]
-    end
-
-    SVC1 & SVC2 & SVC3 --> API
-    API --> VALID --> ENRICH --> KAFKA
-    KAFKA --> PRIORITY --> ROUTER
-    ROUTER --> PREFS & THROTTLE & DEDUP
-    ROUTER --> PUSH & EMAIL & SMS & INAPP
-    PUSH --> APNS & FCM
-    EMAIL --> SMTP
-    SMS --> TWILIO
-    INAPP --> REDIS
-    PREFS --> REDIS
-    THROTTLE --> REDIS
-    ROUTER --> PG & CASS
-```
+![High-level architecture: Event producers publish to Kafka, routing layer applies preferences and throttling, channel processors deliver via external providers.](./high-level-architecture-event-producers-publish-to-kafka-routing-layer-applies-p.svg)
 
 <figcaption>High-level architecture: Event producers publish to Kafka, routing layer applies preferences and throttling, channel processors deliver via external providers.</figcaption>
 </figure>
@@ -172,24 +114,7 @@ Notification systems solve three interconnected problems: **reliable delivery** 
 
 **Architecture:**
 
-```mermaid
-sequenceDiagram
-    participant P as Producer
-    participant API as Notification API
-    participant Q as Priority Queue
-    participant R as Router
-    participant GW as Gateway
-    participant U as User Device
-
-    P->>API: Send notification
-    API->>Q: Enqueue (high priority)
-    Q->>R: Dequeue immediately
-    R->>R: Check preferences, throttle
-    R->>GW: Push to user's connection
-    GW->>U: Deliver via WebSocket
-    U->>GW: Acknowledge
-    GW->>R: Update delivery status
-```
+![Diagram](./diagram-1.svg)
 
 **Key characteristics:**
 
@@ -219,34 +144,7 @@ sequenceDiagram
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    subgraph Ingest
-        API["Notification API"]
-    end
-
-    subgraph Queue
-        KAFKA["Kafka<br/>(Durable)"]
-        DLQ["Dead Letter<br/>Queue"]
-    end
-
-    subgraph Process
-        WORKER["Worker Pool"]
-        RETRY["Retry Service"]
-    end
-
-    subgraph Deliver
-        PUSH["Push Provider"]
-        EMAIL["Email Provider"]
-    end
-
-    API --> KAFKA
-    KAFKA --> WORKER
-    WORKER -->|success| PUSH & EMAIL
-    WORKER -->|failure| RETRY
-    RETRY -->|max retries| DLQ
-    RETRY -->|retry| KAFKA
-```
+![Diagram](./diagram-2.svg)
 
 **Key characteristics:**
 
@@ -276,22 +174,7 @@ flowchart LR
 
 **Architecture:**
 
-```mermaid
-flowchart TB
-    API["Notification API"]
-
-    API --> CHECK{"Priority?"}
-
-    CHECK -->|Critical| SYNC["Synchronous Path<br/>(Direct Push)"]
-    CHECK -->|High| FAST["Fast Queue<br/>(Low Latency Workers)"]
-    CHECK -->|Normal| STANDARD["Standard Queue<br/>(Batched Processing)"]
-    CHECK -->|Low| BULK["Bulk Queue<br/>(Off-Peak Delivery)"]
-
-    SYNC --> DELIVER["Delivery"]
-    FAST --> DELIVER
-    STANDARD --> DELIVER
-    BULK --> DELIVER
-```
+![Diagram](./diagram-3.svg)
 
 **Key characteristics:**
 
@@ -336,83 +219,7 @@ This article focuses on **Path C (Hybrid)** because:
 
 ### Component Overview
 
-```mermaid
-flowchart TB
-    subgraph Producers["Event Producers"]
-        direction LR
-        AUTH["Auth Service<br/>(Login alerts)"]
-        ORDER["Order Service<br/>(Status updates)"]
-        SOCIAL["Social Service<br/>(Likes, comments)"]
-        MARKETING["Marketing Service<br/>(Promotions)"]
-    end
-
-    subgraph Gateway["API Gateway"]
-        RATE["Rate Limiter"]
-        AUTH_GW["Auth Middleware"]
-        VALIDATE["Request Validator"]
-    end
-
-    subgraph Core["Core Services"]
-        NOTIF_API["Notification API"]
-        TEMPLATE["Template Service"]
-        PREF["Preference Service"]
-        DEVICE["Device Registry"]
-        SCHEDULE["Scheduler"]
-    end
-
-    subgraph Queue["Message Queues"]
-        CRITICAL_Q["Critical Queue<br/>(p99 < 500ms)"]
-        HIGH_Q["High Priority Queue<br/>(p99 < 2s)"]
-        NORMAL_Q["Normal Queue<br/>(p99 < 10s)"]
-        BULK_Q["Bulk Queue<br/>(Best effort)"]
-    end
-
-    subgraph Router["Routing Layer"]
-        ROUTER["Router Service"]
-        THROTTLE["User Throttler"]
-        AGGREGATE["Aggregator"]
-        DEDUP["Dedup Service"]
-    end
-
-    subgraph Channels["Channel Processors"]
-        PUSH_PROC["Push Processor"]
-        EMAIL_PROC["Email Processor"]
-        SMS_PROC["SMS Processor"]
-        INAPP_PROC["In-App Processor"]
-    end
-
-    subgraph Storage["Storage"]
-        REDIS["Redis Cluster"]
-        PG[(PostgreSQL)]
-        CASS[(Cassandra)]
-        S3["S3 (Attachments)"]
-    end
-
-    subgraph External["External Providers"]
-        APNS["APNs"]
-        FCM["FCM"]
-        SES["Amazon SES"]
-        TWILIO["Twilio"]
-    end
-
-    AUTH & ORDER & SOCIAL & MARKETING --> Gateway
-    Gateway --> NOTIF_API
-    NOTIF_API --> TEMPLATE & PREF & DEVICE
-    NOTIF_API --> CRITICAL_Q & HIGH_Q & NORMAL_Q & BULK_Q
-
-    CRITICAL_Q & HIGH_Q & NORMAL_Q & BULK_Q --> ROUTER
-    ROUTER --> THROTTLE & AGGREGATE & DEDUP
-    ROUTER --> PUSH_PROC & EMAIL_PROC & SMS_PROC & INAPP_PROC
-
-    PUSH_PROC --> APNS & FCM
-    EMAIL_PROC --> SES
-    SMS_PROC --> TWILIO
-    INAPP_PROC --> REDIS
-
-    PREF & DEVICE & THROTTLE --> REDIS
-    TEMPLATE --> PG
-    ROUTER --> CASS
-```
+![Diagram](./diagram-4.svg)
 
 ### Notification API
 
@@ -1654,53 +1461,7 @@ class PushPermissionManager {
 
 ### AWS Reference Architecture
 
-```mermaid
-flowchart TB
-    subgraph Edge
-        R53["Route 53"]
-        ALB["Application Load Balancer"]
-    end
-
-    subgraph Compute["EKS Cluster"]
-        subgraph API["API Tier"]
-            NOTIF_API["Notification API<br/>(Fargate)"]
-        end
-        subgraph Workers["Worker Tier"]
-            ROUTER["Router Workers<br/>(Fargate)"]
-            PUSH["Push Workers<br/>(Fargate)"]
-            EMAIL["Email Workers<br/>(Fargate)"]
-            SMS["SMS Workers<br/>(Fargate)"]
-        end
-        subgraph Realtime["Real-time Tier"]
-            WEBSOCKET["WebSocket Gateways<br/>(Fargate)"]
-        end
-    end
-
-    subgraph Queue["Messaging"]
-        MSK["Amazon MSK<br/>(Kafka)"]
-        SQS["SQS<br/>(DLQ)"]
-    end
-
-    subgraph Storage["Data Stores"]
-        REDIS["ElastiCache Redis<br/>(Cluster)"]
-        RDS["RDS PostgreSQL<br/>(Multi-AZ)"]
-        KEYSPACES["Amazon Keyspaces<br/>(Cassandra)"]
-    end
-
-    subgraph External["External Services"]
-        SES["Amazon SES"]
-        SNS["Amazon SNS<br/>(Mobile Push)"]
-        PINPOINT["Amazon Pinpoint<br/>(Analytics)"]
-    end
-
-    R53 --> ALB --> NOTIF_API
-    NOTIF_API --> MSK
-    MSK --> ROUTER --> PUSH & EMAIL & SMS
-    PUSH --> SNS
-    EMAIL --> SES
-    ROUTER --> REDIS & RDS & KEYSPACES
-    WEBSOCKET --> REDIS
-```
+![Diagram](./diagram-5.svg)
 
 **Service configurations:**
 

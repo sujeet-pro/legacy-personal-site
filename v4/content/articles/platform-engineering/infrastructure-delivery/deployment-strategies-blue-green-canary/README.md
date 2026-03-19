@@ -8,35 +8,7 @@ Production deployment strategies for balancing release velocity against blast ra
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph Strategies["Deployment Strategies"]
-        direction TB
-        BG["Blue-Green<br/>Instant switch<br/>2x infrastructure"]
-        C["Canary<br/>Gradual traffic shift<br/>Metrics-gated"]
-        R["Rolling<br/>Pod-by-pod replacement<br/>Native K8s"]
-    end
-
-    subgraph Controls["Release Controls"]
-        FF["Feature Flags"]
-        TM["Traffic Management"]
-        AR["Automated Rollback"]
-    end
-
-    subgraph Data["Data Layer"]
-        EC["Expand-Contract<br/>Schema Migration"]
-        DW["Dual-Write<br/>Synchronization"]
-    end
-
-    BG --> TM
-    C --> TM
-    R --> TM
-    TM --> FF
-    TM --> AR
-    BG --> EC
-    C --> EC
-    EC --> DW
-```
+![Deployment strategy landscape: each strategy connects to traffic management and data layer concerns. Blue-green and canary require explicit schema migration coordination; rolling updates assume backward compatibility.](./deployment-strategy-landscape-each-strategy-connects-to-traffic-management-and-d.svg)
 
 <figcaption>Deployment strategy landscape: each strategy connects to traffic management and data layer concerns. Blue-green and canary require explicit schema migration coordination; rolling updates assume backward compatibility.</figcaption>
 
@@ -77,30 +49,7 @@ The core requirement: a routing layer that can instantly redirect 100% of traffi
 
 <figure>
 
-```mermaid
-sequenceDiagram
-    participant LB as Load Balancer
-    participant Blue as Blue Environment
-    participant Green as Green Environment
-    participant Users
-
-    Note over Blue: Currently serving traffic
-    Users->>LB: Request
-    LB->>Blue: Route to Blue
-    Blue-->>Users: Response (v1)
-
-    Note over Green: Deploy v2
-    Green->>Green: Health checks pass
-
-    Note over LB: Atomic switch
-    LB->>LB: Update target group
-
-    Users->>LB: Request
-    LB->>Green: Route to Green
-    Green-->>Users: Response (v2)
-
-    Note over Blue: Available for rollback
-```
+![Blue-green deployment sequence: traffic switches atomically after health checks pass on the green environment. Blue remains available for instant rollback.](./blue-green-deployment-sequence-traffic-switches-atomically-after-health-checks-p.svg)
 
 <figcaption>Blue-green deployment sequence: traffic switches atomically after health checks pass on the green environment. Blue remains available for instant rollback.</figcaption>
 
@@ -197,24 +146,7 @@ From [Google SRE Workbook Chapter 16](https://sre.google/workbook/canarying-rele
 
 <figure>
 
-```mermaid
-flowchart TD
-    D[Deploy Canary] --> W1[1% Traffic]
-    W1 --> E1{Metrics OK?}
-    E1 -->|Yes| W2[5% Traffic]
-    E1 -->|No| RB[Rollback]
-    W2 --> E2{Metrics OK?}
-    E2 -->|Yes| W3[25% Traffic]
-    E2 -->|No| RB
-    W3 --> E3{Metrics OK?}
-    E3 -->|Yes| W4[50% Traffic]
-    E3 -->|No| RB
-    W4 --> E4{Metrics OK?}
-    E4 -->|Yes| FULL[100% Traffic]
-    E4 -->|No| RB
-    FULL --> DONE[Complete]
-    RB --> STABLE[Stable Version]
-```
+![Canary progression with metric gates: each stage evaluates success criteria before advancing. Any failure triggers immediate rollback to stable.](./canary-progression-with-metric-gates-each-stage-evaluates-success-criteria-befor.svg)
 
 <figcaption>Canary progression with metric gates: each stage evaluates success criteria before advancing. Any failure triggers immediate rollback to stable.</figcaption>
 
@@ -470,21 +402,7 @@ Feature flags separate **deployment** (code reaching production) from **release*
 
 ### Architectural Pattern
 
-```mermaid
-flowchart LR
-    subgraph Deploy["Deployment (Infrastructure)"]
-        D1[v1.0] --> D2[v1.1 with flag]
-    end
-
-    subgraph Release["Release (Feature Flags)"]
-        F1[Flag: OFF] --> F2[Flag: 1%]
-        F2 --> F3[Flag: 10%]
-        F3 --> F4[Flag: 100%]
-    end
-
-    D2 -.-> F1
-    F4 -.-> USERS[All Users]
-```
+![Diagram](./diagram-1.svg)
 
 **Key insight**: Rollback becomes a flag toggle (milliseconds) rather than a deployment (minutes to hours). Even if the underlying deployment strategy is rolling update, feature flags provide instant rollback for the specific feature.
 
@@ -553,27 +471,7 @@ The expand-contract pattern (also called parallel change) from [Martin Fowler](h
 
 <figure>
 
-```mermaid
-flowchart TD
-    subgraph Expand["Phase 1: Expand"]
-        E1[Add new column as NULLABLE]
-        E2[Deploy code that writes to BOTH columns]
-        E3[Backfill existing rows]
-    end
-
-    subgraph Migrate["Phase 2: Migrate"]
-        M1[All rows have new column populated]
-        M2[Verify data consistency]
-    end
-
-    subgraph Contract["Phase 3: Contract"]
-        C1[Deploy code that reads ONLY new column]
-        C2[Add NOT NULL constraint]
-        C3[Drop old column]
-    end
-
-    E1 --> E2 --> E3 --> M1 --> M2 --> C1 --> C2 --> C3
-```
+![Expand-contract migration phases: each phase is independently deployable and rollback-safe. The contract phase only executes after confirming the expand phase is complete.](./expand-contract-migration-phases-each-phase-is-independently-deployable-and-roll.svg)
 
 <figcaption>Expand-contract migration phases: each phase is independently deployable and rollback-safe. The contract phase only executes after confirming the expand phase is complete.</figcaption>
 

@@ -8,24 +8,7 @@ Master exception-based and value-based error handling approaches, from tradition
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph "Exception Model"
-        TRY["try/catch"] --> THROW["throw Error"]
-        THROW --> CATCH["catch(error)"]
-    end
-
-    subgraph "Value Model"
-        FN["function()"] --> RESULT["Result<T, E>"]
-        RESULT --> OK["Ok(value)"]
-        RESULT --> ERR["Err(error)"]
-    end
-
-    subgraph "Evolution"
-        TRYCATCH["try/catch<br/>Imperative"] --> TUPLE["[data, error]<br/>Go-style"]
-        TUPLE --> MONAD["Result Monad<br/>Composable"]
-    end
-```
+![Evolution from exception-based to value-based error handling paradigms](./evolution-from-exception-based-to-value-based-error-handling-paradigms.svg)
 
 <figcaption>Evolution from exception-based to value-based error handling paradigms</figcaption>
 
@@ -35,18 +18,7 @@ flowchart LR
 
 <figure>
 
-```mermaid
-flowchart TD
-    subgraph "Mental Model: Error Handling Spectrum"
-        IMPLICIT["Implicit<br/>(Exceptions)"] -->|"Increasing Explicitness"| EXPLICIT["Explicit<br/>(Values)"]
-
-        IMPLICIT --> TRY["try/catch<br/>• Untyped catch<br/>• Non-local jumps<br/>• Stack unwinding cost"]
-
-        EXPLICIT --> TUPLE["[data, error] Tuple<br/>• Explicit at call site<br/>• No type guarantees<br/>• Verbose chaining"]
-
-        EXPLICIT --> MONAD["Result Monad<br/>• Type-safe states<br/>• Composable chains<br/>• Railway semantics"]
-    end
-```
+![Error handling paradigms: from implicit exception propagation to explicit value-based composition](./error-handling-paradigms-from-implicit-exception-propagation-to-explicit-value-b.svg)
 
 <figcaption>Error handling paradigms: from implicit exception propagation to explicit value-based composition</figcaption>
 
@@ -432,18 +404,7 @@ This structure makes invalid states **impossible at the type level**. You cannot
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph "Railway Oriented Programming"
-        A["Operation 1"] -->|Success| B["Operation 2"]
-        A -->|Failure| F1["Error Track"]
-        B -->|Success| C["Operation 3"]
-        B -->|Failure| F2["Error Track"]
-        C -->|Success| D["Final Result"]
-        C -->|Failure| F3["Error Track"]
-        F1 --> F2 --> F3
-    end
-```
+![Failures automatically bypass subsequent success handlers—the "railway" metaphor](./failures-automatically-bypass-subsequent-success-handlers-the-railway-metaphor.svg)
 
 <figcaption>Failures automatically bypass subsequent success handlers—the "railway" metaphor</figcaption>
 

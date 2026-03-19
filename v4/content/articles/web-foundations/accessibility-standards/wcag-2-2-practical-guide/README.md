@@ -8,27 +8,7 @@ Web Content Accessibility Guidelines (WCAG) 2.2 became a W3C Recommendation in O
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "POUR Principles"
-        P["Perceivable<br/>Text alternatives, captions,<br/>contrast, adaptable"]
-        O["Operable<br/>Keyboard access, timing,<br/>navigation, focus"]
-        U["Understandable<br/>Readable, predictable,<br/>input assistance"]
-        R["Robust<br/>Compatible with<br/>assistive tech"]
-    end
-
-    subgraph "Compliance Levels"
-        A["Level A<br/>Essential<br/>32 criteria"]
-        AA["Level AA<br/>Recommended<br/>+24 criteria"]
-        AAA["Level AAA<br/>Specialized<br/>+30 criteria"]
-    end
-
-    P --> A
-    O --> A
-    U --> A
-    R --> A
-    A --> AA --> AAA
-```
+![WCAG 2.2 structure: POUR principles map to hierarchical compliance levels totaling 86 success criteria](./wcag-2-2-structure-pour-principles-map-to-hierarchical-compliance-levels-totalin.svg)
 
 <figcaption>WCAG 2.2 structure: POUR principles map to hierarchical compliance levels totaling 86 success criteria</figcaption>
 

@@ -8,17 +8,7 @@ Spec-accurate map of the WHATWG HTML Living Standard event loop in window and wo
 
 <figure>
 
-```mermaid
-flowchart LR
-  subgraph EL["Event Loop Iteration"]
-    T["Task<br/>(one per iteration)"] --> MC["Microtask<br/>Checkpoint<br/>(drain all)"]
-  end
-  MC --> RO{"Rendering<br/>Opportunity?"}
-  RO -->|Yes| UR["Update Rendering<br/>(rAF, style, layout, paint)"]
-  RO -->|No| IP["Idle Period<br/>(rIC callbacks)"]
-  UR --> IP
-  IP --> T
-```
+![Event loop iteration: one task → drain microtasks → optional rendering → idle callbacks → repeat.](./event-loop-iteration-one-task-drain-microtasks-optional-rendering-idle-callbacks.svg)
 
 <figcaption>Event loop iteration: one task → drain microtasks → optional rendering → idle callbacks → repeat.</figcaption>
 </figure>
@@ -44,18 +34,7 @@ The browser event loop is a **policy-driven, single-threaded scheduler** with th
 
 <figure>
 
-```mermaid
-flowchart TD
-  subgraph EL["Event loop iteration"]
-    Q[Pick runnable task] --> T[Run task to completion]
-    T --> M[Microtask checkpoint]
-    M --> Q
-  end
-  subgraph RW["Rendering opportunity watcher (parallel)"]
-    W[Detect rendering opportunity] --> U[Queue update rendering task]
-  end
-  U -.-> Q
-```
+![Event loop iteration with a parallel rendering-opportunity watcher that queues rendering tasks.](./event-loop-iteration-with-a-parallel-rendering-opportunity-watcher-that-queues-r.svg)
 
 <figcaption>Event loop iteration with a parallel rendering-opportunity watcher that queues rendering tasks.</figcaption>
 </figure>

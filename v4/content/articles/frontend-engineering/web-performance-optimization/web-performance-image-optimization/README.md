@@ -8,28 +8,7 @@ Comprehensive guide to image optimization covering modern formats (AVIF, WebP, J
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Image Optimization Pipeline"
-        direction LR
-        FORMAT["Format Selection<br/>AVIF > WebP > JPEG"]
-        RESPONSIVE["Responsive Images<br/>srcset + sizes"]
-        LOADING["Loading Strategy<br/>lazy/eager + priority"]
-        DECODE["Decoding Control<br/>async/sync"]
-    end
-
-    FORMAT --> RESPONSIVE
-    RESPONSIVE --> LOADING
-    LOADING --> DECODE
-
-    subgraph "Performance Impact"
-        LCP["LCP: 40-60% faster"]
-        BW["Bandwidth: 50-80% reduction"]
-    end
-
-    DECODE --> LCP
-    DECODE --> BW
-```
+![Image optimization pipeline showing format selection, responsive sizing, loading strategies, and their impact on Core Web Vitals](./image-optimization-pipeline-showing-format-selection-responsive-sizing-loading-s.svg)
 
 <figcaption>Image optimization pipeline showing format selection, responsive sizing, loading strategies, and their impact on Core Web Vitals</figcaption>
 

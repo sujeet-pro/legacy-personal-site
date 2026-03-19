@@ -8,62 +8,7 @@ A comprehensive system design for a ride-hailing platform handling real-time dri
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Clients["Client Layer"]
-        RiderApp[Rider App]
-        DriverApp[Driver App]
-    end
-
-    subgraph Gateway["API Gateway"]
-        LB[Load Balancer]
-        Auth[Auth Service]
-        RL[Rate Limiter]
-    end
-
-    subgraph Core["Core Services"]
-        RideSvc[Ride Service]
-        MatchSvc[Matching Service<br/>DISCO]
-        LocationSvc[Location Service]
-        PricingSvc[Pricing Service]
-        RoutingSvc[Routing & ETA]
-        PaymentSvc[Payment Service]
-    end
-
-    subgraph Realtime["Real-Time Layer"]
-        WS[WebSocket Gateway]
-        LocationQ[Location Queue<br/>Kafka]
-        MatchQ[Match Queue]
-    end
-
-    subgraph Data["Data Layer"]
-        TripDB[(Trip Store<br/>Schemaless)]
-        LocationCache[(Location Cache<br/>Redis + H3)]
-        Cassandra[(Driver State<br/>Cassandra)]
-        Analytics[(Analytics<br/>HDFS/Hive)]
-    end
-
-    subgraph ML["ML Platform"]
-        ETA[DeepETA Model]
-        Surge[Surge Predictor]
-        Fraud[Fraud Detection]
-    end
-
-    Clients --> LB
-    LB --> Auth --> RL
-    RL --> Core
-    DriverApp <--> WS
-    RiderApp <--> WS
-    WS --> LocationQ
-    LocationQ --> LocationSvc
-    LocationSvc --> LocationCache
-    MatchSvc --> LocationCache
-    MatchSvc --> RoutingSvc
-    RoutingSvc --> ETA
-    PricingSvc --> Surge
-    Core --> Data
-    Core --> ML
-```
+![High-level architecture: Rider and driver apps connect through a WebSocket gateway for real-time updates. The Matching Service (DISCO) uses H3-indexed location data and ML-powered ETA predictions to optimize driver dispatch.](./high-level-architecture-rider-and-driver-apps-connect-through-a-websocket-gatewa.svg)
 
 <figcaption>High-level architecture: Rider and driver apps connect through a WebSocket gateway for real-time updates. The Matching Service (DISCO) uses H3-indexed location data and ML-powered ETA predictions to optimize driver dispatch.</figcaption>
 </figure>
@@ -297,62 +242,11 @@ Handles financial transactions:
 
 ### Data Flow: Requesting a Ride
 
-```mermaid
-sequenceDiagram
-    participant R as Rider App
-    participant API as API Gateway
-    participant RS as Ride Service
-    participant PS as Pricing Service
-    participant MS as Matching Service
-    participant LS as Location Service
-    participant ES as ETA Service
-    participant WS as WebSocket Gateway
-    participant D as Driver App
-
-    R->>API: POST /rides (pickup, destination)
-    API->>RS: createRide(request)
-    RS->>PS: getPrice(pickup, destination)
-    PS->>PS: Calculate base + surge
-    PS->>RS: Return upfront price
-    RS->>MS: requestMatch(rideId, pickup)
-    MS->>LS: getNearbyDrivers(pickupH3, radius=3km)
-    LS->>MS: Return candidate drivers (10-20)
-    MS->>ES: batchETA(candidates[], pickup)
-    ES->>MS: Return ETAs
-    MS->>MS: Solve assignment (batch with other requests)
-    MS->>RS: Driver assigned (driverId, ETA)
-    RS->>WS: Push match to rider
-    WS->>R: Driver details + ETA
-    RS->>WS: Push dispatch to driver
-    WS->>D: Ride request + pickup location
-```
+![Diagram](./diagram-1.svg)
 
 ### Data Flow: Real-Time Location Tracking
 
-```mermaid
-sequenceDiagram
-    participant D as Driver App
-    participant WS as WebSocket Gateway
-    participant K as Kafka
-    participant LS as Location Service
-    participant Redis as Redis Cluster
-    participant MS as Matching Service
-    participant RiderWS as Rider WebSocket
-
-    loop Every 4-5 seconds
-        D->>WS: GPS update (lat, lng, heading, speed)
-        WS->>K: Publish to location topic
-        K->>LS: Consume location event
-        LS->>LS: Compute H3 cell (resolution 9)
-        LS->>Redis: GEOADD drivers:{h3cell} (lng, lat, driverId)
-        LS->>Redis: SET driver:{driverId}:location {payload}
-        LS->>Redis: EXPIRE 30s (auto-cleanup stale drivers)
-    end
-
-    Note over MS: When matching, query Redis
-    MS->>Redis: GEORADIUS drivers:* (pickup, 3km)
-    Redis->>MS: Return drivers with distances
-```
+![Diagram](./diagram-2.svg)
 
 ## API Design
 
@@ -1197,46 +1091,7 @@ window.addEventListener("online", () => {
 
 ### AWS Reference Architecture
 
-```mermaid
-flowchart TB
-    subgraph Edge["Edge Layer"]
-        CF[CloudFront]
-        R53[Route 53<br/>Latency-based routing]
-    end
-
-    subgraph Region1["Region: US-West"]
-        subgraph Compute1["Compute"]
-            ALB1[ALB]
-            EKS1[EKS Cluster<br/>Core Services]
-            WS1[WebSocket Fleet<br/>ECS]
-        end
-
-        subgraph Data1["Data"]
-            RDS1[(Aurora PostgreSQL<br/>Payments)]
-            Redis1[(ElastiCache Redis<br/>Location Cache)]
-            MSK1[MSK Kafka<br/>Event Streaming]
-            Cassandra1[(Keyspaces<br/>Driver State)]
-        end
-
-        subgraph ML1["ML"]
-            Sage1[SageMaker<br/>ETA Inference]
-        end
-    end
-
-    subgraph Region2["Region: US-East"]
-        ALB2[ALB]
-        EKS2[EKS Cluster]
-        MSK2[MSK Kafka]
-    end
-
-    R53 --> ALB1
-    R53 --> ALB2
-    ALB1 --> EKS1
-    EKS1 --> Data1
-    EKS1 --> ML1
-    WS1 --> MSK1
-    MSK1 -.->|Cross-region replication| MSK2
-```
+![Diagram](./diagram-3.svg)
 
 | Component         | AWS Service           | Configuration                           |
 | ----------------- | --------------------- | --------------------------------------- |

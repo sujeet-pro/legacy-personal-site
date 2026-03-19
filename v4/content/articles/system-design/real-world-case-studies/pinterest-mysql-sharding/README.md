@@ -8,24 +8,7 @@ In 2012, Pinterest had 3.2 million users doubling every 45 days, 3 engineers, an
 
 <figure>
 
-```mermaid
-flowchart TD
-    subgraph "Before (Sept 2011)"
-        A[5 MySQL DBs] --- B[4 Cassandra Nodes]
-        B --- C[15 Membase Nodes]
-        C --- D[3 MongoDB Clusters]
-        D --- E[10 Redis Instances]
-        E --- F[8 Memcache Instances]
-    end
-
-    subgraph "After (Jan 2012)"
-        G[66 Sharded MySQL DBs]
-        H[59 Redis Instances]
-        I[51 Memcache Instances]
-    end
-
-    A -->|"Rearchitecture<br/>6 engineers, 4-5 months"| G
-```
+![Pinterest's storage architecture before and after the MySQL sharding migration. Six different database technologies replaced by three.](./pinterest-s-storage-architecture-before-and-after-the-mysql-sharding-migration-s.svg)
 
 <figcaption>Pinterest's storage architecture before and after the MySQL sharding migration. Six different database technologies replaced by three.</figcaption>
 </figure>
@@ -371,20 +354,7 @@ The `board_id` stored in a pin's JSON blob encodes the board's shard in its uppe
 
 <figure>
 
-```mermaid
-sequenceDiagram
-    participant App as Application
-    participant Cfg as Shard Config
-    participant DB as MySQL (Shard 3429)
-
-    App->>App: Extract shard_id from board_id (3429)
-    App->>Cfg: Look up host for shard 3429
-    Cfg-->>App: MySQL007A
-    App->>DB: INSERT INTO db03429.pins (data) VALUES ('[JSON]')
-    DB-->>App: local_id = 7075734
-    App->>App: Compose ID: (3429 << 46) | (1 << 36) | 7075734
-    App->>DB: INSERT INTO db03429.board_has_pins (board_id, pin_id, sequence) VALUES (...)
-```
+![Write path for creating a new pin. The shard is determined by the board's ID, keeping pins colocated with their board.](./write-path-for-creating-a-new-pin-the-shard-is-determined-by-the-board-s-id-keep.svg)
 
 <figcaption>Write path for creating a new pin. The shard is determined by the board's ID, keeping pins colocated with their board.</figcaption>
 </figure>

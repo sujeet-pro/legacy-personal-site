@@ -8,29 +8,7 @@ How Discord eliminated periodic latency spikes in their most heavily accessed se
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Go["Go Implementation (~2017-2019)"]
-        GoLRU["LRU Cache<br/>(HashMap, tens of millions of entries)"]
-        GoGC["Go GC<br/>(tri-color mark-and-sweep)"]
-        GoCass["Cassandra"]
-        GoLRU --> GoCass
-        GoGC -.->|"scans entire cache<br/>every ~2 min"| GoLRU
-    end
-
-    subgraph Rust["Rust Implementation (2019+)"]
-        RustLRU["LRU Cache<br/>(BTreeMap, 8M entries)"]
-        RustDrop["Ownership + Drop<br/>(deterministic deallocation)"]
-        RustCass["Cassandra"]
-        RustLRU --> RustCass
-        RustDrop -.->|"freed immediately<br/>on eviction"| RustLRU
-    end
-
-    Go -->|"Rewrite<br/>~May 2019"| Rust
-
-    style GoGC fill:#f87171,stroke:#991b1b,color:#000
-    style RustDrop fill:#4ade80,stroke:#166534,color:#000
-```
+![Discord's Read States service before and after the Rust rewrite. The Go GC had to scan the entire LRU cache every 2 minutes; Rust's ownership model frees evicted entries immediately with zero scanning overhead.](./discord-s-read-states-service-before-and-after-the-rust-rewrite-the-go-gc-had-to.svg)
 
 <figcaption>Discord's Read States service before and after the Rust rewrite. The Go GC had to scan the entire LRU cache every 2 minutes; Rust's ownership model frees evicted entries immediately with zero scanning overhead.</figcaption>
 </figure>
@@ -103,13 +81,7 @@ The Go implementation exhibited a distinctive **sawtooth latency pattern**: ever
 
 <figure>
 
-```mermaid
-xychart-beta
-    title "Go Read States: Periodic Latency Spikes"
-    x-axis "Time (minutes)" [0, 2, 4, 6, 8, 10, 12]
-    y-axis "Response Time (ms)" 0 --> 50
-    line "p99 latency" [1, 35, 1, 40, 1, 30, 1]
-```
+![Stylized representation of the Go service's sawtooth latency pattern. Every ~2 minutes, latency spiked to 10–40 ms before returning to baseline. Based on the latency chart from Discord's engineering blog.](./stylized-representation-of-the-go-service-s-sawtooth-latency-pattern-every-2-min.svg)
 
 <figcaption>Stylized representation of the Go service's sawtooth latency pattern. Every ~2 minutes, latency spiked to 10–40 ms before returning to baseline. Based on the latency chart from Discord's engineering blog.</figcaption>
 </figure>

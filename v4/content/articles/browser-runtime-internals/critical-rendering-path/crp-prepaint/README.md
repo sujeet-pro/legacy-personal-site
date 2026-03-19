@@ -8,29 +8,7 @@ Prepaint is a RenderingNG pipeline stage that performs an in-order traversal of 
 
 <figure>
 
-```mermaid
-flowchart TD
-    subgraph MainThread["Main Thread"]
-        direction TB
-        LO[LayoutObject Tree<br/>+ Fragment Data] --> PPW[PrePaintTreeWalk]
-        PPW --> PTB[PaintPropertyTreeBuilder]
-        PPW --> PI[PaintInvalidator]
-        PTB --> TT[Transform Tree]
-        PTB --> CT[Clip Tree]
-        PTB --> ET[Effect Tree]
-        PTB --> ST[Scroll Tree]
-        PI --> DIC[Display Item Clients<br/>marked dirty]
-    end
-
-    subgraph Output["Prepaint Outputs"]
-        TT & CT & ET & ST --> PTS[PropertyTreeState<br/>per element]
-        DIC --> Paint[Paint Stage]
-    end
-
-    style PPW fill:#fff9c4,stroke:#f9a825,stroke-width:2px
-    style PTB fill:#e8f5e9
-    style PI fill:#ffebee
-```
+![PrePaintTreeWalk traverses the LayoutObject tree, producing four property trees and paint invalidation decisions. Each element receives a PropertyTreeState—a 4-tuple of node references.](./prepainttreewalk-traverses-the-layoutobject-tree-producing-four-property-trees-a.svg)
 
 <figcaption>PrePaintTreeWalk traverses the LayoutObject tree, producing four property trees and paint invalidation decisions. Each element receives a PropertyTreeState—a 4-tuple of node references.</figcaption>
 </figure>

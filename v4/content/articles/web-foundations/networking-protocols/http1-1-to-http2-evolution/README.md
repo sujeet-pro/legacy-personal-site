@@ -8,25 +8,7 @@ How HTTP/1.1's request-response model and application-layer head-of-line (HOL) b
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph HTTP1["HTTP/1.1"]
-        H1C["6 TCP Connections"]
-        H1HOL["App-Layer HOL"]
-        H1H["Text Headers"]
-    end
-
-    subgraph HTTP2["HTTP/2"]
-        H2C["1 TCP Connection"]
-        H2MUX["Multiplexed Streams"]
-        H2H["HPACK Compression"]
-    end
-
-    HTTP1 -->|"RFC 9113 (2022)"| HTTP2
-    H1HOL -.->|"Solved"| H2MUX
-    H1H -.->|"Compressed"| H2H
-    H2C -.->|"TCP HOL Remains"| H3["HTTP/3 (QUIC)"]
-```
+![HTTP/1.1's workarounds (multiple connections, text headers) replaced by HTTP/2's single-connection multiplexing, with TCP HOL blocking as the remaining constraint addressed by HTTP/3](./http-1-1-s-workarounds-multiple-connections-text-headers-replaced-by-http-2-s-si.svg)
 
 <figcaption>HTTP/1.1's workarounds (multiple connections, text headers) replaced by HTTP/2's single-connection multiplexing, with TCP HOL blocking as the remaining constraint addressed by HTTP/3</figcaption>
 
@@ -137,26 +119,7 @@ HTTP/2 replaced text parsing with a fixed 9-octet frame header:
 
 Streams are independent, bidirectional sequences of frames sharing a single TCP connection:
 
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Server
-
-    Note over Client,Server: Single TCP connection with multiple streams
-
-    Client->>Server: HEADERS Stream 1 GET /critical.css
-    Client->>Server: HEADERS Stream 3 GET /app.js
-    Client->>Server: HEADERS Stream 5 GET /image.jpg
-
-    Server->>Client: HEADERS Stream 1 200 OK
-    Server->>Client: DATA Stream 1 CSS content
-    Server->>Client: HEADERS Stream 3 200 OK
-    Server->>Client: DATA Stream 5 image chunk 1
-    Server->>Client: DATA Stream 3 JS content
-    Server->>Client: DATA Stream 5 image chunk 2
-
-    Note over Client,Server: Responses interleaved without app-layer HOL
-```
+![Diagram](./diagram-1.svg)
 
 **Stream identifier rules** (RFC 9113 Section 5.1.1):
 
@@ -239,28 +202,7 @@ Server push allowed servers to send responses proactively via PUSH_PROMISE frame
 
 HTTP/2 solved application-layer HOL blocking but exposed a transport-layer constraint: TCP's in-order delivery guarantee.
 
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Network
-    participant Server
-
-    Server->>Network: Packet 1 (Stream 1: CSS)
-    Server->>Network: Packet 2 (Stream 3: JS)
-    Server->>Network: Packet 3 (Stream 5: Image)
-
-    Note over Network: Packet 1 lost
-
-    Network->>Client: Packet 2 arrives (buffered)
-    Network->>Client: Packet 3 arrives (buffered)
-
-    Note over Client: TCP holds Packets 2,3 until Packet 1 retransmission
-
-    Server->>Network: Packet 1 (retransmit)
-    Network->>Client: Packet 1 arrives
-
-    Note over Client: Now delivers Packets 1,2,3 to application
-```
+![Diagram](./diagram-2.svg)
 
 **Impact**: A single lost packet stalls all HTTP/2 streams, even those with complete data in the receive buffer. On networks with 1-2% packet loss, HTTP/2's single connection can underperform HTTP/1.1's multiple connections (which experience independent loss).
 
@@ -274,16 +216,7 @@ This limitation directly motivated HTTP/3's use of QUIC, which provides independ
 
 Browsers require TLS for HTTP/2, using the ALPN extension (RFC 7301) during the TLS handshake:
 
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Server
-
-    Client->>Server: ClientHello + ALPN extension<br/>protocols: ["h2", "http/1.1"]
-    Server->>Client: ServerHello + ALPN extension<br/>selected: "h2"
-
-    Note over Client,Server: Continue TLS handshake with HTTP/2 selected
-```
+![Diagram](./diagram-3.svg)
 
 **Protocol identifiers**:
 

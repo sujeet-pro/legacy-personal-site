@@ -10,32 +10,7 @@ Your marketing team launches a campaign at 9 AM. By 9:15, they discover the feat
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph SSG["SSG Architecture (Before)"]
-        direction TB
-        B1[Build Time] --> S1[Static HTML]
-        S1 --> CDN1[CDN Cache]
-        CDN1 --> U1[Users]
-        CMS1[CMS Changes] -.->|Triggers Rebuild| B1
-    end
-
-    subgraph SSR["SSR Architecture (After)"]
-        direction TB
-        R1[Request] --> CDN2[CDN/Edge]
-        CDN2 -->|Cache Miss| Server[SSR Server]
-        Server -->|Cache Headers| CDN2
-        CDN2 --> U2[Users]
-        CMS2[CMS Changes] -.->|Invalidate Cache| CDN2
-    end
-
-    subgraph Migration["Strangler Fig Migration"]
-        direction TB
-        Edge[Edge Proxy] --> |X% Traffic| SSR
-        Edge --> |Y% Traffic| SSG
-        Edge --> U3[Users]
-    end
-```
+![High-level architecture comparison: SSG's build-time approach vs SSR's request-time rendering, with the Strangler Fig pattern enabling gradual traffic migration between platforms](./high-level-architecture-comparison-ssg-s-build-time-approach-vs-ssr-s-request-ti.svg)
 
 <figcaption>High-level architecture comparison: SSG's build-time approach vs SSR's request-time rendering, with the Strangler Fig pattern enabling gradual traffic migration between platforms</figcaption>
 
@@ -353,34 +328,7 @@ Our implementation used AWS CloudFront with Lambda@Edge functions at three trigg
 
 <figure>
 
-```mermaid
-sequenceDiagram
-    participant User
-    participant CF as CloudFront
-    participant VR as Viewer Request
-    participant OR as Origin Request
-    participant VResp as Viewer Response
-    participant SSG as SSG Origin
-    participant SSR as SSR Origin
-
-    User->>CF: Request with cookies
-    CF->>VR: Trigger viewer-request
-    VR->>VR: Read userId cookie (or generate)
-    VR->>VR: Bucket user via Math.random + config
-    VR->>CF: Add x-platform-bucket header
-    CF->>OR: Trigger origin-request
-    OR->>OR: Read x-platform-bucket header
-    alt bucket = "ssr"
-        OR->>SSR: Override origin to SSR
-        SSR-->>CF: Response
-    else bucket = "ssg"
-        OR->>SSG: Override origin to SSG
-        SSG-->>CF: Response
-    end
-    CF->>VResp: Trigger viewer-response
-    VResp->>VResp: Set userId & platform-ab cookies
-    VResp-->>User: Response with Set-Cookie headers
-```
+![CloudFront Lambda@Edge flow: Viewer Request handles user identification and bucketing, Origin Request routes to the appropriate origin, and Viewer Response persists cookies](./cloudfront-lambda-edge-flow-viewer-request-handles-user-identification-and-bucke.svg)
 
 <figcaption>CloudFront Lambda@Edge flow: Viewer Request handles user identification and bucketing, Origin Request routes to the appropriate origin, and Viewer Response persists cookies</figcaption>
 

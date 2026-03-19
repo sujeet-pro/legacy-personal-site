@@ -8,31 +8,7 @@ Building robust file upload requires handling browser constraints, network failu
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph "Client"
-        A[File Selection] --> B[Validation]
-        B --> C{Size Check}
-        C -->|Small < 5MB| D[Single Upload]
-        C -->|Large ≥ 5MB| E[Chunked Upload]
-        E --> F[Per-Chunk Progress]
-        F --> G{Failure?}
-        G -->|Yes| H[Resume from Offset]
-        H --> F
-        G -->|No| I[Complete]
-        D --> I
-    end
-
-    subgraph "Server"
-        J[Receive Chunk] --> K[Store Chunk]
-        K --> L{All Chunks?}
-        L -->|No| M[Return Offset]
-        L -->|Yes| N[Assemble File]
-    end
-
-    F --> J
-    M --> F
-```
+![Chunked uploads enable resumability and progress tracking while keeping memory usage constant regardless of file size.](./chunked-uploads-enable-resumability-and-progress-tracking-while-keeping-memory-u.svg)
 
 <figcaption>Chunked uploads enable resumability and progress tracking while keeping memory usage constant regardless of file size.</figcaption>
 </figure>
@@ -421,19 +397,7 @@ class TusUpload {
 
 ### Decision Framework
 
-```mermaid
-flowchart TD
-    A[Design file uploader] --> B{Max file size?}
-    B -->|Under 10 MB| C[Single XHR upload]
-    B -->|Over 10 MB| D{Need cross-session resume?}
-    D -->|No| E[Chunked upload]
-    D -->|Yes| F{Server supports tus?}
-    F -->|Yes| G[tus protocol]
-    F -->|No| H[Custom resumable protocol]
-    E --> I{Need native progress?}
-    I -->|Yes| J[XHR per chunk]
-    I -->|No| K[Fetch per chunk]
-```
+![Diagram](./diagram-1.svg)
 
 ## File Selection and Validation
 

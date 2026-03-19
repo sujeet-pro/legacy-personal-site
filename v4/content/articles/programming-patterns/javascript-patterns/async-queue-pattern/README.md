@@ -8,34 +8,7 @@ Build resilient, scalable asynchronous task processing systems—from basic in-m
 
 <figure>
 
-```mermaid
-graph LR
-    subgraph "Task Queue"
-        T1[Task 1]
-        T2[Task 2]
-        T3[Task 3]
-        T4[Task 4]
-        T5[Task 5]
-    end
-
-    subgraph "Executors"
-        E1[Executor 1]
-        E2[Executor 2]
-        E3[Executor 3]
-    end
-
-    T1 --> E1
-    T2 --> E2
-    T3 --> E3
-    T4 --> E1
-    T5 --> E2
-
-    classDef taskClass fill:#ffcc00,stroke:#000,stroke-width:2px
-    classDef executorClass fill:#00ccff,stroke:#000,stroke-width:2px
-
-    class T1,T2,T3,T4,T5 taskClass
-    class E1,E2,E3 executorClass
-```
+![Asynchronous task queue distributing work across multiple executors with bounded concurrency](./asynchronous-task-queue-distributing-work-across-multiple-executors-with-bounded.svg)
 
 <figcaption>Asynchronous task queue distributing work across multiple executors with bounded concurrency</figcaption>
 
@@ -75,33 +48,7 @@ Node.js uses a single-threaded, event-driven architecture. This model excels at 
 
 <figure>
 
-```mermaid
-graph TD
-    subgraph "Event Loop Phases"
-        T[1. Timers]
-        PC[2. Pending Callbacks]
-        IP[3. Idle/Prepare]
-        P[4. Poll]
-        C[5. Check]
-        CL[6. Close Callbacks]
-    end
-
-    subgraph "Microtask Queues"
-        NT[nextTick Queue]
-        MQ[Promise Microtasks]
-    end
-
-    T --> PC --> IP --> P --> C --> CL --> T
-
-    NT -.->|After each phase| T
-    MQ -.->|After nextTick drains| T
-
-    classDef phaseClass fill:#99ccff,stroke:#000,stroke-width:2px
-    classDef microClass fill:#ffcc99,stroke:#000,stroke-width:2px
-
-    class T,PC,IP,P,C,CL phaseClass
-    class NT,MQ microClass
-```
+![Node.js event loop phases with microtask queues processed between each phase](./node-js-event-loop-phases-with-microtask-queues-processed-between-each-phase.svg)
 
 <figcaption>Node.js event loop phases with microtask queues processed between each phase</figcaption>
 
@@ -172,48 +119,7 @@ For persistence, horizontal scaling, and cross-process coordination, tasks must 
 
 <figure>
 
-```mermaid
-graph LR
-    subgraph "Producers"
-        P1[API Server]
-        P2[Cron Job]
-        P3[Event Handler]
-    end
-
-    subgraph "Message Broker"
-        MB[(Redis)]
-    end
-
-    subgraph "Workers"
-        W1[Worker 1]
-        W2[Worker 2]
-        W3[Worker 3]
-    end
-
-    subgraph "Failure Handling"
-        DLQ[(Dead Letter Queue)]
-    end
-
-    P1 --> MB
-    P2 --> MB
-    P3 --> MB
-    MB --> W1
-    MB --> W2
-    MB --> W3
-    W1 -->|Max retries exceeded| DLQ
-    W2 -->|Max retries exceeded| DLQ
-    W3 -->|Max retries exceeded| DLQ
-
-    classDef producerClass fill:#ffcc99,stroke:#000,stroke-width:2px
-    classDef brokerClass fill:#cc99ff,stroke:#000,stroke-width:2px
-    classDef workerClass fill:#99ffcc,stroke:#000,stroke-width:2px
-    classDef dlqClass fill:#ff9999,stroke:#000,stroke-width:2px
-
-    class P1,P2,P3 producerClass
-    class MB brokerClass
-    class W1,W2,W3 workerClass
-    class DLQ dlqClass
-```
+![Distributed queue with producers, Redis broker, competing consumers, and DLQ for failed jobs](./distributed-queue-with-producers-redis-broker-competing-consumers-and-dlq-for-fa.svg)
 
 <figcaption>Distributed queue with producers, Redis broker, competing consumers, and DLQ for failed jobs</figcaption>
 
@@ -344,20 +250,7 @@ Naive immediate retries cause thundering herd—all failed jobs retry simultaneo
 
 <figure>
 
-```mermaid
-graph LR
-    subgraph "Exponential Backoff + Jitter"
-        T1["1s ± random(0.5s)"]
-        T2["2s ± random(1s)"]
-        T3["4s ± random(2s)"]
-        T4["8s (cap) ± random(4s)"]
-    end
-
-    T1 --> T2 --> T3 --> T4
-
-    classDef timeClass fill:#ffcc00,stroke:#000,stroke-width:2px
-    class T1,T2,T3,T4 timeClass
-```
+![Exponential backoff with jitter desynchronizes retries, preventing load spikes](./exponential-backoff-with-jitter-desynchronizes-retries-preventing-load-spikes.svg)
 
 <figcaption>Exponential backoff with jitter desynchronizes retries, preventing load spikes</figcaption>
 
@@ -385,22 +278,7 @@ Some jobs are inherently unprocessable: malformed payloads, missing dependencies
 
 <figure>
 
-```mermaid
-graph LR
-    MQ[(Main Queue)] --> W[Worker]
-    W -->|Success| Done[✓]
-    W -->|Retry| MQ
-    W -->|Max attempts exceeded| DLQ[(DLQ)]
-    DLQ -->|Manual review| Fix[Fix & Replay]
-
-    classDef queueClass fill:#e0e0e0,stroke:#000,stroke-width:2px
-    classDef workerClass fill:#00ccff,stroke:#000,stroke-width:2px
-    classDef dlqClass fill:#ff6666,stroke:#000,stroke-width:2px
-
-    class MQ queueClass
-    class W workerClass
-    class DLQ dlqClass
-```
+![DLQ isolates poison messages, allowing main queue processing to continue](./dlq-isolates-poison-messages-allowing-main-queue-processing-to-continue.svg)
 
 <figcaption>DLQ isolates poison messages, allowing main queue processing to continue</figcaption>
 
@@ -459,29 +337,7 @@ const worker = new Worker("user-registration", async (job) => {
 
 <figure>
 
-```mermaid
-graph TD
-    subgraph "Application"
-        A[Service] -->|1. Single Transaction| DB[(Database)]
-        DB -->|Write| BT[Business Table]
-        DB -->|Write| OT[Outbox Table]
-    end
-
-    subgraph "Relay Process"
-        MR[Message Relay]
-        MR -->|2. Poll| OT
-        MR -->|3. Publish| MB[Message Broker]
-        MR -->|4. Mark sent| OT
-    end
-
-    classDef appClass fill:#ffcc99,stroke:#000,stroke-width:2px
-    classDef dbClass fill:#cc99ff,stroke:#000,stroke-width:2px
-    classDef relayClass fill:#99ffcc,stroke:#000,stroke-width:2px
-
-    class A appClass
-    class DB,BT,OT dbClass
-    class MR,MB relayClass
-```
+![Transactional outbox ensures atomic DB writes and event publishing via relay process](./transactional-outbox-ensures-atomic-db-writes-and-event-publishing-via-relay-pro.svg)
 
 <figcaption>Transactional outbox ensures atomic DB writes and event publishing via relay process</figcaption>
 
@@ -530,30 +386,7 @@ When a business operation spans multiple services (each with its own database), 
 
 <figure>
 
-```mermaid
-graph LR
-    subgraph "Order Saga - Happy Path"
-        S1[1. Reserve Inventory]
-        S2[2. Charge Payment]
-        S3[3. Ship Order]
-        S4[4. Confirm]
-    end
-
-    subgraph "Compensation - On Failure"
-        C3[Cancel Shipment]
-        C2[Refund Payment]
-        C1[Release Inventory]
-    end
-
-    S1 --> S2 --> S3 --> S4
-    S3 -->|Failure| C3 --> C2 --> C1
-
-    classDef stepClass fill:#99ffcc,stroke:#000,stroke-width:2px
-    classDef compClass fill:#ff9999,stroke:#000,stroke-width:2px
-
-    class S1,S2,S3,S4 stepClass
-    class C1,C2,C3 compClass
-```
+![Saga with compensating transactions: each step has a corresponding rollback action](./saga-with-compensating-transactions-each-step-has-a-corresponding-rollback-actio.svg)
 
 <figcaption>Saga with compensating transactions: each step has a corresponding rollback action</figcaption>
 
@@ -608,37 +441,7 @@ Event Sourcing stores state changes as an immutable sequence of events rather th
 
 <figure>
 
-```mermaid
-graph TD
-    subgraph "Write Side"
-        C[Command Handler]
-        ES[(Event Store)]
-    end
-
-    subgraph "Event Distribution"
-        Q[Message Queue]
-    end
-
-    subgraph "Read Side"
-        R1[Read Model 1]
-        R2[Read Model 2]
-        R3[Analytics]
-    end
-
-    C -->|Append Event| ES
-    ES -->|Publish| Q
-    Q --> R1
-    Q --> R2
-    Q --> R3
-
-    classDef writeClass fill:#ffcc99,stroke:#000,stroke-width:2px
-    classDef queueClass fill:#cc99ff,stroke:#000,stroke-width:2px
-    classDef readClass fill:#99ffcc,stroke:#000,stroke-width:2px
-
-    class C,ES writeClass
-    class Q queueClass
-    class R1,R2,R3 readClass
-```
+![Event Sourcing with CQRS: events flow from write side through queue to multiple read models](./event-sourcing-with-cqrs-events-flow-from-write-side-through-queue-to-multiple-r.svg)
 
 <figcaption>Event Sourcing with CQRS: events flow from write side through queue to multiple read models</figcaption>
 

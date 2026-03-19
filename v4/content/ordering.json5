@@ -4,7 +4,45 @@
   // Order is determined by array position
   categories: [
     // ==========================================================================
-    // System Design - Distributed systems (highest complexity)
+    // Browser Runtime Internals - Deep engine internals
+    // ==========================================================================
+    {
+      id: "browser-runtime-internals",
+      topics: [
+        {
+          id: "critical-rendering-path",
+          articles: [
+            "crp-rendering-pipeline-overview",
+            "crp-dom-construction",
+            "crp-cssom-construction",
+            "crp-style-recalculation",
+            "crp-layout",
+            "crp-prepaint",
+            "crp-paint",
+            "crp-commit",
+            "crp-layerize",
+            "crp-raster",
+            "crp-composit",
+            "crp-draw",
+          ],
+        },
+        {
+          id: "js-runtime-internals",
+          articles: [
+            "v8-engine-architecture",
+            "browser-internals",
+            "browser-event-loop",
+            "nodejs-runtime-architecture",
+            "libuv-event-loop-internals",
+            "nodejs-event-loop",
+            "js-event-loop",
+          ],
+        },
+      ],
+    },
+
+    // ==========================================================================
+    // System Design - Distributed systems
     // ==========================================================================
     {
       id: "system-design",
@@ -161,44 +199,6 @@
             // Unconventional Solutions
             "figma-multiplayer-infrastructure",
             "whatsapp-erlang-scaling",
-          ],
-        },
-      ],
-    },
-
-    // ==========================================================================
-    // Browser Runtime Internals - Deep engine internals
-    // ==========================================================================
-    {
-      id: "browser-runtime-internals",
-      topics: [
-        {
-          id: "critical-rendering-path",
-          articles: [
-            "crp-rendering-pipeline-overview",
-            "crp-dom-construction",
-            "crp-cssom-construction",
-            "crp-style-recalculation",
-            "crp-layout",
-            "crp-prepaint",
-            "crp-paint",
-            "crp-commit",
-            "crp-layerize",
-            "crp-raster",
-            "crp-composit",
-            "crp-draw",
-          ],
-        },
-        {
-          id: "js-runtime-internals",
-          articles: [
-            "v8-engine-architecture",
-            "browser-internals",
-            "browser-event-loop",
-            "nodejs-runtime-architecture",
-            "libuv-event-loop-internals",
-            "nodejs-event-loop",
-            "js-event-loop",
           ],
         },
       ],
@@ -395,7 +395,7 @@
   featuredTopics: ["system-design-problems", "critical-rendering-path"],
 
   // Project ordering (by array position)
-  projects: ["stateloom", "md2cf"],
+  projects: ["stateloom", "paramanu", "md2cf"],
 
   // Pinned content (shown first on listing pages)
   pinnedArticles: [],

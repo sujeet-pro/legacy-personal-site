@@ -8,44 +8,7 @@ Building a multi-tenant consent management platform that handles regulatory comp
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Edge["CDN Edge Layer"]
-        CDN[CloudFront/Fastly<br/>250+ PoPs]
-        SDK[Consent SDK<br/>Cached at Edge]
-    end
-
-    subgraph Gateway["API Gateway"]
-        RL[Rate Limiter]
-        Auth[Tenant Auth]
-    end
-
-    subgraph Core["Consent Services"]
-        CS[Consent Service<br/>Read/Write Split]
-        RS[Regulation Service<br/>Geo-Based Rules]
-        TS[Tenant Service<br/>Multi-Tenant Config]
-    end
-
-    subgraph Data["Data Layer"]
-        Redis[(Redis Cluster<br/>Consent Cache)]
-        Primary[(PostgreSQL<br/>Primary)]
-        Replica[(Read Replicas<br/>Regional)]
-        Audit[(Audit Log<br/>Immutable)]
-    end
-
-    Website --> CDN
-    CDN --> SDK
-    SDK --> |Consent Check| Redis
-    SDK --> |Consent Update| RL
-    RL --> Auth
-    Auth --> CS
-    CS --> Redis
-    CS --> Primary
-    Primary --> Replica
-    CS --> Audit
-    RS --> CS
-    TS --> CS
-```
+![Cookie consent service architecture: Edge-cached SDK for sub-50ms consent checks, read replicas for global distribution, immutable audit log for regulatory compliance, multi-tenant configuration per website.](./cookie-consent-service-architecture-edge-cached-sdk-for-sub-50ms-consent-checks-.svg)
 
 <figcaption>Cookie consent service architecture: Edge-cached SDK for sub-50ms consent checks, read replicas for global distribution, immutable audit log for regulatory compliance, multi-tenant configuration per website.</figcaption>
 </figure>
@@ -145,24 +108,7 @@ SDK delivery: 10K RPS × 50KB = 500MB/s (CDN handles most)
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    subgraph Edge["CDN Edge (250+ PoPs)"]
-        SDK[Consent SDK]
-        Cache[Edge Cache<br/>Consent Status]
-    end
-
-    subgraph Origin["Origin (Regional)"]
-        API[Consent API]
-        DB[(Database)]
-    end
-
-    Browser --> SDK
-    SDK --> |Check cache| Cache
-    Cache --> |Miss| API
-    API --> DB
-    SDK --> |Update| API
-```
+![Diagram](./diagram-1.svg)
 
 **Key characteristics:**
 
@@ -192,24 +138,7 @@ flowchart LR
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    subgraph Server["Application Server"]
-        SSR[Server-Side Render]
-        API[Consent API]
-    end
-
-    subgraph Data["Data Layer"]
-        Cache[(Redis)]
-        DB[(PostgreSQL)]
-    end
-
-    Browser --> SSR
-    SSR --> API
-    API --> Cache
-    Cache --> |Miss| DB
-    SSR --> |Include consent in HTML| Browser
-```
+![Diagram](./diagram-2.svg)
 
 **Key characteristics:**
 
@@ -267,59 +196,11 @@ Path B details are covered in the [Variations](#variations) section.
 
 ### Request Flow: Consent Check
 
-```mermaid
-sequenceDiagram
-    participant B as Browser
-    participant SDK as Consent SDK (Edge)
-    participant Cache as Edge Cache
-    participant API as Consent API
-    participant Redis as Redis Cluster
-    participant DB as PostgreSQL
-
-    B->>SDK: Page load
-    SDK->>SDK: Get device fingerprint
-    SDK->>Cache: Check consent (tenant:device:geo)
-
-    alt Cache hit
-        Cache->>SDK: Return consent status
-    else Cache miss
-        SDK->>API: GET /consent
-        API->>Redis: Check Redis cache
-        alt Redis hit
-            Redis->>API: Return consent
-        else Redis miss
-            API->>DB: Query consent record
-            DB->>API: Return consent
-            API->>Redis: Cache consent
-        end
-        API->>SDK: Return consent
-        SDK->>Cache: Store at edge
-    end
-
-    SDK->>B: Apply consent (block/allow scripts)
-```
+![Diagram](./diagram-3.svg)
 
 ### Request Flow: Consent Update
 
-```mermaid
-sequenceDiagram
-    participant B as Browser
-    participant SDK as Consent SDK
-    participant API as Consent API
-    participant Redis as Redis
-    participant DB as PostgreSQL
-    participant Audit as Audit Log
-
-    B->>SDK: User clicks "Accept Analytics"
-    SDK->>API: POST /consent {categories: [...]}
-    API->>API: Validate request
-    API->>DB: Write consent record
-    API->>Audit: Append audit entry
-    API->>Redis: Invalidate cache
-    API->>SDK: Return success
-    SDK->>SDK: Update local state
-    SDK->>B: Enable analytics scripts
-```
+![Diagram](./diagram-4.svg)
 
 ## API Design
 
@@ -923,34 +804,7 @@ function mergeConsent(device: ConsentRecord, user: ConsentRecord, strategy: stri
 
 **Migration flow:**
 
-```mermaid
-sequenceDiagram
-    participant B as Browser
-    participant Auth as Auth Service
-    participant CS as Consent Service
-    participant Redis as Redis
-    participant DB as PostgreSQL
-
-    B->>Auth: Login (device_id in request)
-    Auth->>Auth: Authenticate user
-    Auth->>CS: POST /consent/migrate {device_id, user_id}
-
-    CS->>DB: Get device consent
-    CS->>DB: Get user consent (if exists)
-
-    alt No existing user consent
-        CS->>DB: Link device_id to user_id
-    else Existing user consent
-        CS->>CS: Apply merge strategy
-        CS->>DB: Update user consent
-    end
-
-    CS->>Redis: Invalidate device cache
-    CS->>Redis: Invalidate user cache
-    CS->>CS: Audit migration
-    CS->>Auth: Migration complete
-    Auth->>B: Login response + new consent status
-```
+![Diagram](./diagram-5.svg)
 
 **Edge cases:**
 
@@ -1073,23 +927,7 @@ function applyTenantOverrides(detected: RegulationResult, tenantConfig: TenantCo
 
 **Configuration hierarchy:**
 
-```mermaid
-flowchart TB
-    subgraph Global["Global Defaults"]
-        GD[Default Categories<br/>Default Banner Config<br/>Default SDK]
-    end
-
-    subgraph Tenant["Tenant Level"]
-        TC[Custom Categories<br/>Custom Banner<br/>Regulation Overrides]
-    end
-
-    subgraph Domain["Domain Level (Optional)"]
-        DC[Domain-Specific Overrides<br/>Subdomain Rules]
-    end
-
-    GD --> TC
-    TC --> DC
-```
+![Diagram](./diagram-6.svg)
 
 **Configuration resolution:**
 
@@ -1151,22 +989,7 @@ async function updateTenantConfig(tenantId: string, updates: Partial<TenantConfi
 
 **Layered cache invalidation:**
 
-```mermaid
-flowchart LR
-    subgraph Write["Consent Update"]
-        W[Write to DB]
-    end
-
-    subgraph Invalidate["Cache Invalidation"]
-        R[Redis: Delete key]
-        E[Edge: Purge by key]
-        C[Client: Refetch]
-    end
-
-    W --> R
-    R --> E
-    E --> C
-```
+![Diagram](./diagram-7.svg)
 
 **Implementation:**
 
@@ -1423,41 +1246,7 @@ function updateGoogleConsent(consent: ConsentStatus): void {
 
 ### AWS Reference Architecture
 
-```mermaid
-graph TB
-    subgraph Edge["Edge Layer"]
-        CF[CloudFront<br/>250+ PoPs]
-        LambdaEdge[Lambda at Edge<br/>Regulation Detection]
-    end
-
-    subgraph Compute["Compute Layer"]
-        APIGW[API Gateway]
-        ECS[ECS Fargate<br/>Consent Service]
-        LambdaAsync[Lambda<br/>Async Processing]
-    end
-
-    subgraph Data["Data Layer"]
-        ElastiCache[(ElastiCache<br/>Redis Cluster)]
-        RDS[(RDS PostgreSQL<br/>Multi-AZ)]
-        RDSReplica[(Read Replicas<br/>eu, ap-south)]
-        S3[(S3<br/>Audit + SDK)]
-    end
-
-    subgraph Monitoring["Observability"]
-        CW[CloudWatch]
-        XRay[X-Ray]
-    end
-
-    Users --> CF
-    CF --> LambdaEdge
-    CF --> APIGW
-    APIGW --> ECS
-    ECS --> ElastiCache
-    ECS --> RDS
-    ECS --> RDSReplica
-    ECS --> S3
-    LambdaAsync --> S3
-```
+![Diagram](./diagram-8.svg)
 
 **Service configuration:**
 
@@ -1474,32 +1263,7 @@ graph TB
 
 ### Multi-Region Deployment
 
-```mermaid
-flowchart TB
-    subgraph US["US Region (Primary)"]
-        USWrite[(Primary DB<br/>Write)]
-        USRead[(Read Replica)]
-        USCache[(Redis)]
-    end
-
-    subgraph EU["EU Region"]
-        EURead[(Read Replica)]
-        EUCache[(Redis)]
-    end
-
-    subgraph AP["AP Region"]
-        APRead[(Read Replica)]
-        APCache[(Redis)]
-    end
-
-    USWrite --> |Async Replication| EURead
-    USWrite --> |Async Replication| APRead
-
-    EUUser --> EUCache --> EURead
-    APUser --> APCache --> APRead
-    USUser --> USCache --> USRead
-    WriteOps --> USWrite
-```
+![Diagram](./diagram-9.svg)
 
 **Design decisions:**
 

@@ -8,35 +8,7 @@ Schema-driven form generation systems that render dynamic UIs from declarative d
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Builder["Form Builder"]
-        Schema["JSON Schema<br/>Field definitions"]
-        UISchema["UI Schema<br/>Rendering hints"]
-        Logic["Logic Rules<br/>Conditions"]
-    end
-
-    subgraph Runtime["Form Runtime"]
-        Registry["Component<br/>Registry"]
-        Renderer["Schema<br/>Renderer"]
-        State["Form State<br/>Manager"]
-        Validator["Validation<br/>Engine"]
-    end
-
-    subgraph Storage["Persistence"]
-        Draft["Draft Storage<br/>IndexedDB"]
-        Submit["Submission<br/>Backend"]
-    end
-
-    Schema --> Renderer
-    UISchema --> Renderer
-    Logic --> Renderer
-    Registry --> Renderer
-    Renderer --> State
-    State --> Validator
-    State --> Draft
-    State --> Submit
-```
+![Form builder architecture: schemas define structure, runtime renders and validates, persistence handles drafts and submissions.](./form-builder-architecture-schemas-define-structure-runtime-renders-and-validates.svg)
 
 <figcaption>Form builder architecture: schemas define structure, runtime renders and validates, persistence handles drafts and submissions.</figcaption>
 </figure>
@@ -92,15 +64,7 @@ Large-scale forms (tax software, insurance applications, enterprise workflows) r
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    JS["JSON Schema"] --> Validator["AJV Validator"]
-    JS --> Renderer["RJSF Renderer"]
-    UI["UI Schema"] --> Renderer
-    Renderer --> Form["Rendered Form"]
-    Form --> Data["Form Data"]
-    Data --> Validator
-```
+![Diagram](./diagram-1.svg)
 
 **How it works:**
 
@@ -175,13 +139,7 @@ React JSON Schema Form (RJSF) powers forms at Mozilla, Postman, and numerous ent
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    TS["TypeScript Schema<br/>(Zod/TypeBox)"] --> Types["Inferred Types"]
-    TS --> Validator["Runtime Validator"]
-    Types --> Form["Type-safe Form"]
-    Form --> Validator
-```
+![Diagram](./diagram-2.svg)
 
 **How it works:**
 
@@ -253,22 +211,7 @@ tRPC, Remix, and Next.js applications commonly use Zod for end-to-end type safet
 
 **Architecture:**
 
-```mermaid
-stateDiagram-v2
-    [*] --> idle
-    idle --> step1: START
-    step1 --> validating1: NEXT
-    validating1 --> step1: INVALID
-    validating1 --> step2: VALID
-    step2 --> validating2: NEXT
-    step2 --> step1: BACK
-    validating2 --> step2: INVALID
-    validating2 --> submitting: VALID
-    submitting --> success: DONE
-    submitting --> error: FAIL
-    error --> submitting: RETRY
-    success --> [*]
-```
+![Diagram](./diagram-3.svg)
 
 **How it works:**
 

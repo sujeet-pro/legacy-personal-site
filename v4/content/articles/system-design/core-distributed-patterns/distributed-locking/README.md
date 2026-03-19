@@ -10,27 +10,7 @@ This article covers lock implementations (Redis, ZooKeeper, etcd, Chubby), the R
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "The Core Problem"
-        direction LR
-        C1[Client 1] -->|"Acquire"| L((Lock Service))
-        C2[Client 2] -->|"Acquire"| L
-        L -->|"Granted"| C1
-        L -->|"Denied/Wait"| C2
-        C1 -->|"Access"| R[(Resource)]
-    end
-
-    subgraph "Failure Modes"
-        direction TB
-        F1["Network Partition: Client thinks it has lock, server disagrees"]
-        F2["Clock Drift: Lease expires early/late"]
-        F3["Process Pause: GC stall outlives lease"]
-        F4["Split-Brain: Multiple clients believe they hold lock"]
-    end
-
-    R -.->|"Corrupted if"| F4
-```
+![Distributed locks must handle failures that single-process locks never face—network partitions, clock drift, and process pauses can all cause multiple clients to believe they hold the same lock simultaneously.](./distributed-locks-must-handle-failures-that-single-process-locks-never-face-netw.svg)
 
 <figcaption>Distributed locks must handle failures that single-process locks never face—network partitions, clock drift, and process pauses can all cause multiple clients to believe they hold the same lock simultaneously.</figcaption>
 </figure>
@@ -122,20 +102,7 @@ All practical distributed locks use **leases**—time-bounded locks that expire 
 
 ### Core Mechanism
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant L as Lock Service
-    participant R as Resource
-
-    C->>L: Acquire lock (TTL=30s)
-    L-->>C: Granted (expires at T+30s)
-    Note over C: Work begins
-    C->>R: Access resource
-    Note over C: Work continues...
-    C->>L: Release lock (or let expire)
-    L-->>C: Released
-```
+![Diagram](./diagram-1.svg)
 
 ### TTL Selection Formula
 
@@ -300,17 +267,7 @@ async function redlockAcquire(instances: Redis[], resource: string, ttlMs: numbe
 
 **Ephemeral sequential node recipe:**
 
-```mermaid
-flowchart LR
-    subgraph "/locks/resource-1"
-        N1["lock-0000000001 (Client A)"]
-        N2["lock-0000000002 (Client B)"]
-        N3["lock-0000000003 (Client C)"]
-    end
-    N1 -->|"Holds lock"| L((Lock))
-    N2 -->|"Watches N1"| N1
-    N3 -->|"Watches N2"| N2
-```
+![Diagram](./diagram-2.svg)
 
 **Algorithm:**
 
@@ -497,18 +454,7 @@ UPDATE resources SET ... WHERE id = 'resource-1';
 
 ### Decision Framework
 
-```mermaid
-flowchart TD
-    A[Need distributed lock] --> B{Correctness critical?}
-    B -->|No: efficiency only| C{Fault tolerance needed?}
-    B -->|Yes: data corruption risk| D{Already have ZooKeeper?}
-    C -->|No| E[Redis single-node]
-    C -->|Yes| F[Redlock]
-    D -->|Yes| G[ZooKeeper + fencing]
-    D -->|No| H{Single database scope?}
-    H -->|Yes| I[PostgreSQL advisory]
-    H -->|No| J[ZooKeeper or etcd + fencing]
-```
+![Diagram](./diagram-3.svg)
 
 ## Fencing Tokens
 
@@ -518,30 +464,7 @@ Leases expire. When they do, a "stale" lock holder may still be executing its cr
 
 **Example failure scenario:**
 
-```mermaid
-sequenceDiagram
-    participant C1 as Client 1
-    participant L as Lock Service
-    participant S as Storage
-
-    C1->>L: Acquire lock
-    L-->>C1: Granted (30s lease)
-    Note over C1: GC pause begins (45s)
-    Note over L: Lease expires at 30s
-    Note over C1: ...still paused...
-
-    participant C2 as Client 2
-    C2->>L: Acquire lock
-    L-->>C2: Granted
-
-    C2->>S: Write "value-B"
-    S-->>C2: OK
-
-    Note over C1: GC pause ends
-    C1->>S: Write "value-A" (stale!)
-    S-->>C1: OK (without fencing)
-    Note over S: Data corrupted!
-```
+![Diagram](./diagram-4.svg)
 
 ### How Fencing Tokens Work
 
@@ -550,28 +473,7 @@ sequenceDiagram
 3. Resource tracks **highest token ever seen**
 4. Resource **rejects** operations with token < highest seen
 
-```mermaid
-sequenceDiagram
-    participant C1 as Client 1
-    participant L as Lock Service
-    participant S as Storage
-
-    C1->>L: Acquire lock
-    L-->>C1: Granted, token=33
-    Note over C1: GC pause (lease expires)
-
-    participant C2 as Client 2
-    C2->>L: Acquire lock
-    L-->>C2: Granted, token=34
-
-    C2->>S: Write (token=34)
-    S-->>C2: OK (highest=34)
-
-    Note over C1: GC ends
-    C1->>S: Write (token=33)
-    S-->>C1: REJECTED (33 < 34)
-    Note over S: Data protected!
-```
+![Diagram](./diagram-5.svg)
 
 ### Implementation Pattern
 
@@ -855,16 +757,7 @@ async function optimisticUpdate(id: string, transform: (data: unknown) => unknow
 
 Route all operations for a resource to a single queue/partition.
 
-```mermaid
-flowchart LR
-    C1[Client 1] -->|"Op for R1"| Q1["Queue: R1"]
-    C2[Client 2] -->|"Op for R1"| Q1
-    C3[Client 3] -->|"Op for R2"| Q2["Queue: R2"]
-    Q1 --> W1[Worker]
-    Q2 --> W2[Worker]
-    W1 -->|"Sequential"| R1[(Resource 1)]
-    W2 -->|"Sequential"| R2[(Resource 2)]
-```
+![Diagram](./diagram-6.svg)
 
 This eliminates concurrent access by design.
 

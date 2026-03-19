@@ -8,39 +8,7 @@ Client-side architecture for real-time data synchronization: transport protocols
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Client["Client Application"]
-        UI["UI Layer"]
-        OptStore["Optimistic State"]
-        SyncEngine["Sync Engine"]
-        LocalDB["Local Storage<br/>(IndexedDB)"]
-        ConnMgr["Connection Manager"]
-    end
-
-    subgraph Transport["Transport Layer"]
-        WS["WebSocket"]
-        SSE["SSE"]
-        HTTP["HTTP Polling"]
-    end
-
-    subgraph Server["Server"]
-        Gateway["Gateway"]
-        Auth["Authoritative State"]
-    end
-
-    UI -->|"user action"| OptStore
-    OptStore -->|"immediate feedback"| UI
-    OptStore -->|"mutation"| SyncEngine
-    SyncEngine <-->|"persist"| LocalDB
-    SyncEngine <-->|"send/receive"| ConnMgr
-    ConnMgr <-->|"bidirectional"| WS
-    ConnMgr <-->|"server→client"| SSE
-    ConnMgr <-->|"request/response"| HTTP
-    WS & SSE & HTTP <--> Gateway
-    Gateway <--> Auth
-    Auth -->|"state update"| Gateway
-```
+![Real-time sync client architecture: optimistic local state, sync engine with persistence, and transport abstraction connecting to authoritative server state.](./real-time-sync-client-architecture-optimistic-local-state-sync-engine-with-persi.svg)
 
 <figcaption>Real-time sync client architecture: optimistic local state, sync engine with persistence, and transport abstraction connecting to authoritative server state.</figcaption>
 </figure>
@@ -195,22 +163,7 @@ Long polling simulates push by having the client hold an open HTTP request until
 
 ### Decision Framework
 
-```mermaid
-graph TD
-    A[Need real-time sync] --> B{Bidirectional?}
-    B -->|Yes| C{Low latency critical?}
-    B -->|No| D[SSE]
-    C -->|Yes| E[WebSocket]
-    C -->|No| F{Corporate proxy restrictions?}
-    F -->|Yes| D
-    F -->|No| E
-    D --> G{Client needs to send data?}
-    G -->|Yes| H[SSE + HTTP POST]
-    G -->|No| I[SSE only]
-    E --> J{Offline support needed?}
-    J -->|Yes| K[WebSocket + IndexedDB queue]
-    J -->|No| L[WebSocket]
-```
+![Diagram](./diagram-1.svg)
 
 ## Connection Management
 

@@ -8,35 +8,7 @@ Netflix serves 300+ million subscribers across 190+ countries, delivering 94 bil
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Content Preparation"
-        INGEST[Studio Masters] --> ANALYSIS[Complexity Analysis<br/>Shot Detection]
-        ANALYSIS --> ENCODE[Per-Title Encoding<br/>Multi-codec Ladder]
-        ENCODE --> PACKAGE[Packaging<br/>CMAF/HLS/DASH]
-    end
-
-    subgraph "Content Distribution"
-        PACKAGE --> ORIGIN[(Origin Storage<br/>AWS S3)]
-        ORIGIN --> FILL[Fill Pipeline<br/>Proactive Cache]
-        FILL --> OCA[Open Connect CDN<br/>1000+ Locations]
-    end
-
-    subgraph "Playback Services"
-        API[API Gateway<br/>Zuul] --> PLAYBACK[Playback Service<br/>Manifest + License]
-        PLAYBACK --> STEERING[Traffic Steering<br/>OCA Selection]
-    end
-
-    subgraph "Client"
-        PLAYER[Client Player<br/>ABR Algorithm] --> OCA
-        PLAYER <--> PLAYBACK
-    end
-
-    subgraph "Personalization"
-        REC[Recommendation Engine<br/>PVR Model] --> API
-        ARTWORK[Artwork Selection<br/>Contextual Bandits] --> API
-    end
-```
+![High-level architecture: content preparation → proactive distribution to Open Connect edge → client playback with personalized steering.](./high-level-architecture-content-preparation-proactive-distribution-to-open-conne.svg)
 
 <figcaption>High-level architecture: content preparation → proactive distribution to Open Connect edge → client playback with personalized steering.</figcaption>
 </figure>
@@ -208,66 +180,7 @@ This article focuses on **Path B (Custom CDN)** because:
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Client Layer"
-        TV[Smart TVs]
-        MOBILE[Mobile Apps]
-        WEB[Web Browsers]
-        CONSOLE[Game Consoles]
-    end
-
-    subgraph "Edge Services (AWS)"
-        GATEWAY[API Gateway<br/>Zuul + Eureka]
-        AUTH[Auth Service]
-        PROFILE[Profile Service]
-    end
-
-    subgraph "Playback Services"
-        PLAYBACK[Playback API<br/>Manifest Generation]
-        LICENSE[License Service<br/>DRM Keys]
-        STEERING[Steering Service<br/>OCA Selection]
-    end
-
-    subgraph "Personalization"
-        REC[Recommendation<br/>PVR + Ranker]
-        ARTWORK[Artwork<br/>Personalization]
-        ABTESTING[A/B Testing<br/>Platform]
-    end
-
-    subgraph "Content Pipeline"
-        INGEST[Ingest Service]
-        ENCODE[Encoding Pipeline<br/>Cosmos Platform]
-        QC[Quality Control<br/>VMAF Validation]
-    end
-
-    subgraph "Storage"
-        ORIGIN[(S3 Origin<br/>All Variants)]
-        META[(Metadata DB<br/>Cassandra)]
-        CACHE[(EVCache<br/>Hot Metadata)]
-    end
-
-    subgraph "Open Connect CDN"
-        FILL[Fill Pipeline<br/>Proactive Distribution]
-        OCA1[OCA Cluster<br/>ISP A]
-        OCA2[OCA Cluster<br/>ISP B]
-        OCA3[OCA Cluster<br/>IXP]
-    end
-
-    TV & MOBILE & WEB & CONSOLE --> GATEWAY
-    GATEWAY --> AUTH --> PROFILE
-    GATEWAY --> PLAYBACK --> LICENSE
-    PLAYBACK --> STEERING
-    GATEWAY --> REC --> ARTWORK
-    PROFILE --> ABTESTING
-
-    INGEST --> ENCODE --> QC --> ORIGIN
-    ORIGIN --> FILL --> OCA1 & OCA2 & OCA3
-    STEERING --> OCA1 & OCA2 & OCA3
-
-    META --> CACHE
-    PLAYBACK --> CACHE
-```
+![System architecture: AWS hosts control plane and personalization; Open Connect handles all video delivery.](./system-architecture-aws-hosts-control-plane-and-personalization-open-connect-han.svg)
 
 <figcaption>System architecture: AWS hosts control plane and personalization; Open Connect handles all video delivery.</figcaption>
 </figure>
@@ -318,44 +231,7 @@ This separation allows each infrastructure to optimize for its workload. AWS han
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Netflix Origin (AWS)"
-        S3[(S3 - Encoded Content)]
-        FILL_SVC[Fill Service<br/>Popularity-Based]
-    end
-
-    subgraph "Internet Exchange Point"
-        IXP_OCA[OCA Cluster<br/>High Capacity]
-    end
-
-    subgraph "ISP A Network"
-        ISP_A_OCA[OCA Cluster<br/>Embedded]
-        ISP_A_ROUTER[ISP Router]
-    end
-
-    subgraph "ISP B Network"
-        ISP_B_OCA[OCA Cluster<br/>Embedded]
-        ISP_B_ROUTER[ISP Router]
-    end
-
-    subgraph "Subscribers"
-        USER_A[User in ISP A]
-        USER_B[User in ISP B]
-    end
-
-    S3 -->|Proactive Fill<br/>Off-peak Hours| FILL_SVC
-    FILL_SVC -->|BGP + HTTPS| IXP_OCA
-    FILL_SVC -->|BGP + HTTPS| ISP_A_OCA
-    FILL_SVC -->|BGP + HTTPS| ISP_B_OCA
-
-    USER_A --> ISP_A_ROUTER --> ISP_A_OCA
-    USER_B --> ISP_B_ROUTER --> ISP_B_OCA
-
-    ISP_A_OCA -->|Cache Miss| IXP_OCA
-    ISP_B_OCA -->|Cache Miss| IXP_OCA
-    IXP_OCA -->|Origin Fetch| S3
-```
+![Open Connect topology: ISP-embedded OCAs serve most traffic; IXP clusters handle cache misses; origin serves ~2% of requests.](./open-connect-topology-isp-embedded-ocas-serve-most-traffic-ixp-clusters-handle-c.svg)
 
 <figcaption>Open Connect topology: ISP-embedded OCAs serve most traffic; IXP clusters handle cache misses; origin serves ~2% of requests.</figcaption>
 </figure>
@@ -467,33 +343,7 @@ Netflix rebuilt its encoding pipeline on Cosmos (completed September 2023), repl
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Ingestion"
-        MASTER[Studio Master<br/>ProRes/DNxHD] --> VIS[Video Inspection Service<br/>Metadata Extraction]
-    end
-
-    subgraph "Analysis"
-        VIS --> CAS[Complexity Analysis Service<br/>Per-shot Analysis]
-        CAS --> LGS[Ladder Generation Service<br/>Bitrate Optimization]
-    end
-
-    subgraph "Encoding"
-        LGS --> CHUNK[Chunking<br/>Shot-aligned Segments]
-        CHUNK --> VES[Video Encoding Service<br/>Parallel Workers]
-        VES --> ASSEMBLY[Assembly<br/>Concatenation]
-    end
-
-    subgraph "Quality Control"
-        ASSEMBLY --> VMAF[VMAF Validation<br/>93+ Target]
-        VMAF -->|Pass| PACKAGE[Packaging<br/>HLS/DASH/CMAF]
-        VMAF -->|Fail| VES
-    end
-
-    subgraph "Output"
-        PACKAGE --> S3[(S3 Origin)]
-    end
-```
+![Cosmos encoding pipeline: analysis → encoding → quality control → packaging. Failed VMAF segments are re-encoded at higher bitrate.](./cosmos-encoding-pipeline-analysis-encoding-quality-control-packaging-failed-vmaf.svg)
 
 <figcaption>Cosmos encoding pipeline: analysis → encoding → quality control → packaging. Failed VMAF segments are re-encoded at higher bitrate.</figcaption>
 </figure>
@@ -757,24 +607,7 @@ All three use CENC (Common Encryption) for the encrypted content, so Netflix enc
 
 <figure>
 
-```mermaid
-sequenceDiagram
-    participant P as Player
-    participant C as CDM (Browser)
-    participant L as License Server
-    participant O as OCA
-
-    P->>O: Request encrypted segment
-    O-->>P: Encrypted segment + PSSH box
-    P->>C: Pass PSSH (key ID info)
-    C->>C: Generate license request
-    P->>L: License request (device credentials)
-    L->>L: Validate entitlement
-    L-->>P: License (decryption keys)
-    P->>C: Provide license
-    C->>C: Decrypt content
-    C-->>P: Decrypted frames for rendering
-```
+![DRM flow: player requests encrypted content, CDM generates license request, license server validates and returns keys.](./drm-flow-player-requests-encrypted-content-cdm-generates-license-request-license.svg)
 
 <figcaption>DRM flow: player requests encrypted content, CDM generates license request, license server validates and returns keys.</figcaption>
 </figure>
@@ -810,23 +643,7 @@ Netflix recommendations drive **75-80% of viewing hours**. The system is estimat
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Offline Training"
-        HISTORY[View History] --> EMBED[Embedding Models<br/>User + Content Vectors]
-        CATALOG[Content Metadata] --> EMBED
-        EMBED --> INDEX[ANN Index<br/>Candidate Retrieval]
-    end
-
-    subgraph "Online Serving"
-        REQ[Recommendation Request] --> RETRIEVE[Candidate Retrieval<br/>Top 1000]
-        RETRIEVE --> RANK[PVR Ranking Model<br/>Deep Learning]
-        RANK --> DIVERSIFY[Diversification<br/>Row Composition]
-        DIVERSIFY --> RESP[Personalized Rows]
-    end
-
-    INDEX --> RETRIEVE
-```
+![Two-stage recommendation: retrieve candidates via embedding similarity, rank with Personalized Video Ranking (PVR) model.](./two-stage-recommendation-retrieve-candidates-via-embedding-similarity-rank-with-.svg)
 
 <figcaption>Two-stage recommendation: retrieve candidates via embedding similarity, rank with Personalized Video Ranking (PVR) model.</figcaption>
 </figure>
@@ -966,37 +783,7 @@ Systems should be resilient to failure by design. Random production failures ens
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "AWS US-East"
-        API_E[API Services]
-        DB_E[(Primary DB)]
-    end
-
-    subgraph "AWS US-West"
-        API_W[API Services]
-        DB_W[(Replica)]
-    end
-
-    subgraph "AWS EU-West"
-        API_EU[API Services]
-        DB_EU[(Replica)]
-    end
-
-    subgraph "Open Connect (Global)"
-        OC_NA[North America<br/>OCAs]
-        OC_EU[Europe<br/>OCAs]
-        OC_APAC[Asia-Pacific<br/>OCAs]
-        OC_LATAM[Latin America<br/>OCAs]
-    end
-
-    DB_E <-->|Replication| DB_W
-    DB_E <-->|Replication| DB_EU
-
-    API_E --> OC_NA
-    API_W --> OC_NA
-    API_EU --> OC_EU
-```
+![Netflix operates in 4 AWS regions for control plane; Open Connect provides global video delivery.](./netflix-operates-in-4-aws-regions-for-control-plane-open-connect-provides-global.svg)
 
 <figcaption>Netflix operates in 4 AWS regions for control plane; Open Connect provides global video delivery.</figcaption>
 </figure>

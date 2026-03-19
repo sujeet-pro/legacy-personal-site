@@ -8,31 +8,7 @@ Master CSS delivery, critical CSS extraction, containment properties, and font o
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "CSS Performance Pipeline"
-        LOAD["Load<br/>Delivery"] --> PARSE["Parse<br/>CSSOM"]
-        PARSE --> RENDER["Render<br/>Layout/Paint"]
-        RENDER --> ANIMATE["Animate<br/>Composite"]
-    end
-
-    subgraph "Font Pipeline"
-        SUBSET["Subset<br/>Remove unused glyphs"]
-        FORMAT["Format<br/>WOFF2 compression"]
-        LOADF["Load<br/>Preload + swap"]
-        MATCH["Match<br/>size-adjust fallback"]
-    end
-
-    SUBSET --> FORMAT
-    FORMAT --> LOADF
-    LOADF --> MATCH
-
-    subgraph "CWV Impact"
-        LCP["LCP"]
-        CLS["CLS"]
-        FCP["FCP"]
-    end
-```
+![CSS and typography optimization stages: delivery, parsing, rendering, and font loading](./css-and-typography-optimization-stages-delivery-parsing-rendering-and-font-loadi.svg)
 
 <figcaption>CSS and typography optimization stages: delivery, parsing, rendering, and font loading</figcaption>
 
@@ -44,31 +20,7 @@ CSS and typography performance follows a layered optimization model:
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph "Delivery Layer"
-        direction TB
-        CRIT["Critical CSS<br/>≤14KB inline"]
-        DEFER["Non-critical<br/>Deferred load"]
-    end
-
-    subgraph "Runtime Layer"
-        direction TB
-        CONTAIN["Containment<br/>Isolate subtrees"]
-        COMPOSITE["Compositor<br/>transform/opacity"]
-    end
-
-    subgraph "Font Layer"
-        direction TB
-        FORMAT["WOFF2 + Subset"]
-        METRIC["Metric Overrides<br/>Zero-CLS swap"]
-    end
-
-    CRIT --> CONTAIN
-    DEFER --> CONTAIN
-    CONTAIN --> COMPOSITE
-    FORMAT --> METRIC
-```
+![Three optimization layers: delivery eliminates round-trips, runtime isolates layout work, fonts prevent layout shifts](./three-optimization-layers-delivery-eliminates-round-trips-runtime-isolates-layou.svg)
 
 <figcaption>Three optimization layers: delivery eliminates round-trips, runtime isolates layout work, fonts prevent layout shifts</figcaption>
 

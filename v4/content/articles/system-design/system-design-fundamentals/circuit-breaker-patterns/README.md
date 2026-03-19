@@ -8,20 +8,7 @@ Circuit breakers prevent cascading failures by failing fast when downstream depe
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph States["Circuit Breaker States"]
-        direction TB
-        Closed["🟢 Closed<br/><small>Normal operation</small>"]
-        Open["🔴 Open<br/><small>Fast-fail mode</small>"]
-        HalfOpen["🟡 Half-Open<br/><small>Testing recovery</small>"]
-    end
-
-    Closed -->|"Failure threshold<br/>exceeded"| Open
-    Open -->|"Reset timeout<br/>expires"| HalfOpen
-    HalfOpen -->|"Probe succeeds"| Closed
-    HalfOpen -->|"Probe fails"| Open
-```
+![The circuit breaker state machine. Closed allows requests and counts failures. Open rejects immediately. Half-Open tests if recovery is complete.](./the-circuit-breaker-state-machine-closed-allows-requests-and-counts-failures-ope.svg)
 
 <figcaption>The circuit breaker state machine. Closed allows requests and counts failures. Open rejects immediately. Half-Open tests if recovery is complete.</figcaption>
 </figure>

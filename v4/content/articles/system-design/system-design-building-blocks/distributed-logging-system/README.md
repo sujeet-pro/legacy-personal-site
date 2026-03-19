@@ -8,50 +8,7 @@ Centralized logging infrastructure enables observability across distributed syst
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph Sources["Log Sources"]
-        App1[Service A]
-        App2[Service B]
-        App3[Service C]
-    end
-
-    subgraph Collection["Collection Layer"]
-        Agent1[Agent]
-        Agent2[Agent]
-        Agent3[Agent]
-    end
-
-    subgraph Buffer["Buffer Layer"]
-        Queue[(Message Queue<br/>Kafka/Kinesis)]
-    end
-
-    subgraph Processing["Processing Layer"]
-        Proc[Stream Processor<br/>Parse, Enrich, Route]
-    end
-
-    subgraph Storage["Storage Layer"]
-        Hot[(Hot Tier<br/>SSD)]
-        Warm[(Warm Tier<br/>HDD)]
-        Cold[(Cold Tier<br/>Object Storage)]
-    end
-
-    subgraph Query["Query Layer"]
-        Index[Index Service]
-        Search[Search API]
-        UI[Visualization]
-    end
-
-    App1 --> Agent1
-    App2 --> Agent2
-    App3 --> Agent3
-    Agent1 & Agent2 & Agent3 --> Queue
-    Queue --> Proc
-    Proc --> Hot
-    Hot --> Warm --> Cold
-    Hot & Warm --> Index
-    Index --> Search --> UI
-```
+![End-to-end distributed logging architecture: collection agents ship logs through a message queue buffer, stream processors parse and route data to tiered storage, and an index service powers search queries.](./end-to-end-distributed-logging-architecture-collection-agents-ship-logs-through-.svg)
 
 <figcaption>End-to-end distributed logging architecture: collection agents ship logs through a message queue buffer, stream processors parse and route data to tiered storage, and an index service powers search queries.</figcaption>
 </figure>

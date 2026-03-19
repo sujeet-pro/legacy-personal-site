@@ -8,24 +8,7 @@ Designing systems around events rather than synchronous requests: when events be
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Request-Driven"
-        C1[Client] -->|Request| S1[Service A]
-        S1 -->|Request| S2[Service B]
-        S2 -->|Response| S1
-        S1 -->|Response| C1
-    end
-
-    subgraph "Event-Driven"
-        P[Producer] -->|Publish| EB[Event Broker]
-        EB -->|Subscribe| CA[Consumer A]
-        EB -->|Subscribe| CB[Consumer B]
-        EB -->|Subscribe| CC[Consumer C]
-    end
-
-    style EB fill:#fff2cc,stroke:#d6b656
-```
+![Request-driven: synchronous call chains with tight coupling. Event-driven: asynchronous fan-out with loose coupling—producers don't know (or care) about consumers.](./request-driven-synchronous-call-chains-with-tight-coupling-event-driven-asynchro.svg)
 
 <figcaption>Request-driven: synchronous call chains with tight coupling. Event-driven: asynchronous fan-out with loose coupling—producers don't know (or care) about consumers.</figcaption>
 </figure>
@@ -267,23 +250,7 @@ CQRS separates the write model (commands) from the read model (queries). Command
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph Commands
-        C[Command] --> WM[Write Model]
-        WM --> DB[(Primary DB)]
-        WM --> E[Events]
-    end
-
-    subgraph Queries
-        E --> RM[Read Model Builder]
-        RM --> RDB[(Read DB)]
-        Q[Query] --> RDB
-    end
-
-    style DB fill:#d5e8d4,stroke:#82b366
-    style RDB fill:#dae8fc,stroke:#6c8ebf
-```
+![CQRS separates write (command) and read (query) paths. Events synchronize them asynchronously.](./cqrs-separates-write-command-and-read-query-paths-events-synchronize-them-asynch.svg)
 
 <figcaption>CQRS separates write (command) and read (query) paths. Events synchronize them asynchronously.</figcaption>
 </figure>
@@ -410,18 +377,7 @@ If payment fails after inventory is reserved, how do you rollback?
 
 <figure>
 
-```mermaid
-sequenceDiagram
-    participant Order
-    participant Inventory
-    participant Payment
-    participant Shipping
-
-    Order->>Inventory: OrderPlaced event
-    Inventory->>Payment: InventoryReserved event
-    Payment->>Shipping: PaymentProcessed event
-    Shipping->>Order: ShipmentCreated event
-```
+![Choreography: services react to events, each triggering the next step without central coordination.](./choreography-services-react-to-events-each-triggering-the-next-step-without-cent.svg)
 
 <figcaption>Choreography: services react to events, each triggering the next step without central coordination.</figcaption>
 </figure>
@@ -451,23 +407,7 @@ PaymentFailed event → Inventory listens → releases reservation
 
 <figure>
 
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Orchestrator
-    participant Inventory
-    participant Payment
-    participant Shipping
-
-    Client->>Orchestrator: PlaceOrder
-    Orchestrator->>Inventory: ReserveInventory
-    Inventory-->>Orchestrator: Reserved
-    Orchestrator->>Payment: ProcessPayment
-    Payment-->>Orchestrator: Processed
-    Orchestrator->>Shipping: CreateShipment
-    Shipping-->>Orchestrator: Created
-    Orchestrator-->>Client: OrderComplete
-```
+![Orchestration: central orchestrator commands services and handles the workflow.](./orchestration-central-orchestrator-commands-services-and-handles-the-workflow.svg)
 
 <figcaption>Orchestration: central orchestrator commands services and handles the workflow.</figcaption>
 </figure>
@@ -513,19 +453,7 @@ PaymentFailed → Orchestrator calls Inventory.ReleaseReservation()
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph Transaction
-        S[Service] -->|1. Write| DB[(Database)]
-        S -->|2. Write| OB[Outbox Table]
-    end
-
-    OB -->|3. Poll| R[Relay Process]
-    R -->|4. Publish| MB[Message Broker]
-    MB --> C[Consumer]
-
-    style OB fill:#fff2cc,stroke:#d6b656
-```
+![Transactional outbox: events written to outbox table in same transaction as state, then reliably published by separate process.](./transactional-outbox-events-written-to-outbox-table-in-same-transaction-as-state.svg)
 
 <figcaption>Transactional outbox: events written to outbox table in same transaction as state, then reliably published by separate process.</figcaption>
 </figure>

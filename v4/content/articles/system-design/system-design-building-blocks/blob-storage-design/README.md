@@ -8,41 +8,7 @@ Designing scalable object storage systems requires understanding the fundamental
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Clients["Client Layer"]
-        C1[Client 1]
-        C2[Client 2]
-        C3[Client N]
-    end
-
-    subgraph FrontEnd["Front-End Layer"]
-        FE[API Gateway<br/>Auth / Routing]
-    end
-
-    subgraph Metadata["Metadata Layer"]
-        MS[(Metadata Service<br/>Object → Chunks)]
-        IDX[(Index<br/>Dedup Table)]
-    end
-
-    subgraph Data["Data Layer"]
-        subgraph Storage["Distributed Storage"]
-            S1[Storage Node 1<br/>Chunks + Parity]
-            S2[Storage Node 2<br/>Chunks + Parity]
-            S3[Storage Node N<br/>Chunks + Parity]
-        end
-    end
-
-    C1 & C2 & C3 --> FE
-    FE --> MS
-    FE --> IDX
-    MS --> Storage
-    IDX -.->|dedup lookup| Storage
-
-    style FrontEnd fill:#fff3e0
-    style Metadata fill:#e8f5e9
-    style Storage fill:#e1f5fe
-```
+![Blob storage architecture: clients interact through an API gateway; metadata and deduplication index are managed separately from the data layer, which uses erasure coding across distributed storage nodes.](./blob-storage-architecture-clients-interact-through-an-api-gateway-metadata-and-d.svg)
 
 <figcaption>Blob storage architecture: clients interact through an API gateway; metadata and deduplication index are managed separately from the data layer, which uses erasure coding across distributed storage nodes.</figcaption>
 </figure>
@@ -568,25 +534,7 @@ Single-stream upload of large files (GBs+):
 
 ### Multipart Upload Flow
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant S as Storage Service
-
-    C->>S: InitiateMultipartUpload
-    S-->>C: UploadId
-
-    par Upload Parts
-        C->>S: UploadPart(UploadId, Part 1)
-        C->>S: UploadPart(UploadId, Part 2)
-        C->>S: UploadPart(UploadId, Part N)
-    end
-
-    S-->>C: ETag for each part
-
-    C->>S: CompleteMultipartUpload(UploadId, [ETags])
-    S-->>C: Success + Final ETag
-```
+![Diagram](./diagram-1.svg)
 
 ### Design Decisions
 

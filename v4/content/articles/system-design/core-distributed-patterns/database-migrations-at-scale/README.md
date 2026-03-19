@@ -8,21 +8,7 @@ Changing database schemas in production systems without downtime requires coordi
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Migration Approaches"
-        direction LR
-        A[Schema Change<br/>Needed] --> B{Table Size &<br/>Write Load?}
-        B -->|Small table<br/>Low writes| C[Native DDL<br/>Direct ALTER]
-        B -->|Large table<br/>Any writes| D{Trigger<br/>Tolerance?}
-        D -->|Yes| E[pt-osc<br/>Trigger-based]
-        D -->|No| F[gh-ost<br/>Binlog-based]
-
-        A --> G{Data<br/>Transformation?}
-        G -->|Schema only| H[Online DDL Tool]
-        G -->|Data + Schema| I[Expand-Contract<br/>+ Backfill]
-    end
-```
+![Decision tree for selecting migration approach based on table characteristics and change type.](./decision-tree-for-selecting-migration-approach-based-on-table-characteristics-an.svg)
 
 <figcaption>Decision tree for selecting migration approach based on table characteristics and change type.</figcaption>
 </figure>
@@ -224,18 +210,7 @@ For changes that require data transformation (not just schema changes), the expa
 
 **Phases:**
 
-```mermaid
-flowchart LR
-    subgraph "1. Expand"
-        A[Add new column<br/>full_name] --> B[Deploy: Write to<br/>BOTH columns]
-    end
-    subgraph "2. Migrate"
-        B --> C[Backfill old<br/>rows] --> D[Deploy: Read from<br/>new column]
-    end
-    subgraph "3. Contract"
-        D --> E[Deploy: Write to<br/>new column only] --> F[Drop first_name,<br/>last_name]
-    end
-```
+![Diagram](./diagram-1.svg)
 
 **Stage 1: Expand (backward compatible)**
 
@@ -304,16 +279,7 @@ ALTER TABLE users DROP COLUMN first_name, DROP COLUMN last_name;
 
 ### Decision Framework
 
-```mermaid
-graph TD
-    A[Need Schema<br/>Change] --> B{Supported by<br/>INSTANT DDL?}
-    B -->|Yes| C[Use INSTANT<br/>Milliseconds]
-    B -->|No| D{Data transformation<br/>needed?}
-    D -->|No| E{Trigger<br/>overhead OK?}
-    E -->|Yes| F[pt-osc<br/>Simpler ops]
-    E -->|No| G[gh-ost<br/>High throughput]
-    D -->|Yes| H[Expand-Contract<br/>+ Backfill]
-```
+![Diagram](./diagram-2.svg)
 
 ## Production Implementations
 
@@ -357,18 +323,7 @@ graph TD
 
 **Architecture:**
 
-```mermaid
-flowchart TB
-    subgraph "Slack Vitess Architecture"
-        A[Application] --> B[VTGate<br/>Query Router]
-        B --> C1[Shard 1<br/>VTTablet]
-        B --> C2[Shard 2<br/>VTTablet]
-        B --> C3[Shard N<br/>VTTablet]
-
-        D[VReplication] -.->|Migrate data| C1
-        D -.->|Migrate data| C2
-    end
-```
+![Diagram](./diagram-3.svg)
 
 **Specific details:**
 
@@ -398,16 +353,7 @@ flowchart TB
 
 **Architecture:**
 
-```mermaid
-flowchart TB
-    subgraph "Figma Sharding Architecture"
-        A[Application] --> B[DBProxy<br/>SQL Interceptor]
-        B -->|Route by shard key| C1[Shard 1<br/>Postgres]
-        B -->|Route by shard key| C2[Shard 2<br/>Postgres]
-
-        D[Shadow Traffic<br/>Analysis] -.->|Predict behavior| B
-    end
-```
+![Diagram](./diagram-4.svg)
 
 **Specific details:**
 
@@ -476,18 +422,7 @@ experiment.run
 
 ### Starting Point Decision
 
-```mermaid
-graph TD
-    A[Need Migration] --> B{What type?}
-    B -->|Schema only| C{Table size?}
-    C -->|< 1M rows| D[Direct ALTER<br/>or INSTANT DDL]
-    C -->|1M - 100M rows| E{Write load?}
-    C -->|> 100M rows| F[OSC Tool<br/>Required]
-    E -->|Low| G[pt-osc]
-    E -->|High| H[gh-ost or Spirit]
-    B -->|Data + Schema| I[Expand-Contract]
-    B -->|Cross-database| J[CDC + Strangler Fig]
-```
+![Diagram](./diagram-5.svg)
 
 ### Tool Selection Matrix
 

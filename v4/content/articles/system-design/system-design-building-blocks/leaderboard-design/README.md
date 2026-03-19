@@ -8,44 +8,7 @@ Building real-time ranking systems that scale from thousands to hundreds of mill
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Clients["Client Tier"]
-        C1[Player 1]
-        C2[Player 2]
-        C3[Player N]
-    end
-
-    subgraph API["API Layer"]
-        GW[API Gateway]
-        WS[WebSocket Server]
-    end
-
-    subgraph Core["Leaderboard Service"]
-        LS[Score Service]
-        RS[Rank Service]
-    end
-
-    subgraph Storage["Data Tier"]
-        subgraph Redis["Redis Cluster"]
-            R1["ZSET: game:leaderboard:global"]
-            R2["ZSET: game:leaderboard:weekly"]
-            R3["ZSET: game:leaderboard:friends:{userId}"]
-        end
-        DB[(PostgreSQL<br/>Score History)]
-    end
-
-    C1 & C2 & C3 -->|"POST /scores"| GW
-    C1 & C2 & C3 <-->|"subscribe"| WS
-    GW --> LS
-    LS -->|"ZINCRBY"| R1 & R2
-    LS -->|"persist"| DB
-    RS -->|"ZREVRANK / ZREVRANGE"| R1
-    WS -->|"rank changes"| C1 & C2 & C3
-
-    style Redis fill:#e1f5fe
-    style Core fill:#fff3e0
-```
+![Leaderboard architecture: score updates write to Redis sorted sets with O(log N) complexity; rank queries served from sorted sets without database joins; WebSockets push real-time rank changes to subscribed players.](./leaderboard-architecture-score-updates-write-to-redis-sorted-sets-with-o-log-n-c.svg)
 
 <figcaption>Leaderboard architecture: score updates write to Redis sorted sets with O(log N) complexity; rank queries served from sorted sets without database joins; WebSockets push real-time rank changes to subscribed players.</figcaption>
 </figure>

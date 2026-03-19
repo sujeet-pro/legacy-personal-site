@@ -8,39 +8,7 @@ A video platform at YouTube scale handles massive upload volumes, transcoding ac
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Upload Pipeline"
-        U[User Upload] --> US[Upload Service<br/>Resumable/Chunked]
-        US --> RAW[(Raw Storage<br/>Original Files)]
-        US --> Q[Transcoding Queue]
-    end
-
-    subgraph "Transcoding"
-        Q --> TS[Transcoder Workers<br/>Parallel Chunk Processing]
-        TS --> ENC[Multi-Codec Encoding<br/>H.264/VP9/AV1]
-        ENC --> SEG[Segmenter<br/>HLS/DASH Segments]
-    end
-
-    subgraph "Storage Layer"
-        SEG --> HOT[(Hot Storage<br/>Recent/Popular)]
-        HOT --> WARM[(Warm Storage)]
-        WARM --> COLD[(Cold Storage<br/>Long-tail)]
-        RAW --> COLD
-    end
-
-    subgraph "Delivery"
-        HOT --> ORIGIN[Origin Shield]
-        ORIGIN --> CDN[CDN Edge<br/>Global PoPs]
-        CDN --> PLAYER[Video Player<br/>ABR Algorithm]
-    end
-
-    subgraph "Metadata & Discovery"
-        US --> META[(Metadata DB)]
-        META --> SEARCH[Search Index<br/>Elasticsearch]
-        META --> REC[Recommendation<br/>ML Pipeline]
-    end
-```
+![High-level architecture: upload → transcode → store → deliver. Metadata flows in parallel to enable immediate discoverability while transcoding completes.](./high-level-architecture-upload-transcode-store-deliver-metadata-flows-in-paralle.svg)
 
 <figcaption>High-level architecture: upload → transcode → store → deliver. Metadata flows in parallel to enable immediate discoverability while transcoding completes.</figcaption>
 </figure>
@@ -206,55 +174,7 @@ This article focuses on **Path B (Distributed Chunk-Based)** because:
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Client Layer"
-        WEB[Web Player]
-        MOB[Mobile Apps]
-        TV[Smart TV/OTT]
-    end
-
-    subgraph "API Gateway"
-        GW[API Gateway<br/>Auth, Rate Limiting]
-    end
-
-    subgraph "Upload Services"
-        UPLOAD[Upload Service<br/>Resumable Protocol]
-        CHUNK[Chunk Manager<br/>Segment Tracking]
-    end
-
-    subgraph "Processing Pipeline"
-        QUEUE[Job Queue<br/>Priority Scheduling]
-        TRANSCODE[Transcoder Pool<br/>CPU/GPU/ASIC Workers]
-        QC[Quality Control<br/>VMAF Validation]
-    end
-
-    subgraph "Storage"
-        RAW[(Raw Storage<br/>Original + Chunks)]
-        ENCODED[(Encoded Storage<br/>All Variants)]
-        META[(Metadata DB<br/>PostgreSQL)]
-        CACHE[(Redis Cache<br/>Hot Metadata)]
-    end
-
-    subgraph "Discovery"
-        SEARCH[Search Service<br/>Elasticsearch]
-        REC[Recommendation<br/>ML Service]
-    end
-
-    subgraph "Delivery"
-        MANIFEST[Manifest Generator<br/>HLS/DASH]
-        ORIGIN[Origin Server<br/>Shield + Routing]
-        CDN[CDN Edge<br/>Multi-provider]
-    end
-
-    WEB & MOB & TV --> GW
-    GW --> UPLOAD --> CHUNK --> RAW
-    CHUNK --> QUEUE --> TRANSCODE --> QC --> ENCODED
-    UPLOAD --> META --> CACHE
-    META --> SEARCH & REC
-    ENCODED --> MANIFEST --> ORIGIN --> CDN
-    CDN --> WEB & MOB & TV
-```
+![System components: upload flow (top-left), processing (center), storage (bottom-left), discovery (center-right), delivery (right).](./system-components-upload-flow-top-left-processing-center-storage-bottom-left-dis.svg)
 
 <figcaption>System components: upload flow (top-left), processing (center), storage (bottom-left), discovery (center-right), delivery (right).</figcaption>
 </figure>
@@ -294,36 +214,7 @@ The tus protocol provides HTTP-based resumable uploads, critical for large files
 
 <figure>
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant U as Upload Service
-    participant S as Storage
-
-    C->>U: POST /upload (Upload-Length: 5GB)
-    U-->>C: 201 Location: /upload/abc123
-
-    loop Chunk Upload
-        C->>U: PATCH /upload/abc123<br/>Upload-Offset: 0<br/>Content-Length: 5MB
-        U->>S: Store chunk
-        S-->>U: ACK
-        U-->>C: 204 Upload-Offset: 5242880
-    end
-
-    Note over C: Connection drops at 2GB
-
-    C->>U: HEAD /upload/abc123
-    U-->>C: 200 Upload-Offset: 2147483648
-
-    loop Resume
-        C->>U: PATCH /upload/abc123<br/>Upload-Offset: 2147483648<br/>Content-Length: 5MB
-        U-->>C: 204 Upload-Offset: ...
-    end
-
-    C->>U: Final PATCH (completes upload)
-    U-->>C: 204 Upload-Complete
-    U->>S: Finalize + queue processing
-```
+![Resumable upload: client queries offset after disconnection, resumes from last confirmed position.](./resumable-upload-client-queries-offset-after-disconnection-resumes-from-last-con.svg)
 
 <figcaption>Resumable upload: client queries offset after disconnection, resumes from last confirmed position.</figcaption>
 </figure>
@@ -347,14 +238,7 @@ sequenceDiagram
 
 ### Upload Processing Pipeline
 
-```mermaid
-flowchart LR
-    UPLOAD[Upload Complete] --> VALIDATE[Validate<br/>Format, Size, Duration]
-    VALIDATE --> EXTRACT[Extract Metadata<br/>Resolution, Codec, FPS]
-    EXTRACT --> THUMB[Generate Thumbnails<br/>Sprite Sheet + Preview]
-    THUMB --> SEGMENT[Segment Video<br/>GOP-aligned Chunks]
-    SEGMENT --> QUEUE[Queue Transcoding Jobs<br/>Per-chunk × Per-format]
-```
+![Diagram](./diagram-1.svg)
 
 **Validation checks:**
 
@@ -388,49 +272,7 @@ flowchart LR
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Input Processing"
-        RAW[Raw Video] --> DEMUX[Demuxer<br/>Extract Streams]
-        DEMUX --> VIDEO[Video Stream]
-        DEMUX --> AUDIO[Audio Streams]
-        DEMUX --> SUB[Subtitles]
-    end
-
-    subgraph "Analysis"
-        VIDEO --> SCENE[Scene Detection<br/>Shot Boundaries]
-        SCENE --> COMPLEX[Complexity Analysis<br/>Per-segment Bitrate]
-    end
-
-    subgraph "Video Encoding"
-        COMPLEX --> H264[H.264/AVC<br/>Universal Compat]
-        COMPLEX --> VP9[VP9<br/>Chrome/Android]
-        COMPLEX --> AV1[AV1<br/>Next-gen Efficiency]
-    end
-
-    subgraph "Resolution Ladder"
-        H264 & VP9 & AV1 --> R2160[4K 2160p]
-        H264 & VP9 & AV1 --> R1440[1440p]
-        H264 & VP9 & AV1 --> R1080[1080p]
-        H264 & VP9 & AV1 --> R720[720p]
-        H264 & VP9 & AV1 --> R480[480p]
-        H264 & VP9 & AV1 --> R360[360p]
-        H264 & VP9 & AV1 --> R240[240p]
-        H264 & VP9 & AV1 --> R144[144p]
-    end
-
-    subgraph "Audio Encoding"
-        AUDIO --> AAC[AAC-LC<br/>Stereo/5.1]
-        AUDIO --> OPUS[Opus<br/>Web Optimized]
-    end
-
-    subgraph "Packaging"
-        R2160 & R1440 & R1080 & R720 & R480 & R360 & R240 & R144 --> SEG[Segmenter<br/>2-4s Segments]
-        AAC & OPUS --> SEG
-        SEG --> HLS[HLS Packager<br/>.m3u8 + .ts/.fmp4]
-        SEG --> DASH[DASH Packager<br/>.mpd + .m4s]
-    end
-```
+![Transcoding pipeline: demux → analyze → encode (multi-codec × multi-resolution) → package for streaming.](./transcoding-pipeline-demux-analyze-encode-multi-codec-multi-resolution-package-f.svg)
 
 <figcaption>Transcoding pipeline: demux → analyze → encode (multi-codec × multi-resolution) → package for streaming.</figcaption>
 </figure>
@@ -646,36 +488,7 @@ YouTube uses 2-4 second segments; Netflix uses 4-6 seconds. Lower durations impr
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "User"
-        PLAYER[Video Player]
-    end
-
-    subgraph "Edge Layer (3000+ PoPs)"
-        EDGE1[Edge Cache<br/>ISP Co-location]
-        EDGE2[Edge Cache<br/>Metro Area]
-    end
-
-    subgraph "Shield Layer (50 regions)"
-        SHIELD[Origin Shield<br/>Regional Cache]
-    end
-
-    subgraph "Origin"
-        ORIGIN[Origin Server<br/>Multi-region]
-        STORE[(Encoded Storage)]
-    end
-
-    PLAYER --> EDGE1
-    EDGE1 -->|Miss| EDGE2
-    EDGE2 -->|Miss| SHIELD
-    SHIELD -->|Miss| ORIGIN
-    ORIGIN --> STORE
-
-    style EDGE1 fill:#90EE90
-    style SHIELD fill:#FFD700
-    style ORIGIN fill:#FF6347
-```
+![Three-tier caching: edge (95% hit rate), shield (99% cumulative), origin (handles 1% of requests).](./three-tier-caching-edge-95-hit-rate-shield-99-cumulative-origin-handles-1-of-req.svg)
 
 <figcaption>Three-tier caching: edge (95% hit rate), shield (99% cumulative), origin (handles 1% of requests).</figcaption>
 </figure>
@@ -746,13 +559,7 @@ When using multiple CDN providers, normalize cache keys:
 
 **Failover architecture:**
 
-```mermaid
-flowchart LR
-    DNS[DNS Resolver] --> HM{Health Monitor}
-    HM -->|Primary healthy| CDN_A[CDN A]
-    HM -->|Primary down| CDN_B[CDN B]
-    HM -->|Both down| ORIGIN[Direct Origin]
-```
+![Diagram](./diagram-2.svg)
 
 ## Video Storage
 
@@ -922,14 +729,7 @@ CREATE INDEX idx_videos_trending ON videos(view_count DESC)
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    PLAYER[Player] -->|View event| INGEST[Event Ingestion<br/>Kafka]
-    INGEST --> DEDUP[Deduplication<br/>Redis Bloom Filter]
-    DEDUP --> AGG[Aggregation<br/>Flink/Spark]
-    AGG --> DB[(View Counts<br/>Cassandra)]
-    DB --> CACHE[Cache Layer<br/>Redis]
-```
+![Diagram](./diagram-3.svg)
 
 **Deduplication strategy:**
 
@@ -958,24 +758,7 @@ Recommendations drive 70%+ of YouTube watch time. The system balances:
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Offline Pipeline"
-        HISTORY[User History] --> EMBED[Embedding Model<br/>Video + User Vectors]
-        CATALOG[Video Catalog] --> EMBED
-        EMBED --> INDEX[ANN Index<br/>HNSW/Faiss]
-    end
-
-    subgraph "Online Serving"
-        REQ[Recommendation Request] --> RETRIEVE[Candidate Retrieval<br/>Top 1000]
-        RETRIEVE --> RANK[Ranking Model<br/>Top 20]
-        RANK --> FILTER[Business Filters<br/>Age, Duplicates]
-        FILTER --> RESP[Response]
-    end
-
-    INDEX --> RETRIEVE
-    EMBED --> RANK
-```
+![Two-stage recommendation: retrieve candidates from embedding index, rank with full model.](./two-stage-recommendation-retrieve-candidates-from-embedding-index-rank-with-full.svg)
 
 <figcaption>Two-stage recommendation: retrieve candidates from embedding index, rank with full model.</figcaption>
 </figure>
@@ -1070,35 +853,7 @@ Maximum (cap prefetch): 60 seconds
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Upload"
-        ALB[Application Load Balancer] --> ECS[ECS Fargate<br/>Upload Service]
-        ECS --> S3_RAW[(S3 - Raw Videos)]
-        ECS --> SQS[SQS - Job Queue]
-    end
-
-    subgraph "Transcoding"
-        SQS --> BATCH[AWS Batch<br/>GPU Instances]
-        BATCH --> ELEMENTAL[MediaConvert<br/>Managed Transcoding]
-        ELEMENTAL --> S3_ENC[(S3 - Encoded)]
-    end
-
-    subgraph "Metadata"
-        RDS[(RDS PostgreSQL<br/>Multi-AZ)]
-        ES[OpenSearch<br/>3-node Cluster]
-        REDIS[ElastiCache Redis<br/>Cluster Mode]
-    end
-
-    subgraph "Delivery"
-        S3_ENC --> CF[CloudFront<br/>Origin Shield Enabled]
-        CF --> VIEWER[Viewers]
-    end
-
-    ECS --> RDS
-    RDS --> ES
-    RDS --> REDIS
-```
+![AWS deployment: S3 for storage, MediaConvert or Batch for transcoding, CloudFront with Origin Shield for delivery.](./aws-deployment-s3-for-storage-mediaconvert-or-batch-for-transcoding-cloudfront-w.svg)
 
 <figcaption>AWS deployment: S3 for storage, MediaConvert or Batch for transcoding, CloudFront with Origin Shield for delivery.</figcaption>
 </figure>

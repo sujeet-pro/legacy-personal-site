@@ -5,10 +5,10 @@ Technical blog for experienced software professionals. Built with Astro, deploye
 ## Documentation
 
 - [Project Implementation](./docs/project-implementation.md) - Architecture, content collections, search, and deployment
-- [Markdown Features](./docs/markdown-features.md) - Complete markdown reference including code blocks, math, and diagrams
-- LLM Guidelines:
-  - `llm_docs/guidelines-content/` (content writing, research, markdown, persona)
-  - `llm_docs/guidelines-code/` (codebase changes)
+- [Markdown Features](./docs/markdown-features.md) - Complete markdown reference including code blocks and diagrams
+- Guidelines:
+  - `guidelines/document/` (content writing, research, markdown, persona)
+  - `guidelines/coding/` (codebase changes)
 
 ## Quick Start
 
@@ -142,13 +142,6 @@ flowchart LR
 ```
 ````
 
-### Math (KaTeX)
-
-```markdown
-Inline: $E = mc^2$
-Block: $$\int_0^1 x^2 dx$$
-```
-
 ### Images
 
 ```markdown
@@ -159,44 +152,37 @@ Block: $$\int_0^1 x^2 dx$$
 
 ---
 
-## Using Claude Code and Codex
+## Using Claude Code
 
-This repo is configured for Claude and Codex with specialized skills for content creation.
+This repo uses global devkit skills for content creation.
 
 ### Skills
 
-#### Content Skills (Shared)
-
 | Command                           | Description                                |
 | --------------------------------- | ------------------------------------------ |
-| `/write-article <topic>`          | Write new article with deep research       |
-| `/update-article <path> <prompt>` | Update existing article with deep research |
+| `/article <topic>`               | Write new article with deep research       |
+| `/article update <path> <prompt>`| Update existing article with deep research |
+| `/project-docs <folder>`         | Write/update project page from local code  |
+| `/blog <topic>`                  | Write a blog post                          |
 
 ### Example Workflows
 
 #### Write a New Article
 
 ```
-/write-article Node.js event loop internals - covering phases and common pitfalls
+/article Node.js event loop internals - covering phases and common pitfalls
 ```
-
-Claude will:
-
-1. Research from official docs, source code, expert blogs
-2. Create draft structure with outline
-3. Write content with mermaid diagrams and inline references
-4. Apply quality checks and save to production location
 
 #### Update an Existing Article
 
 ```
-/update-article content/articles/web-foundations/networking-protocols/http1-1-to-http2-evolution/README.md add a section on HTTP/3 0-RTT risk trade-offs
+/article update content/articles/web-foundations/networking-protocols/http1-1-to-http2-evolution/README.md add a section on HTTP/3 0-RTT risk trade-offs
 ```
 
 ### Key Guidelines
 
-1. **Content**: Use `llm_docs/guidelines-content/` for all article work
-2. **Code**: Use `llm_docs/guidelines-code/` only when changing site functionality
+1. **Content**: Use `guidelines/document/` for all article work
+2. **Code**: Use `guidelines/coding/` only when changing site functionality
 3. **Code blocks**: Collapse non-essential lines with `collapse={...}`
 4. **Audience**: Senior/staff/principal engineers
 5. **Conciseness**: No padding, no filler, every paragraph earns its place
@@ -205,11 +191,8 @@ Claude will:
 
 - `.claude/rules.md` - Project rules and skill reference
 - `.claude/settings.local.json` - Permissions
-- `.claude/skills/` - Claude skill wrappers
-- `.codex/skills/` - Codex skill wrappers
-- `llm_docs/guidelines-content/` - Content guidelines
-- `llm_docs/guidelines-code/` - Coding guidelines
-- `llm_docs/skills/` - Agent-agnostic skills
+- `guidelines/document/` - Content guidelines
+- `guidelines/coding/` - Coding guidelines
 
 ---
 

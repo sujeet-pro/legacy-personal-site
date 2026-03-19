@@ -8,37 +8,7 @@ Designing unique identifier systems for distributed environments: understanding 
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "ID Generation Approaches"
-        direction TB
-        UUID4["UUID v4<br/>✓ No coordination<br/>✓ No information leak<br/>✗ Not sortable<br/>✗ Poor index locality"]
-        UUID7["UUID v7<br/>✓ Time-sortable<br/>✓ No coordination<br/>✓ RFC standardized<br/>○ Millisecond precision"]
-        SNOW["Snowflake<br/>✓ Time-sortable<br/>✓ 64-bit compact<br/>○ Requires worker IDs<br/>○ ~4M IDs/sec/worker"]
-        ULID["ULID<br/>✓ Time-sortable<br/>✓ Monotonic in ms<br/>✓ 26-char compact<br/>○ Not RFC standardized"]
-    end
-
-    subgraph "Decision Factors"
-        SORT["Need Sortability?"]
-        COORD["Can Coordinate<br/>Worker IDs?"]
-        SIZE["Need 64-bit?"]
-        STD["Need RFC Standard?"]
-    end
-
-    SORT -->|No| UUID4
-    SORT -->|Yes| COORD
-    COORD -->|Yes| SIZE
-    COORD -->|No| STD
-    SIZE -->|Yes| SNOW
-    SIZE -->|No| STD
-    STD -->|Yes| UUID7
-    STD -->|No| ULID
-
-    style UUID4 fill:#f8cecc,stroke:#b85450
-    style UUID7 fill:#d5e8d4,stroke:#82b366
-    style SNOW fill:#dae8fc,stroke:#6c8ebf
-    style ULID fill:#fff2cc,stroke:#d6b656
-```
+![Decision tree for selecting unique ID generation strategy based on system requirements](./decision-tree-for-selecting-unique-id-generation-strategy-based-on-system-requir.svg)
 
 <figcaption>Decision tree for selecting unique ID generation strategy based on system requirements</figcaption>
 
@@ -508,34 +478,7 @@ RETURNING id;
 
 ## How to Choose
 
-```mermaid
-flowchart TD
-    START([Need Unique IDs]) --> Q1{Need time<br/>ordering?}
-    Q1 -->|No| Q2{Public-facing<br/>IDs?}
-    Q2 -->|Yes| UUID4[UUID v4<br/>No information leak]
-    Q2 -->|No| Q3{Single database?}
-    Q3 -->|Yes| SEQ[Database Sequences<br/>Simplest option]
-    Q3 -->|No| UUID4
-
-    Q1 -->|Yes| Q4{Can coordinate<br/>machine IDs?}
-    Q4 -->|Yes| Q5{Need 64-bit<br/>compact IDs?}
-    Q5 -->|Yes| SNOW[Snowflake<br/>Highest throughput]
-    Q5 -->|No| UUID7B[UUID v7<br/>Standard + ordered]
-
-    Q4 -->|No| Q6{Need RFC<br/>standard?}
-    Q6 -->|Yes| UUID7A[UUID v7<br/>Broad support]
-    Q6 -->|No| Q7{Compact strings<br/>important?}
-    Q7 -->|Yes| ULID_K[ULID<br/>26 chars, monotonic]
-    Q7 -->|No| UUID7C[UUID v7<br/>Default choice]
-
-    style UUID4 fill:#f8cecc
-    style UUID7A fill:#d5e8d4
-    style UUID7B fill:#d5e8d4
-    style UUID7C fill:#d5e8d4
-    style SNOW fill:#dae8fc
-    style ULID_K fill:#fff2cc
-    style SEQ fill:#e1d5e7
-```
+![Diagram](./diagram-1.svg)
 
 **Default recommendation (2024+):** UUID v7 for most new systems. It provides time-ordering, excellent database performance, RFC standardization, and requires no coordination.
 

@@ -8,32 +8,7 @@ The K-crystal balls (or K-egg drop) problem demonstrates how constrained resourc
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Strategy Evolution by Resource Count"
-        direction TB
-
-        subgraph K1["k=1: Linear Only"]
-            L1["1→2→3→...→n"]
-        end
-
-        subgraph K2["k=2: Jump + Linear"]
-            J2["Jump √n"] --> S2["Linear √n"]
-        end
-
-        subgraph K3["k=3: Jump² + Jump + Linear"]
-            J31["Jump n^(2/3)"] --> J32["Jump n^(1/3)"] --> S3["Linear n^(1/3)"]
-        end
-
-        subgraph KINF["k=∞: Binary Search"]
-            B["Halve repeatedly → log n"]
-        end
-    end
-
-    K1 -.->|"Add resource"| K2
-    K2 -.->|"Add resource"| K3
-    K3 -.->|"..."| KINF
-```
+![Resource count determines search depth: each additional resource enables one more level of hierarchical partitioning, reducing worst-case from O(n) toward O(log n).](./resource-count-determines-search-depth-each-additional-resource-enables-one-more.svg)
 
 <figcaption>Resource count determines search depth: each additional resource enables one more level of hierarchical partitioning, reducing worst-case from O(n) toward O(log n).</figcaption>
 

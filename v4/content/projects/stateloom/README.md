@@ -19,62 +19,7 @@ The core thesis: the signal graph is the universal primitive for state managemen
 
 <figure>
 
-```mermaid
-graph TB
-    subgraph L1["Layer 1 — Reactive Core"]
-        Core["@stateloom/core\nsignal · computed · effect · batch · scope\n~1.5 KB gzipped"]
-    end
-
-    subgraph L2["Layer 2 — Paradigm Adapters"]
-        Store["@stateloom/store\nZustand-style"]
-        Atom["@stateloom/atom\nJotai-style"]
-        Proxy["@stateloom/proxy\nValtio-style"]
-    end
-
-    subgraph L3["Layer 3 — Framework Adapters"]
-        React["@stateloom/react"]
-        Vue["@stateloom/vue"]
-        Solid["@stateloom/solid"]
-        Svelte["@stateloom/svelte"]
-        Angular["@stateloom/angular"]
-    end
-
-    subgraph L4["Layer 4 — Middleware"]
-        Devtools["devtools"]
-        Persist["persist"]
-        TabSync["tab-sync"]
-        History["history"]
-        Immer["immer"]
-        Telemetry["telemetry"]
-    end
-
-    subgraph L5["Layer 5 — Platform"]
-        Server["server"]
-        PersistRedis["persist-redis"]
-        Testing["testing"]
-    end
-
-    Core --> Store
-    Core --> Atom
-    Core --> Proxy
-
-    Store --> React
-    Store --> Vue
-    Store --> Solid
-    Store --> Svelte
-    Store --> Angular
-
-    Core --> Devtools
-    Core --> Persist
-    Core --> TabSync
-    Core --> History
-    Core --> Immer
-    Core --> Telemetry
-
-    Persist --> PersistRedis
-    Core --> Server
-    Core --> Testing
-```
+![StateLoom's 5-layer architecture: a signal-based reactive core (Layer 1) supports three paradigm adapters (Layer 2), five framework adapters (Layer 3), composable middleware (Layer 4), and platform-specific backends (Layer 5). Dependencies flow strictly downward.](./stateloom-s-5-layer-architecture-a-signal-based-reactive-core-layer-1-supports-t.svg)
 
 <figcaption>StateLoom's 5-layer architecture: a signal-based reactive core (Layer 1) supports three paradigm adapters (Layer 2), five framework adapters (Layer 3), composable middleware (Layer 4), and platform-specific backends (Layer 5). Dependencies flow strictly downward.</figcaption>
 </figure>

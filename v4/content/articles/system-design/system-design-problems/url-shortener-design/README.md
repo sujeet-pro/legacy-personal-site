@@ -8,50 +8,7 @@ A comprehensive system design for a URL shortening service covering ID generatio
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Clients["Clients"]
-        WEB["Web App"]
-        API_CLIENT["API Clients"]
-        MOBILE["Mobile Apps"]
-    end
-
-    subgraph Edge["Edge Layer"]
-        CDN["CDN Edge Cache<br/>(CloudFront/Fastly)"]
-        LB["Load Balancer"]
-    end
-
-    subgraph Core["Core Services"]
-        SHORTEN["Shortening Service"]
-        REDIRECT["Redirect Service"]
-        KGS["Key Generation<br/>Service"]
-        ANALYTICS["Analytics Collector"]
-    end
-
-    subgraph Storage["Storage Layer"]
-        REDIS["Redis Cluster<br/>(Hot URLs, Rate Limits)"]
-        DB[(Primary DB<br/>URL Mappings)]
-        CLICKHOUSE[(ClickHouse<br/>Analytics)]
-    end
-
-    subgraph Security["Security Layer"]
-        SCANNER["URL Scanner<br/>(Malware/Phishing)"]
-        RATELIMIT["Rate Limiter"]
-    end
-
-    WEB & API_CLIENT & MOBILE --> CDN
-    CDN -->|Cache Miss| LB
-    LB --> SHORTEN & REDIRECT
-    SHORTEN --> KGS
-    SHORTEN --> SCANNER
-    SHORTEN --> RATELIMIT
-    SHORTEN --> REDIS & DB
-    REDIRECT --> REDIS
-    REDIRECT -->|Cache Miss| DB
-    REDIRECT --> ANALYTICS
-    ANALYTICS --> CLICKHOUSE
-    KGS --> DB
-```
+![High-level architecture: CDN handles cached redirects, core services manage shortening and redirection, analytics collected asynchronously to avoid blocking redirects.](./high-level-architecture-cdn-handles-cached-redirects-core-services-manage-shorte.svg)
 
 <figcaption>High-level architecture: CDN handles cached redirects, core services manage shortening and redirection, analytics collected asynchronously to avoid blocking redirects.</figcaption>
 </figure>
@@ -156,18 +113,7 @@ URL shorteners solve a deceptively simple problem—mapping short codes to long 
 
 **Architecture:**
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant API as API Server
-    participant DB as Database
-
-    C->>API: POST /shorten {url}
-    API->>DB: INSERT url RETURNING id
-    DB-->>API: id = 12345
-    API->>API: encode(12345) → "dnh"
-    API-->>C: short.url/dnh
-```
+![Diagram](./diagram-1.svg)
 
 **Key characteristics:**
 
@@ -196,15 +142,7 @@ sequenceDiagram
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    URL["Long URL"] --> HASH["MD5/SHA256"]
-    HASH --> TRUNCATE["Take first 7 chars"]
-    TRUNCATE --> CHECK{"Collision?"}
-    CHECK -->|No| STORE["Store mapping"]
-    CHECK -->|Yes| REHASH["Append salt, rehash"]
-    REHASH --> TRUNCATE
-```
+![Diagram](./diagram-2.svg)
 
 **Key characteristics:**
 
@@ -238,25 +176,7 @@ flowchart LR
 
 **Architecture:**
 
-```mermaid
-flowchart TB
-    subgraph DC1["Datacenter 1"]
-        APP1["App Server"]
-        SNOW1["Snowflake Generator<br/>Node ID: 1"]
-    end
-
-    subgraph DC2["Datacenter 2"]
-        APP2["App Server"]
-        SNOW2["Snowflake Generator<br/>Node ID: 2"]
-    end
-
-    APP1 --> SNOW1
-    APP2 --> SNOW2
-    SNOW1 --> ENCODE1["Base62 Encode"]
-    SNOW2 --> ENCODE2["Base62 Encode"]
-    ENCODE1 --> STORE["Distributed Store"]
-    ENCODE2 --> STORE
-```
+![Diagram](./diagram-3.svg)
 
 **Snowflake ID structure (64-bit):**
 
@@ -287,24 +207,7 @@ flowchart TB
 
 **Architecture:**
 
-```mermaid
-flowchart TB
-    subgraph KGS["Key Generation Service"]
-        GEN["Key Generator<br/>(Offline)"]
-        UNUSED["Unused Keys<br/>Table"]
-        USED["Used Keys<br/>Table"]
-    end
-
-    subgraph App["Application"]
-        API["API Server"]
-        CACHE["Local Key Cache<br/>(1000 keys)"]
-    end
-
-    GEN -->|Pre-generate| UNUSED
-    API -->|Request batch| UNUSED
-    UNUSED -->|Move on use| USED
-    API --> CACHE
-```
+![Diagram](./diagram-4.svg)
 
 **Key characteristics:**
 
@@ -347,67 +250,7 @@ This article focuses on **Path D (KGS) + Snowflake hybrid** because:
 
 ### Component Overview
 
-```mermaid
-flowchart TB
-    subgraph Clients
-        BROWSER["Browser"]
-        SDK["API SDKs"]
-        WEBHOOK["Webhook Consumers"]
-    end
-
-    subgraph Edge["Edge Layer"]
-        CDN["CDN<br/>(Redirect Cache)"]
-        WAF["WAF<br/>(DDoS Protection)"]
-        LB["Load Balancer"]
-    end
-
-    subgraph API["API Gateway"]
-        RATE["Rate Limiter"]
-        AUTH["Auth Middleware"]
-        ROUTER["Request Router"]
-    end
-
-    subgraph Core["Core Services"]
-        SHORTEN_SVC["Shortening Service"]
-        REDIRECT_SVC["Redirect Service"]
-        KGS_SVC["Key Generation Service"]
-        USER_SVC["User Service"]
-        LINK_SVC["Link Management Service"]
-    end
-
-    subgraph Security["Security"]
-        URL_SCAN["URL Scanner"]
-        ABUSE["Abuse Detection"]
-        BLOCKLIST["Blocklist Service"]
-    end
-
-    subgraph Analytics["Analytics Pipeline"]
-        COLLECTOR["Click Collector"]
-        KAFKA["Kafka"]
-        PROCESSOR["Stream Processor"]
-        CLICKHOUSE[(ClickHouse)]
-    end
-
-    subgraph Storage["Storage"]
-        REDIS["Redis Cluster"]
-        CASS[(Cassandra<br/>URL Mappings)]
-        PG[(PostgreSQL<br/>Users, Config)]
-        S3["S3<br/>(Exports)"]
-    end
-
-    BROWSER & SDK --> CDN
-    CDN -->|Cache Miss| WAF --> LB
-    LB --> RATE --> AUTH --> ROUTER
-    ROUTER --> SHORTEN_SVC & REDIRECT_SVC & LINK_SVC
-    SHORTEN_SVC --> KGS_SVC
-    SHORTEN_SVC --> URL_SCAN --> BLOCKLIST
-    SHORTEN_SVC --> REDIS & CASS
-    REDIRECT_SVC --> REDIS
-    REDIRECT_SVC -->|Miss| CASS
-    REDIRECT_SVC --> COLLECTOR --> KAFKA --> PROCESSOR --> CLICKHOUSE
-    USER_SVC --> PG
-    ABUSE --> REDIS
-```
+![Diagram](./diagram-5.svg)
 
 ### Shortening Service
 
@@ -436,35 +279,7 @@ The most critical service—handles 99% of traffic. Must be blazing fast.
 
 **Flow:**
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant CDN as CDN Edge
-    participant R as Redirect Service
-    participant CACHE as Redis
-    participant DB as Cassandra
-    participant A as Analytics
-
-    C->>CDN: GET /abc123
-    CDN->>CDN: Check edge cache
-    alt Cache Hit
-        CDN-->>C: 302 → long_url
-    else Cache Miss
-        CDN->>R: GET /abc123
-        R->>CACHE: GET url:abc123
-        alt Redis Hit
-            CACHE-->>R: long_url
-        else Redis Miss
-            R->>DB: SELECT * FROM urls WHERE code='abc123'
-            DB-->>R: long_url
-            R->>CACHE: SET url:abc123 (TTL 1h)
-        end
-        R->>A: Async: Log click
-        R-->>CDN: 302 → long_url
-        CDN->>CDN: Cache (TTL 60s)
-        CDN-->>C: 302 → long_url
-    end
-```
+![Diagram](./diagram-6.svg)
 
 **Critical optimizations:**
 
@@ -479,28 +294,7 @@ Pre-generates unique short codes for zero-collision guarantee.
 
 **Architecture:**
 
-```mermaid
-flowchart TB
-    subgraph Generator["Offline Generator"]
-        GEN["Key Generator"]
-        VALIDATE["Uniqueness Check"]
-    end
-
-    subgraph Storage["Key Storage"]
-        UNUSED[(Unused Keys<br/>~100M keys)]
-        USED[(Used Keys<br/>Historical)]
-    end
-
-    subgraph Distribution["Key Distribution"]
-        API["KGS API"]
-        QUEUE["Key Queue<br/>(Per App Server)"]
-    end
-
-    GEN --> VALIDATE --> UNUSED
-    API --> UNUSED
-    UNUSED -->|Batch fetch| QUEUE
-    UNUSED -->|Mark used| USED
-```
+![Diagram](./diagram-7.svg)
 
 **Key allocation strategy:**
 
@@ -1494,49 +1288,7 @@ class ClickStreamClient {
 
 ### AWS Reference Architecture
 
-```mermaid
-flowchart TB
-    subgraph Edge
-        R53["Route 53"]
-        CF["CloudFront"]
-    end
-
-    subgraph Compute["EKS Cluster"]
-        subgraph API["API Tier"]
-            REDIRECT["Redirect Service<br/>(Fargate)"]
-            SHORTEN["Shortening Service<br/>(Fargate)"]
-        end
-        subgraph Workers["Worker Tier"]
-            KGS["KGS<br/>(Fargate)"]
-            ANALYTICS["Analytics Processor<br/>(Fargate)"]
-        end
-    end
-
-    subgraph Storage
-        ELASTICACHE["ElastiCache Redis<br/>(Cluster)"]
-        KEYSPACES["Amazon Keyspaces<br/>(Cassandra)"]
-        RDS["RDS PostgreSQL<br/>(Multi-AZ)"]
-    end
-
-    subgraph Analytics
-        MSK["Amazon MSK<br/>(Kafka)"]
-        CLICKHOUSE["ClickHouse<br/>(Self-managed EC2)"]
-    end
-
-    subgraph Security
-        WAF["AWS WAF"]
-        SHIELD["AWS Shield"]
-    end
-
-    R53 --> CF
-    CF --> WAF --> SHIELD
-    SHIELD --> REDIRECT & SHORTEN
-    REDIRECT --> ELASTICACHE
-    REDIRECT --> KEYSPACES
-    SHORTEN --> KGS --> RDS
-    SHORTEN --> KEYSPACES
-    REDIRECT --> MSK --> ANALYTICS --> CLICKHOUSE
-```
+![Diagram](./diagram-8.svg)
 
 **Service configurations:**
 

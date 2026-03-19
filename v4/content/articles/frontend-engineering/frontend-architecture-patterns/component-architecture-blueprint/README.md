@@ -8,46 +8,7 @@ Modern frontend applications face a common challenge: as codebases grow, couplin
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Shell["Application Shell (Framework-Specific)"]
-        F[Next.js / Remix / Vite]
-    end
-
-    subgraph Independent["Independent Layers (No Dependencies)"]
-        direction LR
-        subgraph SDK["SDK Layer"]
-            direction TB
-            A[Analytics]
-            R[Router]
-            H[HTTP]
-            E[Experiments]
-        end
-        subgraph DS["Design System"]
-            Primitives[Primitives<br/>Button, Card, Modal]
-        end
-    end
-
-    subgraph Components["Component Layers"]
-        Blocks["Blocks<br/>(Business Components)"]
-        Widgets["Widgets<br/>(BFF Integration)"]
-    end
-
-    subgraph Registries["Page-Specific Registries"]
-        direction LR
-        HomeReg[Home Registry]
-        PDPReg[PDP Registry]
-        PLPReg[PLP Registry]
-        CartReg[Cart Registry]
-    end
-
-    F -->|initializes & configures| SDK
-    Primitives -->|composes| Blocks
-    SDK -.->|injected via Context| Blocks
-    SDK -.->|injected via Context| Widgets
-    Blocks -->|composes| Widgets
-    Widgets -->|lazy-loaded by| Registries
-```
+![Architecture overview: SDK Layer and Design System (Primitives) are independent with no dependencies. The Application Shell initializes SDK implementations, which are then injected via React Context into Blocks and Widgets. Each page type has its own widget registry for code splitting.](./architecture-overview-sdk-layer-and-design-system-primitives-are-independent-wit.svg)
 
 <figcaption>Architecture overview: SDK Layer and Design System (Primitives) are independent with no dependencies. The Application Shell initializes SDK implementations, which are then injected via React Context into Blocks and Widgets. Each page type has its own widget registry for code splitting.</figcaption>
 
@@ -57,23 +18,7 @@ flowchart TB
 
 <figure>
 
-```mermaid
-graph TB
-    subgraph "Mental Model"
-        direction TB
-        A["Inversion of Control"] --> B["Components declare WHAT they need<br/>(interfaces), not HOW to get it"]
-        B --> C["Application shell provides implementations"]
-        C --> D["Tests provide mocks"]
-
-        E["Layered Boundaries"] --> F["Primitives → Blocks → Widgets"]
-        F --> G["Each layer imports only from below"]
-        G --> H["ESLint enforces at build time"]
-
-        I["Framework Isolation"] --> J["SDK abstractions wrap Next.js/Remix APIs"]
-        J --> K["Business logic never imports framework code"]
-        K --> L["Migration = new SDK implementations"]
-    end
-```
+![Core mental model: Inversion of Control enables testability, layered boundaries prevent coupling, and SDK abstractions enable framework migration.](./core-mental-model-inversion-of-control-enables-testability-layered-boundaries-pr.svg)
 
 <figcaption>Core mental model: Inversion of Control enables testability, layered boundaries prevent coupling, and SDK abstractions enable framework migration.</figcaption>
 

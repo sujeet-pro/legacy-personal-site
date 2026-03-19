@@ -8,62 +8,7 @@ A comprehensive system design for a web-scale crawler that discovers, downloads,
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Seed["Seed URLs"]
-        Seeds[Seed URL List]
-    end
-
-    subgraph Frontier["URL Frontier"]
-        PriorityQ[Priority Queues<br/>by importance]
-        PolitenessQ[Politeness Queues<br/>by host]
-        Scheduler[URL Scheduler]
-    end
-
-    subgraph Fetcher["Fetcher Cluster"]
-        DNS[DNS Resolver<br/>+ Cache]
-        Robots[robots.txt Cache]
-        HTTP[HTTP Fetchers<br/>Connection Pool]
-        Renderer[JS Renderer<br/>Headless Chrome]
-    end
-
-    subgraph Parser["Parser Pipeline"]
-        Extract[Content Extractor]
-        Links[Link Extractor]
-        Dedup[Duplicate Detector<br/>SimHash + Bloom]
-    end
-
-    subgraph Storage["Storage Layer"]
-        URLStore[(URL Database<br/>Seen URLs)]
-        Content[(Content Store<br/>Page Archive)]
-        Index[(Search Index)]
-        Graph[(Web Graph<br/>Link Structure)]
-    end
-
-    subgraph Coordinator["Coordination"]
-        Kafka[Message Queue<br/>Kafka]
-        Zk[Coordination<br/>ZooKeeper]
-    end
-
-    Seeds --> PriorityQ
-    PriorityQ --> Scheduler
-    PolitenessQ --> Scheduler
-    Scheduler --> DNS
-    DNS --> Robots
-    Robots --> HTTP
-    HTTP --> Renderer
-    Renderer --> Extract
-    HTTP --> Extract
-    Extract --> Content
-    Extract --> Links
-    Links --> Dedup
-    Dedup --> PriorityQ
-    Dedup --> URLStore
-    Content --> Index
-    Links --> Graph
-    Kafka --> Frontier
-    Zk --> Fetcher
-```
+![High-level web crawler architecture: Seeds flow through a prioritized, politeness-aware frontier to distributed fetchers. Parsed content feeds storage while extracted links cycle back through duplicate detection.](./high-level-web-crawler-architecture-seeds-flow-through-a-prioritized-politeness-.svg)
 
 <figcaption>High-level web crawler architecture: Seeds flow through a prioritized, politeness-aware frontier to distributed fetchers. Parsed content feeds storage while extracted links cycle back through duplicate detection.</figcaption>
 </figure>
@@ -341,91 +286,11 @@ Prevents redundant crawling:
 
 ### Data Flow: Crawling a URL
 
-```mermaid
-sequenceDiagram
-    participant F as Frontier
-    participant R as robots.txt Cache
-    participant D as DNS Cache
-    participant H as HTTP Fetcher
-    participant P as Parser
-    participant DD as Dedup Service
-    participant S as Storage
-
-    F->>F: Select URL (priority + politeness)
-    F->>D: Resolve hostname
-    D-->>F: IP address (cached or resolved)
-    F->>R: Check robots.txt
-    R-->>F: Allowed / Disallowed
-
-    alt Disallowed
-        F->>S: Mark URL as blocked
-    else Allowed
-        F->>H: Fetch URL
-        H-->>F: HTTP Response (status, headers, body)
-
-        alt Success (2xx)
-            F->>P: Parse content
-            P->>P: Extract links, content
-            P->>DD: Check content fingerprint
-            DD-->>P: New / Duplicate
-
-            alt New content
-                P->>S: Store content
-                P->>DD: Store fingerprint
-                loop For each extracted link
-                    P->>DD: Check URL seen
-                    DD-->>P: Seen / New
-                    alt New URL
-                        P->>F: Add to frontier (with priority)
-                        P->>DD: Mark URL seen
-                    end
-                end
-            else Duplicate content
-                P->>S: Store as duplicate (reference only)
-            end
-        else Redirect (3xx)
-            F->>DD: Check redirect URL
-            F->>F: Add redirect target to frontier
-        else Error (4xx/5xx)
-            F->>S: Log error, schedule retry (with backoff)
-        end
-    end
-
-    F->>F: Update politeness timer for host
-```
+![Diagram](./diagram-1.svg)
 
 ### Data Flow: Distributed URL Distribution
 
-```mermaid
-flowchart LR
-    subgraph Seeds
-        S[Seed URLs]
-    end
-
-    subgraph Kafka["Kafka Topics"]
-        T1[url-partition-0]
-        T2[url-partition-1]
-        T3[url-partition-2]
-        TN[url-partition-N]
-    end
-
-    subgraph Crawlers["Crawler Nodes"]
-        C1[Crawler 1<br/>hosts 0-999]
-        C2[Crawler 2<br/>hosts 1000-1999]
-        C3[Crawler 3<br/>hosts 2000-2999]
-        CN[Crawler N<br/>hosts ...]
-    end
-
-    S -->|hash by host| T1 & T2 & T3 & TN
-    T1 -->|consumer group| C1
-    T2 -->|consumer group| C2
-    T3 -->|consumer group| C3
-    TN -->|consumer group| CN
-
-    C1 -->|discovered URLs| T1 & T2 & T3 & TN
-    C2 -->|discovered URLs| T1 & T2 & T3 & TN
-    C3 -->|discovered URLs| T1 & T2 & T3 & TN
-```
+![Diagram](./diagram-2.svg)
 
 ## API Design
 
@@ -1621,58 +1486,7 @@ function URLAnalyzer() {
 
 ### AWS Reference Architecture
 
-```mermaid
-flowchart TB
-    subgraph Coordination["Coordination Layer"]
-        MSK[Amazon MSK<br/>Kafka]
-        ZK[Amazon MSK<br/>ZooKeeper]
-    end
-
-    subgraph Compute["Compute Layer (VPC)"]
-        subgraph CrawlerASG["Crawler Auto Scaling Group"]
-            C1[Crawler EC2<br/>c6i.2xlarge]
-            C2[Crawler EC2]
-            C3[Crawler EC2]
-            CN[Crawler EC2]
-        end
-
-        subgraph ParserASG["Parser Auto Scaling Group"]
-            P1[Parser EC2<br/>c6i.xlarge]
-            P2[Parser EC2]
-        end
-
-        subgraph RendererASG["Renderer ASG"]
-            R1[Renderer EC2<br/>c6i.4xlarge<br/>Headless Chrome]
-        end
-    end
-
-    subgraph Data["Data Layer (Private Subnets)"]
-        RDS[(RDS PostgreSQL<br/>URL Metadata)]
-        ElastiCache[(ElastiCache Redis<br/>Bloom Filter + Cache)]
-        S3[(S3<br/>Content Archive)]
-    end
-
-    subgraph Monitoring["Monitoring"]
-        CW[CloudWatch]
-        Grafana[Grafana<br/>Dashboard]
-    end
-
-    MSK --> CrawlerASG
-    CrawlerASG --> MSK
-    CrawlerASG --> ElastiCache
-    CrawlerASG --> RDS
-    CrawlerASG --> S3
-
-    ParserASG --> MSK
-    ParserASG --> ElastiCache
-    ParserASG --> S3
-
-    RendererASG --> MSK
-    ZK --> CrawlerASG
-
-    CrawlerASG --> CW
-    CW --> Grafana
-```
+![Diagram](./diagram-3.svg)
 
 | Component       | AWS Service       | Configuration                               |
 | --------------- | ----------------- | ------------------------------------------- |

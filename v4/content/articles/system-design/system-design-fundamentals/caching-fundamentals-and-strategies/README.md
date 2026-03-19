@@ -8,25 +8,7 @@ Understanding caching for distributed systems: design choices, trade-offs, and w
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Caching Hierarchy"
-        direction TB
-        CPU["CPU Caches<br/>L1/L2/L3<br/>~1-100ns"]
-        APP["Application Cache<br/>In-memory<br/>~1ms"]
-        DIST["Distributed Cache<br/>Redis/Memcached<br/>~1-10ms"]
-        CDN["CDN Edge<br/>Cloudflare/Fastly<br/>~10-50ms"]
-        ORIGIN["Origin Server<br/>Database/API<br/>~50-500ms"]
-    end
-
-    CPU --> APP --> DIST --> CDN --> ORIGIN
-
-    style CPU fill:#d5e8d4,stroke:#82b366
-    style APP fill:#dae8fc,stroke:#6c8ebf
-    style DIST fill:#fff2cc,stroke:#d6b656
-    style CDN fill:#f8cecc,stroke:#b85450
-    style ORIGIN fill:#e1d5e7,stroke:#9673a6
-```
+![The caching hierarchy from CPU to origin server, showing typical latency at each layer](./the-caching-hierarchy-from-cpu-to-origin-server-showing-typical-latency-at-each-.svg)
 
 <figcaption>The caching hierarchy from CPU to origin server, showing typical latency at each layer</figcaption>
 

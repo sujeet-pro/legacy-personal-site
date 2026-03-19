@@ -10,33 +10,7 @@ The focus is on React-based systems, though most principles apply across framewo
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph API["Component API Layer"]
-        direction LR
-        COMP[Compound Components]
-        POLY[Polymorphic Props]
-        A11Y[Built-in A11y]
-    end
-
-    subgraph GOV["Governance Layer"]
-        direction LR
-        RFC[RFC Process]
-        CONTRIB[Contribution Model]
-        REVIEW[Review Gates]
-    end
-
-    subgraph OPS["Operations Layer"]
-        direction LR
-        VER[Versioning]
-        DOCS[Documentation]
-        METRICS[Adoption Metrics]
-    end
-
-    API --> GOV
-    GOV --> OPS
-    OPS -->|Feedback| API
-```
+![Component libraries operate as products with three interconnected layers: API design shapes developer experience, governance manages change, and operations ensure sustainable adoption.](./component-libraries-operate-as-products-with-three-interconnected-layers-api-des.svg)
 
 <figcaption>Component libraries operate as products with three interconnected layers: API design shapes developer experience, governance manages change, and operations ensure sustainable adoption.</figcaption>
 </figure>

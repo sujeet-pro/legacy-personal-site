@@ -8,23 +8,7 @@ Learn how to build resilient distributed systems using exponential backoff, jitt
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph "Retry Strategy Evolution"
-        NAIVE["Naive Retry<br/>Immediate, fixed"]
-        EXP["Exponential Backoff<br/>2^attempt × base"]
-        JITTER["+ Jitter<br/>Randomized delays"]
-    end
-
-    NAIVE -->|"Causes retry storms"| EXP
-    EXP -->|"Prevents correlation"| JITTER
-
-    subgraph "Delay Example"
-        D1["100ms"] --> D2["200ms"]
-        D2 --> D3["400ms"]
-        D3 --> D4["800ms"]
-    end
-```
+![Evolution from naive retries to exponential backoff with jitter for preventing thundering herd problems](./evolution-from-naive-retries-to-exponential-backoff-with-jitter-for-preventing-t.svg)
 
 <figcaption>Evolution from naive retries to exponential backoff with jitter for preventing thundering herd problems</figcaption>
 

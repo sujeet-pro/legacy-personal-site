@@ -10,28 +10,7 @@ This article covers CDC approaches, log-based implementation internals, producti
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Core CDC Flow"
-        direction LR
-        DB[(Source Database)] -->|"Transaction Log"| CDC[CDC Connector]
-        CDC -->|"Change Events"| K[Message Broker]
-        K -->|"Consume"| C1[Cache]
-        K -->|"Consume"| C2[Search Index]
-        K -->|"Consume"| C3[Analytics]
-    end
-
-    subgraph "Change Event Structure"
-        direction TB
-        E["{ op: UPDATE,
-             before: {...},
-             after: {...},
-             source: {table, txId, lsn},
-             ts_ms: 1706745600000 }"]
-    end
-
-    CDC -.->|"Emits"| E
-```
+![CDC captures changes from the database's transaction log and emits structured change events to downstream consumers—each event contains the operation type, before/after state, and source metadata.](./cdc-captures-changes-from-the-database-s-transaction-log-and-emits-structured-ch.svg)
 
 <figcaption>CDC captures changes from the database's transaction log and emits structured change events to downstream consumers—each event contains the operation type, before/after state, and source metadata.</figcaption>
 </figure>
@@ -185,19 +164,7 @@ CDC resolves this by **reading changes where they're already reliably recorded**
 
 ### Decision Framework
 
-```mermaid
-flowchart TD
-    A[Need CDC] --> B{Log access available?}
-    B -->|Yes| C[Log-based CDC]
-    B -->|No| D{Can add triggers?}
-    D -->|Yes| E[Trigger-based CDC]
-    D -->|No| F{Hard deletes used?}
-    F -->|No| G[Polling-based CDC]
-    F -->|Yes| H[Requires application changes]
-    C --> I{Self-managed?}
-    I -->|Yes| J[Debezium]
-    I -->|No| K[AWS DMS / Fivetran]
-```
+![Diagram](./diagram-1.svg)
 
 ## Log-Based CDC Internals
 
@@ -207,16 +174,7 @@ PostgreSQL's CDC uses **logical replication**, which decodes the physical WAL in
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    subgraph PostgreSQL
-        W[Write] --> WAL[(WAL)]
-        WAL --> LD[Logical Decoding]
-        LD --> RS[Replication Slot]
-    end
-    RS --> CDC[CDC Connector]
-    CDC --> K[Kafka]
-```
+![Diagram](./diagram-2.svg)
 
 **Configuration requirements:**
 
@@ -338,33 +296,7 @@ changeStream.on("change", (change) => {
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    subgraph "Source Databases"
-        PG[(PostgreSQL)]
-        MY[(MySQL)]
-        MO[(MongoDB)]
-    end
-
-    subgraph "Kafka Connect Cluster"
-        C1[Debezium<br/>Connector 1]
-        C2[Debezium<br/>Connector 2]
-        C3[Debezium<br/>Connector 3]
-    end
-
-    subgraph "Kafka"
-        T1[users topic]
-        T2[orders topic]
-        T3[products topic]
-    end
-
-    PG --> C1
-    MY --> C2
-    MO --> C3
-    C1 --> T1
-    C2 --> T2
-    C3 --> T3
-```
+![Diagram](./diagram-3.svg)
 
 **When to choose this path:**
 
@@ -433,29 +365,7 @@ Shopify migrated from query-based to Debezium CDC:
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    subgraph "Source"
-        RDS[(RDS PostgreSQL)]
-    end
-
-    subgraph "AWS DMS"
-        RI[Replication Instance]
-        RI --> |Full Load| T[Task]
-        T --> |CDC| T
-    end
-
-    subgraph "Targets"
-        S3[(S3)]
-        RS[(Redshift)]
-        MSK[MSK/Kafka]
-    end
-
-    RDS --> RI
-    T --> S3
-    T --> RS
-    T --> MSK
-```
+![Diagram](./diagram-4.svg)
 
 **When to choose this path:**
 
@@ -492,13 +402,7 @@ flowchart LR
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    MY[(MySQL)] -->|Binlog| MX[Maxwell]
-    MX -->|JSON| K[Kafka]
-    MX -->|JSON| KS[Kinesis]
-    MX -->|JSON| RB[RabbitMQ]
-```
+![Diagram](./diagram-5.svg)
 
 **When to choose:**
 
@@ -548,16 +452,7 @@ flowchart LR
 
 **Architecture:**
 
-```mermaid
-flowchart TB
-    subgraph "Databus Architecture"
-        OLTP[(Oracle/MySQL)] --> R[Relay]
-        R --> |In-memory buffer| CB[Circular Buffer]
-        CB --> C1[Consumer 1]
-        CB --> C2[Consumer 2]
-        BS[(Bootstrap Server)] --> C3[New Consumer]
-    end
-```
+![Diagram](./diagram-6.svg)
 
 **Implementation details:**
 
@@ -588,36 +483,7 @@ flowchart TB
 
 **Riverbed (materialized views):**
 
-```mermaid
-flowchart LR
-    subgraph "CDC Sources"
-        S1[(Listings)]
-        S2[(Reviews)]
-        S3[(Users)]
-    end
-
-    subgraph "SpinalTap"
-        CDC[CDC Connectors]
-    end
-
-    subgraph "Processing"
-        K[Kafka]
-        SP[Spark Streaming]
-    end
-
-    subgraph "Materialized Views"
-        MV[(Search View)]
-        MV2[(Payment View)]
-    end
-
-    S1 --> CDC
-    S2 --> CDC
-    S3 --> CDC
-    CDC --> K
-    K --> SP
-    SP --> MV
-    SP --> MV2
-```
+![Diagram](./diagram-7.svg)
 
 **Scale (2024):**
 
@@ -669,25 +535,7 @@ DBLog approach:
 
 **Implementation:**
 
-```mermaid
-flowchart LR
-    subgraph "Cassandra Cluster"
-        N1[Node 1<br/>+ Agent]
-        N2[Node 2<br/>+ Agent]
-        N3[Node 3<br/>+ Agent]
-    end
-
-    subgraph "CDC Agents"
-        A1[Agent 1<br/>Primary for keys A-M]
-        A2[Agent 2<br/>Primary for keys N-Z]
-    end
-
-    N1 --> A1
-    N2 --> A2
-    N3 --> A1
-    A1 --> K[Kafka]
-    A2 --> K
-```
+![Diagram](./diagram-8.svg)
 
 **Key design decisions:**
 
@@ -722,13 +570,7 @@ CDC events must carry schema information. When source schema changes, downstream
 
 ### Schema Registry Integration
 
-```mermaid
-flowchart LR
-    CDC[Debezium] -->|Register schema| SR[(Schema Registry)]
-    CDC -->|Avro + schema ID| K[Kafka]
-    C[Consumer] -->|Fetch schema| SR
-    C -->|Decode with schema| K
-```
+![Diagram](./diagram-9.svg)
 
 **How it works:**
 
@@ -870,13 +712,7 @@ exactly.once.source.support=enabled
 
 For true end-to-end exactly-once:
 
-```mermaid
-flowchart LR
-    DB[(Source DB)] -->|EOS| CDC[Debezium]
-    CDC -->|EOS| K[Kafka]
-    K -->|At-least-once| C[Consumer]
-    C -->|Idempotent write| T[(Target)]
-```
+![Diagram](./diagram-10.svg)
 
 Consumer-side idempotency:
 
@@ -905,15 +741,7 @@ async function processChange(change: ChangeEvent) {
 
 The **transactional outbox pattern** ensures reliable event publishing by writing events to a database table (outbox) within the same transaction as business data.
 
-```mermaid
-flowchart LR
-    subgraph "Application Transaction"
-        U[Update User] --> O[Write to Outbox]
-    end
-    O --> CDC[CDC]
-    CDC --> K[Kafka]
-    K --> C[Consumers]
-```
+![Diagram](./diagram-11.svg)
 
 **CDC as outbox relay:**
 
@@ -952,15 +780,7 @@ COMMIT;
 
 CDC enables event-driven cache invalidation without TTL guessing:
 
-```mermaid
-flowchart LR
-    DB[(PostgreSQL)] --> CDC[Debezium]
-    CDC --> K[Kafka]
-    K --> CI[Cache Invalidator]
-    CI --> R[(Redis)]
-    APP[Application] --> R
-    APP --> DB
-```
+![Diagram](./diagram-12.svg)
 
 **Implementation:**
 
@@ -996,13 +816,7 @@ async function handleChange(change: ChangeEvent) {
 
 CDC keeps search indices in sync with source of truth:
 
-```mermaid
-flowchart LR
-    DB[(PostgreSQL)] --> CDC[Debezium]
-    CDC --> K[Kafka]
-    K --> ES[Elasticsearch Sink]
-    ES --> IDX[(Elasticsearch)]
-```
+![Diagram](./diagram-13.svg)
 
 **Kafka Connect Elasticsearch sink:**
 
@@ -1028,14 +842,7 @@ flowchart LR
 
 CDC enables real-time analytics without batch ETL:
 
-```mermaid
-flowchart LR
-    DB[(OLTP DB)] --> CDC[Debezium]
-    CDC --> K[Kafka]
-    K --> F[Flink]
-    F --> DW[(Data Warehouse)]
-    F --> RT[Real-time Dashboard]
-```
+![Diagram](./diagram-14.svg)
 
 **Lambda architecture simplification:**
 
@@ -1152,18 +959,7 @@ Consumer must be idempotent to handle potential duplicates during snapshot-to-st
 
 ### Starting Point Decision
 
-```mermaid
-flowchart TD
-    A[Need CDC] --> B{Team experience?}
-    B -->|Low| C{Budget for managed?}
-    B -->|High| D{Performance requirements?}
-    C -->|Yes| E[Fivetran / AWS DMS]
-    C -->|No| F[Start with Debezium + managed Kafka]
-    D -->|Sub-second| G[Debezium self-managed]
-    D -->|Seconds OK| H{Infrastructure preference?}
-    H -->|AWS-native| I[AWS DMS + MSK]
-    H -->|Multi-cloud| J[Debezium + Confluent Cloud]
-```
+![Diagram](./diagram-15.svg)
 
 ### Checklist for Production CDC
 

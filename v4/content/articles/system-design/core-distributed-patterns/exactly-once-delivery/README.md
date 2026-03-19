@@ -8,21 +8,7 @@ True exactly-once delivery is impossible in distributed systems—the Two Genera
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "The Illusion of Exactly-Once"
-        direction LR
-        P[Producer] -->|"msg + ID"| B[Broker]
-        B -->|"msg + ID<br/>(may redeliver)"| C[Consumer]
-        C -->|"Check ID"| D[(Dedup Store)]
-        D -->|"Already seen?"| E{Duplicate?}
-        E -->|"Yes"| F[Skip]
-        E -->|"No"| G[Process + Store ID]
-    end
-
-    style F fill:#ffcccb
-    style G fill:#90EE90
-```
+![Exactly-once semantics: at-least-once delivery + idempotent consumption = effectively exactly-once effect.](./exactly-once-semantics-at-least-once-delivery-idempotent-consumption-effectively.svg)
 
 <figcaption>Exactly-once semantics: at-least-once delivery + idempotent consumption = effectively exactly-once effect.</figcaption>
 </figure>
@@ -621,24 +607,7 @@ Debezium's outbox connector reads the outbox table via CDC and publishes to Kafk
 
 ### Decision Framework
 
-```mermaid
-flowchart TD
-    A[Need exactly-once?] --> B{Control consumer?}
-    B -->|Yes| C{Operations naturally idempotent?}
-    C -->|Yes| D[Path 1: Idempotent Operations]
-    C -->|No| E{Dual-write problem?}
-    E -->|Yes| F[Path 6: Transactional Outbox]
-    E -->|No| G{Using Kafka?}
-    G -->|Yes| H{Read-transform-write?}
-    H -->|Yes| I[Path 5: Transactions]
-    H -->|No| J[Path 3: Idempotent Producer]
-    G -->|No| K[Path 4: Consumer-Side Dedup]
-    B -->|No| L{Exposing API?}
-    L -->|Yes| M[Path 2: Idempotency Keys]
-    L -->|No| N{Broker supports dedup?}
-    N -->|Yes| O[Path 3: Broker-Side Dedup]
-    N -->|No| P[Path 4: Consumer-Side Dedup]
-```
+![Diagram](./diagram-1.svg)
 
 ## Production Implementations
 
@@ -654,24 +623,7 @@ flowchart TD
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    subgraph Producer
-        P[App] --> IP[Idempotent Producer]
-        IP -->|"PID + SeqNum"| B
-    end
-
-    subgraph Broker["Kafka Broker"]
-        B[Leader] -->|"Check SeqNum"| D{Duplicate?}
-        D -->|Yes| R[Reject]
-        D -->|No| W[Write to Log]
-    end
-
-    subgraph Consumer
-        W --> C[Consumer]
-        C -->|"read_committed"| CP[Consumer Processing]
-    end
-```
+![Diagram](./diagram-2.svg)
 
 **Specific details:**
 
@@ -719,29 +671,7 @@ flowchart LR
 
 **Architecture:**
 
-```mermaid
-sequenceDiagram
-    participant Client
-    participant API as Stripe API
-    participant Redis as Idempotency Store
-    participant Core as Payment Core
-
-    Client->>API: POST /charges (Idempotency-Key: abc123)
-    API->>Redis: GET idem:abc123
-    Redis-->>API: null (not found)
-    API->>Redis: SET idem:abc123 {status: processing}
-    API->>Core: Process charge
-    Core-->>API: Charge result
-    API->>Redis: SET idem:abc123 {status: done, response: ...}
-    API-->>Client: 200 OK
-
-    Note over Client,API: Network failure, client retries
-
-    Client->>API: POST /charges (Idempotency-Key: abc123)
-    API->>Redis: GET idem:abc123
-    Redis-->>API: {status: done, response: ...}
-    API-->>Client: 200 OK (Idempotent-Replayed: true)
-```
+![Diagram](./diagram-3.svg)
 
 **Specific details:**
 
@@ -1062,23 +992,7 @@ Publish fails if a message with that subject already exists—provides infinite 
 
 ### Starting Point Decision
 
-```mermaid
-flowchart TD
-    A[Need exactly-once?] --> B{Using message broker?}
-    B -->|Yes| C{Which broker?}
-    B -->|No| D{Exposing HTTP API?}
-
-    C -->|Kafka| E[Use idempotent producer<br/>+ transactional consumer]
-    C -->|AWS SQS| F[Use FIFO queue<br/>+ idempotent handler]
-    C -->|RabbitMQ| G[Consumer-side dedup<br/>with database]
-    C -->|Pub/Sub| H[Enable exactly-once<br/>+ idempotent handler]
-    C -->|Azure Service Bus| I[Enable duplicate detection<br/>+ idempotent handler]
-    C -->|NATS JetStream| J[Use Nats-Msg-Id header<br/>+ idempotent handler]
-    C -->|Pulsar| K[Use Transaction API<br/>for cross-topic atomicity]
-
-    D -->|Yes| L[Implement idempotency keys<br/>à la Stripe]
-    D -->|No| M[Design idempotent operations<br/>+ version vectors]
-```
+![Diagram](./diagram-4.svg)
 
 ### System Selection Guide
 

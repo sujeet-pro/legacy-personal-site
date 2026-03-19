@@ -10,37 +10,7 @@ The core challenge: browsers struggle with more than a few thousand DOM nodes. A
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Data["Data Layer"]
-        DS[Data Source]
-        Cache[Client Cache]
-        Transform[Sort/Filter/Group]
-    end
-
-    subgraph Virtual["Virtualization Layer"]
-        ScrollState[Scroll Position]
-        VisibleRange[Visible Range Calculator]
-        RowPool[DOM Node Pool]
-    end
-
-    subgraph Render["Render Layer"]
-        Header[Fixed Header]
-        PinnedL[Pinned Left]
-        Body[Scrollable Body]
-        PinnedR[Pinned Right]
-    end
-
-    DS --> Cache
-    Cache --> Transform
-    Transform --> VisibleRange
-    ScrollState --> VisibleRange
-    VisibleRange --> RowPool
-    RowPool --> Body
-    Header --> Body
-    PinnedL --> Body
-    PinnedR --> Body
-```
+![Data grid architecture: data flows through transformation and virtualization layers before reaching the render layer, which splits into fixed headers and pinned columns.](./data-grid-architecture-data-flows-through-transformation-and-virtualization-laye.svg)
 
 <figcaption>Data grid architecture: data flows through transformation and virtualization layers before reaching the render layer, which splits into fixed headers and pinned columns.</figcaption>
 </figure>
@@ -98,29 +68,7 @@ The 16ms frame budget disappears quickly. A scroll event handler that calculates
 
 TanStack Table (formerly React Table v8) provides table logic without rendering opinions. You get state management, sorting, filtering, grouping, and pagination—but zero UI.
 
-```mermaid
-flowchart LR
-    subgraph Core["@tanstack/table-core"]
-        State[Table State]
-        RowModel[Row Models]
-        Features[Features API]
-    end
-
-    subgraph Adapter["Framework Adapter"]
-        React["@tanstack/react-table"]
-        Vue["@tanstack/vue-table"]
-        Solid["@tanstack/solid-table"]
-    end
-
-    subgraph Your["Your Code"]
-        UI[Custom UI Components]
-        Styles[Your Styles]
-        Virtual[Virtualization Layer]
-    end
-
-    Core --> Adapter
-    Adapter --> Your
-```
+![Diagram](./diagram-1.svg)
 
 **How it works:**
 
@@ -201,32 +149,7 @@ TanStack Table powers countless production applications where teams need precise
 
 AG Grid provides everything: virtualization, sorting, filtering, grouping, pivoting, Excel export, and enterprise features. The core is vanilla JavaScript with framework-specific wrappers.
 
-```mermaid
-flowchart TB
-    subgraph Core["Native JavaScript Core"]
-        GridCore[Grid Core]
-        RowModel[Row Model Manager]
-        ColModel[Column Model]
-        Virtual[Virtualization Engine]
-    end
-
-    subgraph Wrappers["Framework Wrappers"]
-        ReactW[React Wrapper]
-        AngularW[Angular Wrapper]
-        VueW[Vue Wrapper]
-    end
-
-    subgraph Features["Feature Modules"]
-        Sort[Sorting]
-        Filter[Filtering]
-        Group[Row Grouping]
-        Pivot[Pivoting]
-        Export[Excel Export]
-    end
-
-    Core --> Wrappers
-    Features --> Core
-```
+![Diagram](./diagram-2.svg)
 
 **How it works:**
 
@@ -309,32 +232,7 @@ Financial institutions use AG Grid for trading desks where grids display real-ti
 
 Canvas-based grids bypass the DOM entirely, drawing cells directly to a 2D canvas context. This eliminates DOM overhead but requires implementing everything: text rendering, selection highlights, scrollbars.
 
-```mermaid
-flowchart LR
-    subgraph Data["Data Model"]
-        Cells[Cell Data]
-        Viewport[Viewport State]
-        Selection[Selection State]
-    end
-
-    subgraph Render["Canvas Render Loop"]
-        RAF[requestAnimationFrame]
-        Draw[Draw Visible Cells]
-        Overlay[Draw Selection/Borders]
-    end
-
-    subgraph Input["Input Handling"]
-        Mouse[Mouse Events → Cell Coords]
-        Keyboard[Keyboard Events]
-        Touch[Touch Events]
-    end
-
-    Viewport --> RAF
-    Data --> Draw
-    RAF --> Draw
-    Draw --> Overlay
-    Input --> Data
-```
+![Diagram](./diagram-3.svg)
 
 **How it works:**
 
@@ -390,24 +288,7 @@ Google Sheets uses canvas rendering for the main cell area. Their architecture a
 
 MUI X DataGrid combines React integration with built-in virtualization. It renders real DOM elements but only for visible cells, bridging the gap between canvas performance and DOM accessibility.
 
-```mermaid
-flowchart TB
-    subgraph MUI["MUI DataGrid"]
-        GridRoot[GridRoot Container]
-        subgraph Columns["Column Structure"]
-            PinL[Left Pinned]
-            Main[Main Columns]
-            PinR[Right Pinned]
-        end
-        subgraph Virtual["Virtualization"]
-            RowVirt[Row Virtualization]
-            ColVirt[Column Virtualization]
-        end
-    end
-
-    GridRoot --> Columns
-    Columns --> Virtual
-```
+![Diagram](./diagram-4.svg)
 
 **How it works:**
 
@@ -485,20 +366,7 @@ Internal admin dashboards commonly use MUI DataGrid because it integrates cleanl
 | Learning curve    | Medium                    | Low                     | Very high      | Low                    |
 | Styling freedom   | Full                      | Moderate                | Full           | Material-themed        |
 
-```mermaid
-flowchart TD
-    Start[Need a data grid] --> Size{Dataset size?}
-    Size -->|< 1K rows| Simple[Consider basic table]
-    Size -->|1K - 100K| Mid{Control requirements?}
-    Size -->|> 100K| Large{Update frequency?}
-
-    Mid -->|Full control| TanStack[TanStack + react-virtual]
-    Mid -->|Quick setup| MUI[MUI DataGrid]
-    Mid -->|Enterprise features| AG[AG Grid]
-
-    Large -->|Static/Paginated| ServerSide[Server-side row model]
-    Large -->|Real-time updates| Canvas[Canvas-based or AG Grid Viewport]
-```
+![Diagram](./diagram-5.svg)
 
 ## Virtualization Deep Dive
 
@@ -658,27 +526,7 @@ sortAsync(largeDataset, "name", "asc").then(setSortedRows)
 
 Pinning creates three synchronized scroll regions:
 
-```mermaid
-flowchart LR
-    subgraph Grid["Data Grid"]
-        subgraph Left["Left Pinned"]
-            LP1[ID]
-            LP2[Name]
-        end
-        subgraph Center["Scrollable"]
-            C1[Col 3]
-            C2[Col 4]
-            C3[...]
-            C4[Col N]
-        end
-        subgraph Right["Right Pinned"]
-            RP1[Actions]
-        end
-    end
-
-    Left -.->|"synced scroll Y"| Center
-    Right -.->|"synced scroll Y"| Center
-```
+![Diagram](./diagram-6.svg)
 
 Implementation requirements:
 

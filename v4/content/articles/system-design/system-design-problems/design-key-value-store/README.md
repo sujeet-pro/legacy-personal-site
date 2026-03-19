@@ -8,36 +8,7 @@ A distributed key-value store provides simple get/put semantics while handling t
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Clients
-        C1[Client 1]
-        C2[Client 2]
-        C3[Client N]
-    end
-
-    subgraph "Coordinator Layer"
-        COORD[Any Node Can Coordinate]
-    end
-
-    subgraph "Storage Ring"
-        direction LR
-        N1[Node A<br/>vnodes: 0-63]
-        N2[Node B<br/>vnodes: 64-127]
-        N3[Node C<br/>vnodes: 128-191]
-        N4[Node D<br/>vnodes: 192-255]
-    end
-
-    subgraph "Per-Node Storage"
-        MEM[Memtable<br/>In-Memory]
-        WAL[Write-Ahead Log]
-        SST[SSTables<br/>On-Disk]
-    end
-
-    C1 & C2 & C3 --> COORD
-    COORD --> N1 & N2 & N3 & N4
-    N1 --> MEM --> WAL --> SST
-```
+![High-level architecture: clients contact any node as coordinator, which routes to the correct replicas based on consistent hashing. Each node uses an LSM-tree storage engine.](./high-level-architecture-clients-contact-any-node-as-coordinator-which-routes-to-.svg)
 
 <figcaption>High-level architecture: clients contact any node as coordinator, which routes to the correct replicas based on consistent hashing. Each node uses an LSM-tree storage engine.</figcaption>
 </figure>
@@ -180,46 +151,7 @@ For CP key-value store design, see etcd's architecture documentation and the Raf
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Client Layer"
-        SDK[Client SDK<br/>Consistent hashing<br/>Retry logic]
-    end
-
-    subgraph "Coordinator Layer"
-        ANY[Any Node<br/>Routes to replicas<br/>Handles quorum]
-    end
-
-    subgraph "Cluster Membership"
-        GOSSIP[Gossip Protocol<br/>Failure detection<br/>Membership changes]
-    end
-
-    subgraph "Replication"
-        REP[Replica Set<br/>N replicas per key<br/>Quorum R/W]
-    end
-
-    subgraph "Storage Engine"
-        MEM[Memtable]
-        WAL[WAL]
-        SST[SSTables]
-        COMPACT[Compaction]
-    end
-
-    subgraph "Anti-Entropy"
-        MERKLE[Merkle Trees]
-        REPAIR[Read Repair]
-        HINT[Hinted Handoff]
-    end
-
-    SDK --> ANY
-    ANY --> REP
-    ANY <--> GOSSIP
-    REP --> MEM --> WAL --> SST
-    SST --> COMPACT
-    REP <--> MERKLE
-    REP <--> REPAIR
-    REP <--> HINT
-```
+![Component interactions: coordinator routes requests, gossip maintains membership, storage engine persists data, anti-entropy mechanisms ensure replica convergence.](./component-interactions-coordinator-routes-requests-gossip-maintains-membership-s.svg)
 
 <figcaption>Component interactions: coordinator routes requests, gossip maintains membership, storage engine persists data, anti-entropy mechanisms ensure replica convergence.</figcaption>
 </figure>
@@ -344,31 +276,7 @@ Example with N=3:
 
 <figure>
 
-```mermaid
-sequenceDiagram
-    participant C as Coordinator
-    participant A as Node A (replica)
-    participant B as Node B (replica)
-    participant D as Node D (hint target)
-    participant Bdown as Node B (down)
-
-    Note over Bdown: Node B unavailable
-
-    C->>A: Write(key, value)
-    A-->>C: ACK
-    C->>Bdown: Write(key, value)
-    Note over C: Timeout, B unreachable
-    C->>D: Write(key, value, hint_for=B)
-    D-->>C: ACK (hint stored)
-
-    Note over C: W=2 satisfied (A + D)
-    C-->>C: Return success
-
-    Note over Bdown: Node B recovers
-    D->>B: Hinted handoff(key, value)
-    B-->>D: ACK
-    D->>D: Delete hint
-```
+![Sloppy quorum: when replica B is unavailable, the coordinator writes to node D with a hint. When B recovers, D forwards the data.](./sloppy-quorum-when-replica-b-is-unavailable-the-coordinator-writes-to-node-d-wit.svg)
 
 <figcaption>Sloppy quorum: when replica B is unavailable, the coordinator writes to node D with a hint. When B recovers, D forwards the data.</figcaption>
 </figure>
@@ -491,28 +399,7 @@ Merkle trees enable efficient comparison of large datasets. Each leaf is a hash 
 
 <figure>
 
-```mermaid
-graph TB
-    ROOT[Root Hash: abc123]
-    L1[Hash: def456]
-    L2[Hash: ghi789]
-    L1A[Hash: 111]
-    L1B[Hash: 222]
-    L2A[Hash: 333]
-    L2B[Hash: 444]
-
-    ROOT --> L1
-    ROOT --> L2
-    L1 --> L1A
-    L1 --> L1B
-    L2 --> L2A
-    L2 --> L2B
-
-    L1A --> D1[Keys a-m]
-    L1B --> D2[Keys n-z]
-    L2A --> D3[Keys A-M]
-    L2B --> D4[Keys N-Z]
-```
+![Merkle tree: comparing root hashes identifies if replicas differ. Traversing mismatched branches locates specific divergent key ranges.](./merkle-tree-comparing-root-hashes-identifies-if-replicas-differ-traversing-misma.svg)
 
 <figcaption>Merkle tree: comparing root hashes identifies if replicas differ. Traversing mismatched branches locates specific divergent key ranges.</figcaption>
 </figure>
@@ -572,22 +459,7 @@ LSM (Log-Structured Merge) trees convert random writes to sequential I/O:
 
 <figure>
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant M as Memtable
-    participant W as WAL
-    participant S as SSTable
-
-    C->>W: 1. Append to WAL (durability)
-    W-->>C: ACK
-    C->>M: 2. Update memtable
-    M-->>C: Success
-
-    Note over M: Memtable fills up
-    M->>S: 3. Flush to SSTable
-    Note over S: Immutable, sorted file
-```
+![Write path: WAL ensures durability, memtable provides fast writes, flush creates immutable SSTables.](./write-path-wal-ensures-durability-memtable-provides-fast-writes-flush-creates-im.svg)
 
 <figcaption>Write path: WAL ensures durability, memtable provides fast writes, flush creates immutable SSTables.</figcaption>
 </figure>
@@ -709,29 +581,7 @@ Response:
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Availability Zone 1"
-        EC2_1[EC2 i3.xlarge<br/>NVMe SSD]
-        EC2_2[EC2 i3.xlarge<br/>NVMe SSD]
-    end
-
-    subgraph "Availability Zone 2"
-        EC2_3[EC2 i3.xlarge<br/>NVMe SSD]
-        EC2_4[EC2 i3.xlarge<br/>NVMe SSD]
-    end
-
-    subgraph "Availability Zone 3"
-        EC2_5[EC2 i3.xlarge<br/>NVMe SSD]
-        EC2_6[EC2 i3.xlarge<br/>NVMe SSD]
-    end
-
-    NLB[Network Load Balancer]
-    S3[(S3 - Backups)]
-
-    NLB --> EC2_1 & EC2_2 & EC2_3 & EC2_4 & EC2_5 & EC2_6
-    EC2_1 & EC2_2 & EC2_3 & EC2_4 & EC2_5 & EC2_6 --> S3
-```
+![AWS deployment: i3 instances with local NVMe for low-latency storage, spread across 3 AZs for fault tolerance, S3 for backups.](./aws-deployment-i3-instances-with-local-nvme-for-low-latency-storage-spread-acros.svg)
 
 <figcaption>AWS deployment: i3 instances with local NVMe for low-latency storage, spread across 3 AZs for fault tolerance, S3 for backups.</figcaption>
 </figure>

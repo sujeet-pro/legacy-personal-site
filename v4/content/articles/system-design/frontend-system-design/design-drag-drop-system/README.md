@@ -10,41 +10,7 @@ Drag and drop appears simple: grab an element, move it, release it. In practice,
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Input["Input Sources"]
-        Mouse[Mouse Events]
-        Touch[Touch Events]
-        Pointer[Pointer Events]
-        Keyboard[Keyboard Events]
-    end
-
-    subgraph DragSystem["Drag System"]
-        direction TB
-        Sensor[Sensor Layer]
-        DragState[Drag State Manager]
-        DropTargets[Drop Target Registry]
-        Preview[Drag Preview]
-    end
-
-    subgraph Visual["Visual Feedback"]
-        Ghost[Ghost Element]
-        DropIndicator[Drop Indicators]
-        Placeholder[Placeholder]
-    end
-
-    Mouse --> Sensor
-    Touch --> Sensor
-    Pointer --> Sensor
-    Keyboard --> Sensor
-
-    Sensor --> DragState
-    DragState --> DropTargets
-    DragState --> Preview
-    DropTargets --> DropIndicator
-    Preview --> Ghost
-    DragState --> Placeholder
-```
+![Drag and drop system architecture: multiple input sources feed into a unified sensor layer, which manages drag state, tracks drop targets, and coordinates visual feedback.](./drag-and-drop-system-architecture-multiple-input-sources-feed-into-a-unified-sen.svg)
 
 <figcaption>Drag and drop system architecture: multiple input sources feed into a unified sensor layer, which manages drag state, tracks drop targets, and coordinates visual feedback.</figcaption>
 </figure>
@@ -558,19 +524,7 @@ pointerdown → capture → pointermove (throttled) → hit test drop targets �
 
 ### Decision Framework
 
-```mermaid
-graph TD
-    A[Need drag and drop] --> B{Cross-window drag?}
-    B -->|Yes| C[Native DnD required]
-    C --> D[Sortable.js or react-dnd HTML5 backend]
-    B -->|No| E{Accessibility critical?}
-    E -->|Yes| F[dnd-kit or react-aria/dnd]
-    E -->|Nice to have| G{Framework?}
-    G -->|React| H{Complexity?}
-    H -->|Simple lists| I[dnd-kit]
-    H -->|Complex nested| J[react-dnd with backends]
-    G -->|Vanilla/Other| K[Pragmatic or Sortable.js]
-```
+![Diagram](./diagram-1.svg)
 
 ## Implementing Core Patterns
 

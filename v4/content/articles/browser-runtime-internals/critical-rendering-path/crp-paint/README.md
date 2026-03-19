@@ -8,21 +8,7 @@ The Paint stage records drawing instructions into display lists—it does not pr
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph MainThread["Main Thread (Renderer Process)"]
-        Layout[Layout<br/>Fragment Tree] --> Prepaint[Prepaint<br/>Property Trees]
-        Prepaint --> Paint[Paint<br/>Paint Artifact]
-    end
-
-    subgraph CompositorThread["Compositor Thread"]
-        Paint --> Commit[Commit]
-        Commit --> Layerize[Layerize<br/>cc::Layers]
-        Layerize --> Raster[Rasterize<br/>Tiles → Textures]
-    end
-
-    style Paint fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
-```
+![The Paint stage within the RenderingNG pipeline (Chromium M94+): Paint produces a Paint Artifact containing display items and paint chunks. CompositeAfterPaint moved layerization after paint, eliminating circular dependencies.](./the-paint-stage-within-the-renderingng-pipeline-chromium-m94-paint-produces-a-pa.svg)
 
 <figcaption>The Paint stage within the RenderingNG pipeline (Chromium M94+): Paint produces a Paint Artifact containing display items and paint chunks. CompositeAfterPaint moved layerization after paint, eliminating circular dependencies.</figcaption>
 

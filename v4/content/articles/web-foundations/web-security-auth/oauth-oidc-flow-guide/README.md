@@ -8,24 +8,7 @@ A comprehensive technical analysis of OAuth 2.0 authorization flows, OpenID Conn
 
 <figure>
 
-```mermaid
-sequenceDiagram
-    participant User as User (Browser)
-    participant Client as Client App
-    participant AuthZ as Authorization Server
-    participant API as Resource Server
-
-    User->>Client: 1. Initiate login
-    Client->>Client: Generate state, nonce, PKCE
-    Client->>User: 2. Redirect to AuthZ
-    User->>AuthZ: 3. Authorization request + PKCE challenge
-    AuthZ->>User: 4. Authenticate & consent
-    User->>Client: 5. Redirect with code + state
-    Client->>AuthZ: 6. Exchange code + PKCE verifier
-    AuthZ->>Client: 7. Access token + ID token + Refresh token
-    Client->>API: 8. API request with access token
-    API->>Client: 9. Protected resource
-```
+![Complete OAuth 2.0 Authorization Code flow with PKCE and OIDC, showing the interaction between user, client, authorization server, and resource server.](./complete-oauth-2-0-authorization-code-flow-with-pkce-and-oidc-showing-the-intera.svg)
 
 <figcaption>Complete OAuth 2.0 Authorization Code flow with PKCE and OIDC, showing the interaction between user, client, authorization server, and resource server.</figcaption>
 
@@ -35,25 +18,7 @@ sequenceDiagram
 
 OAuth 2.0 is an **authorization delegation framework**—it lets users grant applications limited access to their resources without sharing credentials. OIDC (OpenID Connect) is an **identity layer on top of OAuth**—it proves _who_ the user is via ID tokens. The core security model relies on:
 
-```mermaid
-flowchart LR
-    subgraph "Authorization (OAuth 2.0)"
-        AC[Authorization Code]
-        AT[Access Token]
-        RT[Refresh Token]
-        AC -->|Token Exchange| AT
-        AT -->|Expired| RT
-        RT -->|Rotation| AT
-    end
-
-    subgraph "Authentication (OIDC)"
-        ID[ID Token]
-        UI[UserInfo Endpoint]
-    end
-
-    AC -->|OIDC Extension| ID
-    AT -->|Fetch Claims| UI
-```
+![Diagram](./diagram-1.svg)
 
 | Component              | Purpose                                     | Lifetime     | Audience              |
 | ---------------------- | ------------------------------------------- | ------------ | --------------------- |
@@ -291,21 +256,7 @@ PKCE (Proof Key for Code Exchange, RFC 7636) prevents authorization code interce
 
 ### The Attack PKCE Prevents
 
-```mermaid
-sequenceDiagram
-    participant User
-    participant LegitApp as Legitimate App
-    participant MalApp as Malicious App
-    participant AuthZ as Authorization Server
-
-    User->>LegitApp: 1. Start login
-    LegitApp->>AuthZ: 2. Authorization request
-    AuthZ->>User: 3. Authenticate
-    Note over AuthZ,MalApp: Without PKCE, code returns via redirect
-    AuthZ-->>MalApp: 4. Malicious app intercepts code<br/>(same custom URI scheme)
-    MalApp->>AuthZ: 5. Exchange code for tokens
-    AuthZ->>MalApp: 6. Tokens issued to attacker!
-```
+![Diagram](./diagram-2.svg)
 
 **Attack scenario**: On mobile platforms, multiple apps can register the same custom URI scheme (`com.example.app://`). A malicious app intercepts the redirect containing the authorization code and exchanges it for tokens.
 
@@ -521,45 +472,13 @@ grant_type=refresh_token
 
 Rotation issues a new refresh token with each use, invalidating the previous one:
 
-```mermaid
-sequenceDiagram
-    participant Client
-    participant AuthZ as Authorization Server
-
-    Note over Client,AuthZ: Initial grant
-    AuthZ->>Client: refresh_token_1
-
-    Note over Client,AuthZ: First refresh
-    Client->>AuthZ: refresh_token_1
-    AuthZ->>AuthZ: Invalidate refresh_token_1
-    AuthZ->>Client: access_token_2, refresh_token_2
-
-    Note over Client,AuthZ: Second refresh
-    Client->>AuthZ: refresh_token_2
-    AuthZ->>AuthZ: Invalidate refresh_token_2
-    AuthZ->>Client: access_token_3, refresh_token_3
-```
+![Diagram](./diagram-3.svg)
 
 ### Reuse Detection
 
 If a previously-used refresh token is presented, it indicates token theft:
 
-```mermaid
-sequenceDiagram
-    participant Attacker
-    participant LegitClient as Legitimate Client
-    participant AuthZ as Authorization Server
-
-    Note over LegitClient,AuthZ: Attacker steals refresh_token_1
-    LegitClient->>AuthZ: refresh_token_1
-    AuthZ->>LegitClient: refresh_token_2
-
-    Note over Attacker,AuthZ: Attacker tries stolen token
-    Attacker->>AuthZ: refresh_token_1 (already used!)
-    AuthZ->>AuthZ: Detect reuse → Revoke entire token family
-    AuthZ-->>Attacker: Error: token_revoked
-    Note over LegitClient: refresh_token_2 also revoked
-```
+![Diagram](./diagram-4.svg)
 
 **Implementation considerations:**
 
@@ -623,27 +542,7 @@ async function handleRefreshToken(refreshToken) {
 
 **Backend-for-Frontend (BFF) Pattern** (most secure for SPAs):
 
-```mermaid
-flowchart LR
-    subgraph Browser
-        SPA[SPA Client]
-    end
-
-    subgraph Backend
-        BFF[BFF Server]
-        Session[(Session Store)]
-    end
-
-    subgraph External
-        AuthZ[Auth Server]
-        API[Resource Server]
-    end
-
-    SPA -->|Session cookie| BFF
-    BFF -->|OAuth flow| AuthZ
-    BFF -->|Store tokens| Session
-    BFF -->|Access token| API
-```
+![Diagram](./diagram-5.svg)
 
 - Browser never sees OAuth tokens
 - BFF maintains server-side session
@@ -706,24 +605,7 @@ DPoP (RFC 9449) sender-constrains tokens to prevent stolen tokens from being usa
 
 ### How DPoP Works
 
-```mermaid
-sequenceDiagram
-    participant Client
-    participant AuthZ as Authorization Server
-    participant API as Resource Server
-
-    Note over Client: Generate ephemeral key pair
-    Client->>Client: Create DPoP proof JWT<br/>(signed with private key)
-
-    Client->>AuthZ: Token request + DPoP header
-    AuthZ->>AuthZ: Bind token to public key
-    AuthZ->>Client: DPoP-bound access token<br/>(cnf claim with JWK thumbprint)
-
-    Client->>Client: Create new DPoP proof<br/>(includes access token hash)
-    Client->>API: API request + DPoP header
-    API->>API: Verify proof signature matches token binding
-    API->>Client: Protected resource
-```
+![Diagram](./diagram-6.svg)
 
 ### DPoP Proof JWT Structure
 

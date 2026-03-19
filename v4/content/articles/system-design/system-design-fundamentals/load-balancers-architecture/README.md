@@ -8,42 +8,7 @@ How load balancers distribute traffic, terminate TLS, and maintain availability 
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Clients["Clients"]
-        C1[Client 1]
-        C2[Client 2]
-        C3[Client N]
-    end
-
-    subgraph Edge["Edge Layer"]
-        DNS[DNS / GeoDNS]
-        L4[L4 Load Balancer<br/>TCP/UDP routing]
-    end
-
-    subgraph Application["Application Layer"]
-        L7[L7 Load Balancer<br/>HTTP routing, TLS termination]
-    end
-
-    subgraph Backends["Backend Pool"]
-        B1[Backend 1]
-        B2[Backend 2]
-        B3[Backend N]
-    end
-
-    subgraph Health["Health & Control"]
-        HC[Health Checker]
-        SD[Service Discovery]
-    end
-
-    C1 & C2 & C3 --> DNS
-    DNS --> L4
-    L4 --> L7
-    L7 --> B1 & B2 & B3
-    HC -.->|probes| B1 & B2 & B3
-    HC -.->|status| L7
-    SD -.->|registry| L7
-```
+![Two-tier load balancing: L4 for connection distribution, L7 for intelligent request routing. Health checkers continuously verify backend availability.](./two-tier-load-balancing-l4-for-connection-distribution-l7-for-intelligent-reques.svg)
 
 <figcaption>Two-tier load balancing: L4 for connection distribution, L7 for intelligent request routing. Health checkers continuously verify backend availability.</figcaption>
 </figure>

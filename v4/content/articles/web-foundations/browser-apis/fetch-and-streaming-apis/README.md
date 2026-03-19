@@ -8,32 +8,7 @@ A comprehensive exploration of the modern web's network primitives, examining ho
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph Fetch["Fetch API"]
-        REQ[Request] --> RESP[Response]
-        RESP --> BODY["body: ReadableStream"]
-    end
-
-    subgraph Streams["Streams API"]
-        RS[ReadableStream] -->|pipeThrough| TS[TransformStream]
-        TS -->|pipeTo| WS[WritableStream]
-        RS -.->|backpressure| TS
-        TS -.->|backpressure| RS
-    end
-
-    subgraph Abort["Abort API"]
-        AC[AbortController] --> SIG[AbortSignal]
-        SIG -->|cancels| REQ
-        SIG -->|cancels| RS
-    end
-
-    BODY --> RS
-
-    style Fetch fill:#3b82f6,stroke:#1e40af,color:#fff
-    style Streams fill:#10b981,stroke:#059669,color:#fff
-    style Abort fill:#f59e0b,stroke:#d97706,color:#fff
-```
+![The three APIs integrate tightly: Fetch produces streams, Streams handle data flow, AbortController cancels operations](./the-three-apis-integrate-tightly-fetch-produces-streams-streams-handle-data-flow.svg)
 
 <figcaption>The three APIs integrate tightly: Fetch produces streams, Streams handle data flow, AbortController cancels operations</figcaption>
 
@@ -45,24 +20,7 @@ The Fetch/Streams/AbortController triad represents a unified approach to network
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Design Principles"
-        P1["Promise-based single values<br/>(Request → Response)"]
-        P2["Stream-based incremental data<br/>(chunks with backpressure)"]
-        P3["Signal-based cancellation<br/>(composable abort)"]
-    end
-
-    subgraph "Key Trade-offs"
-        T1["Half-duplex streaming<br/>Response waits for request completion"]
-        T2["Single reader/writer locks<br/>Enables pipe optimizations"]
-        T3["Automatic backpressure<br/>Prevents memory exhaustion"]
-    end
-
-    P1 --> T1
-    P2 --> T2
-    P3 --> T3
-```
+![Core design principles and their resulting trade-offs](./core-design-principles-and-their-resulting-trade-offs.svg)
 
 <figcaption>Core design principles and their resulting trade-offs</figcaption>
 
@@ -202,35 +160,7 @@ A ReadableStream wraps an **underlying source** (push or pull) and maintains an 
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph Source["Underlying Source"]
-        PUSH["Push Source<br/>(events, WebSocket)"]
-        PULL["Pull Source<br/>(file, database)"]
-    end
-
-    subgraph Stream["ReadableStream"]
-        QUEUE["Internal Queue"]
-        CTRL["controller.desiredSize"]
-    end
-
-    subgraph Consumer["Consumer"]
-        READER["getReader()"]
-        ITER["for await...of"]
-        PIPE["pipeTo()"]
-    end
-
-    PUSH -->|enqueue| QUEUE
-    PULL -->|"pull()"| QUEUE
-    QUEUE --> READER
-    QUEUE --> ITER
-    QUEUE --> PIPE
-
-    CTRL -.->|backpressure| PUSH
-    CTRL -.->|throttle| PULL
-
-    style QUEUE fill:#3b82f6,stroke:#1e40af,color:#fff
-```
+![ReadableStream mediates between sources and consumers with automatic backpressure](./readablestream-mediates-between-sources-and-consumers-with-automatic-backpressur.svg)
 
 <figcaption>ReadableStream mediates between sources and consumers with automatic backpressure</figcaption>
 

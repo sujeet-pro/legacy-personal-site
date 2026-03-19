@@ -8,39 +8,7 @@ Choosing between CSR, SSR, SSG, and hybrid rendering is not a binary decision—
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Build Time"
-        SSG[Static Site Generation<br/>Pre-rendered HTML]
-    end
-
-    subgraph "Request Time"
-        SSR[Server-Side Rendering<br/>On-demand HTML]
-        ISR[Incremental Static Regeneration<br/>Cached + Background Refresh]
-        Stream[Streaming SSR<br/>Progressive HTML]
-    end
-
-    subgraph "Client Time"
-        CSR[Client-Side Rendering<br/>JavaScript builds DOM]
-        Hydration[Hydration<br/>Attach interactivity]
-        Islands[Islands<br/>Selective hydration]
-    end
-
-    SSG --> CDN[CDN Cache]
-    SSR --> Browser
-    ISR --> CDN
-    Stream --> Browser
-    CDN --> Browser
-    Browser --> Hydration
-    Browser --> Islands
-    CSR --> Browser
-
-    style SSG fill:#e8f5e9
-    style SSR fill:#e3f2fd
-    style ISR fill:#fff3e0
-    style Stream fill:#f3e5f5
-    style Islands fill:#fce4ec
-```
+![Rendering strategies span build-time, request-time, and client-time—modern applications mix these based on content characteristics.](./rendering-strategies-span-build-time-request-time-and-client-time-modern-applica.svg)
 
 <figcaption>Rendering strategies span build-time, request-time, and client-time—modern applications mix these based on content characteristics.</figcaption>
 </figure>

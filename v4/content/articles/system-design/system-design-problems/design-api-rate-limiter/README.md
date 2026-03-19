@@ -8,50 +8,7 @@ A comprehensive system design for a distributed API rate limiting service coveri
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Clients["API Clients"]
-        WEB["Web Apps"]
-        MOBILE["Mobile Apps"]
-        THIRD["Third-Party<br/>Integrations"]
-    end
-
-    subgraph Edge["Edge Layer"]
-        LB["Load Balancer"]
-        GW["API Gateway"]
-    end
-
-    subgraph RateLimitService["Rate Limit Service"]
-        RL_SVC["Rate Limit<br/>Decision Engine"]
-        CONFIG["Rule Config<br/>Store"]
-        QUOTA["Quota<br/>Manager"]
-    end
-
-    subgraph CountingLayer["Counting Layer"]
-        REDIS["Redis Cluster<br/>(Counters + State)"]
-        LOCAL["Local Cache<br/>(Hot Rules)"]
-    end
-
-    subgraph Backend["Backend Services"]
-        SVC_A["Service A"]
-        SVC_B["Service B"]
-        SVC_C["Service C"]
-    end
-
-    subgraph Observability["Observability"]
-        METRICS["Metrics<br/>(Prometheus)"]
-        ALERTS["Alerting"]
-        DASHBOARD["Rate Limit<br/>Dashboard"]
-    end
-
-    WEB & MOBILE & THIRD --> LB --> GW
-    GW -->|"Check rate limit"| RL_SVC
-    RL_SVC --> REDIS & LOCAL
-    RL_SVC --> CONFIG
-    RL_SVC --> QUOTA
-    GW -->|"Allowed"| SVC_A & SVC_B & SVC_C
-    RL_SVC --> METRICS --> ALERTS & DASHBOARD
-```
+![High-level architecture: API Gateway consults the Rate Limit Service before forwarding requests. The decision engine checks counters in Redis, applies rules from configuration, and returns allow/deny with remaining quota. Backend services are shielded from overload.](./high-level-architecture-api-gateway-consults-the-rate-limit-service-before-forwa.svg)
 
 <figcaption>High-level architecture: API Gateway consults the Rate Limit Service before forwarding requests. The decision engine checks counters in Redis, applies rules from configuration, and returns allow/deny with remaining quota. Backend services are shielded from overload.</figcaption>
 </figure>
@@ -156,11 +113,7 @@ A rate limiter maps request identifiers (user ID, API key, IP) to counters and e
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    CLIENT["Client"] --> ENVOY["Envoy Sidecar<br/>(Local Counters)"]
-    ENVOY --> SVC["Application<br/>Service"]
-```
+![Diagram](./diagram-1.svg)
 
 **Key characteristics:**
 
@@ -189,13 +142,7 @@ flowchart LR
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    CLIENT["Client"] --> GW["API Gateway"]
-    GW -->|"gRPC check"| RLS["Rate Limit<br/>Service"]
-    RLS --> REDIS["Redis Cluster"]
-    GW --> SVC["Backend<br/>Services"]
-```
+![Diagram](./diagram-2.svg)
 
 **Key characteristics:**
 
@@ -224,12 +171,7 @@ flowchart LR
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    CLIENT["Client"] --> GW["API Gateway<br/>(Local Counters)"]
-    GW --> SVC["Backend"]
-    GW -.->|"Periodic sync"| REDIS["Redis<br/>(Global Counters)"]
-```
+![Diagram](./diagram-3.svg)
 
 **Key characteristics:**
 
@@ -371,95 +313,15 @@ This approximation smooths the boundary burst problem while maintaining O(1) mem
 
 ### Component Overview
 
-```mermaid
-flowchart TB
-    subgraph Clients["Clients"]
-        API_CLIENTS["API Consumers"]
-    end
-
-    subgraph Gateway["API Gateway Layer"]
-        LB["Load Balancer"]
-        GW1["Gateway Node 1"]
-        GW2["Gateway Node 2"]
-        GW3["Gateway Node N"]
-    end
-
-    subgraph RateLimitSvc["Rate Limit Service"]
-        direction TB
-        RLS1["RLS Instance 1"]
-        RLS2["RLS Instance 2"]
-        RLS3["RLS Instance N"]
-        RULE_STORE["Rule Store<br/>(YAML Config)"]
-    end
-
-    subgraph Storage["Counting Storage"]
-        REDIS_PRIMARY["Redis Cluster<br/>(Primary)"]
-        REDIS_REPLICA["Redis Cluster<br/>(Replicas)"]
-    end
-
-    subgraph QuotaMgmt["Quota Management"]
-        QUOTA_API["Quota API"]
-        QUOTA_DB[(PostgreSQL<br/>Tenant Quotas)]
-        QUOTA_CACHE["Quota Cache"]
-    end
-
-    subgraph Observability["Observability"]
-        PROM["Prometheus"]
-        GRAFANA["Grafana<br/>Dashboard"]
-        ALERT["AlertManager"]
-    end
-
-    API_CLIENTS --> LB
-    LB --> GW1 & GW2 & GW3
-    GW1 & GW2 & GW3 -->|"gRPC: ShouldRateLimit"| RLS1 & RLS2 & RLS3
-    RLS1 & RLS2 & RLS3 --> REDIS_PRIMARY
-    REDIS_PRIMARY --> REDIS_REPLICA
-    RLS1 & RLS2 & RLS3 --> RULE_STORE
-    QUOTA_API --> QUOTA_DB
-    QUOTA_DB --> QUOTA_CACHE --> RLS1 & RLS2 & RLS3
-    RLS1 & RLS2 & RLS3 --> PROM --> GRAFANA & ALERT
-    GW1 & GW2 & GW3 -->|"Allowed"| BACKEND["Backend Services"]
-```
+![Diagram](./diagram-4.svg)
 
 ### Request Flow
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant GW as API Gateway
-    participant RLS as Rate Limit Service
-    participant R as Redis Cluster
-    participant BE as Backend Service
-
-    C->>GW: GET /api/v1/users (API-Key: abc123)
-    GW->>GW: Extract identifiers (api_key, user_id, endpoint, IP)
-    GW->>RLS: ShouldRateLimit(domain, descriptors)
-    RLS->>RLS: Look up rules for descriptors
-    RLS->>R: Lua: sliding_window_check(key, limit, window)
-    R-->>RLS: {allowed: true, remaining: 47, reset_at: 1706000060}
-    RLS-->>GW: ALLOW {remaining: 47, limit: 100, reset: 60s}
-    GW->>BE: Forward request
-    BE-->>GW: 200 OK {data}
-    GW->>GW: Add rate limit headers
-    GW-->>C: 200 OK + RateLimit headers
-```
+![Diagram](./diagram-5.svg)
 
 **When rate limited:**
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant GW as API Gateway
-    participant RLS as Rate Limit Service
-    participant R as Redis Cluster
-
-    C->>GW: POST /api/v1/orders (API-Key: abc123)
-    GW->>RLS: ShouldRateLimit(domain, descriptors)
-    RLS->>R: Lua: sliding_window_check(key, limit, window)
-    R-->>RLS: {allowed: false, remaining: 0, reset_at: 1706000060}
-    RLS-->>GW: DENY {remaining: 0, limit: 50, reset: 42s}
-    GW-->>C: 429 Too Many Requests + Retry-After: 42
-```
+![Diagram](./diagram-6.svg)
 
 ### Rate Limit Service (Decision Engine)
 
@@ -860,18 +722,7 @@ return {1, math.floor(tokens), 0}
 
 When a request arrives, multiple rules may match. Resolution follows a hierarchical evaluation:
 
-```mermaid
-flowchart TD
-    REQ["Request arrives"] --> GLOBAL{"Global<br/>aggregate<br/>limit?"}
-    GLOBAL -->|Over| DENY["429 Deny"]
-    GLOBAL -->|Under| TIER{"Tier limit<br/>(free/pro/ent)?"}
-    TIER -->|Over| DENY
-    TIER -->|Under| ENDPOINT{"Per-endpoint<br/>limit?"}
-    ENDPOINT -->|Over| DENY
-    ENDPOINT -->|Under| CONCURRENT{"Concurrent<br/>request<br/>limit?"}
-    CONCURRENT -->|Over| DENY
-    CONCURRENT -->|Under| ALLOW["Allow"]
-```
+![Diagram](./diagram-7.svg)
 
 **Rule precedence:** All matching rules are evaluated. The most restrictive (lowest remaining quota) determines the response. This prevents a user from bypassing a 20 req/min write limit by pointing to their 5000 req/min general limit.
 
@@ -918,28 +769,7 @@ The rate limiter is on the critical path of every API request. A Redis failure m
 
 **Strategy: Fail-open with circuit breaker**
 
-```mermaid
-stateDiagram-v2
-    [*] --> Closed: Normal operation
-    Closed --> Open: Redis errors exceed threshold<br/>(e.g., 5 failures in 10s)
-    Open --> HalfOpen: After cooldown period<br/>(e.g., 30 seconds)
-    HalfOpen --> Closed: Probe request succeeds
-    HalfOpen --> Open: Probe request fails
-
-    state Closed {
-        [*] --> CheckRedis
-        CheckRedis --> Allow: Under limit
-        CheckRedis --> Deny: Over limit
-    }
-
-    state Open {
-        [*] --> AllowAll: Skip rate check entirely
-    }
-
-    state HalfOpen {
-        [*] --> ProbeRedis: Test single request
-    }
-```
+![Diagram](./diagram-8.svg)
 
 **Stripe's fail-open principle:** Catch exceptions at all levels so that any coding or operational errors fail open. Feature flags enable rapid disabling of individual limiters. Clear HTTP status codes distinguish rate limiting (429) from load shedding (503).
 
@@ -1096,41 +926,7 @@ async function fetchWithRateLimit(url: string, options?: RequestInit): Promise<R
 
 ### Production Deployment
 
-```mermaid
-graph TB
-    subgraph "VPC"
-        subgraph "Public Subnet"
-            ALB["Application Load Balancer"]
-        end
-
-        subgraph "Private Subnet — Compute"
-            GW_ECS["API Gateway Cluster<br/>(ECS Fargate)"]
-            RLS_ECS["Rate Limit Service<br/>(ECS Fargate)"]
-            QUOTA_ECS["Quota API<br/>(ECS Fargate)"]
-        end
-
-        subgraph "Private Subnet — Data"
-            REDIS[("ElastiCache Redis<br/>Cluster (3 shards, Multi-AZ)")]
-            RDS[("RDS PostgreSQL<br/>(Multi-AZ)")]
-        end
-    end
-
-    subgraph "Observability"
-        PROM["Managed Prometheus"]
-        GRAFANA["Managed Grafana"]
-    end
-
-    subgraph "Config"
-        S3["S3<br/>(Rule Config)"]
-    end
-
-    ALB --> GW_ECS
-    GW_ECS -->|"gRPC"| RLS_ECS
-    RLS_ECS --> REDIS
-    RLS_ECS --> S3
-    QUOTA_ECS --> RDS
-    RLS_ECS --> PROM --> GRAFANA
-```
+![Diagram](./diagram-9.svg)
 
 ## Variations
 

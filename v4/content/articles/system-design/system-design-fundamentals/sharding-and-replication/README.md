@@ -8,42 +8,7 @@ Scaling data stores beyond a single machine requires two complementary strategie
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Clients
-        C1[Client]
-        C2[Client]
-        C3[Client]
-    end
-
-    subgraph Router["Router / Proxy"]
-        R[Shard Router]
-    end
-
-    subgraph Shard1["Shard 1 (users A-M)"]
-        L1[Leader]
-        F1a[Follower]
-        F1b[Follower]
-        L1 --> F1a
-        L1 --> F1b
-    end
-
-    subgraph Shard2["Shard 2 (users N-Z)"]
-        L2[Leader]
-        F2a[Follower]
-        F2b[Follower]
-        L2 --> F2a
-        L2 --> F2b
-    end
-
-    C1 --> R
-    C2 --> R
-    C3 --> R
-    R --> L1
-    R --> L2
-    R -.->|reads| F1a
-    R -.->|reads| F2a
-```
+![Sharding partitions data horizontally; replication copies each shard for fault tolerance. Router directs traffic based on shard key.](./sharding-partitions-data-horizontally-replication-copies-each-shard-for-fault-to.svg)
 
 <figcaption>Sharding partitions data horizontally; replication copies each shard for fault tolerance. Router directs traffic based on shard key.</figcaption>
 </figure>

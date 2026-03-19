@@ -8,37 +8,7 @@ Layout is the rendering pipeline stage that transforms styled elements into phys
 
 <figure>
 
-```mermaid
-flowchart TD
-    subgraph Inputs["Layout Inputs"]
-        LOT[LayoutObject Tree<br/>from Style Recalc]
-        CS[ComputedStyle<br/>per element]
-        PC[Parent Constraints<br/>available width, writing mode]
-    end
-
-    subgraph Layout["Layout Algorithm"]
-        BC[Box Construction<br/>content/padding/border/margin]
-        FC[Formatting Context<br/>BFC, IFC, flex, grid]
-        CB[Containing Block<br/>resolution]
-        SZ[Size Computation<br/>intrinsic vs extrinsic]
-    end
-
-    subgraph Output["Layout Output"]
-        FT[Fragment Tree<br/>immutable geometry]
-    end
-
-    LOT --> Layout
-    CS --> Layout
-    PC --> Layout
-    BC --> FT
-    FC --> FT
-    CB --> FT
-    SZ --> FT
-    FT --> Prepaint[Prepaint Stage]
-
-    style FT fill:#e8f5e9
-    style LOT fill:#e1f5fe
-```
+![Layout receives the LayoutObject Tree and ComputedStyle from Style Recalculation, applies box model rules and formatting contexts, and produces an immutable Fragment Tree consumed by Prepaint.](./layout-receives-the-layoutobject-tree-and-computedstyle-from-style-recalculation.svg)
 
 <figcaption>Layout receives the LayoutObject Tree and ComputedStyle from Style Recalculation, applies box model rules and formatting contexts, and produces an immutable Fragment Tree consumed by Prepaint.</figcaption>
 </figure>

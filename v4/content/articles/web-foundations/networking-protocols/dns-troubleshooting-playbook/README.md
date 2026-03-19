@@ -8,44 +8,7 @@ A systematic approach to diagnosing DNS outages, propagation delays, and resolut
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Symptoms["Symptom Identification"]
-        S1["Complete failure<br/>(all queries fail)"]
-        S2["Intermittent failures"]
-        S3["SERVFAIL responses"]
-        S4["Slow resolution"]
-        S5["Unexpected NXDOMAIN"]
-    end
-
-    subgraph Diagnosis["Diagnostic Path"]
-        D1["Check authoritative NS<br/>dig @ns1 domain +norecurse"]
-        D2["Compare resolvers<br/>8.8.8.8 vs 1.1.1.1"]
-        D3["Test with +cd flag<br/>DNSSEC bypass"]
-        D4["Trace resolution<br/>dig +trace"]
-        D5["Check negative cache<br/>SOA MINIMUM"]
-    end
-
-    subgraph Resolution["Resolution Layer"]
-        R1["Delegation issue"]
-        R2["Resolver-specific problem"]
-        R3["DNSSEC validation failure"]
-        R4["Lame delegation / timeout"]
-        R5["Cache or propagation"]
-    end
-
-    S1 --> D1
-    S2 --> D2
-    S3 --> D3
-    S4 --> D4
-    S5 --> D5
-
-    D1 -->|"No response"| R1
-    D2 -->|"Differs"| R2
-    D3 -->|"+cd succeeds"| R3
-    D4 -->|"Stalls at hop"| R4
-    D5 -->|"Old data cached"| R5
-```
+![Symptom-driven triage flow for DNS failures, mapping symptoms to diagnostic commands and root cause categories.](./symptom-driven-triage-flow-for-dns-failures-mapping-symptoms-to-diagnostic-comma.svg)
 
 <figcaption>Symptom-driven triage flow for DNS failures, mapping symptoms to diagnostic commands and root cause categories.</figcaption>
 </figure>

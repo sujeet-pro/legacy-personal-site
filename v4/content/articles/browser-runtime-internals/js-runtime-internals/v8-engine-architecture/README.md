@@ -8,37 +8,7 @@ V8's multi-tiered compilation pipeline—Ignition interpreter through TurboFan o
 
 <figure>
 
-```mermaid
-flowchart TD
-    subgraph "V8 Execution Pipeline"
-        Source[JavaScript Source] --> Parser
-        Parser --> AST[Abstract Syntax Tree]
-        AST --> Bytecode[Ignition Bytecode]
-
-        Bytecode --> Ignition[Ignition Interpreter]
-        Ignition -->|"~8 invocations"| Sparkplug[Sparkplug Baseline]
-        Sparkplug -->|"~500 invocations"| Maglev[Maglev Mid-Tier]
-        Maglev -->|"~6000 invocations"| TurboFan[TurboFan + Turboshaft]
-
-        Ignition -.->|"Type Feedback"| FeedbackVector
-        FeedbackVector -.-> Maglev
-        FeedbackVector -.-> TurboFan
-
-        TurboFan -.->|"Deopt"| Ignition
-        Maglev -.->|"Deopt"| Ignition
-    end
-
-    subgraph "Runtime System"
-        FeedbackVector[FeedbackVector]
-        Maps[Hidden Classes / Maps]
-        IC[Inline Caches]
-    end
-
-    style Ignition fill:#e1f5fe
-    style Sparkplug fill:#f3e5f5
-    style Maglev fill:#fff3e0
-    style TurboFan fill:#e8f5e8
-```
+![V8's four-tier compilation pipeline with tier-up thresholds and feedback-driven optimization](./v8-s-four-tier-compilation-pipeline-with-tier-up-thresholds-and-feedback-driven-.svg)
 
 <figcaption>V8's four-tier compilation pipeline with tier-up thresholds and feedback-driven optimization</figcaption>
 
@@ -103,18 +73,7 @@ The parser consumes tokens and builds an Abstract Syntax Tree (AST). V8's parser
 
 <figure>
 
-```mermaid
-flowchart LR
-    Source[Source Code] --> PreParser[Pre-Parser]
-    PreParser -->|"Function boundaries<br/>Syntax validation"| Stubs[Function Stubs]
-    Stubs -->|"First call"| FullParser[Full Parser]
-    FullParser --> AST
-    AST --> Bytecode[BytecodeGenerator]
-    Bytecode --> Ignition
-
-    style PreParser fill:#e3f2fd
-    style FullParser fill:#fff3e0
-```
+![Lazy parsing defers full AST construction until function invocation](./lazy-parsing-defers-full-ast-construction-until-function-invocation.svg)
 
 <figcaption>Lazy parsing defers full AST construction until function invocation</figcaption>
 
@@ -192,23 +151,7 @@ This transforms O(n) hash lookups into O(1) offset loads.
 
 <figure>
 
-```mermaid
-graph LR
-    subgraph "Object Layout"
-        Obj[Object] --> MapPtr[Map Pointer]
-        Obj --> Props[Properties at fixed offsets]
-    end
-
-    subgraph "Map Structure"
-        MapPtr --> Map
-        Map --> Desc[DescriptorArray]
-        Map --> Trans[TransitionArray]
-        Desc --> P1["x: offset 0, writable"]
-        Desc --> P2["y: offset 8, writable"]
-    end
-
-    style Map fill:#e8f5e8
-```
+![Object memory layout with Map pointer and fixed-offset properties](./object-memory-layout-with-map-pointer-and-fixed-offset-properties.svg)
 
 <figcaption>Object memory layout with Map pointer and fixed-offset properties</figcaption>
 
@@ -383,28 +326,7 @@ The Sea of Nodes frontend (JavaScript → IR) is being gradually replaced as wel
 
 <figure>
 
-```mermaid
-flowchart LR
-    Bytecode[Bytecode] --> Builder[Graph Builder]
-    Feedback[FeedbackVector] --> Builder
-    Builder --> Graph[Initial Graph]
-
-    Graph --> Typer
-    Typer --> Lower[Lowering]
-    Lower --> Opts[Optimization Passes]
-    Opts --> Sched[Scheduling]
-    Sched --> Alloc[Register Allocation]
-    Alloc --> CodeGen[Code Generation]
-
-    subgraph "Turboshaft (new)"
-        Sched
-        Alloc
-        CodeGen
-    end
-
-    style Bytecode fill:#e3f2fd
-    style CodeGen fill:#e8f5e8
-```
+![TurboFan compilation pipeline with Turboshaft backend](./turbofan-compilation-pipeline-with-turboshaft-backend.svg)
 
 <figcaption>TurboFan compilation pipeline with Turboshaft backend</figcaption>
 

@@ -8,41 +8,7 @@ Database indexes accelerate reads by trading write overhead and storage for fast
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Query["Query Execution"]
-        Q[SELECT query] --> Parser
-        Parser --> Planner["Query Planner"]
-        Planner --> |"Cost estimation"| Plan["Execution Plan"]
-    end
-
-    subgraph Index["Index Structures"]
-        BTree["B-tree Index"]
-        Hash["Hash Index"]
-        GIN["GIN Index"]
-        LSM["LSM Tree"]
-    end
-
-    subgraph Scans["Scan Types"]
-        Plan --> SeqScan["Sequential Scan"]
-        Plan --> IdxScan["Index Scan"]
-        Plan --> BmpScan["Bitmap Scan"]
-        Plan --> IdxOnly["Index-Only Scan"]
-    end
-
-    subgraph Storage["Storage Layer"]
-        IdxScan --> |"Pointer lookup"| Heap["Heap/Table"]
-        IdxOnly --> |"No heap access"| Result
-        BmpScan --> Heap
-        SeqScan --> Heap
-        Heap --> Result["Result Set"]
-    end
-
-    BTree -.-> IdxScan
-    BTree -.-> IdxOnly
-    Hash -.-> IdxScan
-    GIN -.-> BmpScan
-```
+![Query execution flow: planner estimates costs, selects scan type based on selectivity, and accesses data through indexes or heap.](./query-execution-flow-planner-estimates-costs-selects-scan-type-based-on-selectiv.svg)
 
 <figcaption>Query execution flow: planner estimates costs, selects scan type based on selectivity, and accesses data through indexes or heap.</figcaption>
 </figure>

@@ -8,41 +8,7 @@ Node.js is a host environment that pairs V8 with libuv, a C++ bindings layer, an
 
 <figure>
 
-```mermaid
-flowchart TB
-  subgraph JS["JavaScript space"]
-    user["User code"]
-    core["Node.js core APIs (JavaScript)"]
-  end
-
-  subgraph Native["Native boundary"]
-    bindings["C++ bindings / internals"]
-    napi["Node-API addons"]
-  end
-
-  subgraph Engines["Runtime engines"]
-    v8["V8 (ECMAScript + garbage collection)"]
-    libuv["libuv (event loop + thread pool)"]
-  end
-
-  subgraph Deps["Native deps"]
-    http["llhttp"]
-    tls["OpenSSL"]
-    dns["c-ares"]
-    comp["zlib"]
-  end
-
-  os["OS: epoll / kqueue / I/O Completion Ports (IOCP)"]
-
-  user --> core --> bindings
-  bindings --> v8
-  bindings --> libuv
-  napi --> v8
-  napi --> libuv
-  libuv --> Deps
-  v8 --> os
-  libuv --> os
-```
+![Runtime layering from JavaScript to native engines, dependencies, and the OS.](./runtime-layering-from-javascript-to-native-engines-dependencies-and-the-os.svg)
 
 <figcaption>Runtime layering from JavaScript to native engines, dependencies, and the OS.</figcaption>
 </figure>
@@ -53,29 +19,7 @@ Node.js runtime behavior is defined by three boundaries: the V8 JavaScript-to-na
 
 <figure>
 
-```mermaid
-flowchart LR
-  subgraph JS["JavaScript"]
-    code["User code"]
-    micro["Microtask queue<br/>(nextTick > Promise)"]
-  end
-
-  subgraph Loop["libuv Event Loop"]
-    timers["timers"]
-    poll["poll"]
-    check["check"]
-    close["close"]
-  end
-
-  subgraph Offload["Offload paths"]
-    pool["Thread pool<br/>(fs, dns.lookup, crypto)"]
-    async["OS async I/O<br/>(sockets, dns.resolve*)"]
-  end
-
-  code --> micro --> timers --> poll --> check --> close --> timers
-  poll --> pool
-  poll --> async
-```
+![Mental model: JavaScript triggers microtasks, which drain before the loop advances. The poll phase dispatches to either the thread pool (blocking) or OS async I/O (non-blocking).](./mental-model-javascript-triggers-microtasks-which-drain-before-the-loop-advances.svg)
 
 <figcaption>Mental model: JavaScript triggers microtasks, which drain before the loop advances. The poll phase dispatches to either the thread pool (blocking) or OS async I/O (non-blocking).</figcaption>
 </figure>

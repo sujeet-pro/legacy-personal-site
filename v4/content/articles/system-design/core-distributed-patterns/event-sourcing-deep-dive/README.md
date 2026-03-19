@@ -8,32 +8,7 @@ A deep-dive into event sourcing: understanding the core pattern, implementation 
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Commands["Command Side"]
-        C[Command] --> V[Validate]
-        V --> ES[Event Store]
-    end
-
-    subgraph Events["Event Log"]
-        ES --> E1[Event 1]
-        E1 --> E2[Event 2]
-        E2 --> E3[Event ...]
-        E3 --> EN[Event N]
-    end
-
-    subgraph Projections["Read Side"]
-        EN --> P1[Projection 1]
-        EN --> P2[Projection 2]
-        EN --> P3[Projection N]
-    end
-
-    subgraph Recovery["Rebuild"]
-        E1 -.-> S[Snapshot]
-        S -.-> R[Replay from Snapshot]
-        R -.-> Current[Current State]
-    end
-```
+![Event sourcing architecture: commands produce events stored immutably; projections derive read models; state rebuilt by replaying events from snapshots.](./event-sourcing-architecture-commands-produce-events-stored-immutably-projections.svg)
 
 <figcaption>Event sourcing architecture: commands produce events stored immutably; projections derive read models; state rebuilt by replaying events from snapshots.</figcaption>
 </figure>
@@ -405,20 +380,7 @@ Key implementation details:
 
 ### Decision Framework
 
-```mermaid
-graph TD
-    A[Need Event Sourcing?] --> B{Audit/temporal queries critical?}
-    B -->|No| Z[Consider CRUD]
-    B -->|Yes| C{Entire system or bounded context?}
-    C -->|Entire| D[Pure ES]
-    C -->|Part| E[Hybrid ES + CRUD]
-    D --> F{Consistency requirement?}
-    E --> F
-    F -->|Strong| G[Sync Projections]
-    F -->|Eventual OK| H{Write throughput?}
-    H -->|High| I[Async Projections]
-    H -->|Moderate| J[Sync or Async based on complexity]
-```
+![Diagram](./diagram-1.svg)
 
 ## Snapshot Strategies
 

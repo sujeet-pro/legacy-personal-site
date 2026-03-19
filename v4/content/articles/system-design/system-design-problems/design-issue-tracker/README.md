@@ -8,53 +8,7 @@ A comprehensive system design for an issue tracking and project management tool 
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Clients["Clients"]
-        WEB["Web App"]
-        MOBILE["Mobile App"]
-        API_CLIENT["API Clients"]
-    end
-
-    subgraph Edge["Edge Layer"]
-        CDN["CDN<br/>(Static Assets)"]
-        LB["Load Balancer"]
-        GATEWAY["API Gateway"]
-    end
-
-    subgraph Services["Application Services"]
-        ISSUE_SVC["Issue Service"]
-        PROJECT_SVC["Project Service"]
-        WORKFLOW_SVC["Workflow Service"]
-        SEARCH_SVC["Search Service"]
-        SYNC_SVC["Sync Service"]
-    end
-
-    subgraph Realtime["Real-time Layer"]
-        WS["WebSocket Gateway"]
-        PUBSUB["Redis Pub/Sub"]
-    end
-
-    subgraph Persistence["Data Layer"]
-        POSTGRES[(PostgreSQL<br/>Primary Store)]
-        REDIS["Redis Cache<br/>(Board State)"]
-        ES[(Elasticsearch<br/>Full-text Search)]
-        S3["S3<br/>(Attachments)"]
-    end
-
-    WEB & MOBILE & API_CLIENT --> CDN
-    WEB & MOBILE & API_CLIENT --> LB
-    LB --> GATEWAY
-    GATEWAY --> ISSUE_SVC & PROJECT_SVC & WORKFLOW_SVC & SEARCH_SVC
-    WEB & MOBILE --> WS
-    WS <--> SYNC_SVC
-    SYNC_SVC --> PUBSUB
-    ISSUE_SVC & PROJECT_SVC --> POSTGRES
-    ISSUE_SVC --> REDIS
-    SEARCH_SVC --> ES
-    ISSUE_SVC --> S3
-    PUBSUB --> WS
-```
+![High-level architecture: API gateway routing to domain services, with WebSocket-based real-time sync and Redis pub/sub for broadcast.](./high-level-architecture-api-gateway-routing-to-domain-services-with-websocket-ba.svg)
 
 <figcaption>High-level architecture: API gateway routing to domain services, with WebSocket-based real-time sync and Redis pub/sub for broadcast.</figcaption>
 </figure>
@@ -155,20 +109,7 @@ Issue tracking systems solve three interconnected problems: **flexible workflows
 
 **Architecture:**
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant API as REST API
-    participant DB as PostgreSQL
-    participant WS as WebSocket
-
-    C->>API: PATCH /issues/123 (move to column)
-    API->>DB: UPDATE issues SET status_id=5, rank='0|i000a'
-    DB-->>API: Success
-    API-->>C: 200 OK
-    API->>WS: Broadcast change
-    WS-->>C: Issue updated event
-```
+![Diagram](./diagram-1.svg)
 
 **Trade-offs:**
 
@@ -192,24 +133,7 @@ sequenceDiagram
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    subgraph Client["Client"]
-        UI["UI Layer"]
-        STORE["Local Store<br/>(IndexedDB)"]
-        SYNC["Sync Client"]
-    end
-
-    subgraph Server["Server"]
-        SYNC_SVC["Sync Service"]
-        DB[(PostgreSQL)]
-    end
-
-    UI <--> STORE
-    STORE <--> SYNC
-    SYNC <-->|"Delta Packets"| SYNC_SVC
-    SYNC_SVC <--> DB
-```
+![Diagram](./diagram-2.svg)
 
 **Trade-offs:**
 
@@ -297,57 +221,7 @@ This article focuses on **Path C (GraphQL with REST fallback)** because:
 
 ### Component Overview
 
-```mermaid
-flowchart TB
-    subgraph ClientLayer["Client Layer"]
-        BOARD["Board View"]
-        ISSUE["Issue Detail"]
-        SEARCH["Search/Filter"]
-        SYNC_CLIENT["Sync Client"]
-    end
-
-    subgraph GatewayLayer["Gateway Layer"]
-        GRAPHQL["GraphQL Gateway"]
-        REST["REST API"]
-        WS_GW["WebSocket Gateway"]
-    end
-
-    subgraph ServiceLayer["Service Layer"]
-        ISSUE_SVC["Issue Service"]
-        PROJECT_SVC["Project Service"]
-        WORKFLOW_SVC["Workflow Service"]
-        BOARD_SVC["Board Service"]
-        SEARCH_SVC["Search Service"]
-        ACTIVITY_SVC["Activity Service"]
-    end
-
-    subgraph DataLayer["Data Layer"]
-        POSTGRES[(PostgreSQL<br/>Source of Truth)]
-        REDIS["Redis<br/>(Cache + Pub/Sub)"]
-        ES[(Elasticsearch)]
-        KAFKA["Kafka<br/>(Event Stream)"]
-    end
-
-    BOARD & ISSUE --> GRAPHQL
-    SEARCH --> GRAPHQL
-    SYNC_CLIENT <--> WS_GW
-
-    GRAPHQL --> ISSUE_SVC & PROJECT_SVC & WORKFLOW_SVC & BOARD_SVC
-    GRAPHQL --> SEARCH_SVC
-    REST --> ISSUE_SVC & PROJECT_SVC
-    WS_GW --> REDIS
-
-    ISSUE_SVC --> POSTGRES & REDIS
-    PROJECT_SVC --> POSTGRES
-    WORKFLOW_SVC --> POSTGRES
-    BOARD_SVC --> REDIS
-    SEARCH_SVC --> ES
-    ACTIVITY_SVC --> KAFKA
-
-    ISSUE_SVC --> KAFKA
-    KAFKA --> ACTIVITY_SVC
-    KAFKA --> SEARCH_SVC
-```
+![Diagram](./diagram-3.svg)
 
 ### Issue Service
 
@@ -405,21 +279,7 @@ Enforces workflow rules and transitions.
 
 **Transition validation flow:**
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant I as Issue Service
-    participant W as Workflow Service
-    participant DB as Database
-
-    C->>I: Move issue to status "Done"
-    I->>W: Can transition from "In Progress" to "Done"?
-    W->>DB: Load workflow transitions
-    DB-->>W: Transition exists, no conditions
-    W-->>I: Allowed
-    I->>DB: UPDATE issue SET status_id = 'done'
-    I-->>C: Success
-```
+![Diagram](./diagram-4.svg)
 
 ## API Design
 
@@ -1131,33 +991,7 @@ async function rebalanceColumn(projectId: string, statusId: string): Promise<voi
 
 ### Optimistic Locking Flow
 
-```mermaid
-sequenceDiagram
-    participant C1 as Client 1
-    participant C2 as Client 2
-    participant API as API Server
-    participant DB as Database
-
-    Note over C1,C2: Both load issue (version=5)
-
-    C1->>API: Update title (version=5)
-    API->>DB: UPDATE ... WHERE version=5
-    DB-->>API: 1 row affected
-    API-->>C1: Success (version=6)
-
-    C2->>API: Update assignee (version=5)
-    API->>DB: UPDATE ... WHERE version=5
-    DB-->>API: 0 rows affected
-    API-->>C2: VERSION_CONFLICT
-
-    Note over C2: Client refetches, retries
-    C2->>API: GET issue
-    API-->>C2: Issue (version=6)
-    C2->>API: Update assignee (version=6)
-    API->>DB: UPDATE ... WHERE version=6
-    DB-->>API: 1 row affected
-    API-->>C2: Success (version=7)
-```
+![Diagram](./diagram-5.svg)
 
 ### Implementation
 
@@ -1384,36 +1218,7 @@ async function moveIssue(input: MoveIssueInput): Promise<UpdateResult> {
 
 Each project has its own workflow, defined by statuses and transitions.
 
-```mermaid
-erDiagram
-    PROJECT ||--o{ STATUS : "has"
-    PROJECT ||--o{ WORKFLOW_TRANSITION : "has"
-    STATUS ||--o{ WORKFLOW_TRANSITION : "from"
-    STATUS ||--o{ WORKFLOW_TRANSITION : "to"
-
-    PROJECT {
-        uuid id PK
-        string key
-        string name
-    }
-
-    STATUS {
-        uuid id PK
-        uuid project_id FK
-        string name
-        string category
-        int position
-    }
-
-    WORKFLOW_TRANSITION {
-        uuid id PK
-        uuid project_id FK
-        uuid from_status_id FK
-        uuid to_status_id FK
-        string name
-        int opsbar_sequence
-    }
-```
+![Diagram](./diagram-6.svg)
 
 ### Fetching Workflow Configuration
 
@@ -1818,42 +1623,7 @@ function VirtualizedColumn({
 
 ### AWS Reference Architecture
 
-```mermaid
-flowchart TB
-    subgraph Edge["Edge"]
-        CF["CloudFront"]
-        ALB["Application Load Balancer"]
-    end
-
-    subgraph Compute["ECS/EKS"]
-        GQL["GraphQL Service<br/>(Fargate)"]
-        API["REST API<br/>(Fargate)"]
-        WS["WebSocket<br/>(Fargate)"]
-        WORKER["Workers<br/>(Fargate Spot)"]
-    end
-
-    subgraph Data["Data Layer"]
-        RDS[(RDS PostgreSQL<br/>Multi-AZ)]
-        REDIS["ElastiCache Redis<br/>Cluster"]
-        ES["OpenSearch<br/>Domain"]
-        S3["S3<br/>Attachments"]
-    end
-
-    subgraph Stream["Event Stream"]
-        MSK["Amazon MSK<br/>(Kafka)"]
-    end
-
-    CF --> ALB
-    ALB --> GQL & API & WS
-    GQL & API --> RDS
-    GQL & API --> REDIS
-    GQL --> ES
-    GQL --> MSK
-    WS --> REDIS
-    MSK --> WORKER
-    WORKER --> ES
-    WORKER --> S3
-```
+![Diagram](./diagram-7.svg)
 
 **Service configurations:**
 

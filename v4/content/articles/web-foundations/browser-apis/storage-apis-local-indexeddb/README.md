@@ -8,30 +8,7 @@ A deep dive into browser-side persistence, examining the design trade-offs behin
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Browser Storage APIs"
-        direction LR
-        LS["localStorage<br/>Sync KV · ~5 MiB"]
-        SS["sessionStorage<br/>Sync KV · Tab-scoped"]
-        IDB["IndexedDB<br/>Async structured store · GBs"]
-        CACHE["Cache API<br/>Request/Response pairs"]
-        OPFS["OPFS<br/>File system · Sync in workers"]
-    end
-
-    subgraph "Storage Standard"
-        QUOTA["Quota Manager<br/>Per-origin budget"]
-        BUCKET["Storage Buckets<br/>best-effort vs persistent"]
-    end
-
-    IDB --> QUOTA
-    CACHE --> QUOTA
-    OPFS --> QUOTA
-    LS -.->|"separate limit"| QUOTA
-
-    style IDB fill:#3b82f6,stroke:#1e40af,color:#fff
-    style QUOTA fill:#8b5cf6,stroke:#6d28d9,color:#fff
-```
+![Browser storage APIs and their relationship to the unified quota system](./browser-storage-apis-and-their-relationship-to-the-unified-quota-system.svg)
 
 <figcaption>Browser storage APIs and their relationship to the unified quota system</figcaption>
 
@@ -43,29 +20,7 @@ Browser storage is not one system—it's five APIs with different serialization 
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph "Sync, Main Thread"
-        LS["localStorage<br/>DOMString KV"]
-        SS["sessionStorage<br/>Tab-scoped KV"]
-    end
-
-    subgraph "Async, Off Main Thread"
-        IDB["IndexedDB<br/>Structured clone"]
-        CACHE["Cache API<br/>Request → Response"]
-        OPFS["OPFS<br/>Raw bytes"]
-    end
-
-    subgraph "Quota Model"
-        BE["best-effort<br/>Evictable under pressure"]
-        P["persistent<br/>User must approve deletion"]
-    end
-
-    IDB --> BE
-    CACHE --> BE
-    OPFS --> BE
-    BE -.->|"navigator.storage.persist()"| P
-```
+![Storage APIs split into synchronous (main-thread blocking) and asynchronous categories, all governed by the Storage Standard's quota model](./storage-apis-split-into-synchronous-main-thread-blocking-and-asynchronous-catego.svg)
 
 <figcaption>Storage APIs split into synchronous (main-thread blocking) and asynchronous categories, all governed by the Storage Standard's quota model</figcaption>
 
@@ -251,21 +206,7 @@ function isStorageAvailable(): boolean {
 
 <figure>
 
-```mermaid
-flowchart TB
-    DB["Database<br/>(name + version)"] --> OS1["Object Store: users"]
-    DB --> OS2["Object Store: orders"]
-
-    OS1 --> IDX1["Index: by-email<br/>(unique)"]
-    OS1 --> IDX2["Index: by-role"]
-
-    OS2 --> IDX3["Index: by-date"]
-    OS2 --> IDX4["Index: by-user-id"]
-
-    style DB fill:#3b82f6,stroke:#1e40af,color:#fff
-    style OS1 fill:#10b981,stroke:#059669,color:#fff
-    style OS2 fill:#10b981,stroke:#059669,color:#fff
-```
+![IndexedDB data model: databases contain object stores, which contain indexes for query optimization](./indexeddb-data-model-databases-contain-object-stores-which-contain-indexes-for-q.svg)
 
 <figcaption>IndexedDB data model: databases contain object stores, which contain indexes for query optimization</figcaption>
 

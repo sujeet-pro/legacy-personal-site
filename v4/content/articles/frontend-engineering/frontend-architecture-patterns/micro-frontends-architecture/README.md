@@ -73,20 +73,7 @@ Microfrontends should be modeled around business domains, not technical layers. 
 
 <figure>
 
-```mermaid
-graph TB
-    title[Monolithic Frontend Architecture]
-
-    A[Single Codebase] --> B[Shared Dependencies]
-    B --> C[Tight Coupling]
-    C --> D[Coordinated Deployments]
-
-    style title fill:#ff6666,stroke:#cc0000,stroke-width:3px,color:#ffffff
-    style A fill:#ff9999
-    style B fill:#ffcccc
-    style C fill:#ffcccc
-    style D fill:#ffcccc
-```
+![Monolithic frontend architecture showing the tight coupling and coordinated deployments that microfrontends aim to solve](./monolithic-frontend-architecture-showing-the-tight-coupling-and-coordinated-depl.svg)
 
 <figcaption>Monolithic frontend architecture showing the tight coupling and coordinated deployments that microfrontends aim to solve</figcaption>
 
@@ -94,29 +81,7 @@ graph TB
 
 <figure>
 
-```mermaid
-graph TB
-    title[Microfrontend Architecture]
-
-    E[Team A - React] --> F[Independent Deployments]
-    G[Team B - Vue] --> F
-    H[Team C - Angular] --> F
-    I[Team D - Svelte] --> F
-
-    F --> J[Domain Boundaries]
-    J --> K[Technology Freedom]
-    K --> L[Team Autonomy]
-
-    style title fill:#66cc66,stroke:#006600,stroke-width:3px,color:#ffffff
-    style E fill:#99ff99
-    style G fill:#99ff99
-    style H fill:#99ff99
-    style I fill:#99ff99
-    style F fill:#ccffcc
-    style J fill:#ccffcc
-    style K fill:#ccffcc
-    style L fill:#ccffcc
-```
+![Microfrontend architecture showing independent deployments, domain boundaries, technology freedom, and team autonomy](./microfrontend-architecture-showing-independent-deployments-domain-boundaries-tec.svg)
 
 <figcaption>Microfrontend architecture showing independent deployments, domain boundaries, technology freedom, and team autonomy</figcaption>
 
@@ -134,30 +99,7 @@ The method by which independent microfrontends are stitched together into a cohe
 
 <figure>
 
-```mermaid
-graph LR
-    subgraph "Client-Side Composition"
-        A[Browser] --> B[Application Shell]
-        B --> C[Module Federation]
-        B --> D[Web Components]
-        B --> E[Iframes]
-    end
-
-    subgraph "Server-Side Composition"
-        F[Origin Server] --> G[SSR Framework]
-        G --> H[Server-Side Includes]
-    end
-
-    subgraph "Edge-Side Composition"
-        I[CDN Edge] --> J[Cloudflare Workers]
-        I --> K[ESI]
-        I --> L["Lambda@Edge"]
-    end
-
-    M[User Request] --> A
-    M --> F
-    M --> I
-```
+![Three composition strategies showing client-side, server-side, and edge-side approaches for assembling microfrontends](./three-composition-strategies-showing-client-side-server-side-and-edge-side-appro.svg)
 
 <figcaption>Three composition strategies showing client-side, server-side, and edge-side approaches for assembling microfrontends</figcaption>
 
@@ -461,33 +403,7 @@ Each microfrontend must have its own dedicated CI/CD pipeline, allowing its owni
 
 <figure>
 
-```mermaid
-graph TB
-    subgraph "Team A - Product Catalog"
-        A1[Code Push] --> A2[Build & Test]
-        A2 --> A3[Deploy to Staging]
-        A3 --> A4[Integration Tests]
-        A4 --> A5[Deploy to Production]
-    end
-
-    subgraph "Team B - Shopping Cart"
-        B1[Code Push] --> B2[Build & Test]
-        B2 --> B3[Deploy to Staging]
-        B3 --> B4[Integration Tests]
-        B4 --> B5[Deploy to Production]
-    end
-
-    subgraph "Team C - User Profile"
-        C1[Code Push] --> C2[Build & Test]
-        C2 --> C3[Deploy to Staging]
-        C3 --> C4[Integration Tests]
-        C4 --> C5[Deploy to Production]
-    end
-
-    A5 -.-> D[Independent Deployments]
-    B5 -.-> D
-    C5 -.-> D
-```
+![Independent deployment pipelines showing how each team can build, test, and deploy their microfrontend without coordinating with others](./independent-deployment-pipelines-showing-how-each-team-can-build-test-and-deploy.svg)
 
 <figcaption>Independent deployment pipelines showing how each team can build, test, and deploy their microfrontend without coordinating with others</figcaption>
 
@@ -853,34 +769,7 @@ The "best" microfrontend approach is context-dependent. The decision should be d
 
 <figure>
 
-```mermaid
-flowchart TD
-    A[Start: Choose Microfrontend Strategy] --> B{"What's your primary goal?"}
-
-    B -->|High Interactivity & Complex State| C[Client-Side Composition]
-    B -->|Global Performance & Low Latency| D[Edge-Side Composition]
-    B -->|SEO & Initial Load Performance| E[Server-Side Composition]
-    B -->|Security & Legacy Integration| F[Iframe Integration]
-
-    C --> G[Module Federation]
-    C --> H[Web Components]
-    C --> I[single-spa]
-
-    D --> J[Cloudflare Workers]
-    D --> K[ESI]
-    D --> L["Lambda@Edge"]
-
-    E --> M[SSR Frameworks]
-    E --> N[Server-Side Includes]
-
-    F --> O[postMessage API]
-    F --> P[Cross-Origin Communication]
-
-    style C fill:#e1f5fe
-    style D fill:#f3e5f5
-    style E fill:#e8f5e8
-    style F fill:#fff3e0
-```
+![Decision tree for choosing the right microfrontend composition strategy based on primary goals and requirements](./decision-tree-for-choosing-the-right-microfrontend-composition-strategy-based-on.svg)
 
 <figcaption>Decision tree for choosing the right microfrontend composition strategy based on primary goals and requirements</figcaption>
 

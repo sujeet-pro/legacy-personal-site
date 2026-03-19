@@ -8,32 +8,7 @@ Hierarchical and networked data structures that underpin file systems, databases
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Trees["Trees (Hierarchical)"]
-        direction TB
-        BST["BST<br/>O(log n) avg"]
-        AVL["AVL<br/>Strict balance"]
-        RB["Red-Black<br/>Looser balance"]
-        BTree["B-Tree<br/>Disk-optimized"]
-        Trie["Trie<br/>Prefix search"]
-    end
-
-    subgraph Graphs["Graphs (Networked)"]
-        direction TB
-        AdjMatrix["Adjacency Matrix<br/>O(V²) space<br/>O(1) edge lookup"]
-        AdjList["Adjacency List<br/>O(V+E) space<br/>O(deg) edge lookup"]
-    end
-
-    subgraph Traversals["Traversal Algorithms"]
-        direction TB
-        DFS["DFS<br/>Stack-based<br/>Cycle detection"]
-        BFS["BFS<br/>Queue-based<br/>Shortest path"]
-    end
-
-    Trees --> Traversals
-    Graphs --> Traversals
-```
+![Trees model hierarchical relationships; graphs model arbitrary connections. Traversal choice depends on the problem: DFS for dependencies and cycles, BFS for shortest paths.](./trees-model-hierarchical-relationships-graphs-model-arbitrary-connections-traver.svg)
 
 <figcaption>Trees model hierarchical relationships; graphs model arbitrary connections. Traversal choice depends on the problem: DFS for dependencies and cycles, BFS for shortest paths.</figcaption>
 </figure>

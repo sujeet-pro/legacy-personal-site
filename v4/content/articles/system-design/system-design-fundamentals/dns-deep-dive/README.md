@@ -8,37 +8,7 @@ The Domain Name System (DNS) is the distributed hierarchical database that maps 
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Client["Client Device"]
-        App[Application]
-        Stub[Stub Resolver]
-    end
-
-    subgraph Recursive["Recursive Resolver (ISP/Public)"]
-        Cache[(Cache)]
-        Resolver[Resolver Logic]
-    end
-
-    subgraph Hierarchy["DNS Hierarchy"]
-        Root["Root Servers (.)"]
-        TLD["TLD Servers (.com, .org)"]
-        Auth["Authoritative Server (example.com)"]
-    end
-
-    App -->|1. gethostbyname| Stub
-    Stub -->|2. Query| Resolver
-    Resolver -->|3. Check| Cache
-    Cache -.->|Cache hit| Resolver
-    Resolver -->|4. Query root| Root
-    Root -->|5. Referral to .com| Resolver
-    Resolver -->|6. Query TLD| TLD
-    TLD -->|7. Referral to auth| Resolver
-    Resolver -->|8. Query auth| Auth
-    Auth -->|9. Answer| Resolver
-    Resolver -->|10. Cache + Return| Stub
-    Stub -->|11. Return IP| App
-```
+![DNS resolution flow: stub resolver queries recursive resolver, which walks the hierarchy (root → TLD → authoritative) or returns cached answers.](./dns-resolution-flow-stub-resolver-queries-recursive-resolver-which-walks-the-hie.svg)
 
 <figcaption>DNS resolution flow: stub resolver queries recursive resolver, which walks the hierarchy (root → TLD → authoritative) or returns cached answers.</figcaption>
 </figure>

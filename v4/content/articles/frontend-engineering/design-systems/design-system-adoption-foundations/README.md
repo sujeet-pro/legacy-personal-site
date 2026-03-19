@@ -8,35 +8,7 @@ A comprehensive framework for building and scaling design systems from initial c
 
 <figure>
 
-```mermaid
-mindmap
-  root((Design System Program))
-    Phase 1: Foundation
-      Executive Buy-in
-      ROI Analysis
-      Sponsorship
-    Phase 2: Structure
-      Team Building
-      Governance
-      Processes
-    Phase 3: Implementation
-      React Components
-      Design Tokens
-      Storybook Docs
-      NPM Publishing
-    Phase 4: Adoption
-      Champion Program
-      Training
-      Support Channels
-    Phase 5: Measurement
-      Metrics & KPIs
-      Feedback Loops
-      Usage Analytics
-    Phase 6: Technical Enablement
-      Codemods
-      Repo Scanning
-      Data-Driven Decisions
-```
+![The six-phase framework for design system programs, from proving the business case through technical enablement and enterprise-wide scaling](./the-six-phase-framework-for-design-system-programs-from-proving-the-business-cas.svg)
 
 <figcaption>The six-phase framework for design system programs, from proving the business case through technical enablement and enterprise-wide scaling</figcaption>
 
@@ -48,27 +20,7 @@ Design system success is fundamentally a governance problem, not a technical one
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph Foundation["Foundation (Months 1-3)"]
-        A[Pain Point Audit] --> B[ROI Model]
-        B --> C[Executive Sponsor]
-    end
-
-    subgraph Structure["Structure (Months 2-4)"]
-        C --> D{Org Size?}
-        D -->|< 50 eng| E[Centralized]
-        D -->|50-200 eng| F[Hybrid]
-        D -->|> 200 eng| G[Federated]
-    end
-
-    subgraph Scaling["Scaling (Ongoing)"]
-        E & F & G --> H[Champion Network]
-        H --> I[Adoption Metrics]
-        I --> J[Governance Adjustment]
-        J --> H
-    end
-```
+![The governance model must match organizational scale—start centralized, evolve toward federated as adoption grows](./the-governance-model-must-match-organizational-scale-start-centralized-evolve-to.svg)
 
 <figcaption>The governance model must match organizational scale—start centralized, evolve toward federated as adoption grows</figcaption>
 
@@ -142,20 +94,7 @@ Notable case studies: Salesforce Lightning achieved 60% productivity increase wi
 
 <figure>
 
-```mermaid
-flowchart TD
-    A[Start ROI Analysis] --> B[Audit Current State]
-    B --> C[Calculate Time Savings]
-    C --> D[Estimate Quality Value]
-    D --> E[Project Maintenance Costs]
-    E --> F[Apply ROI Formula]
-    F --> G{ROI > 100%?}
-    G -->|Yes| H[Proceed with Initiative]
-    G -->|No| I[Refine Assumptions]
-    I --> B
-    H --> J[Present to Stakeholders]
-    J --> K[Secure Funding]
-```
+![The iterative ROI calculation process, from audit through stakeholder presentation](./the-iterative-roi-calculation-process-from-audit-through-stakeholder-presentatio.svg)
 
 <figcaption>The iterative ROI calculation process, from audit through stakeholder presentation</figcaption>
 
@@ -199,12 +138,7 @@ The **Hybrid Model** splits responsibilities between a core team that owns found
 
 <figure>
 
-```mermaid
-graph TB
-    A1[Product Owner] --> B1[Designers]
-    A1 --> C1[Developers]
-    A1 --> D1[QA Engineer]
-```
+![Centralized Model: A dedicated team with clear hierarchy owns all design system decisions and components](./centralized-model-a-dedicated-team-with-clear-hierarchy-owns-all-design-system-d.svg)
 
 <figcaption>Centralized Model: A dedicated team with clear hierarchy owns all design system decisions and components</figcaption>
 
@@ -212,13 +146,7 @@ graph TB
 
 <figure>
 
-```mermaid
-graph TB
-    A2[Core Team<br/>2-3 people] --> B2[Team Champions]
-    B2 --> C2[Product Team A]
-    B2 --> D2[Product Team B]
-    B2 --> E2[Product Team C]
-```
+![Federated Model: A small core team coordinates champions embedded in each product team](./federated-model-a-small-core-team-coordinates-champions-embedded-in-each-product.svg)
 
 <figcaption>Federated Model: A small core team coordinates champions embedded in each product team</figcaption>
 
@@ -226,12 +154,7 @@ graph TB
 
 <figure>
 
-```mermaid
-graph TB
-    A3[Core Team<br/>Foundation] --> B3[Product Teams<br/>Specialized]
-    A3 -.-> C3[Shared Standards]
-    B3 -.-> C3
-```
+![Hybrid Model: Core team owns foundations while product teams contribute specialized components, both adhering to shared standards](./hybrid-model-core-team-owns-foundations-while-product-teams-contribute-specializ.svg)
 
 <figcaption>Hybrid Model: Core team owns foundations while product teams contribute specialized components, both adhering to shared standards</figcaption>
 

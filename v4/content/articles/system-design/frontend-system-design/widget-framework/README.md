@@ -8,38 +8,7 @@ Designing a frontend framework that hosts third-party extensions—dynamically l
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Host Application"
-        TM["Tenant Config Service"]
-        WR["Widget Registry"]
-        WL["Widget Loader"]
-        SDK["Host SDK"]
-        subgraph "Contribution Points"
-            CP1["Slot: Header"]
-            CP2["Slot: Sidebar"]
-            CP3["Slot: Content"]
-        end
-    end
-
-    subgraph "Widget A (iframe)"
-        WA["Third-Party Code"]
-        SDA["Shadow DOM"]
-    end
-
-    subgraph "Widget B (Module Federation)"
-        WB["Trusted Code"]
-    end
-
-    TM -->|"tenant: acme"| WL
-    WL -->|"Resolve widget IDs"| WR
-    WR -->|"Return URLs + manifests"| WL
-    WL -->|"Load remote"| WA & WB
-    SDK <-->|"postMessage"| WA
-    SDK <-->|"Direct API"| WB
-    WA --> CP1
-    WB --> CP2
-```
+![Widget framework architecture: tenant configuration determines which widgets load; registry provides manifests and URLs; loader mounts widgets into contribution points; SDK mediates communication.](./widget-framework-architecture-tenant-configuration-determines-which-widgets-load.svg)
 
 <figcaption>Widget framework architecture: tenant configuration determines which widgets load; registry provides manifests and URLs; loader mounts widgets into contribution points; SDK mediates communication.</figcaption>
 </figure>
@@ -130,27 +99,7 @@ A pluggable widget framework is a **microkernel architecture**: minimal core sys
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph "Host (Shell)"
-        HC["Host Container"]
-        SR["Shared React"]
-    end
-
-    subgraph "Remote A"
-        RA["Widget A Bundle"]
-        RA_E["Exposed: WidgetA"]
-    end
-
-    subgraph "Remote B"
-        RB["Widget B Bundle"]
-        RB_E["Exposed: WidgetB"]
-    end
-
-    HC -->|"import('remoteA/WidgetA')"| RA_E
-    HC -->|"import('remoteB/WidgetB')"| RB_E
-    SR <-.->|"Singleton shared"| RA & RB
-```
+![Module Federation: host and remotes share dependencies (React) via singleton negotiation; widgets load as federated modules.](./module-federation-host-and-remotes-share-dependencies-react-via-singleton-negoti.svg)
 
 <figcaption>Module Federation: host and remotes share dependencies (React) via singleton negotiation; widgets load as federated modules.</figcaption>
 </figure>
@@ -271,23 +220,7 @@ export function WidgetSlot({ widgetId }: { widgetId: string }) {
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Host Application"
-        HP["Host Page"]
-        PM["postMessage Handler"]
-    end
-
-    subgraph "iframe (sandbox)"
-        WC["Widget Code"]
-        WS["Widget SDK Shim"]
-    end
-
-    HP -->|"Create iframe<br/>sandbox='allow-scripts'"| WC
-    WS <-->|"postMessage"| PM
-    PM -->|"API Response"| WS
-    WS -->|"SDK call"| WC
-```
+![iframe sandbox: widget runs in isolated browsing context; communication via postMessage only.](./iframe-sandbox-widget-runs-in-isolated-browsing-context-communication-via-postme.svg)
 
 <figcaption>iframe sandbox: widget runs in isolated browsing context; communication via postMessage only.</figcaption>
 </figure>
@@ -453,23 +386,7 @@ function callHost(method: string, args: unknown[]): Promise<unknown> {
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph "Host DOM"
-        HD["Document"]
-        WC["<widget-container>"]
-    end
-
-    subgraph "Shadow Root (closed)"
-        SR["Shadow DOM"]
-        WS["Widget Styles"]
-        WT["Widget Template"]
-    end
-
-    HD --> WC
-    WC -->|"attachShadow({mode:'closed'})"| SR
-    SR --> WS & WT
-```
+![Shadow DOM: CSS isolation via encapsulated DOM tree; JavaScript shares host context.](./shadow-dom-css-isolation-via-encapsulated-dom-tree-javascript-shares-host-contex.svg)
 
 <figcaption>Shadow DOM: CSS isolation via encapsulated DOM tree; JavaScript shares host context.</figcaption>
 </figure>
@@ -567,26 +484,7 @@ widget-container {
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Host Application"
-        HM["Host Main Thread"]
-        API["Plugin API"]
-    end
-
-    subgraph "Plugin Process"
-        subgraph "WASM Sandbox"
-            QJS["QuickJS Engine"]
-            PC["Plugin Code"]
-        end
-        UI["Plugin UI (iframe)"]
-    end
-
-    HM <-->|"Structured API"| API
-    API <-->|"WASM boundary calls"| QJS
-    QJS --> PC
-    PC <-.->|"postMessage"| UI
-```
+![WASM sandbox: JavaScript engine (QuickJS) compiled to WebAssembly runs plugin logic; separate iframe renders UI.](./wasm-sandbox-javascript-engine-quickjs-compiled-to-webassembly-runs-plugin-logic.svg)
 
 <figcaption>WASM sandbox: JavaScript engine (QuickJS) compiled to WebAssembly runs plugin logic; separate iframe renders UI.</figcaption>
 </figure>
@@ -703,22 +601,7 @@ This separation prevents plugins from both manipulating the document AND accessi
 
 <figure>
 
-```mermaid
-flowchart TD
-    A["Need widget framework"] --> B{"Trust third-party code?"}
-    B -->|"Yes (internal teams)"| C{"Need CSS isolation?"}
-    B -->|"No (external developers)"| D{"Security requirements?"}
-
-    C -->|"No"| E["Module Federation"]
-    C -->|"Yes"| F["Module Federation + Shadow DOM"]
-
-    D -->|"High (financial, PII)"| G["WASM Sandbox"]
-    D -->|"Medium"| H["iframe Sandbox"]
-
-    G --> I{"Need plugin UI?"}
-    I -->|"Yes"| J["WASM + iframe (Figma model)"]
-    I -->|"No"| K["WASM only"]
-```
+![Decision tree for selecting widget isolation strategy based on trust level and security requirements.](./decision-tree-for-selecting-widget-isolation-strategy-based-on-trust-level-and-s.svg)
 
 <figcaption>Decision tree for selecting widget isolation strategy based on trust level and security requirements.</figcaption>
 </figure>
@@ -1208,28 +1091,7 @@ The tenant config service maps tenant identifiers to their widget configurations
 
 <figure>
 
-```mermaid
-sequenceDiagram
-    participant User
-    participant Host
-    participant TenantConfig
-    participant Registry
-    participant CDN
-
-    User->>Host: Load application
-    Host->>TenantConfig: GET /config?tenant=acme
-    TenantConfig-->>Host: { widgets: ["video-player-premium", "analytics-basic"] }
-
-    loop For each widget ID
-        Host->>Registry: Resolve widget URL
-        Registry-->>Host: { url, manifest, checksum }
-    end
-
-    Host->>CDN: Load widget bundles
-    CDN-->>Host: Widget code
-    Host->>Host: Mount widgets in slots
-    Host-->>User: Render complete
-```
+![Multi-tenant widget loading flow: tenant config determines widget IDs; registry resolves to URLs; CDN serves bundles.](./multi-tenant-widget-loading-flow-tenant-config-determines-widget-ids-registry-re.svg)
 
 <figcaption>Multi-tenant widget loading flow: tenant config determines widget IDs; registry resolves to URLs; CDN serves bundles.</figcaption>
 </figure>

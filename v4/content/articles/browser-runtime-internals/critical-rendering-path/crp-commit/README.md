@@ -8,30 +8,7 @@ Commit is the synchronization point where the Main Thread hands over processed f
 
 <figure>
 
-```mermaid
-sequenceDiagram
-    participant MT as Main Thread<br/>(ProxyMain)
-    participant CT as Compositor Thread<br/>(ProxyImpl)
-    participant PT as Pending Tree
-    participant AT as Active Tree
-
-    Note over MT: Paint Complete
-    MT->>CT: NotifyReadyToCommit
-    activate MT
-    Note over MT: Blocked via Mutex
-    activate CT
-    CT->>PT: Copy Layer Tree,<br/>Property Trees,<br/>Display Lists
-    CT-->>MT: Release Mutex
-    deactivate MT
-    Note over MT: Free for Frame N+1
-
-    Note over CT: Schedule Rasterization
-    CT->>PT: Rasterize Tiles
-    Note over PT: Tiles Ready
-    CT->>AT: Activate<br/>(Pending → Active)
-    deactivate CT
-    Note over AT: Ready for Draw
-```
+![The Commit synchronization: ProxyMain blocks via mutex while ProxyImpl copies data structures to the pending tree. After commit, the main thread can process the next frame while rasterization proceeds on the pending tree.](./the-commit-synchronization-proxymain-blocks-via-mutex-while-proxyimpl-copies-dat.svg)
 
 <figcaption>The Commit synchronization: ProxyMain blocks via mutex while ProxyImpl copies data structures to the pending tree. After commit, the main thread can process the next frame while rasterization proceeds on the pending tree.</figcaption>
 </figure>

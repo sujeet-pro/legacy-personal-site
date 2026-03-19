@@ -8,45 +8,7 @@ Facebook's social graph presents a unique data access problem: billions of users
 
 <figure>
 
-```mermaid
-flowchart TD
-    subgraph "Client Request"
-        C[Web/Mobile Client]
-    end
-
-    subgraph "Region A"
-        subgraph "Follower Tier"
-            F1[Follower Cache 1]
-            F2[Follower Cache N]
-        end
-        subgraph "Leader Tier"
-            L[Leader Cache]
-        end
-        subgraph "Storage"
-            DB[(MySQL Primary)]
-        end
-    end
-
-    subgraph "Region B (Replica)"
-        subgraph "Follower Tier B"
-            F3[Follower Cache]
-        end
-        subgraph "Leader Tier B"
-            L2[Leader Cache]
-        end
-        subgraph "Storage B"
-            DB2[(MySQL Replica)]
-        end
-    end
-
-    C -->|Read| F1
-    C -->|Write| F1
-    F1 -->|Miss/Write| L
-    L -->|Write-through| DB
-    DB -->|Replicate| DB2
-    L -->|Async Invalidation| F1
-    L -->|Async Invalidation| F2
-```
+![TAO's two-tier caching architecture: followers handle reads locally, leaders coordinate writes and protect MySQL from thundering herds. Cross-region replication enables geographic distribution.](./tao-s-two-tier-caching-architecture-followers-handle-reads-locally-leaders-coord.svg)
 
 <figcaption>TAO's two-tier caching architecture: followers handle reads locally, leaders coordinate writes and protect MySQL from thundering herds. Cross-region replication enables geographic distribution.</figcaption>
 </figure>
@@ -190,34 +152,7 @@ Leaders are the coordination point. One leader tier per region. All writes flow 
 2. **Write ordering**: Leader applies writes in order received
 3. **Consistency**: Leader updates its cache before responding, enabling read-after-write
 
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Follower
-    participant Leader
-    participant MySQL
-
-    Note over Client,MySQL: Read (Cache Hit)
-    Client->>Follower: GET object 123
-    Follower-->>Client: Return cached data
-
-    Note over Client,MySQL: Read (Cache Miss)
-    Client->>Follower: GET object 456
-    Follower->>Leader: Forward miss
-    Leader->>MySQL: Query
-    MySQL-->>Leader: Data
-    Leader-->>Follower: Data + cache
-    Follower-->>Client: Data
-
-    Note over Client,MySQL: Write
-    Client->>Follower: PUT object 123
-    Follower->>Leader: Forward write
-    Leader->>MySQL: Write-through
-    MySQL-->>Leader: ACK
-    Leader-->>Follower: ACK + update
-    Follower-->>Client: ACK
-    Leader--)Follower: Async invalidation to other followers
-```
+![Diagram](./diagram-1.svg)
 
 ### Write-Through vs Write-Back
 
@@ -285,20 +220,7 @@ TAO uses a hybrid invalidation strategy:
 
 **Version numbers**: Every cache entry has a version number. Invalidation messages include the version being invalidated. If a follower has a newer version (due to out-of-order message delivery), it ignores the invalidation.
 
-```mermaid
-sequenceDiagram
-    participant F1 as Follower 1
-    participant L as Leader
-    participant F2 as Follower 2
-
-    F1->>L: Write object X (v1→v2)
-    L->>L: Update cache to v2
-    L-->>F1: ACK with v2
-    L--)F2: Invalidate X, v1→v2
-
-    Note over F2: If F2 has v1, invalidate
-    Note over F2: If F2 has v2+, ignore (stale message)
-```
+![Diagram](./diagram-2.svg)
 
 ## Implementation Details
 

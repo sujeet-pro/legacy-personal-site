@@ -8,35 +8,7 @@ HTTP/3 eliminates TCP's head-of-line blocking by building HTTP directly on QUIC,
 
 <figure>
 
-```mermaid
-flowchart TD
-    subgraph Discovery["Protocol Discovery"]
-        DNS["DNS SVCB/HTTPS Records"]
-        AltSvc["Alt-Svc Header"]
-    end
-
-    subgraph Transport["Transport Layer"]
-        TCP["TCP + TLS 1.3"]
-        QUIC["QUIC (UDP + TLS 1.3)"]
-    end
-
-    subgraph Application["Application Layer"]
-        H1["HTTP/1.1"]
-        H2["HTTP/2"]
-        H3["HTTP/3"]
-    end
-
-    DNS -->|"alpn=h3,h2"| QUIC
-    DNS -->|"alpn=h2"| TCP
-    AltSvc -->|"h3=:443"| QUIC
-
-    TCP --> H1
-    TCP --> H2
-    QUIC --> H3
-
-    style QUIC fill:#4caf50
-    style H3 fill:#4caf50
-```
+![HTTP/3 runs over QUIC, which integrates TLS 1.3 into UDP-based transport. Discovery occurs via DNS SVCB/HTTPS records or Alt-Svc headers.](./http-3-runs-over-quic-which-integrates-tls-1-3-into-udp-based-transport-discover.svg)
 
 <figcaption>HTTP/3 runs over QUIC, which integrates TLS 1.3 into UDP-based transport. Discovery occurs via DNS SVCB/HTTPS records or Alt-Svc headers.</figcaption>
 </figure>
@@ -64,20 +36,7 @@ HTTP/3 exists because TCP's design creates unavoidable head-of-line (HOL) blocki
 
 HTTP/2 multiplexes streams over a single TCP connection. TCP guarantees in-order, reliable delivery—but this guarantee applies to the entire byte stream, not individual HTTP streams.
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant S as Server
-
-    Note over C,S: HTTP/2 over TCP: All streams share one byte stream
-    S->>C: Packet 1 (Stream A data)
-    S->>C: Packet 2 (Stream B data)
-    S--xC: Packet 3 (Stream A data) LOST
-    S->>C: Packet 4 (Stream C data)
-
-    Note over C: TCP holds packets 4+ until packet 3 retransmitted
-    Note over C: Streams B and C blocked despite having all their data
-```
+![Diagram](./diagram-1.svg)
 
 **The problem**: When packet 3 (belonging to Stream A) is lost, TCP cannot deliver packets 4+ to the application until packet 3 arrives. Streams B and C stall even though they have complete data waiting in the receive buffer.
 
@@ -130,22 +89,7 @@ QUIC uses Connection IDs instead. Per RFC 9000 Section 5.1:
 
 **Security requirement**: Connection IDs "MUST NOT contain any information that can be used by an external observer... to correlate them with other connection IDs for the same connection."
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant S as Server
-
-    Note over C,S: Initial connection on WiFi
-    C->>S: Packets with CID_1 (192.168.1.10)
-
-    Note over C: Network switch to cellular
-    C->>S: PATH_CHALLENGE (new IP: 100.64.0.5)
-    S->>C: PATH_RESPONSE (validates new path)
-
-    Note over C,S: Connection continues with same CID
-    C->>S: Packets with CID_1 (100.64.0.5)
-    Note over C,S: No re-handshake required
-```
+![Diagram](./diagram-2.svg)
 
 **PATH_CHALLENGE/PATH_RESPONSE** (RFC 9000 Sections 8.2, 19.17-19.18):
 
@@ -171,25 +115,7 @@ sequenceDiagram
 
 Each QUIC stream maintains independent state: flow control windows, retransmission buffers, and delivery ordering.
 
-```mermaid
-graph TD
-    subgraph QUIC["QUIC Connection"]
-        S0["Stream 0 (Control)"]
-        S4["Stream 4 (Request 1)"]
-        S8["Stream 8 (Request 2)"]
-        S12["Stream 12 (Request 3)"]
-    end
-
-    subgraph Loss["Packet Loss on Stream 4"]
-        L1["Stream 4: Awaiting retransmit"]
-        L2["Stream 8: Continues processing"]
-        L3["Stream 12: Continues processing"]
-    end
-
-    S4 --> L1
-    S8 --> L2
-    S12 --> L3
-```
+![Diagram](./diagram-3.svg)
 
 **Stream ID structure** (RFC 9114 Section 6.1):
 
@@ -208,29 +134,7 @@ graph TD
 
 Traditional HTTPS requires sequential handshakes: TCP (1-RTT) then TLS (1-2 RTT). QUIC integrates TLS 1.3 directly into the transport handshake.
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant S as Server
-
-    rect rgb(255, 240, 245)
-    Note over C,S: TCP + TLS 1.3: 2 RTT minimum
-    C->>S: TCP SYN
-    S->>C: TCP SYN-ACK
-    C->>S: TCP ACK + TLS ClientHello
-    S->>C: TLS ServerHello + Certificate + Finished
-    C->>S: TLS Finished
-    Note over C,S: Ready to send HTTP request
-    end
-
-    rect rgb(240, 255, 240)
-    Note over C,S: QUIC + TLS 1.3: 1 RTT
-    C->>S: Initial (ClientHello + key share)
-    S->>C: Initial (ServerHello) + Handshake (Cert + Finished)
-    C->>S: Handshake Finished + 1-RTT Data
-    Note over C,S: HTTP request sent with handshake completion
-    end
-```
+![Diagram](./diagram-4.svg)
 
 **Latency comparison:**
 
@@ -335,26 +239,7 @@ QPACK uses explicit synchronization via dedicated unidirectional streams:
 
 **Key mechanism**: Each encoded header block includes a "Required Insert Count"—the minimum dynamic table state needed to decode it. If the decoder's current insert count is lower, the stream blocks until encoder stream updates arrive.
 
-```mermaid
-sequenceDiagram
-    participant E as Encoder
-    participant ES as Encoder Stream
-    participant RS as Request Stream
-    participant D as Decoder
-    participant DS as Decoder Stream
-
-    E->>ES: Insert "x-custom: value" (index 62)
-    E->>RS: Header block (Required Insert Count: 63)
-
-    Note over D: Decoder receives request stream first
-    Note over D: Required Insert Count (63) > Current (62)
-    Note over D: Stream BLOCKED
-
-    ES->>D: Dynamic table update arrives
-    Note over D: Insert Count now 63, unblock
-
-    D->>DS: Section Acknowledgment
-```
+![Diagram](./diagram-5.svg)
 
 **Design trade-off**: QPACK can still cause blocking if encoder stream packets are delayed. But this blocking is localized to streams that actually reference the missing dynamic table entries, not all streams.
 
@@ -423,47 +308,11 @@ Alt-Svc: h3=":443"; ma=86400, h3-29=":443"; ma=86400
 
 **Upgrade flow:**
 
-```mermaid
-flowchart TD
-    A[Client connects via TCP] --> B[HTTP/2 established]
-    B --> C{Server sends Alt-Svc?}
-    C -->|Yes| D[Client attempts QUIC]
-    C -->|No| E[Continue HTTP/2]
-
-    D --> F{QUIC succeeds?}
-    F -->|Yes| G[Switch to HTTP/3]
-    F -->|No| E
-
-    G --> H[Close TCP connection]
-    H --> I[Future requests use QUIC]
-```
+![Diagram](./diagram-6.svg)
 
 ### Browser Protocol Selection
 
-```mermaid
-flowchart TD
-    A[Browser initiates request] --> B{DNS HTTPS record?}
-
-    B -->|Yes, alpn includes h3| C[Race QUIC + TCP]
-    B -->|No| D[TCP + TLS only]
-
-    C --> E{QUIC wins race?}
-    E -->|Yes| F[Use HTTP/3]
-    E -->|No| G[Use HTTP/2 or 1.1]
-
-    D --> H[TLS ALPN negotiation]
-    H --> I{Server supports h2?}
-    I -->|Yes| J[HTTP/2]
-    I -->|No| K[HTTP/1.1]
-
-    J --> L{Alt-Svc header?}
-    L -->|Yes| M[Cache & try QUIC next request]
-    L -->|No| N[Continue HTTP/2]
-
-    style F fill:#4caf50
-    style J fill:#8bc34a
-    style K fill:#ffeb3b
-```
+![Diagram](./diagram-7.svg)
 
 **Happy Eyeballs for QUIC**: Browsers race QUIC and TCP connections simultaneously. If QUIC fails (UDP blocked, middlebox interference), TCP provides immediate fallback without user-visible delay.
 

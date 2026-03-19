@@ -8,24 +8,7 @@ How YouTube built Vitess to horizontally scale MySQL from 4 shards to 256 across
 
 <figure>
 
-```mermaid
-flowchart TD
-    subgraph "Before Vitess (2006)"
-        A1[Application Code] -->|"Shard-aware queries<br/>routing logic embedded"| M1[MySQL Shard 1]
-        A1 --> M2[MySQL Shard 2]
-        A1 --> M3[MySQL Shard 3]
-        A1 --> M4[MySQL Shard 4]
-        A1 -->|"5,000+ connections<br/>on failover"| M1
-    end
-
-    subgraph "With Vitess (2011+)"
-        A2[Application Code] -->|"Standard MySQL protocol<br/>shard-unaware"| VG[VTGate<br/>Stateless Proxy]
-        VG --> VT1[VTTablet + MySQL<br/>Shard 1..N]
-        VG --> VT2[VTTablet + MySQL<br/>Shard N+1..2N]
-        VG --> VT3[VTTablet + MySQL<br/>Shard 2N+1..256]
-        TS[Topology Service] -.->|"Shard map<br/>health checks"| VG
-    end
-```
+![YouTube's database architecture evolution: from application-level sharding with direct MySQL connections to Vitess's proxy-based middleware that abstracts sharding from applications.](./youtube-s-database-architecture-evolution-from-application-level-sharding-with-d.svg)
 
 <figcaption>YouTube's database architecture evolution: from application-level sharding with direct MySQL connections to Vitess's proxy-based middleware that abstracts sharding from applications.</figcaption>
 </figure>
@@ -214,50 +197,7 @@ Building the parser transformed Vitess from a connection pooler into a distribut
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph "Application Layer"
-        App[Application]
-    end
-
-    subgraph "Vitess Proxy Layer"
-        VG[VTGate<br/>Query Router]
-    end
-
-    subgraph "Per-MySQL Sidecar"
-        VT1[VTTablet<br/>Connection Pool<br/>Query Safety]
-        VT2[VTTablet]
-        VT3[VTTablet]
-    end
-
-    subgraph "Storage"
-        DB1[(MySQL<br/>Primary)]
-        DB2[(MySQL<br/>Primary)]
-        DB3[(MySQL<br/>Primary)]
-        R1[(Replicas)]
-        R2[(Replicas)]
-        R3[(Replicas)]
-    end
-
-    subgraph "Metadata"
-        TS[(Topology Service<br/>etcd / ZooKeeper)]
-    end
-
-    App -->|"MySQL protocol<br/>or gRPC"| VG
-    VG --> VT1
-    VG --> VT2
-    VG --> VT3
-    VT1 --> DB1
-    VT2 --> DB2
-    VT3 --> DB3
-    DB1 --> R1
-    DB2 --> R2
-    DB3 --> R3
-    TS -.-> VG
-    TS -.-> VT1
-    TS -.-> VT2
-    TS -.-> VT3
-```
+![Vitess's three-tier architecture: VTGate routes queries, VTTablet manages per-MySQL connections and safety, and the Topology Service provides shard metadata.](./vitess-s-three-tier-architecture-vtgate-routes-queries-vttablet-manages-per-mysq.svg)
 
 <figcaption>Vitess's three-tier architecture: VTGate routes queries, VTTablet manages per-MySQL connections and safety, and the Topology Service provides shard metadata.</figcaption>
 </figure>

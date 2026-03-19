@@ -8,53 +8,7 @@ How TLS 1.3 achieves 1-RTT handshakes, enforces forward secrecy by design, and w
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Handshake["TLS 1.3 Full Handshake (1-RTT)"]
-        direction TB
-        CH["ClientHello<br/>+ key_share<br/>+ supported_versions"]
-        SH["ServerHello<br/>+ key_share"]
-        EE["EncryptedExtensions"]
-        CERT["Certificate"]
-        CV["CertificateVerify"]
-        SF["Server Finished"]
-        CF["Client Finished"]
-
-        CH --> SH
-        SH --> EE
-        EE --> CERT
-        CERT --> CV
-        CV --> SF
-        SF --> CF
-    end
-
-    subgraph Keys["Key Derivation"]
-        direction TB
-        ES["Early Secret"]
-        HS["Handshake Secret<br/>(from ECDHE)"]
-        MS["Master Secret"]
-        ATS["Application Traffic Secrets"]
-
-        ES --> HS
-        HS --> MS
-        MS --> ATS
-    end
-
-    subgraph Hardening["HTTPS Hardening Stack"]
-        direction TB
-        HSTS["HSTS + Preload"]
-        CT["Certificate Transparency"]
-        OCSP["OCSP Stapling"]
-        CAA["CAA DNS Records"]
-    end
-
-    CH -.->|"Derive"| HS
-    SH -.->|"Derive"| HS
-
-    style Handshake fill:#e3f2fd
-    style Keys fill:#f3e5f5
-    style Hardening fill:#e8f5e9
-```
+![TLS 1.3 handshake flow, key derivation hierarchy, and the HTTPS hardening stack that protects production deployments.](./tls-1-3-handshake-flow-key-derivation-hierarchy-and-the-https-hardening-stack-th.svg)
 
 <figcaption>TLS 1.3 handshake flow, key derivation hierarchy, and the HTTPS hardening stack that protects production deployments.</figcaption>
 </figure>
@@ -84,32 +38,7 @@ Since the set of acceptable curves is small and well-known (X25519, P-256, P-384
 
 ### Message Sequence: What Crosses the Wire
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant S as Server
-
-    rect rgb(255, 248, 220)
-    Note over C,S: Plaintext (necessary for key agreement)
-    C->>S: ClientHello + key_share + supported_versions
-    S->>C: ServerHello + key_share
-    end
-
-    rect rgb(220, 248, 220)
-    Note over C,S: Encrypted with Handshake Keys
-    S->>C: EncryptedExtensions
-    S->>C: Certificate (optional CertificateRequest)
-    S->>C: CertificateVerify
-    S->>C: Finished
-    C->>S: Finished
-    end
-
-    rect rgb(220, 230, 255)
-    Note over C,S: Encrypted with Application Keys
-    C->>S: Application Data
-    S->>C: Application Data
-    end
-```
+![Diagram](./diagram-1.svg)
 
 **Phase 1: Key Exchange (Plaintext)**
 
@@ -188,35 +117,7 @@ Both client and server generate fresh key pairs per connection. Even if the serv
 
 TLS 1.3 derives multiple independent keys from a single handshake using HKDF (HMAC-based Key Derivation Function) with different labels:
 
-```mermaid
-flowchart TD
-    PSK["PSK (or 0s for full handshake)"]
-    ECDHE["ECDHE Shared Secret"]
-
-    ES["Early Secret<br/>HKDF-Extract(0, PSK)"]
-    HS["Handshake Secret<br/>HKDF-Extract(derived, ECDHE)"]
-    MS["Master Secret<br/>HKDF-Extract(derived, 0s)"]
-
-    ETS["Early Traffic Secret<br/>(for 0-RTT)"]
-    HTS_C["Client Handshake Traffic Secret"]
-    HTS_S["Server Handshake Traffic Secret"]
-    ATS_C["Client Application Traffic Secret"]
-    ATS_S["Server Application Traffic Secret"]
-
-    PSK --> ES
-    ES --> ETS
-    ES --> HS
-    ECDHE --> HS
-    HS --> HTS_C
-    HS --> HTS_S
-    HS --> MS
-    MS --> ATS_C
-    MS --> ATS_S
-
-    style ES fill:#fff3e0
-    style HS fill:#e3f2fd
-    style MS fill:#f3e5f5
-```
+![Diagram](./diagram-2.svg)
 
 Each derived key is cryptographically independent. Compromising one doesn't compromise others. This is why handshake encryption uses different keys than application data encryption.
 
@@ -265,21 +166,7 @@ After a successful handshake, the server sends NewSessionTicket messages contain
 
 The client stores this and includes the PSK identity in subsequent ClientHello messages via the `pre_shared_key` extension.
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant S as Server
-
-    Note over C,S: Previous Full Handshake
-    S->>C: NewSessionTicket (PSK, max_early_data)
-
-    Note over C,S: Resumed Connection
-    C->>S: ClientHello + pre_shared_key + early_data
-    C->>S: 0-RTT Application Data (optional)
-    S->>C: ServerHello (psk_key_exchange_mode)
-    S->>C: EncryptedExtensions + Finished
-    C->>S: EndOfEarlyData + Finished
-```
+![Diagram](./diagram-3.svg)
 
 ### PSK Binder: Cryptographic Binding
 
@@ -419,24 +306,7 @@ CT (RFC 9162, replacing RFC 6962) makes all certificate issuance publicly audita
 
 ### How CT Works
 
-```mermaid
-sequenceDiagram
-    participant CA as Certificate Authority
-    participant Log as CT Log
-    participant Browser as Browser
-    participant Monitor as Domain Monitor
-
-    CA->>Log: Submit precertificate
-    Log->>CA: Signed Certificate Timestamp (SCT)
-    CA->>Browser: Certificate + embedded SCTs
-    Browser->>Browser: Validate SCTs (2+ required)
-
-    par Continuous Monitoring
-        Monitor->>Log: Query for domain certificates
-        Log->>Monitor: All logged certificates
-        Monitor->>Monitor: Alert on unexpected issuance
-    end
-```
+![Diagram](./diagram-4.svg)
 
 **Components**:
 
@@ -480,20 +350,7 @@ When a certificate's private key is compromised, revocation should invalidate it
 
 OCSP stapling (RFC 6066) lets servers fetch OCSP responses and bundle them with the TLS handshake:
 
-```mermaid
-sequenceDiagram
-    participant S as Server
-    participant CA as CA OCSP Responder
-    participant C as Client
-
-    S->>CA: OCSP Request (periodic)
-    CA->>S: Signed OCSP Response (valid 7 days)
-
-    Note over S,C: TLS Handshake
-    C->>S: ClientHello + status_request
-    S->>C: Certificate + CertificateStatus (stapled OCSP)
-    C->>C: Validate stapled response
-```
+![Diagram](./diagram-5.svg)
 
 **Benefits**:
 

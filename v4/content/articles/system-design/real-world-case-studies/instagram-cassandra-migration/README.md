@@ -8,32 +8,7 @@ How Instagram migrated critical workloads from Redis to Apache Cassandra, achiev
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph "Phase 1: Redis (2010-2012)"
-        R1[Activity Feed] --> Redis[(Redis Cluster\n32 nodes in-memory)]
-        R2[Fraud Detection] --> Redis
-        R3[User Inbox] --> Redis
-    end
-
-    subgraph "Phase 2: Cassandra (2012-2017)"
-        Redis -.->|75% cost\nreduction| C1[(Cassandra 1.2\n12 nodes → 1,000+)]
-        C1 --> U1[Feed: 1M+ write QPS]
-        C1 --> U2[Inbox & Direct]
-        C1 --> U3[Fraud Detection]
-    end
-
-    subgraph "Phase 3: Rocksandra (2017-2018)"
-        C1 -.->|P99 60ms → 20ms\nGC stalls 10x lower| C2[(Rocksandra\nRocksDB + Cassandra 3.0)]
-    end
-
-    subgraph "Phase 4: Global (2018+)"
-        C2 --> DC1[3 US DCs]
-        C2 --> DC2[3 EU DCs]
-        Akkio[Akkio Data\nPlacement] --> DC1
-        Akkio --> DC2
-    end
-```
+![Instagram's Cassandra journey: from Redis replacement to a globally distributed, custom-storage-engine deployment spanning six data centers.](./instagram-s-cassandra-journey-from-redis-replacement-to-a-globally-distributed-c.svg)
 
 <figcaption>Instagram's Cassandra journey: from Redis replacement to a globally distributed, custom-storage-engine deployment spanning six data centers.</figcaption>
 </figure>

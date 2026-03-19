@@ -8,38 +8,7 @@ Patterns for fetching, caching, and synchronizing server state in frontend appli
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Data Fetching Lifecycle"
-        direction TB
-        REQ["Request<br/>Key + Params"]
-        DEDUPE["Deduplication<br/>Same Key = Same Promise"]
-        CACHE["Cache Layer<br/>Memory / Normalized"]
-        FETCH["Network Fetch<br/>HTTP + Headers"]
-        VALID["Validation<br/>ETag / Last-Modified"]
-        REVALID["Background Revalidate<br/>SWR Pattern"]
-    end
-
-    REQ --> DEDUPE
-    DEDUPE -->|"Cache Hit<br/>(Fresh)"| CACHE
-    DEDUPE -->|"Cache Miss"| FETCH
-    CACHE -->|"Stale"| REVALID
-    FETCH --> VALID
-    VALID -->|"304"| CACHE
-    VALID -->|"200"| CACHE
-    REVALID --> FETCH
-
-    subgraph "Cache States"
-        FRESH["Fresh<br/>Within staleTime"]
-        STALE["Stale<br/>Past staleTime"]
-        INACTIVE["Inactive<br/>No Subscribers"]
-        GC["Garbage Collected<br/>Past gcTime"]
-    end
-
-    FRESH --> STALE
-    STALE --> INACTIVE
-    INACTIVE --> GC
-```
+![Data fetching lifecycle from request to cache management, showing deduplication, validation, and garbage collection states](./data-fetching-lifecycle-from-request-to-cache-management-showing-deduplication-v.svg)
 
 <figcaption>Data fetching lifecycle from request to cache management, showing deduplication, validation, and garbage collection states</figcaption>
 
@@ -335,29 +304,7 @@ The stale-while-revalidate (SWR) pattern serves cached data immediately while fe
 
 ### Pattern Mechanics
 
-```mermaid
-sequenceDiagram
-    participant C as Component
-    participant L as Library
-    participant Cache as Cache
-    participant N as Network
-
-    C->>L: useQuery('users')
-    L->>Cache: Get 'users'
-    alt Cache Hit (Stale)
-        Cache-->>L: { data: [...], stale: true }
-        L-->>C: Return stale data immediately
-        L->>N: Background revalidate
-        N-->>L: Fresh data
-        L->>Cache: Update cache
-        L-->>C: Update component with fresh data
-    else Cache Miss
-        L->>N: Fetch from network
-        N-->>L: Fresh data
-        L->>Cache: Store in cache
-        L-->>C: Return fresh data
-    end
-```
+![Diagram](./diagram-1.svg)
 
 ### Implementation Details
 

@@ -8,34 +8,7 @@ How services find each other in dynamic distributed environments where instance 
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Clients["Client Services"]
-        C1[Service A]
-        C2[Service B]
-    end
-
-    subgraph Discovery["Discovery Layer"]
-        R[Service Registry]
-        LB[Load Balancer / Router]
-    end
-
-    subgraph Backend["Backend Services"]
-        S1[Instance 1]
-        S2[Instance 2]
-        S3[Instance 3]
-    end
-
-    S1 -->|Register + Heartbeat| R
-    S2 -->|Register + Heartbeat| R
-    S3 -->|Register + Heartbeat| R
-
-    C1 -->|Query| R
-    C1 -->|Direct Call| S1
-    C2 -->|Route via| LB
-    LB -->|Query| R
-    LB -->|Forward| S2
-```
+![Service discovery connects clients to healthy backend instances through a registry. Client-side discovery queries the registry directly; server-side discovery routes through an intermediary.](./service-discovery-connects-clients-to-healthy-backend-instances-through-a-regist.svg)
 
 <figcaption>Service discovery connects clients to healthy backend instances through a registry. Client-side discovery queries the registry directly; server-side discovery routes through an intermediary.</figcaption>
 </figure>

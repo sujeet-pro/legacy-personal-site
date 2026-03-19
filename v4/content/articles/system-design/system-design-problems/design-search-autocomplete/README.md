@@ -8,55 +8,7 @@ A system design for search autocomplete (typeahead) covering prefix data structu
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Client["Client Layer"]
-        Browser[Browser Cache<br/>1hr TTL]
-        Debounce[Debounce 300ms]
-    end
-
-    subgraph Edge["Edge Layer"]
-        CDN[CDN / Edge Cache<br/>P99 < 5ms]
-    end
-
-    subgraph API["API Layer"]
-        LB[Load Balancer]
-        Gateway[API Gateway]
-    end
-
-    subgraph Suggestion["Suggestion Service"]
-        Router[Shard Router]
-        subgraph Shards["Trie Shards"]
-            S1[Shard A-F]
-            S2[Shard G-M]
-            S3[Shard N-S]
-            S4[Shard T-Z]
-        end
-        Ranker[Ranking Service]
-    end
-
-    subgraph Data["Data Layer"]
-        Redis[(Redis Cache<br/>Hot Prefixes)]
-        TrieStore[(Trie Snapshots<br/>S3/HDFS)]
-    end
-
-    subgraph Pipeline["Indexing Pipeline"]
-        Logs[Query Logs]
-        Kafka[Kafka Stream]
-        Builder[Trie Builder<br/>Weekly + Hot Updates]
-    end
-
-    Browser --> Debounce --> CDN --> LB --> Gateway
-    Gateway --> Router
-    Router --> S1 & S2 & S3 & S4
-    S1 & S2 & S3 & S4 --> Ranker
-    S1 & S2 & S3 & S4 -.-> Redis
-    Ranker --> Gateway
-
-    Logs --> Kafka --> Builder
-    Builder --> TrieStore
-    TrieStore -.-> S1 & S2 & S3 & S4
-```
+![High-level architecture: Client debouncing feeds through CDN cache to sharded trie services with pre-computed rankings. Indexing pipeline rebuilds tries from query logs.](./high-level-architecture-client-debouncing-feeds-through-cdn-cache-to-sharded-tri.svg)
 
 <figcaption>High-level architecture: Client debouncing feeds through CDN cache to sharded trie services with pre-computed rankings. Indexing pipeline rebuilds tries from query logs.</figcaption>
 </figure>
@@ -243,35 +195,7 @@ Path B implementation details are covered in the "Elasticsearch Alternative" sec
 
 ### Request Flow
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant CDN as CDN Cache
-    participant GW as API Gateway
-    participant R as Shard Router
-    participant T as Trie Service
-    participant Cache as Redis
-    participant Rank as Ranker
-
-    C->>CDN: GET /suggest?q=prog
-    alt Cache Hit
-        CDN-->>C: [programming, progress, program]
-    else Cache Miss
-        CDN->>GW: Forward request
-        GW->>R: Route by prefix
-        R->>Cache: Check hot cache
-        alt Hot Cache Hit
-            Cache-->>R: Cached suggestions
-        else Cache Miss
-            R->>T: Query trie shard
-            T-->>R: Top-K from trie node
-        end
-        R->>Rank: Apply personalization (optional)
-        Rank-->>GW: Ranked suggestions
-        GW-->>CDN: Response + cache headers
-        CDN-->>C: [programming, progress, program]
-    end
-```
+![Diagram](./diagram-1.svg)
 
 ### Sharding Strategy
 
@@ -817,42 +741,7 @@ const handleInputChange = (value: string) => {
 
 ### Pipeline Architecture
 
-```mermaid
-flowchart LR
-    subgraph Sources["Data Sources"]
-        QL[Query Logs]
-        TR[Trending Topics]
-        NC[New Content]
-    end
-
-    subgraph Stream["Stream Processing"]
-        K[Kafka]
-        F[Flink/Spark Streaming]
-    end
-
-    subgraph Batch["Batch Processing"]
-        S3L[S3 Query Logs]
-        Spark[Spark Batch]
-    end
-
-    subgraph Build["Trie Build"]
-        Agg[Aggregation]
-        Score[Scoring]
-        TB[Trie Builder]
-    end
-
-    subgraph Deploy["Deployment"]
-        Snap[Snapshots<br/>S3]
-        Load[Load to<br/>Trie Services]
-    end
-
-    QL --> K --> F --> Agg
-    TR --> K
-    NC --> K
-
-    QL --> S3L --> Spark --> Agg
-    Agg --> Score --> TB --> Snap --> Load
-```
+![Diagram](./diagram-2.svg)
 
 ### Batch vs. Streaming Updates
 
@@ -1059,39 +948,7 @@ def is_hot_prefix(prefix: str) -> bool:
 
 ### AWS Reference Architecture
 
-```mermaid
-flowchart TB
-    subgraph Edge["Edge (CloudFront)"]
-        CF[CloudFront<br/>Global PoPs]
-    end
-
-    subgraph VPC["VPC"]
-        subgraph Public["Public Subnet"]
-            ALB[Application<br/>Load Balancer]
-        end
-
-        subgraph Private["Private Subnet - Compute"]
-            ECS[ECS Fargate<br/>Trie Services]
-            Lambda[Lambda<br/>Ranking]
-        end
-
-        subgraph Data["Private Subnet - Data"]
-            Redis[(ElastiCache<br/>Redis Cluster)]
-        end
-    end
-
-    subgraph Pipeline["Data Pipeline"]
-        Kinesis[Kinesis<br/>Query Logs]
-        EMR[EMR Spark<br/>Aggregation]
-        S3[(S3<br/>Trie Snapshots)]
-    end
-
-    CF --> ALB --> ECS
-    ECS --> Redis
-    ECS --> Lambda
-    ECS -.-> S3
-    Kinesis --> EMR --> S3
-```
+![Diagram](./diagram-3.svg)
 
 **Service configuration:**
 

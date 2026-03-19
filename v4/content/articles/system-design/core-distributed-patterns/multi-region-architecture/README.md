@@ -8,44 +8,7 @@ Building systems that span multiple geographic regions to achieve lower latency,
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Global Layer"
-        GLB["Global Load Balancer<br/>(GeoDNS / Anycast)"]
-    end
-
-    subgraph "Region A (US-East)"
-        LBA["Regional LB"]
-        subgraph "Cell A1"
-            SA1["Services"]
-            DA1[("Database<br/>Primary")]
-        end
-        subgraph "Cell A2"
-            SA2["Services"]
-            DA2[("Database<br/>Replica")]
-        end
-    end
-
-    subgraph "Region B (EU-West)"
-        LBB["Regional LB"]
-        subgraph "Cell B1"
-            SB1["Services"]
-            DB1[("Database<br/>Primary")]
-        end
-        subgraph "Cell B2"
-            SB2["Services"]
-            DB2[("Database<br/>Replica")]
-        end
-    end
-
-    GLB --> LBA
-    GLB --> LBB
-    LBA --> SA1 & SA2
-    LBB --> SB1 & SB2
-
-    DA1 <-.->|"Async Replication"| DB1
-    DA2 <-.->|"Async Replication"| DB2
-```
+![Multi-region architecture with cell-based isolation: traffic routes to nearest region, cells provide fault isolation within regions, and data replicates asynchronously across regions.](./multi-region-architecture-with-cell-based-isolation-traffic-routes-to-nearest-re.svg)
 
 <figcaption>Multi-region architecture with cell-based isolation: traffic routes to nearest region, cells provide fault isolation within regions, and data replicates asynchronously across regions.</figcaption>
 </figure>
@@ -113,25 +76,7 @@ Multi-region architecture exists to navigate this tension by:
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph "Primary Region (US-East)"
-        PP[("Primary DB")]
-        SP["Services"]
-    end
-
-    subgraph "Standby Region (US-West)"
-        PS[("Standby DB")]
-        SS["Services (idle)"]
-    end
-
-    Users -->|All traffic| SP
-    SP --> PP
-    PP -->|"Async replication"| PS
-
-    style PS stroke-dasharray: 5 5
-    style SS stroke-dasharray: 5 5
-```
+![Active-passive: all traffic goes to primary region; standby receives replicated data but serves no traffic until failover.](./active-passive-all-traffic-goes-to-primary-region-standby-receives-replicated-da.svg)
 
 <figcaption>Active-passive: all traffic goes to primary region; standby receives replicated data but serves no traffic until failover.</figcaption>
 </figure>
@@ -182,26 +127,7 @@ flowchart LR
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Region A"
-        LBA["Load Balancer"]
-        SA["Services"]
-        DA[("Database")]
-    end
-
-    subgraph "Region B"
-        LBB["Load Balancer"]
-        SB["Services"]
-        DB[("Database")]
-    end
-
-    GLB["Global LB"] --> LBA & LBB
-    LBA --> SA --> DA
-    LBB --> SB --> DB
-
-    DA <-->|"Bidirectional<br/>Replication"| DB
-```
+![Active-active: both regions serve traffic simultaneously with bidirectional data replication.](./active-active-both-regions-serve-traffic-simultaneously-with-bidirectional-data-.svg)
 
 <figcaption>Active-active: both regions serve traffic simultaneously with bidirectional data replication.</figcaption>
 </figure>
@@ -263,29 +189,7 @@ Result: Invisible failover to users; routine Chaos Kong tests drop entire region
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Region A"
-        subgraph "Cell A1"
-            SA1["Services"]
-            DA1[("Data")]
-        end
-        subgraph "Cell A2"
-            SA2["Services"]
-            DA2[("Data")]
-        end
-        subgraph "Cell A3"
-            SA3["Services"]
-            DA3[("Data")]
-        end
-        Router_A["Cell Router"]
-    end
-
-    Router_A --> SA1 & SA2 & SA3
-
-    style SA1 fill:#f9f,stroke:#333
-    style DA1 fill:#f9f,stroke:#333
-```
+![Cell-based architecture: each cell is an isolated, complete deployment serving a subset of users; failure in Cell A1 (highlighted) doesn't affect A2 or A3.](./cell-based-architecture-each-cell-is-an-isolated-complete-deployment-serving-a-s.svg)
 
 <figcaption>Cell-based architecture: each cell is an isolated, complete deployment serving a subset of users; failure in Cell A1 (highlighted) doesn't affect A2 or A3.</figcaption>
 </figure>
@@ -345,21 +249,7 @@ Cell-based architecture is orthogonal to active-passive/active-active:
 
 <figure>
 
-```mermaid
-flowchart TD
-    A["Multi-Region<br/>Decision"] --> B{"RTO requirement?"}
-    B -->|"Minutes OK"| C["Active-Passive"]
-    B -->|"Seconds required"| D{"Can handle<br/>conflict resolution?"}
-    D -->|"No"| E["Active-Active<br/>with partitioned data"]
-    D -->|"Yes"| F["Active-Active<br/>with conflict resolution"]
-
-    G{"Blast radius<br/>concern?"}
-    C --> G
-    F --> G
-    E --> G
-    G -->|"Yes"| H["Add Cell-Based<br/>Isolation"]
-    G -->|"No"| I["Single deployment<br/>per region"]
-```
+![Decision tree for multi-region architecture patterns based on RTO requirements, conflict handling capability, and blast radius concerns.](./decision-tree-for-multi-region-architecture-patterns-based-on-rto-requirements-c.svg)
 
 <figcaption>Decision tree for multi-region architecture patterns based on RTO requirements, conflict handling capability, and blast radius concerns.</figcaption>
 </figure>
@@ -468,30 +358,7 @@ Client → Primary → [N replicas confirm] → Ack
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph "Star Topology"
-        PS[("Primary")] --> RS1[("Replica 1")]
-        PS --> RS2[("Replica 2")]
-        PS --> RS3[("Replica 3")]
-    end
-```
-
-```mermaid
-flowchart LR
-    subgraph "Chain Topology"
-        PC[("Primary")] --> RC1[("Replica 1")] --> RC2[("Replica 2")]
-    end
-```
-
-```mermaid
-flowchart LR
-    subgraph "Mesh Topology"
-        PM1[("Node 1")] <--> PM2[("Node 2")]
-        PM2 <--> PM3[("Node 3")]
-        PM3 <--> PM1
-    end
-```
+![Replication topologies: Star (primary to all replicas), Chain (reduces primary load), Mesh (multi-primary active-active).](./replication-topologies.svg)
 
 <figcaption>Replication topologies: Star (primary to all replicas), Chain (reduces primary load), Mesh (multi-primary active-active).</figcaption>
 </figure>

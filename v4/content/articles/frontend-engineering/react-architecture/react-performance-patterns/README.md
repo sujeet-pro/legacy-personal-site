@@ -8,35 +8,7 @@ Patterns for keeping React applications fast as they scale: understanding the re
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph Trigger["Trigger"]
-        A[State Update]
-        B[Context Change]
-        C[Parent Re-render]
-    end
-
-    subgraph Render["Render Phase"]
-        D[Call Components]
-        E[Generate VDOM]
-        F[Reconciliation]
-    end
-
-    subgraph Commit["Commit Phase"]
-        G[DOM Mutations]
-        H[Layout Effects]
-        I[Paint]
-    end
-
-    A --> D
-    B --> D
-    C --> D
-    D --> E --> F
-    F --> G --> H --> I
-
-    style Render fill:#f5f5f5,stroke:#333
-    style Commit fill:#e8f5e9,stroke:#333
-```
+![React's three-phase update cycle: trigger → render → commit. The render phase is interruptible in concurrent mode; the commit phase is synchronous.](./react-s-three-phase-update-cycle-trigger-render-commit-the-render-phase-is-inter.svg)
 
 <figcaption>React's three-phase update cycle: trigger → render → commit. The render phase is interruptible in concurrent mode; the commit phase is synchronous.</figcaption>
 </figure>

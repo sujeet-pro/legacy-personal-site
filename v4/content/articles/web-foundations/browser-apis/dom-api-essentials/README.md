@@ -8,18 +8,7 @@ A comprehensive exploration of DOM APIs, examining the interface hierarchy desig
 
 <figure>
 
-```mermaid
-flowchart TB
-    ET[EventTarget] --> Node
-    Node --> Element
-    Element --> HTMLElement[HTMLElement<br/>HTML-specific]
-    Element --> SVGElement[SVGElement<br/>SVG-specific]
-    Element --> MathMLElement[MathMLElement<br/>MathML-specific]
-
-    style Element fill:#3b82f6,stroke:#1e40af,color:#fff
-    style ET fill:#8b5cf6,stroke:#6d28d9,color:#fff
-    style Node fill:#8b5cf6,stroke:#6d28d9,color:#fff
-```
+![DOM interface inheritance hierarchy showing Element as the universal base for all markup types](./dom-interface-inheritance-hierarchy-showing-element-as-the-universal-base-for-al.svg)
 
 <figcaption>DOM interface inheritance hierarchy showing Element as the universal base for all markup types</figcaption>
 
@@ -31,26 +20,7 @@ The Document Object Model (DOM) API exposes document structure through a **layer
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph "Capability Layers"
-        ET["EventTarget<br/>Events only"] --> N["Node<br/>Tree structure"]
-        N --> E["Element<br/>Cross-markup ops"]
-        E --> HTML["HTMLElement<br/>HTML semantics"]
-    end
-
-    subgraph "Collection Liveness"
-        QSA["querySelectorAll()"] -->|static| NL["NodeList snapshot"]
-        GBC["getElementsByClassName()"] -->|live| HC["HTMLCollection auto-updates"]
-        CN["childNodes"] -->|live| LNL["NodeList auto-updates"]
-    end
-
-    subgraph "Observer Pattern"
-        IO["IntersectionObserver"] -->|async| CB["Batched callbacks"]
-        MO["MutationObserver"] -->|async| CB
-        RO["ResizeObserver"] -->|async| CB
-    end
-```
+![DOM APIs organize around three concerns: interface hierarchy for capability separation, collection types for liveness semantics, and Observer pattern for efficient change detection](./dom-apis-organize-around-three-concerns-interface-hierarchy-for-capability-separ.svg)
 
 <figcaption>DOM APIs organize around three concerns: interface hierarchy for capability separation, collection types for liveness semantics, and Observer pattern for efficient change detection</figcaption>
 
@@ -102,28 +72,7 @@ Element (universal element operations)
 
 <figure>
 
-```mermaid
-flowchart LR
-    A[EventTarget] -->|adds| B[Event System]
-    C[Node] -->|adds| D[Tree Operations]
-    E[Element] -->|adds| F[Attributes & Selectors]
-    G[HTMLElement] -->|adds| H[HTML Semantics]
-
-    B --> addEventListener
-    B --> dispatchEvent
-
-    D --> parentNode
-    D --> childNodes
-    D --> appendChild
-
-    F --> querySelector
-    F --> getAttribute
-    F --> classList
-
-    H --> contentEditable
-    H --> dataset
-    H --> innerText
-```
+![Each interface layer adds specific capabilities while inheriting all parent functionality](./each-interface-layer-adds-specific-capabilities-while-inheriting-all-parent-func.svg)
 
 <figcaption>Each interface layer adds specific capabilities while inheriting all parent functionality</figcaption>
 
@@ -333,21 +282,7 @@ const namedElements = document.getElementsByName("email")
 
 <figure>
 
-```mermaid
-flowchart TD
-    A[DOM Query] --> B{Collection Type}
-    B -->|Live HTMLCollection| C[Maintains References]
-    B -->|Static NodeList| D[Snapshot Copy]
-
-    C --> E[Overhead: Monitor DOM]
-    C --> F[Benefit: Auto-updates]
-
-    D --> G[Overhead: Re-query for updates]
-    D --> H[Benefit: No maintenance cost]
-
-    style C fill:#ef4444,stroke:#dc2626,color:#fff
-    style D fill:#10b981,stroke:#059669,color:#fff
-```
+![Trade-offs between live collections that auto-update vs static snapshots](./trade-offs-between-live-collections-that-auto-update-vs-static-snapshots.svg)
 
 <figcaption>Trade-offs between live collections that auto-update vs static snapshots</figcaption>
 
@@ -520,25 +455,7 @@ The `rootMargin` option adjusts the root's bounding box before calculating inter
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph viewport["Viewport (root)"]
-        subgraph expanded["Expanded Zone (positive rootMargin)"]
-            content["Visible Content Area"]
-        end
-    end
-
-    element1["Element A<br/>Triggers early"]
-    element2["Element B<br/>In viewport"]
-
-    element1 -.->|"Intersects expanded zone"| expanded
-    element2 -->|"Intersects viewport"| content
-
-    style expanded fill:#dbeafe,stroke:#3b82f6,stroke-dasharray: 5 5
-    style content fill:#f0fdf4,stroke:#22c55e
-    style element1 fill:#fef3c7,stroke:#f59e0b
-    style element2 fill:#f0fdf4,stroke:#22c55e
-```
+![Positive rootMargin expands the detection zone beyond the viewport, triggering callbacks before elements become visible](./positive-rootmargin-expands-the-detection-zone-beyond-the-viewport-triggering-ca.svg)
 
 <figcaption>Positive rootMargin expands the detection zone beyond the viewport, triggering callbacks before elements become visible</figcaption>
 
@@ -1071,26 +988,7 @@ const observer = new ResizeObserver((entries) => {
 
 <figure>
 
-```mermaid
-flowchart LR
-    A[DOM Changes] --> B[Observer APIs]
-    B --> C[IntersectionObserver]
-    B --> D[MutationObserver]
-    B --> E[ResizeObserver]
-
-    C --> F[Viewport intersection]
-    D --> G[Tree mutations]
-    E --> H[Dimension changes]
-
-    F --> I[Async batch callback]
-    G --> I
-    H --> I
-
-    I --> J[Your code runs once<br/>for multiple changes]
-
-    style B fill:#3b82f6,stroke:#1e40af,color:#fff
-    style I fill:#10b981,stroke:#059669,color:#fff
-```
+![Observer APIs batch changes and invoke callbacks asynchronously for optimal performance](./observer-apis-batch-changes-and-invoke-callbacks-asynchronously-for-optimal-perf.svg)
 
 <figcaption>Observer APIs batch changes and invoke callbacks asynchronously for optimal performance</figcaption>
 

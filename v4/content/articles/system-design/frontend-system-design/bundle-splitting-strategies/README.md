@@ -8,25 +8,7 @@ Modern JavaScript applications ship megabytes of code by default. Without bundle
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph "Without Splitting"
-        direction TB
-        A1[User requests /home] --> A2[Download 2MB bundle]
-        A2 --> A3[Parse all code]
-        A3 --> A4[Execute all code]
-        A4 --> A5[Page interactive: 4-6s]
-    end
-
-    subgraph "With Splitting"
-        direction TB
-        B1[User requests /home] --> B2[Download 150KB home chunk]
-        B2 --> B3[Parse home code]
-        B3 --> B4[Execute home code]
-        B4 --> B5[Page interactive: 1-2s]
-        B5 --> B6[Prefetch other routes in background]
-    end
-```
+![Bundle splitting reduces initial payload by loading only what's needed for the current route, deferring the rest.](./bundle-splitting-reduces-initial-payload-by-loading-only-what-s-needed-for-the-c.svg)
 
 <figcaption>Bundle splitting reduces initial payload by loading only what's needed for the current route, deferring the rest.</figcaption>
 </figure>
@@ -437,22 +419,7 @@ Spotify's web player uses a micro-frontend architecture where different squads o
 
 ### Decision Framework
 
-```mermaid
-flowchart TD
-    A[Need bundle splitting] --> B{Multiple teams/deployments?}
-    B -->|Yes| C[Module Federation]
-    B -->|No| D{Application type?}
-    D -->|SPA with routes| E[Route-based splitting]
-    D -->|MPA| F[Entry point splitting]
-    E --> G{Heavy components on some routes?}
-    G -->|Yes| H[Add component splitting]
-    G -->|No| I[Route splitting sufficient]
-    F --> J{Large shared dependencies?}
-    J -->|Yes| K[Add vendor splitting]
-    J -->|No| L[Entry splitting sufficient]
-    H --> K
-    I --> K
-```
+![Diagram](./diagram-1.svg)
 
 ## Resource Hints: Prefetch and Preload
 

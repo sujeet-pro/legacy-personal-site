@@ -8,51 +8,7 @@ A comprehensive system design for a calendar and scheduling application handling
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Clients["Client Layer"]
-        Web[Web App]
-        Mobile[Mobile Apps]
-        Desktop[Desktop Clients]
-        Email[Email Integration]
-    end
-
-    subgraph Gateway["API Gateway"]
-        LB[Load Balancer]
-        Auth[Auth Service]
-        RL[Rate Limiter]
-    end
-
-    subgraph Core["Core Services"]
-        EventSvc[Event Service]
-        RecurrenceSvc[Recurrence Service]
-        SchedulingSvc[Scheduling Service]
-        NotifSvc[Notification Service]
-        SyncSvc[Sync Service]
-    end
-
-    subgraph Data["Data Layer"]
-        PG[(PostgreSQL<br/>Events, Users)]
-        Redis[(Redis<br/>Free/Busy Cache)]
-        ES[(Elasticsearch<br/>Search)]
-        S3[(Object Storage<br/>Attachments)]
-    end
-
-    subgraph Async["Async Processing"]
-        Queue[Message Queue]
-        Workers[Background Workers]
-        Scheduler[Job Scheduler]
-    end
-
-    Clients --> LB
-    LB --> Auth --> RL
-    RL --> Core
-    Core --> Data
-    Core --> Queue
-    Queue --> Workers
-    Scheduler --> Workers
-    Workers --> NotifSvc
-```
+![High-level architecture: Clients connect through an API gateway to core services backed by a hybrid data layer with async processing for notifications and recurrence expansion.](./high-level-architecture-clients-connect-through-an-api-gateway-to-core-services-.svg)
 
 <figcaption>High-level architecture: Clients connect through an API gateway to core services backed by a hybrid data layer with async processing for notifications and recurrence expansion.</figcaption>
 </figure>
@@ -269,54 +225,11 @@ Delivers reminders and alerts:
 
 ### Data Flow: Creating a Recurring Event
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant API as API Gateway
-    participant ES as Event Service
-    participant RS as Recurrence Service
-    participant DB as PostgreSQL
-    participant Cache as Redis
-    participant Q as Message Queue
-
-    C->>API: POST /events (with RRULE)
-    API->>ES: createEvent(eventData)
-    ES->>DB: INSERT event master
-    ES->>RS: expandInstances(RRULE, 90 days)
-    RS->>DB: INSERT materialized instances
-    RS->>Cache: SET free/busy cache (invalidate)
-    ES->>Q: EventCreated (for notifications)
-    ES->>C: 201 Created (event ID)
-```
+![Diagram](./diagram-1.svg)
 
 ### Data Flow: Querying Calendar View
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant API as API Gateway
-    participant ES as Event Service
-    participant RS as Recurrence Service
-    participant DB as PostgreSQL
-    participant Cache as Redis
-
-    C->>API: GET /calendars/{id}/events?start=...&end=...
-    API->>ES: getEvents(calendarId, range)
-    ES->>Cache: GET calendar:{id}:range:{hash}
-    alt Cache hit
-        Cache->>ES: Return cached events
-    else Cache miss
-        ES->>DB: SELECT single events in range
-        ES->>DB: SELECT materialized instances in range
-        alt Range extends beyond materialized window
-            ES->>RS: expandInstances(masters, extended range)
-            RS->>ES: Return dynamically expanded instances
-        end
-        ES->>ES: Merge single + recurring + exceptions
-        ES->>Cache: SET calendar:{id}:range:{hash} TTL=5min
-    end
-    ES->>C: Return merged events
-```
+![Diagram](./diagram-2.svg)
 
 ## API Design
 
@@ -987,31 +900,7 @@ $$ LANGUAGE plpgsql;
 
 When an organizer invites attendees, the system generates iTIP REQUEST messages:
 
-```mermaid
-sequenceDiagram
-    participant O as Organizer
-    participant CS as Calendar Service
-    participant MQ as Message Queue
-    participant ES as Email Service
-    participant A as Attendee
-
-    O->>CS: Create event with attendees
-    CS->>CS: Store event (status: confirmed)
-    CS->>CS: Store attendees (responseStatus: needsAction)
-    CS->>MQ: Queue iTIP REQUEST for each attendee
-
-    loop For each attendee
-        MQ->>ES: Process invitation
-        ES->>ES: Generate iMIP email (text/calendar attachment)
-        ES->>A: Send invitation email
-    end
-
-    A->>CS: RSVP (accept/decline/tentative)
-    CS->>CS: Update attendee responseStatus
-    CS->>MQ: Queue iTIP REPLY to organizer
-    MQ->>ES: Send RSVP notification
-    ES->>O: Email with response
-```
+![Diagram](./diagram-3.svg)
 
 **iMIP Email Format:**
 
@@ -1209,51 +1098,7 @@ function handleRecurringEventDrop(eventId: string, instanceDate: Date, newTime: 
 
 ### AWS Reference Architecture
 
-```mermaid
-flowchart TB
-    subgraph Edge["Edge Layer"]
-        CF[CloudFront CDN]
-        R53[Route 53 DNS]
-    end
-
-    subgraph Compute["Compute Layer (VPC)"]
-        ALB[Application Load Balancer]
-
-        subgraph ECS["ECS Cluster"]
-            API[API Service<br/>Fargate]
-            Sync[Sync Service<br/>Fargate]
-            Workers[Background Workers<br/>Fargate Spot]
-        end
-    end
-
-    subgraph Data["Data Layer (Private Subnets)"]
-        RDS[(RDS PostgreSQL<br/>Multi-AZ)]
-        RDSRead[(Read Replicas)]
-        Redis[(ElastiCache Redis<br/>Cluster Mode)]
-        OS[(OpenSearch<br/>3-node cluster)]
-        S3[(S3<br/>Attachments)]
-    end
-
-    subgraph Async["Async Layer"]
-        SQS[SQS / MSK]
-        EventBridge[EventBridge<br/>Scheduled Jobs]
-        Lambda[Lambda<br/>Notifications]
-    end
-
-    R53 --> CF --> ALB
-    ALB --> API
-    ALB --> Sync
-    API --> RDS
-    API --> RDSRead
-    API --> Redis
-    API --> OS
-    API --> S3
-    API --> SQS
-    Workers --> SQS
-    Workers --> RDS
-    EventBridge --> Lambda
-    Lambda --> SQS
-```
+![Diagram](./diagram-4.svg)
 
 | Component          | AWS Service       | Configuration                            |
 | ------------------ | ----------------- | ---------------------------------------- |

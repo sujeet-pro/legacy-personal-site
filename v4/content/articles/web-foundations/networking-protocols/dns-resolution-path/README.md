@@ -8,27 +8,7 @@ A DNS query traverses multiple actors before returning an answer: stub resolver,
 
 <figure>
 
-```mermaid
-sequenceDiagram
-    participant App as Application
-    participant Stub as Stub Resolver
-    participant Rec as Recursive Resolver
-    participant Root as Root Server
-    participant TLD as TLD Server
-    participant Auth as Authoritative Server
-
-    App->>Stub: gethostbyname("api.example.com")
-    Stub->>Rec: Query (RD=1)
-    Note over Rec: Cache miss
-    Rec->>Root: Query for api.example.com (iterative)
-    Root-->>Rec: Referral to .com TLD servers
-    Rec->>TLD: Query for api.example.com
-    TLD-->>Rec: Referral to example.com NS
-    Rec->>Auth: Query for api.example.com
-    Auth-->>Rec: A record (TTL=300)
-    Rec-->>Stub: Answer + cache
-    Stub-->>App: IP address
-```
+![End-to-end DNS resolution flow showing iterative queries from recursive resolver to authoritative chain.](./end-to-end-dns-resolution-flow-showing-iterative-queries-from-recursive-resolver.svg)
 
 <figcaption>End-to-end DNS resolution flow showing iterative queries from recursive resolver to authoritative chain.</figcaption>
 </figure>

@@ -8,33 +8,7 @@ Every page load is a sequence of decisions: where HTML is generated, when data i
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph Build["Build Time"]
-        SSG["SSG\nHTML at build"]
-    end
-    subgraph Edge["CDN / Edge"]
-        ISR["ISR\nStale-while-revalidate"]
-        PPR["PPR\nStatic shell +\nstreaming holes"]
-    end
-    subgraph Server["Origin Server"]
-        SSR["SSR\nHTML per request"]
-    end
-    subgraph Browser["Browser"]
-        CSR["CSR\nJS renders DOM"]
-    end
-
-    SSG -->|"Deploy"| Edge
-    ISR -->|"Revalidate"| Server
-    SSR -->|"Stream"| Browser
-    PPR -->|"Static + Dynamic"| Browser
-    CSR -->|"API calls"| Server
-
-    style Build fill:#e0f2fe,stroke:#0284c7
-    style Edge fill:#fef3c7,stroke:#d97706
-    style Server fill:#fce7f3,stroke:#db2777
-    style Browser fill:#d1fae5,stroke:#059669
-```
+![The rendering spectrum: where and when HTML is produced. Modern approaches like PPR and islands combine multiple strategies within a single page.](./the-rendering-spectrum-where-and-when-html-is-produced-modern-approaches-like-pp.svg)
 
 <figcaption>The rendering spectrum: where and when HTML is produced. Modern approaches like PPR and islands combine multiple strategies within a single page.</figcaption>
 </figure>

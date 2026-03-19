@@ -8,41 +8,7 @@ Choosing communication protocols and patterns for distributed systems. This arti
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Clients["Clients"]
-        Web[Web Browser]
-        Mobile[Mobile App]
-        Service[Internal Service]
-    end
-
-    subgraph Gateway["API Gateway"]
-        GW[Gateway Layer]
-        RL[Rate Limiter]
-        Auth[Auth/Validation]
-    end
-
-    subgraph Protocols["Protocol Layer"]
-        REST[REST/HTTP]
-        GRPC[gRPC]
-        GQL[GraphQL]
-    end
-
-    subgraph Backend["Backend Services"]
-        S1[Service A]
-        S2[Service B]
-        S3[Service C]
-    end
-
-    Web --> GW
-    Mobile --> GW
-    Service --> GW
-    GW --> RL --> Auth
-    Auth --> REST & GRPC & GQL
-    REST --> S1
-    GRPC --> S2
-    GQL --> S1 & S2 & S3
-```
+![API architecture: clients connect through a gateway that handles rate limiting and auth, then routes to appropriate protocol handlers. REST for public APIs, gRPC for internal service-to-service, GraphQL for flexible client queries.](./api-architecture-clients-connect-through-a-gateway-that-handles-rate-limiting-an.svg)
 
 <figcaption>API architecture: clients connect through a gateway that handles rate limiting and auth, then routes to appropriate protocol handlers. REST for public APIs, gRPC for internal service-to-service, GraphQL for flexible client queries.</figcaption>
 </figure>

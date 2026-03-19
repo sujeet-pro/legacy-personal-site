@@ -8,24 +8,7 @@ The Layerize stage converts paint chunks into composited layers (`cc::Layer` obj
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph MainThread["Main Thread"]
-        Paint["Paint<br/>Paint Artifact"]
-        Layerize["Layerize<br/>(PaintArtifactCompositor)"]
-    end
-
-    subgraph CompositorThread["Compositor Thread"]
-        Commit["Commit<br/>Copy to Pending Tree"]
-        Raster["Rasterize<br/>Tiles → Textures"]
-    end
-
-    Paint --> Layerize
-    Layerize --> Commit
-    Commit --> Raster
-
-    style Layerize fill:#fff9c4,stroke:#f9a825,stroke-width:2px
-```
+![Layerization in the RenderingNG pipeline (M94+): PaintArtifactCompositor converts paint chunks to cc::Layers on the main thread, which are then committed to the compositor thread for rasterization.](./layerization-in-the-renderingng-pipeline-m94-paintartifactcompositor-converts-pa.svg)
 
 <figcaption>Layerization in the RenderingNG pipeline (M94+): PaintArtifactCompositor converts paint chunks to cc::Layers on the main thread, which are then committed to the compositor thread for rasterization.</figcaption>
 

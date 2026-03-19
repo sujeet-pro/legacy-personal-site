@@ -8,47 +8,7 @@ A system design for a mapping and navigation platform handling tile-based render
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Clients["Client Layer"]
-        Web["Web App"]
-        Mobile["Mobile Apps"]
-    end
-
-    subgraph Edge["Edge Layer"]
-        CDN["CDN (Tile Cache)"]
-        LB["Load Balancer"]
-    end
-
-    subgraph Services["Application Services"]
-        TileService["Tile Service"]
-        RoutingService["Routing Service"]
-        GeocodingService["Geocoding Service"]
-        TrafficService["Traffic Service"]
-        SearchService["Search Service"]
-    end
-
-    subgraph DataStores["Data Layer"]
-        TileStore["Tile Storage<br/>(Object Store)"]
-        GraphDB["Road Graph<br/>(CH Index)"]
-        GeoIndex["Geo Index<br/>(R-tree/S2)"]
-        TrafficDB["Traffic Data<br/>(Time-Series)"]
-        POIStore["POI Database"]
-    end
-
-    subgraph Ingestion["Data Ingestion"]
-        ProbeCollector["Probe Collector"]
-        MapUpdates["Map Updates"]
-        UserReports["User Reports"]
-    end
-
-    Clients --> CDN
-    CDN --> LB
-    LB --> Services
-    Services --> DataStores
-    Ingestion --> TrafficDB
-    Ingestion --> TileStore
-```
+![High-level architecture: CDN-cached tiles, specialized services for routing/geocoding/traffic, and multi-source data ingestion.](./high-level-architecture-cdn-cached-tiles-specialized-services-for-routing-geocod.svg)
 
 <figcaption>High-level architecture: CDN-cached tiles, specialized services for routing/geocoding/traffic, and multi-source data ingestion.</figcaption>
 </figure>
@@ -225,26 +185,7 @@ Computes optimal paths using Contraction Hierarchies with traffic overlays.
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph Preprocessing["Preprocessing (Offline)"]
-        Raw["Raw Road Graph"] --> Order["Node Ordering"]
-        Order --> Contract["Contract Nodes"]
-        Contract --> Shortcuts["Add Shortcuts"]
-        Shortcuts --> CHGraph["CH Graph"]
-    end
-
-    subgraph Query["Query (Online)"]
-        Start["Source"] --> FwdSearch["Forward Search ↑"]
-        End["Target"] --> BwdSearch["Backward Search ↑"]
-        FwdSearch --> Meet["Meet at Top"]
-        BwdSearch --> Meet
-        Meet --> Unpack["Unpack Shortcuts"]
-        Unpack --> Path["Final Path"]
-    end
-
-    CHGraph -.-> Query
-```
+![Contraction Hierarchies: offline preprocessing creates shortcuts; online queries search "upward" in the hierarchy from both ends.](./contraction-hierarchies-offline-preprocessing-creates-shortcuts-online-queries-s.svg)
 
 <figcaption>Contraction Hierarchies: offline preprocessing creates shortcuts; online queries search "upward" in the hierarchy from both ends.</figcaption>
 </figure>
@@ -632,26 +573,7 @@ CREATE INDEX idx_places_name_trgm ON places USING GIN(name gin_trgm_ops);
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Preprocessing
-        A["Original Graph"] --> B["Compute Node Order"]
-        B --> C["For each node (low to high):"]
-        C --> D["Remove node"]
-        D --> E["Add shortcuts if needed"]
-        E --> F["Record CH level"]
-        F --> C
-    end
-
-    subgraph NodeOrdering
-        G["Edge Difference:<br/>shortcuts_added - edges_removed"]
-        H["Contraction Depth:<br/>max level of neighbors"]
-        I["Original Edges:<br/>prefer shortcuts"]
-        G --> J["Priority Score"]
-        H --> J
-        I --> J
-    end
-```
+![Node ordering determines preprocessing quality. Lower priority = contracted earlier.](./node-ordering-determines-preprocessing-quality-lower-priority-contracted-earlier.svg)
 
 <figcaption>Node ordering determines preprocessing quality. Lower priority = contracted earlier.</figcaption>
 </figure>
@@ -986,46 +908,7 @@ User → Edge PoP → Regional Cache → Origin Shield → Tile Server
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Edge["Edge Layer"]
-        CF["CloudFront CDN"]
-    end
-
-    subgraph Compute["Compute Layer (VPC)"]
-        ALB["Application Load Balancer"]
-
-        subgraph Services["ECS Cluster"]
-            Tile["Tile Service"]
-            Route["Routing Service"]
-            Geo["Geocoding Service"]
-            Traffic["Traffic Service"]
-        end
-    end
-
-    subgraph Data["Data Layer"]
-        S3["S3 (Tiles)"]
-        EFS["EFS (Graph)"]
-        RDS["RDS PostgreSQL"]
-        ES["OpenSearch"]
-        TS["Timestream"]
-    end
-
-    subgraph Ingestion["Ingestion"]
-        Kinesis["Kinesis"]
-        Lambda["Lambda"]
-    end
-
-    CF --> ALB
-    ALB --> Services
-    Tile --> S3
-    Route --> EFS
-    Geo --> ES
-    Geo --> RDS
-    Traffic --> TS
-    Kinesis --> Lambda
-    Lambda --> TS
-```
+![AWS reference architecture with regional routing service instances and global tile CDN.](./aws-reference-architecture-with-regional-routing-service-instances-and-global-ti.svg)
 
 <figcaption>AWS reference architecture with regional routing service instances and global tile CDN.</figcaption>
 </figure>

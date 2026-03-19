@@ -8,35 +8,7 @@ A comprehensive system design for a distributed file system like GFS or HDFS cov
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Clients["Clients"]
-        C1["Client 1<br/>(Reader)"]
-        C2["Client 2<br/>(Writer)"]
-        C3["Client 3<br/>(Appender)"]
-    end
-
-    subgraph MetadataLayer["Metadata Layer"]
-        MASTER["Master Server<br/>(NameNode)"]
-        SHADOW["Shadow Master<br/>(Hot Standby)"]
-        OPLOG[(Operation Log<br/>+ Checkpoints)]
-    end
-
-    subgraph StorageLayer["Storage Layer"]
-        CS1["Chunk Server 1<br/>(DataNode)"]
-        CS2["Chunk Server 2<br/>(DataNode)"]
-        CS3["Chunk Server 3<br/>(DataNode)"]
-        CS4["Chunk Server 4<br/>(DataNode)"]
-    end
-
-    C1 & C2 & C3 -->|"1. Metadata Request"| MASTER
-    MASTER -->|"2. Chunk Locations"| C1 & C2 & C3
-    C1 -->|"3. Read Data"| CS1 & CS2
-    C2 -->|"3. Write Data"| CS1
-    CS1 -->|"4. Pipeline Replication"| CS2 & CS3
-    MASTER <--> SHADOW
-    MASTER --> OPLOG
-```
+![High-level architecture: Clients query the master for chunk locations, then read/write directly to chunk servers. Writes pipeline through replicas.](./high-level-architecture-clients-query-the-master-for-chunk-locations-then-read-w.svg)
 
 <figcaption>High-level architecture: Clients query the master for chunk locations, then read/write directly to chunk servers. Writes pipeline through replicas.</figcaption>
 </figure>
@@ -135,24 +107,7 @@ Distributed file systems solve the problem of storing and accessing files that e
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    subgraph Master
-        NS["Namespace<br/>(in-memory tree)"]
-        FCM["File→Chunk<br/>Mapping"]
-        CL["Chunk→Server<br/>Locations"]
-    end
-
-    subgraph ChunkServers["Chunk Servers (1000s)"]
-        CS1["Server 1"]
-        CS2["Server 2"]
-        CSN["Server N"]
-    end
-
-    Client -->|"Metadata ops"| Master
-    Client -->|"Data ops"| CS1 & CS2 & CSN
-    CS1 & CS2 & CSN -->|"Heartbeat + chunk list"| Master
-```
+![Diagram](./diagram-1.svg)
 
 **Key characteristics:**
 
@@ -183,24 +138,7 @@ flowchart LR
 
 **Architecture:**
 
-```mermaid
-flowchart TB
-    subgraph Federation
-        NN1["NameNode 1<br/>(Namespace A)"]
-        NN2["NameNode 2<br/>(Namespace B)"]
-        NN3["NameNode 3<br/>(Namespace C)"]
-    end
-
-    subgraph SharedStorage["Shared DataNodes"]
-        DN1["DataNode 1<br/>Block Pool A,B"]
-        DN2["DataNode 2<br/>Block Pool A,C"]
-        DN3["DataNode 3<br/>Block Pool B,C"]
-    end
-
-    NN1 --> DN1 & DN2
-    NN2 --> DN1 & DN3
-    NN3 --> DN2 & DN3
-```
+![Diagram](./diagram-2.svg)
 
 **Key characteristics:**
 
@@ -231,23 +169,7 @@ flowchart TB
 
 **Architecture:**
 
-```mermaid
-flowchart TB
-    subgraph MetadataService["Metadata Service"]
-        CURATOR["Curators<br/>(Stateless)"]
-        BTABLE[(BigTable/Spanner<br/>Metadata Store)]
-    end
-
-    subgraph StorageService["Storage Service"]
-        CUSTODIAN["Custodians<br/>(Background ops)"]
-        DSERVER["D Servers<br/>(Storage)"]
-    end
-
-    Client --> CURATOR
-    CURATOR --> BTABLE
-    Client --> DSERVER
-    CUSTODIAN --> DSERVER
-```
+![Diagram](./diagram-3.svg)
 
 **Key characteristics:**
 
@@ -293,42 +215,7 @@ Path B (Federation) is covered briefly in the scaling section. Path C (Distribut
 
 ### Component Overview
 
-```mermaid
-flowchart TB
-    subgraph ClientLib["Client Library"]
-        CACHE["Chunk Location Cache"]
-        LEASE["Lease Manager"]
-        BUFFER["Write Buffer"]
-    end
-
-    subgraph MasterCluster["Master Cluster"]
-        PRIMARY["Primary Master"]
-        SHADOW1["Shadow Master 1"]
-        SHADOW2["Shadow Master 2"]
-        OPLOG[(Operation Log)]
-        CKPT[(Checkpoints)]
-    end
-
-    subgraph ChunkServers["Chunk Server Pool"]
-        direction LR
-        RACK1["Rack 1<br/>CS1, CS2, CS3"]
-        RACK2["Rack 2<br/>CS4, CS5, CS6"]
-        RACK3["Rack 3<br/>CS7, CS8, CS9"]
-    end
-
-    subgraph Monitoring["Monitoring"]
-        HB["Heartbeat<br/>Collector"]
-        REBALANCER["Chunk<br/>Rebalancer"]
-        GC["Garbage<br/>Collector"]
-    end
-
-    ClientLib -->|"Metadata"| PRIMARY
-    ClientLib -->|"Data"| RACK1 & RACK2 & RACK3
-    PRIMARY --> OPLOG --> SHADOW1 & SHADOW2
-    PRIMARY --> CKPT
-    RACK1 & RACK2 & RACK3 -->|"Heartbeat"| HB
-    HB --> PRIMARY
-```
+![Diagram](./diagram-4.svg)
 
 ### Master Server
 
@@ -676,33 +563,7 @@ chunk_<handle>.meta:
 
 #### Standard Write
 
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Master
-    participant Primary as Primary CS
-    participant Secondary1 as Secondary CS1
-    participant Secondary2 as Secondary CS2
-
-    Client->>Master: 1. AddChunk(file)
-    Master->>Master: Select replicas (rack-aware)
-    Master->>Master: Grant lease to primary
-    Master-->>Client: ChunkInfo{primary, secondaries, version}
-
-    Client->>Primary: 2. Push data (no write yet)
-    Client->>Secondary1: 2. Push data
-    Client->>Secondary2: 2. Push data
-
-    Note over Primary,Secondary2: Data cached in memory
-
-    Client->>Primary: 3. WriteChunk(offset, length)
-    Primary->>Primary: Write to disk
-    Primary->>Secondary1: 4. Forward write command
-    Primary->>Secondary2: 4. Forward write command
-    Secondary1-->>Primary: 5. ACK
-    Secondary2-->>Primary: 5. ACK
-    Primary-->>Client: 6. Success
-```
+![Diagram](./diagram-5.svg)
 
 **Why separate data push from write command:**
 
@@ -715,28 +576,7 @@ sequenceDiagram
 
 Atomic append is the key differentiator from traditional file systems:
 
-```mermaid
-sequenceDiagram
-    participant Client1
-    participant Client2
-    participant Primary as Primary CS
-    participant Secondary as Secondary CS
-
-    Note over Client1,Secondary: Both clients append concurrently
-
-    Client1->>Primary: AppendChunk(data1)
-    Client2->>Primary: AppendChunk(data2)
-
-    Primary->>Primary: Serialize: offset1 for data1
-    Primary->>Primary: Serialize: offset2 for data2
-
-    Primary->>Secondary: Append data1 at offset1
-    Primary->>Secondary: Append data2 at offset2
-
-    Secondary-->>Primary: ACK both
-    Primary-->>Client1: Success, offset=offset1
-    Primary-->>Client2: Success, offset=offset2
-```
+![Diagram](./diagram-6.svg)
 
 **Append semantics:**
 
@@ -843,22 +683,7 @@ The third approach (1 + 2) balances reliability and bandwidth.
 
 #### Chunk Server Failure
 
-```mermaid
-flowchart TB
-    START[Heartbeat Timeout<br/>30 seconds]
-
-    START --> MARK[Mark server as dead]
-    MARK --> SCAN[Scan all chunks<br/>on failed server]
-
-    SCAN --> CHECK{Chunk has<br/>< 3 replicas?}
-    CHECK -->|Yes| QUEUE[Add to re-replication queue]
-    CHECK -->|No| SKIP[Skip chunk]
-
-    QUEUE --> PRIORITY[Prioritize:<br/>1. Single replica<br/>2. Two replicas<br/>3. Under-replicated]
-
-    PRIORITY --> COPY[Copy from healthy replica<br/>to new server]
-    COPY --> THROTTLE[Throttle to avoid<br/>network saturation]
-```
+![Diagram](./diagram-7.svg)
 
 **Re-replication throttling:**
 
@@ -1067,34 +892,7 @@ Network capacity = Expected throughput × Headroom
 
 ### AWS Reference Architecture
 
-```mermaid
-flowchart TB
-    subgraph MasterTier["Master Tier (3 AZs)"]
-        M1["Primary Master<br/>i3en.12xlarge"]
-        M2["Shadow Master 1<br/>i3en.12xlarge"]
-        M3["Shadow Master 2<br/>i3en.12xlarge"]
-    end
-
-    subgraph StorageTier["Storage Tier"]
-        subgraph AZ1["AZ 1"]
-            CS1["d3en.12xlarge × 100"]
-        end
-        subgraph AZ2["AZ 2"]
-            CS2["d3en.12xlarge × 100"]
-        end
-        subgraph AZ3["AZ 3"]
-            CS3["d3en.12xlarge × 100"]
-        end
-    end
-
-    subgraph Network["Network"]
-        TGW["Transit Gateway"]
-        VPC["VPC with placement groups"]
-    end
-
-    M1 & M2 & M3 --> TGW
-    CS1 & CS2 & CS3 --> TGW
-```
+![Diagram](./diagram-8.svg)
 
 **Instance selection:**
 

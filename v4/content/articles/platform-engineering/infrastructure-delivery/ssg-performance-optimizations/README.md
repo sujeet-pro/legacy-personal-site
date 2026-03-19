@@ -8,26 +8,7 @@ Production-grade Static Site Generation (SSG) architecture for AWS CloudFront de
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph Build["Build Phase"]
-        A[Content Sources] --> B[SSG Engine]
-        C[Templates] --> B
-        B --> D[Static Assets]
-        D --> E[Pre-Compression]
-    end
-
-    subgraph Deploy["AWS Infrastructure"]
-        E --> F[S3 Versioned Buckets]
-        F --> G[CloudFront CDN]
-        H["Lambda@Edge"] --> G
-    end
-
-    subgraph Serve["Edge Delivery"]
-        G --> I[Global Edge Locations]
-        I --> J[Users Worldwide]
-    end
-```
+![High-level architecture showing the build-time rendering, AWS deployment, and edge delivery flow for SSG sites](./high-level-architecture-showing-the-build-time-rendering-aws-deployment-and-edge.svg)
 
 <figcaption>High-level architecture showing the build-time rendering, AWS deployment, and edge delivery flow for SSG sites</figcaption>
 
@@ -71,15 +52,7 @@ The process:
 
 <figure>
 
-```mermaid
-graph TD
-    A[Content Sources] --> B{Static Site Generator}
-    C[Templates/Components] --> B
-    B -- Build Process --> D[Static Assets]
-    D -- Deploy --> E[CDN Edge Locations]
-    F[User Request] --> E
-    E -- Serves Cached Asset --> F
-```
+![SSG workflow: content and templates compile to static assets deployed to CDN edge locations.](./ssg-workflow-content-and-templates-compile-to-static-assets-deployed-to-cdn-edge.svg)
 
 <figcaption>SSG workflow: content and templates compile to static assets deployed to CDN edge locations.</figcaption>
 
@@ -196,24 +169,7 @@ The preferred strategy: single CloudFront distribution with origin path pointing
 
 <figure>
 
-```mermaid
-sequenceDiagram
-    participant CI/CD Pipeline
-    participant Amazon S3
-    participant Amazon CloudFront
-
-    CI/CD Pipeline->>Amazon S3: Upload new build to /v1.2.1
-    CI/CD Pipeline->>Amazon CloudFront: Update Origin Path to /v1.2.1
-    Amazon CloudFront-->>CI/CD Pipeline: Update Acknowledged
-    CI/CD Pipeline->>Amazon CloudFront: Invalidate Cache ('/*')
-    Amazon CloudFront-->>CI/CD Pipeline: Invalidation Acknowledged
-
-    Note over CI/CD Pipeline,Amazon CloudFront: Rollback Triggered!
-    CI/CD Pipeline->>Amazon CloudFront: Update Origin Path to /v1.2.0
-    Amazon CloudFront-->>CI/CD Pipeline: Update Acknowledged
-    CI/CD Pipeline->>Amazon CloudFront: Invalidate Cache ('/*')
-    Amazon CloudFront-->>CI/CD Pipeline: Invalidation Acknowledged
-```
+![Deployment and rollback sequence showing the interaction between CI/CD pipeline, S3, and CloudFront for atomic deployments](./deployment-and-rollback-sequence-showing-the-interaction-between-ci-cd-pipeline-.svg)
 
 <figcaption>Deployment and rollback sequence showing the interaction between CI/CD pipeline, S3, and CloudFront for atomic deployments</figcaption>
 
@@ -513,26 +469,7 @@ Coordinates build process, S3 metadata, edge function content negotiation, and c
 
 <figure>
 
-```mermaid
-graph TD
-    subgraph Build Process
-        A[Original Assets] --> B{"Compressor (Brotli & Gzip)"}
-        B -- Brotli Q11 --> C[main.js.br]
-        B -- Gzip -9 --> D[main.js.gz]
-    end
-    subgraph Deployment to S3
-        C --> E[S3: /br/main.js.br]
-        D --> F[S3: /gz/main.js.gz]
-    end
-    subgraph Request & Delivery Flow
-        G[Browser] --> H[Amazon CloudFront]
-        H -- Viewer Request Event --> I{"Lambda@Edge Function"}
-        I -- Rewrites request URI to /br/main.js.br --> H
-        H -- Origin Request (for rewritten URI) --> E
-        E -- Serves pre-compressed file with correct headers --> H
-        H -- Serves to Browser --> G
-    end
-```
+![Pre-compression architecture showing the build process, S3 deployment, and Lambda@Edge content negotiation flow](./pre-compression-architecture-showing-the-build-process-s3-deployment-and-lambda-.svg)
 
 <figcaption>Pre-compression architecture showing the build process, S3 deployment, and Lambda@Edge content negotiation flow</figcaption>
 

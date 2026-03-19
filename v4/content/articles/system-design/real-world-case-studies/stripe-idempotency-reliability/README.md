@@ -8,27 +8,7 @@ How Stripe prevents double charges and enables safe retries across billions of t
 
 <figure>
 
-```mermaid
-flowchart TD
-    subgraph "Client Request with Idempotency Key"
-        A[Client generates UUID] --> B[POST /v1/charges<br/>Idempotency-Key: abc123]
-    end
-
-    subgraph "Server Processing"
-        B --> C{Key exists?}
-        C -->|No| D[Create idempotency record]
-        C -->|Yes + finished| E[Return cached response<br/>Idempotent-Replayed: true]
-        C -->|Yes + in-progress| F[Return 409 Conflict]
-        D --> G[Execute atomic phases]
-        G --> H[Store response]
-        H --> I[Return response]
-    end
-
-    subgraph "Failure Recovery"
-        J[Network timeout] --> K[Client retries<br/>same key]
-        K --> C
-    end
-```
+![Idempotency key lifecycle: generation, lookup, execution, caching, and replay on retry.](./idempotency-key-lifecycle-generation-lookup-execution-caching-and-replay-on-retr.svg)
 
 <figcaption>Idempotency key lifecycle: generation, lookup, execution, caching, and replay on retry.</figcaption>
 </figure>
@@ -149,28 +129,7 @@ CREATE TABLE idempotency_keys (
 
 An **atomic phase** groups database operations that occur between external API calls. Each phase executes in a serializable transaction. If the transaction commits, that phase is complete—even if the process crashes immediately after.
 
-```mermaid
-flowchart LR
-    subgraph "Phase 1: Initialize"
-        A[Create idempotency key] --> B[Create ride record]
-    end
-
-    subgraph "External Call 1"
-        C[Stripe API: Create charge]
-    end
-
-    subgraph "Phase 2: Record Result"
-        D[Store charge result] --> E[Stage receipt job]
-    end
-
-    subgraph "Phase 3: Finalize"
-        F[Mark complete] --> G[Return response]
-    end
-
-    B --> C
-    C --> D
-    E --> F
-```
+![Diagram](./diagram-1.svg)
 
 ### Recovery Points
 

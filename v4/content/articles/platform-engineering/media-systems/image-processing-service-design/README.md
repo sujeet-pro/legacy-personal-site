@@ -8,26 +8,7 @@ This document presents the architectural design for a cloud-agnostic, multi-tena
 
 <figure>
 
-```mermaid
-graph TB
-    Client[Client Application]
-    CDN[Edge Cache / CDN]
-
-    subgraph "Image Service Platform"
-        Gateway[Image Gateway]
-        Transform[Transform Engine]
-        Storage[(Object Storage)]
-        Cache[(Redis Cache)]
-        DB[(PostgreSQL)]
-    end
-
-    Client -->|HTTPS| CDN
-    CDN -->|Cache Miss| Gateway
-    Gateway --> Transform
-    Transform --> Cache
-    Transform --> DB
-    Transform --> Storage
-```
+![High-level architecture: Clients request images through CDN, with cache misses handled by the Image Gateway which orchestrates transformation, caching, and storage](./high-level-architecture-clients-request-images-through-cdn-with-cache-misses-han.svg)
 
 <figcaption>High-level architecture: Clients request images through CDN, with cache misses handled by the Image Gateway which orchestrates transformation, caching, and storage</figcaption>
 
@@ -39,21 +20,7 @@ Image processing at scale requires balancing three competing concerns: **latency
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph "Cache Layers"
-        CDN["CDN Edge\n95% hit rate"]
-        Redis["Redis\n80% of misses"]
-        DB["DB Index\n90% of remainder"]
-        Process["Transform\n< 5% of requests"]
-    end
-
-    Request --> CDN
-    CDN -->|5% miss| Redis
-    Redis -->|20% miss| DB
-    DB -->|10% miss| Process
-    Process -->|store| DB
-```
+![Multi-layer caching eliminates 99.9% of redundant processing—only the first request for each unique transformation hits the Transform Engine.](./multi-layer-caching-eliminates-99-9-of-redundant-processing-only-the-first-reque.svg)
 
 <figcaption>Multi-layer caching eliminates 99.9% of redundant processing—only the first request for each unique transformation hits the Transform Engine.</figcaption>
 
@@ -327,174 +294,15 @@ npm install redlock
 
 ### System Diagram
 
-```mermaid
-graph TB
-    Client[Client Application]
-    CDN[Edge Cache<br/>CloudFlare/CloudFront]
-    LB[Load Balancer]
-
-    subgraph "Image Service Platform"
-        Gateway[Image Gateway<br/>Routing & Auth]
-        Transform[Transform Engine<br/>Image Processing]
-        Upload[Asset Ingestion<br/>Upload Handler]
-        Control[Control Plane API<br/>Tenant Management]
-        Signature[Signature Service<br/>URL Signing]
-
-        subgraph "Data Layer"
-            Registry[(Registry Service<br/>PostgreSQL)]
-            Cache[(Redis Cluster<br/>Application Cache)]
-            Queue[Message Queue<br/>RabbitMQ/SQS]
-        end
-
-        subgraph "Processing"
-            Worker1[Transform Worker]
-            Worker2[Transform Worker]
-            Worker3[Transform Worker]
-        end
-
-        subgraph "Storage Abstraction"
-            Adapter[Object Store Adapter]
-            S3[AWS S3]
-            GCS[Google Cloud Storage]
-            Azure[Azure Blob]
-            MinIO[MinIO<br/>On-Premise]
-        end
-    end
-
-    Monitoring[Monitoring<br/>Prometheus/Grafana]
-
-    Client -->|HTTPS| CDN
-    CDN -->|Cache Miss| LB
-    LB --> Gateway
-
-    Gateway --> Transform
-    Gateway --> Upload
-    Gateway --> Control
-    Gateway --> Signature
-
-    Transform --> Cache
-    Transform --> Registry
-    Transform --> Adapter
-
-    Upload --> Registry
-    Upload --> Queue
-    Upload --> Adapter
-
-    Control --> Registry
-
-    Queue --> Worker1
-    Queue --> Worker2
-    Queue --> Worker3
-
-    Worker1 --> Adapter
-    Worker2 --> Adapter
-    Worker3 --> Adapter
-
-    Worker1 --> Registry
-    Worker2 --> Registry
-    Worker3 --> Registry
-
-    Adapter --> S3
-    Adapter --> GCS
-    Adapter --> Azure
-    Adapter --> MinIO
-
-    Gateway -.->|Metrics| Monitoring
-    Transform -.->|Metrics| Monitoring
-    Worker1 -.->|Metrics| Monitoring
-```
+![Diagram](./diagram-1.svg)
 
 ### Request Flow: Public Image
 
-```mermaid
-sequenceDiagram
-    participant Client
-    participant CDN as Edge Cache
-    participant Gateway as Image Gateway
-    participant Cache as Redis
-    participant Registry as Registry DB
-    participant Transform as Transform Engine
-    participant Storage as Object Store
-
-    Client->>CDN: GET /pub/org/space/img/id/w_800-h_600.webp
-
-    alt CDN Cache Hit
-        CDN-->>Client: 200 OK (< 50ms)
-    else CDN Cache Miss
-        CDN->>Gateway: Forward request
-        Gateway->>Gateway: Parse & validate URL
-
-        alt Redis Cache Hit
-            Gateway->>Cache: Check transform cache
-            Cache-->>Gateway: Cached metadata
-            Gateway->>Storage: Fetch derived asset
-            Storage-->>Gateway: Image bytes
-            Gateway-->>CDN: 200 OK + Cache headers
-            CDN-->>Client: 200 OK (< 200ms)
-        else Transform Exists in DB
-            Gateway->>Registry: Query derived asset
-            Registry-->>Gateway: Storage key
-            Gateway->>Storage: Fetch derived asset
-            Storage-->>Gateway: Image bytes
-            Gateway->>Cache: Update cache
-            Gateway-->>CDN: 200 OK + Cache headers
-            CDN-->>Client: 200 OK (< 300ms)
-        else First Transform
-            Gateway->>Registry: Get asset metadata
-            Registry-->>Gateway: Asset info
-            Gateway->>Storage: Fetch original
-            Storage-->>Gateway: Original bytes
-            Gateway->>Transform: Process inline
-            Transform->>Transform: Apply transformations
-            Transform-->>Gateway: Processed bytes
-            Gateway->>Storage: Store derived asset
-            Gateway->>Registry: Save metadata
-            Gateway->>Cache: Cache result
-            Gateway-->>CDN: 200 OK + Cache headers
-            CDN-->>Client: 200 OK (< 800ms)
-        end
-    end
-```
+![Diagram](./diagram-2.svg)
 
 ### Request Flow: Private Image
 
-```mermaid
-sequenceDiagram
-    participant Client
-    participant CDN as Edge Cache
-    participant Gateway as Image Gateway
-    participant Signature as Signature Service
-    participant Transform as Transform Engine
-
-    Note over Client: Step 1: Request signed URL
-    Client->>Gateway: POST /v1/sign
-    Gateway->>Signature: Generate signed URL
-    Signature->>Signature: HMAC-SHA256(secret, payload)
-    Signature-->>Gateway: URL + signature + expiry
-    Gateway-->>Client: Signed URL
-
-    Note over Client: Step 2: Use signed URL
-    Client->>CDN: GET /priv/.../img?sig=xxx&exp=yyy
-
-    alt CDN with Edge Auth
-        CDN->>CDN: Validate signature
-        alt Valid & Not Expired
-            CDN->>CDN: Normalize cache key
-            Note over CDN: Same flow as public from here
-        else Invalid or Expired
-            CDN-->>Client: 401 Unauthorized
-        end
-    else CDN without Edge Auth
-        CDN->>Gateway: Forward with signature
-        Gateway->>Signature: Verify signature
-        alt Valid & Not Expired
-            Signature-->>Gateway: Authorized
-            Note over Gateway: Same flow as public from here
-        else Invalid or Expired
-            Gateway-->>Client: 401 Unauthorized
-        end
-    end
-```
+![Diagram](./diagram-3.svg)
 
 ### Edge Authentication Patterns
 
@@ -1010,112 +818,11 @@ function canonicalizeOperations(opsString) {
 
 ### Upload Flow with Auto-Presets
 
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Gateway
-    participant Upload as Asset Ingestion
-    participant Registry as Registry DB
-    participant Storage as Object Store
-    participant Queue as Message Queue
-    participant Worker as Transform Worker
-
-    Client->>Gateway: POST /v1/assets (multipart)
-    Gateway->>Gateway: Authenticate & authorize
-    Gateway->>Upload: Forward upload
-
-    Upload->>Upload: Validate file (type, size)
-    Upload->>Upload: Compute SHA-256 hash
-
-    Upload->>Registry: Check for duplicate hash
-    alt Duplicate Found
-        Registry-->>Upload: Existing asset ID
-        Upload-->>Client: 200 OK (deduplicated)
-    else New Asset
-        Upload->>Storage: Store original
-        Storage-->>Upload: Storage key
-
-        Upload->>Registry: Create asset record
-        Registry-->>Upload: Asset ID
-
-        Upload->>Registry: Query applicable presets
-        Registry-->>Upload: List of presets
-
-        loop For each preset
-            Upload->>Queue: Enqueue transform job
-        end
-
-        Upload-->>Client: 201 Created + URLs
-
-        Queue->>Worker: Dequeue transform job
-        Worker->>Worker: Process transformation
-        Worker->>Storage: Store derived asset
-        Worker->>Registry: Save derived metadata
-        Worker->>Registry: Update transform cache
-    end
-```
+![Diagram](./diagram-4.svg)
 
 ### Synchronous Transform Flow (Guaranteed 200)
 
-```mermaid
-sequenceDiagram
-    participant Client
-    participant CDN as Edge Cache
-    participant Gateway
-    participant Transform as Transform Engine
-    participant Cache as Redis
-    participant Registry as Registry DB
-    participant Storage as Object Store
-    participant Lock as Distributed Lock
-
-    Client->>CDN: GET /v1/pub/.../w_800-h_600.webp
-    CDN->>Gateway: Cache miss - forward
-
-    Gateway->>Gateway: Parse & canonicalize ops
-    Gateway->>Gateway: Validate against policies
-
-    Gateway->>Cache: Check transform cache
-    Cache-->>Gateway: MISS
-
-    Gateway->>Registry: Query derived asset
-    Registry-->>Gateway: NOT FOUND
-
-    Note over Gateway,Transform: First transform - must process inline
-
-    Gateway->>Lock: Acquire lock (asset_id + ops_hash)
-    Lock-->>Gateway: ACQUIRED
-
-    Gateway->>Registry: Double-check after lock
-    alt Another Request Already Created It
-        Registry-->>Gateway: Derived asset found
-        Gateway->>Lock: Release lock
-    else Still Not Found
-        Gateway->>Transform: Process inline
-
-        Transform->>Registry: Get asset metadata
-        Registry-->>Transform: Asset info
-
-        Transform->>Storage: Fetch original
-        Storage-->>Transform: Original bytes
-
-        Transform->>Transform: Apply transformations
-        Note over Transform: libvips/Sharp processing
-
-        Transform->>Storage: Store derived asset
-        Storage-->>Transform: Storage key
-
-        Transform->>Registry: Save derived metadata
-        Transform->>Cache: Cache result
-
-        Transform-->>Gateway: Processed image bytes
-
-        Gateway->>Lock: Release lock
-    end
-
-    Gateway-->>CDN: 200 OK + Cache-Control headers
-    CDN->>CDN: Cache for 1 year
-    CDN-->>Client: 200 OK (< 800ms)
-```
+![Diagram](./diagram-5.svg)
 
 ---
 
@@ -1891,60 +1598,7 @@ export default RateLimiter
 
 ### Kubernetes Deployment
 
-```mermaid
-graph TB
-    subgraph "Load Balancer"
-        LB[Cloud Load Balancer<br/>AWS ALB / GCP GLB / Azure LB]
-    end
-
-    subgraph "Kubernetes Cluster"
-        subgraph "Ingress Layer"
-            IngressCtrl[Nginx Ingress Controller]
-        end
-
-        subgraph "Services"
-            Gateway[Image Gateway<br/>Replicas: 3-10]
-            Transform[Transform Engine<br/>Replicas: 5-20]
-            Upload[Asset Ingestion<br/>Replicas: 3-10]
-            Control[Control Plane API<br/>Replicas: 2-5]
-            Worker[Transform Workers<br/>Replicas: 5-50]
-        end
-
-        subgraph "Data Tier"
-            Redis[(Redis Cluster<br/>3 masters + 3 replicas)]
-            Postgres[(PostgreSQL<br/>Primary + 2 Replicas)]
-            Queue[RabbitMQ Cluster<br/>3 nodes]
-        end
-    end
-
-    subgraph "External Services"
-        CDN[CDN<br/>CloudFront/Cloudflare]
-        S3[(Object Storage<br/>S3/GCS/Azure Blob)]
-    end
-
-    Client -->|HTTPS| CDN
-    CDN -->|Cache Miss| LB
-    LB --> IngressCtrl
-    IngressCtrl --> Gateway
-    IngressCtrl --> Upload
-    IngressCtrl --> Control
-
-    Gateway --> Transform
-    Gateway --> Redis
-    Gateway --> Postgres
-
-    Transform --> Redis
-    Transform --> Postgres
-    Transform --> S3
-
-    Upload --> Queue
-    Upload --> S3
-    Upload --> Postgres
-
-    Queue --> Worker
-    Worker --> S3
-    Worker --> Postgres
-```
+![Diagram](./diagram-6.svg)
 
 ### Storage Abstraction Layer
 
@@ -2380,24 +2034,7 @@ volumes:
 
 ### Multi-Layer Caching Strategy
 
-```mermaid
-graph LR
-    Request[Client Request]
-    CDN[CDN Edge Cache<br/>Hit Rate: 95%<br/>Cost: $0.02/GB]
-    Redis[Redis Cache<br/>Hit Rate: 80%<br/>TTL: 1 hour]
-    DB[Database Index<br/>Hit Rate: 90%]
-    Storage[Object Storage<br/>S3/GCS/Azure]
-    Process[Process New<br/>< 5% of requests]
-
-    Request --> CDN
-    CDN -->|Miss 5%| Redis
-    Redis -->|Miss 20%| DB
-    DB -->|Miss 10%| Storage
-    Storage --> Process
-    Process --> Storage
-    Process --> DB
-    Process --> Redis
-```
+![Diagram](./diagram-7.svg)
 
 ### Storage Lifecycle Management
 

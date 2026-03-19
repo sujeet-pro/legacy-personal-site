@@ -8,37 +8,7 @@ How WhatsApp scaled from zero to 1 billion users on Erlang/BEAM and FreeBSD — 
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Foundation["Foundation (2009–2011)"]
-        EJ["ejabberd<br/>(XMPP Server)"]
-        ER["Erlang/OTP R14"]
-        FB["FreeBSD 8.x"]
-        EJ --> ER --> FB
-    end
-
-    subgraph Scale["Scaling Phase (2012–2014)"]
-        BEAM["Custom BEAM Patches<br/>(timer wheels, GC throttle,<br/>pg2 → pg, gen_industry)"]
-        FX["FunXMPP Protocol<br/>(50–70% bandwidth reduction)"]
-        MN["Mnesia + MySQL<br/>(2TB RAM, 18B records)"]
-        HW["Bare Metal<br/>(SoftLayer, 512GB RAM)"]
-        BEAM --- FX
-        BEAM --- MN
-        BEAM --- HW
-    end
-
-    subgraph Meta["Post-Acquisition (2014+)"]
-        DC["Facebook Data Centers<br/>(Linux migration)"]
-        E2E["End-to-End Encryption<br/>(Signal Protocol)"]
-        MD["Multi-Device<br/>(per-device identity keys)"]
-        WARTS["WARTS<br/>(WhatsApp Runtime System)"]
-        DC --- E2E --- MD
-        DC --- WARTS
-    end
-
-    Foundation -->|"1M → 2M connections/server<br/>100M users"| Scale
-    Scale -->|"$19B acquisition<br/>600M+ users"| Meta
-```
+![WhatsApp's architecture evolution from an ejabberd fork to a custom Erlang runtime serving billions of users across Facebook data centers.](./whatsapp-s-architecture-evolution-from-an-ejabberd-fork-to-a-custom-erlang-runti.svg)
 
 <figcaption>WhatsApp's architecture evolution from an ejabberd fork to a custom Erlang runtime serving billions of users across Facebook data centers.</figcaption>
 </figure>

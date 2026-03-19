@@ -8,32 +8,7 @@ A comprehensive exploration of offline-first web architecture, examining how the
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph Client["Browser Tab"]
-        PAGE[Page] -->|fetch| SW
-    end
-
-    subgraph SW["Service Worker"]
-        FETCH[Fetch Event] --> DECIDE{Strategy}
-        DECIDE -->|cache-first| CACHE[(Cache API)]
-        DECIDE -->|network-first| NET[Network]
-        DECIDE -->|stale-while-revalidate| BOTH[Both]
-    end
-
-    subgraph Storage["Origin Storage"]
-        CACHE
-        IDB[(IndexedDB)]
-    end
-
-    NET --> RESP[Response]
-    CACHE --> RESP
-    BOTH --> RESP
-    RESP --> PAGE
-
-    style SW fill:#3b82f6,stroke:#1e40af,color:#fff
-    style Storage fill:#10b981,stroke:#059669,color:#fff
-```
+![Service workers intercept requests and decide whether to serve from cache, network, or both](./service-workers-intercept-requests-and-decide-whether-to-serve-from-cache-networ.svg)
 
 <figcaption>Service workers intercept requests and decide whether to serve from cache, network, or both</figcaption>
 
@@ -45,24 +20,7 @@ Service workers represent a fundamental shift from traditional web architecture:
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Design Principles"
-        P1["Event-driven lifecycle<br/>(not document-bound)"]
-        P2["Single version per scope<br/>(prevents client inconsistency)"]
-        P3["Origin-isolated storage<br/>(Cache + IndexedDB)"]
-    end
-
-    subgraph "Key Trade-offs"
-        T1["Workers terminate between events<br/>No persistent state in memory"]
-        T2["Update requires all clients to unload<br/>(unless skipWaiting)"]
-        T3["HTTPS required<br/>(prevents MitM cache poisoning)"]
-    end
-
-    P1 --> T1
-    P2 --> T2
-    P3 --> T3
-```
+![Core design principles and their operational trade-offs](./core-design-principles-and-their-operational-trade-offs.svg)
 
 <figcaption>Core design principles and their operational trade-offs</figcaption>
 
@@ -90,19 +48,7 @@ The lifecycle is the most complex part of service workers—and the most importa
 
 <figure>
 
-```mermaid
-stateDiagram-v2
-    [*] --> parsed: navigator.serviceWorker.register()
-    parsed --> installing: install event fires
-    installing --> installed: install succeeds
-    installing --> redundant: install fails
-    installed --> activating: no existing active worker OR skipWaiting()
-    installed --> waiting: existing worker controls clients
-    waiting --> activating: all controlled clients close
-    activating --> activated: activate succeeds
-    activating --> redundant: activate fails
-    activated --> redundant: replaced by new worker
-```
+![Service worker state transitions—only "activated" workers handle fetch events](./service-worker-state-transitions-only-activated-workers-handle-fetch-events.svg)
 
 <figcaption>Service worker state transitions—only "activated" workers handle fetch events</figcaption>
 
@@ -493,26 +439,7 @@ Navigation preload starts the network request in parallel with worker startup:
 
 <figure>
 
-```mermaid
-sequenceDiagram
-    participant Browser
-    participant SW as Service Worker
-    participant Network
-
-    Note over Browser,Network: Without Navigation Preload
-    Browser->>SW: Start worker (50-500ms)
-    SW->>Network: fetch()
-    Network-->>SW: Response
-    SW-->>Browser: Response
-
-    Note over Browser,Network: With Navigation Preload
-    par
-        Browser->>SW: Start worker
-        Browser->>Network: Preload request
-    end
-    Network-->>SW: preloadResponse
-    SW-->>Browser: Response
-```
+![Navigation preload eliminates serial worker startup + fetch delay](./navigation-preload-eliminates-serial-worker-startup-fetch-delay.svg)
 
 <figcaption>Navigation preload eliminates serial worker startup + fetch delay</figcaption>
 

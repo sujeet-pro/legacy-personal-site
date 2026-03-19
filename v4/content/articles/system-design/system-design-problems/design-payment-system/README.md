@@ -8,50 +8,7 @@ Building a payment processing platform that handles card transactions, bank tran
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Client["Client Layer"]
-        WEB[Web App]
-        MOBILE[Mobile App]
-        POS[Point of Sale]
-    end
-
-    subgraph Gateway["Payment Gateway"]
-        API[Payment API<br/>Idempotent]
-        ROUTER[Smart Router<br/>Failover + Optimization]
-        FRAUD[Fraud Engine<br/>ML Scoring]
-    end
-
-    subgraph Processing["Processing Layer"]
-        AUTH[Authorization<br/>Service]
-        CAPTURE[Capture<br/>Service]
-        REFUND[Refund<br/>Service]
-    end
-
-    subgraph External["External Networks"]
-        VISA[Visa / VisaNet]
-        MC[Mastercard / Banknet]
-        ACH[ACH Network]
-        WALLET[Apple Pay / Google Pay]
-    end
-
-    subgraph Data["Data Layer"]
-        LEDGER[(Double-Entry<br/>Ledger)]
-        VAULT[(Token Vault<br/>PCI Scope)]
-        EVENTS[Event Stream<br/>Kafka]
-    end
-
-    WEB & MOBILE & POS --> API
-    API --> FRAUD
-    FRAUD --> ROUTER
-    ROUTER --> AUTH
-    AUTH --> VISA & MC & ACH & WALLET
-    AUTH --> CAPTURE
-    CAPTURE --> LEDGER
-    CAPTURE --> EVENTS
-    API --> VAULT
-    REFUND --> LEDGER
-```
+![Payment system architecture: Client apps submit payments through an idempotent API, fraud engine scores in real-time, smart router selects optimal processor, authorization flows through card networks, and all movements are recorded in a double-entry ledger.](./payment-system-architecture-client-apps-submit-payments-through-an-idempotent-ap.svg)
 
 <figcaption>Payment system architecture: Client apps submit payments through an idempotent API, fraud engine scores in real-time, smart router selects optimal processor, authorization flows through card networks, and all movements are recorded in a double-entry ledger.</figcaption>
 </figure>
@@ -156,27 +113,7 @@ Total authorization: 2000ms budget
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    subgraph Build["In-House"]
-        GW[Payment Gateway]
-        PROC[Processor Integration]
-        RISK[Risk Engine]
-        LEDGER[Ledger]
-    end
-
-    subgraph External["Card Networks"]
-        ACQ[Acquiring Bank]
-        VISA[VisaNet]
-        MC[Banknet]
-    end
-
-    Client --> GW
-    GW --> RISK
-    RISK --> PROC
-    PROC --> ACQ
-    ACQ --> VISA & MC
-```
+![Diagram](./diagram-1.svg)
 
 **Key characteristics:**
 
@@ -206,25 +143,7 @@ flowchart LR
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    subgraph App["Your Application"]
-        API[Payment API]
-        WEBHOOK[Webhook Handler]
-    end
-
-    subgraph Stripe["Payment Platform"]
-        PSP[Stripe API]
-        RADAR[Fraud Detection]
-        VAULT[Token Vault]
-    end
-
-    Client --> |Stripe.js| PSP
-    API --> PSP
-    PSP --> RADAR
-    PSP --> VAULT
-    PSP --> |Events| WEBHOOK
-```
+![Diagram](./diagram-2.svg)
 
 **Key characteristics:**
 
@@ -255,27 +174,7 @@ flowchart LR
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    subgraph App["Your Application"]
-        API[Payment API]
-    end
-
-    subgraph Orchestration["Orchestration Layer"]
-        ROUTER[Smart Router]
-        RULES[Routing Rules]
-    end
-
-    subgraph Providers["Payment Providers"]
-        STRIPE[Stripe]
-        ADYEN[Adyen]
-        PAYPAL[PayPal]
-    end
-
-    API --> ROUTER
-    ROUTER --> RULES
-    RULES --> STRIPE & ADYEN & PAYPAL
-```
+![Diagram](./diagram-3.svg)
 
 **Key characteristics:**
 
@@ -334,43 +233,7 @@ The architecture sections show how to integrate third-party providers while main
 
 ### Payment Lifecycle
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant API as Payment API
-    participant F as Fraud Engine
-    participant P as Processor (Stripe)
-    participant N as Card Network
-    participant I as Issuing Bank
-    participant L as Ledger
-
-    C->>API: POST /payments (idempotency_key)
-    API->>API: Check idempotency cache
-    API->>F: Score transaction
-    F->>API: risk_score: 25, decision: allow
-    API->>P: Create PaymentIntent
-    P->>N: Authorization request
-    N->>I: Verify funds, fraud check
-    I->>N: Approved (auth_code)
-    N->>P: Authorization response
-    P->>API: PaymentIntent created (auth hold)
-    API->>L: Record authorization (debit: receivables, credit: auth_hold)
-    API->>C: 201 Created {payment_id, status: authorized}
-
-    Note over C,L: Later: Capture
-
-    C->>API: POST /payments/{id}/capture
-    API->>P: Capture PaymentIntent
-    P->>N: Capture request
-    N->>API: Captured
-    API->>L: Record capture (debit: auth_hold, credit: revenue)
-    API->>C: 200 OK {status: captured}
-
-    Note over C,L: T+2 days: Settlement
-
-    P-->>API: Webhook: payout.created
-    API->>L: Record settlement (debit: cash, credit: receivables)
-```
+![Diagram](./diagram-4.svg)
 
 ### Authorization vs Capture Timing
 
@@ -732,24 +595,7 @@ Idempotency prevents duplicate charges when clients retry failed requests. Strip
 
 **Request flow:**
 
-```mermaid
-flowchart TD
-    REQ[Incoming Request] --> CHECK{Idempotency Key<br/>Exists?}
-    CHECK -->|No| PROCESS[Process Request]
-    CHECK -->|Yes| COMPARE{Parameters<br/>Match?}
-
-    COMPARE -->|Yes| RETURN[Return Cached Response]
-    COMPARE -->|No| ERROR[409 Conflict]
-
-    PROCESS --> STORE[Store Response<br/>with Key]
-    STORE --> RESPOND[Return Response]
-
-    subgraph Cache["Idempotency Cache (Redis + PG)"]
-        STORE
-        CHECK
-        COMPARE
-    end
-```
+![Diagram](./diagram-5.svg)
 
 **Implementation:**
 
@@ -918,43 +764,7 @@ Real-time fraud scoring must complete within 100ms to avoid impacting checkout l
 
 **Scoring architecture:**
 
-```mermaid
-flowchart LR
-    subgraph Input["Transaction Data"]
-        TX[Transaction]
-        CARD[Card Fingerprint]
-        DEVICE[Device Fingerprint]
-        BEHAV[Behavioral Signals]
-    end
-
-    subgraph Features["Feature Engineering"]
-        VEL[Velocity Features]
-        HIST[Historical Features]
-        GEO[Geolocation Features]
-        CARD_F[Card Features]
-    end
-
-    subgraph Scoring["ML Scoring"]
-        MODEL[Fraud Model<br/>DNN]
-        RULES[Rule Engine]
-    end
-
-    subgraph Decision["Decision"]
-        SCORE[Risk Score<br/>0-99]
-        ACTION{Score >= 75?}
-        BLOCK[Block]
-        REVIEW[Review Queue]
-        ALLOW[Allow]
-    end
-
-    TX & CARD & DEVICE & BEHAV --> VEL & HIST & GEO & CARD_F
-    VEL & HIST & GEO & CARD_F --> MODEL
-    MODEL --> SCORE
-    SCORE --> ACTION
-    ACTION -->|Yes| BLOCK
-    ACTION -->|65-74| REVIEW
-    ACTION -->|No| ALLOW
-```
+![Diagram](./diagram-6.svg)
 
 **Feature examples (1000+ per transaction):**
 
@@ -1020,34 +830,7 @@ Reconciliation ensures internal ledger matches external settlements. Discrepanci
 
 **Reconciliation process:**
 
-```mermaid
-flowchart TB
-    subgraph Sources["Data Sources"]
-        LEDGER[(Internal Ledger)]
-        PSP[Processor Reports<br/>Stripe, Adyen]
-        BANK[Bank Statements]
-    end
-
-    subgraph Process["Reconciliation"]
-        FETCH[Fetch Settlement Files]
-        PARSE[Parse & Normalize]
-        MATCH[Three-Way Match]
-        DIFF[Calculate Differences]
-    end
-
-    subgraph Output["Output"]
-        MATCHED[Matched Transactions]
-        BREAKS[Exceptions/Breaks]
-        ALERTS[Alerts to Finance]
-    end
-
-    LEDGER & PSP & BANK --> FETCH
-    FETCH --> PARSE
-    PARSE --> MATCH
-    MATCH --> DIFF
-    DIFF --> MATCHED & BREAKS
-    BREAKS --> ALERTS
-```
+![Diagram](./diagram-7.svg)
 
 **Implementation:**
 
@@ -1376,43 +1159,7 @@ export function getErrorMessage(declineCode: string): string {
 
 ### AWS Reference Architecture
 
-```mermaid
-graph TB
-    subgraph Edge["Edge Layer"]
-        CF[CloudFront]
-        WAF[AWS WAF]
-        SHIELD[AWS Shield]
-    end
-
-    subgraph Compute["Compute Layer"]
-        ALB[Application Load Balancer]
-        ECS[ECS Fargate<br/>Payment API]
-        LAMBDA[Lambda<br/>Webhooks]
-    end
-
-    subgraph Data["Data Layer"]
-        RDS[(RDS PostgreSQL<br/>Multi-AZ)]
-        ELASTICACHE[(ElastiCache Redis)]
-        SQS[SQS FIFO]
-        KINESIS[Kinesis Data Streams]
-    end
-
-    subgraph Security["Security"]
-        KMS[AWS KMS]
-        SECRETS[Secrets Manager]
-    end
-
-    Users --> CF
-    CF --> WAF
-    WAF --> SHIELD
-    SHIELD --> ALB
-    ALB --> ECS
-    ECS --> RDS & ELASTICACHE
-    ECS --> SQS
-    SQS --> LAMBDA
-    LAMBDA --> KINESIS
-    ECS --> KMS & SECRETS
-```
+![Diagram](./diagram-8.svg)
 
 **Service configuration:**
 

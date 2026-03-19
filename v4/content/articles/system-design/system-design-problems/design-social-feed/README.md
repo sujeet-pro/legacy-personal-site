@@ -8,67 +8,7 @@ A comprehensive system design for social feed generation and ranking covering fa
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Clients["Clients"]
-        M1["Mobile App"]
-        M2["Mobile App"]
-        W1["Web Client"]
-    end
-
-    subgraph Edge["Edge Layer"]
-        CDN["CDN<br/>(Static Assets)"]
-        LB["Load Balancer"]
-    end
-
-    subgraph Gateway["API Gateway"]
-        GW["API Gateway<br/>(Rate Limiting, Auth)"]
-    end
-
-    subgraph FeedGen["Feed Generation"]
-        AGG["Aggregator<br/>(Query + Rank)"]
-        LEAF["Leaf Servers<br/>(Recent Actions Index)"]
-        RANK["Ranking Service<br/>(ML Models)"]
-    end
-
-    subgraph Core["Core Services"]
-        POST["Post Service"]
-        USER["User Service"]
-        SOCIAL["Social Graph Service"]
-        FANOUT["Fan-out Service"]
-    end
-
-    subgraph Queue["Message Queue"]
-        KAFKA["Kafka Cluster"]
-    end
-
-    subgraph Storage["Storage Layer"]
-        TAO["TAO-like Graph Store<br/>(Objects + Associations)"]
-        REDIS["Redis Cluster<br/>(Feed Cache, Sessions)"]
-        MYSQL[(MySQL Shards<br/>Posts, Users)]
-        S3["S3<br/>(Media)"]
-    end
-
-    subgraph ML["ML Platform"]
-        FEATURE["Feature Store"]
-        MODEL["Model Serving"]
-    end
-
-    M1 & M2 & W1 --> LB
-    LB --> GW
-    GW --> AGG
-    AGG --> LEAF
-    AGG --> RANK
-    RANK --> MODEL
-    MODEL --> FEATURE
-    LEAF --> TAO
-    POST --> KAFKA
-    KAFKA --> FANOUT
-    FANOUT --> REDIS
-    SOCIAL --> TAO
-    TAO --> MYSQL
-    POST --> S3
-```
+![High-level architecture: Aggregators query leaf servers for candidates, ranking service applies ML models, fan-out service distributes posts to follower feeds, and TAO provides graph storage.](./high-level-architecture-aggregators-query-leaf-servers-for-candidates-ranking-se.svg)
 
 <figcaption>High-level architecture: Aggregators query leaf servers for candidates, ranking service applies ML models, fan-out service distributes posts to follower feeds, and TAO provides graph storage.</figcaption>
 </figure>
@@ -175,29 +115,7 @@ Social feed systems solve three interconnected problems: **efficient content dis
 
 **Architecture:**
 
-```mermaid
-sequenceDiagram
-    participant U as User A (Author)
-    participant PS as Post Service
-    participant FO as Fan-out Service
-    participant Q as Message Queue
-    participant FC as Feed Cache
-    participant F1 as Follower 1
-    participant F2 as Follower 2
-
-    U->>PS: Create post
-    PS->>PS: Persist to DB
-    PS->>Q: Publish post event
-    Q->>FO: Fan-out job
-    FO->>FO: Get all followers
-    par Fan-out to followers
-        FO->>FC: Write to Follower 1's feed
-    and
-        FO->>FC: Write to Follower 2's feed
-    end
-    F1->>FC: Load feed
-    FC->>F1: Pre-computed feed
-```
+![Diagram](./diagram-1.svg)
 
 **Key characteristics:**
 
@@ -227,32 +145,7 @@ sequenceDiagram
 
 **Architecture:**
 
-```mermaid
-flowchart LR
-    subgraph Request
-        USER["User Request"]
-    end
-
-    subgraph FeedGen["Feed Generation (per request)"]
-        FOLLOW["Get Followees"]
-        FETCH["Fetch Recent Posts<br/>(per followee)"]
-        MERGE["Merge + Sort"]
-        RANK["Rank"]
-    end
-
-    subgraph Storage
-        GRAPH["Social Graph"]
-        POSTS["Post Index"]
-    end
-
-    USER --> FOLLOW
-    FOLLOW --> GRAPH
-    FOLLOW --> FETCH
-    FETCH --> POSTS
-    FETCH --> MERGE
-    MERGE --> RANK
-    RANK --> USER
-```
+![Diagram](./diagram-2.svg)
 
 **Key characteristics:**
 
@@ -282,25 +175,7 @@ flowchart LR
 
 **Architecture:**
 
-```mermaid
-flowchart TB
-    POST["New Post"]
-
-    POST --> CHECK{"Author<br/>Followers > 10K?"}
-
-    CHECK -->|No| PUSH["Fan-out on Write<br/>(Push to follower feeds)"]
-    CHECK -->|Yes| MARK["Mark as Celebrity Post<br/>(Store only in author's index)"]
-
-    subgraph FeedRead["Feed Read"]
-        CACHE["Read Cached Feed"]
-        MERGE["Merge Celebrity Posts<br/>(Pull on Read)"]
-        CACHE --> MERGE
-        MERGE --> RANK["Final Ranking"]
-    end
-
-    PUSH --> CACHE
-    MARK --> MERGE
-```
+![Diagram](./diagram-3.svg)
 
 **Key characteristics:**
 
@@ -343,77 +218,7 @@ This article focuses on **Path C (Hybrid)** because:
 
 ### Component Overview
 
-```mermaid
-flowchart TB
-    subgraph ClientLayer["Client Layer"]
-        APP["Mobile/Web App"]
-        OFFLINE["Offline Cache<br/>(SQLite/IndexedDB)"]
-    end
-
-    subgraph EdgeLayer["Edge Layer"]
-        DNS["GeoDNS"]
-        CDN["CDN<br/>(Images, Videos)"]
-        LB["L4 Load Balancer"]
-    end
-
-    subgraph APILayer["API Layer"]
-        GW["API Gateway"]
-        AUTH["Auth Service"]
-        RATE["Rate Limiter"]
-    end
-
-    subgraph FeedLayer["Feed Generation Layer"]
-        direction TB
-        AGG["Aggregator Tier<br/>(CPU-intensive)"]
-        LEAF["Leaf Tier<br/>(Memory-intensive)"]
-        TAILER["Tailer<br/>(Real-time ingestion)"]
-    end
-
-    subgraph RankingLayer["Ranking Layer"]
-        RETRIEVE["Candidate Retrieval"]
-        RANK1["First-Pass Ranking<br/>(Lightweight)"]
-        RANK2["Second-Pass Ranking<br/>(Neural Network)"]
-        RERANK["Final Reranking<br/>(Diversity, Integrity)"]
-    end
-
-    subgraph CoreServices["Core Services"]
-        POST["Post Service"]
-        SOCIAL["Social Graph Service"]
-        ENGAGE["Engagement Service"]
-        FANOUT["Fan-out Service"]
-        PUSH["Push Notification Service"]
-    end
-
-    subgraph DataLayer["Data Layer"]
-        direction TB
-        TAO["TAO<br/>(Graph Store)"]
-        REDIS["Redis Cluster<br/>(Feed Cache)"]
-        MYSQL[(MySQL<br/>Persistent)]
-        KAFKA["Kafka<br/>(Events)"]
-        S3["S3<br/>(Media)"]
-    end
-
-    subgraph MLLayer["ML Platform"]
-        FEATURE["Feature Store"]
-        MODEL["Model Serving<br/>(TensorFlow Serving)"]
-        TRAIN["Training Pipeline"]
-    end
-
-    APP --> DNS --> LB --> GW
-    APP --> CDN
-    GW --> AUTH
-    GW --> RATE
-    GW --> AGG
-    AGG --> LEAF
-    AGG --> RETRIEVE
-    RETRIEVE --> RANK1 --> RANK2 --> RERANK
-    RANK1 & RANK2 --> MODEL --> FEATURE
-    LEAF --> TAO --> MYSQL
-    POST --> KAFKA --> FANOUT --> REDIS
-    POST --> S3
-    ENGAGE --> TAO
-    SOCIAL --> TAO
-```
+![Diagram](./diagram-4.svg)
 
 ### Feed Generation Service (Multifeed)
 
@@ -463,27 +268,7 @@ Manages the social graph (follows, friends, blocks) and content relationships:
 - Associations stored on source object's shard
 - Enables single-shard queries for common patterns
 
-```mermaid
-erDiagram
-    OBJECT {
-        bigint id PK
-        string type
-        blob data
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    ASSOCIATION {
-        bigint id1 PK
-        string assoc_type PK
-        bigint id2 PK
-        timestamp time
-        blob data
-    }
-
-    OBJECT ||--o{ ASSOCIATION : "source (id1)"
-    OBJECT ||--o{ ASSOCIATION : "target (id2)"
-```
+![Diagram](./diagram-5.svg)
 
 ### Fan-out Service
 
@@ -512,31 +297,7 @@ type FanoutStrategy =
 
 Multi-stage funnel progressively narrows candidates:
 
-```mermaid
-flowchart TB
-    subgraph Stage1["Stage 1: Candidate Retrieval"]
-        ALL["All Potential Posts<br/>(~10,000)"]
-        FILTER["Eligibility Filter<br/>(blocked, hidden, seen)"]
-        ALL --> FILTER
-    end
-
-    subgraph Stage2["Stage 2: First-Pass Ranking"]
-        LIGHT["Lightweight Model<br/>(~500 candidates)"]
-        FILTER --> LIGHT
-    end
-
-    subgraph Stage3["Stage 3: Second-Pass Ranking"]
-        HEAVY["Neural Network<br/>(~100 candidates)"]
-        LIGHT --> HEAVY
-    end
-
-    subgraph Stage4["Stage 4: Final Reranking"]
-        DIVERSE["Diversity Rules"]
-        INTEGRITY["Integrity Filters"]
-        FINAL["Final Feed<br/>(~50 posts)"]
-        HEAVY --> DIVERSE --> INTEGRITY --> FINAL
-    end
-```
+![Diagram](./diagram-6.svg)
 
 ## API Design
 
@@ -1502,52 +1263,7 @@ class FeedPrefetcher {
 
 ### AWS Reference Architecture
 
-```mermaid
-flowchart TB
-    subgraph Edge["Edge Layer"]
-        R53["Route 53<br/>(GeoDNS)"]
-        CF["CloudFront<br/>(CDN)"]
-    end
-
-    subgraph Compute["EKS Cluster"]
-        subgraph API["API Tier"]
-            APIGW["API Gateway Pods<br/>(Fargate)"]
-        end
-
-        subgraph Feed["Feed Generation Tier"]
-            AGG["Aggregator Pods<br/>(c5.4xlarge, CPU-optimized)"]
-            LEAF["Leaf Pods<br/>(r5.8xlarge, Memory-optimized)"]
-        end
-
-        subgraph Core["Core Services Tier"]
-            POST["Post Service<br/>(Fargate)"]
-            FANOUT["Fan-out Workers<br/>(Fargate Spot)"]
-        end
-
-        subgraph ML["ML Tier"]
-            RANK["SageMaker Endpoints<br/>(p3.2xlarge, GPU)"]
-        end
-    end
-
-    subgraph Data["Data Layer"]
-        AURORA["Aurora MySQL<br/>(Multi-AZ, Read Replicas)"]
-        REDIS["ElastiCache Redis<br/>(Cluster Mode)"]
-        DYNAMO["DynamoDB<br/>(TAO-like, On-demand)"]
-        S3["S3<br/>(Media, Intelligent-Tiering)"]
-    end
-
-    subgraph Streaming["Streaming"]
-        MSK["Amazon MSK<br/>(Kafka)"]
-    end
-
-    R53 --> CF --> APIGW
-    APIGW --> AGG --> LEAF
-    AGG --> RANK
-    LEAF --> DYNAMO --> AURORA
-    LEAF --> REDIS
-    POST --> MSK --> FANOUT --> REDIS
-    POST --> S3
-```
+![Diagram](./diagram-7.svg)
 
 **Service configurations:**
 
@@ -1563,36 +1279,7 @@ flowchart TB
 
 ### Multi-Region Deployment
 
-```mermaid
-flowchart TB
-    subgraph US["US-East (Primary)"]
-        US_LB["Load Balancer"]
-        US_APP["App Tier"]
-        US_DB["Aurora Primary"]
-        US_REDIS["Redis Primary"]
-    end
-
-    subgraph EU["EU-West (Secondary)"]
-        EU_LB["Load Balancer"]
-        EU_APP["App Tier"]
-        EU_DB["Aurora Replica"]
-        EU_REDIS["Redis Replica"]
-    end
-
-    subgraph APAC["AP-Southeast"]
-        AP_LB["Load Balancer"]
-        AP_APP["App Tier"]
-        AP_DB["Aurora Replica"]
-        AP_REDIS["Redis Replica"]
-    end
-
-    US_DB -.->|"Async Replication"| EU_DB
-    US_DB -.->|"Async Replication"| AP_DB
-    US_REDIS -.->|"Cross-Region Sync"| EU_REDIS
-    US_REDIS -.->|"Cross-Region Sync"| AP_REDIS
-
-    GLOBAL["Global Traffic Manager"] --> US_LB & EU_LB & AP_LB
-```
+![Diagram](./diagram-8.svg)
 
 **Multi-region considerations:**
 

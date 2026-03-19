@@ -8,26 +8,7 @@ A Chrome configuration optimized for senior developers: omnibox keywords for ins
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph "Chrome Omnibox"
-        K[Keyword + Query]
-    end
-
-    subgraph "Destinations"
-        J[Jira/Confluence]
-        AI[AI Tools]
-        G[Google Workspace]
-        U[Utilities]
-    end
-
-    K --> J
-    K --> AI
-    K --> G
-    K --> U
-
-    style K fill:#dae8fc,stroke:#6c8ebf
-```
+![Address bar keywords route queries directly to target services via URL template substitution](./address-bar-keywords-route-queries-directly-to-target-services-via-url-template-.svg)
 
 <figcaption>Address bar keywords route queries directly to target services via URL template substitution</figcaption>
 

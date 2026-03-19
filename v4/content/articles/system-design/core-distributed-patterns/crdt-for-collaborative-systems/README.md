@@ -10,25 +10,7 @@ This article covers CRDT fundamentals, implementation variants, production deplo
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Core CRDT Property"
-        direction LR
-        R1[Replica 1] -->|"State/Op"| M((Merge))
-        R2[Replica 2] -->|"State/Op"| M
-        R3[Replica 3] -->|"State/Op"| M
-        M -->|"Same Result"| C[Converged State]
-    end
-
-    subgraph "Mathematical Foundation"
-        direction TB
-        P1["Commutative: merge(A,B) = merge(B,A)"]
-        P2["Associative: merge(merge(A,B),C) = merge(A,merge(B,C))"]
-        P3["Idempotent: merge(A,A) = A"]
-    end
-
-    C -.->|"Guaranteed by"| P1
-```
+![CRDTs guarantee convergence through mathematical properties of the merge function—order of operations, network duplicates, and timing are irrelevant.](./crdts-guarantee-convergence-through-mathematical-properties-of-the-merge-functio.svg)
 
 <figcaption>CRDTs guarantee convergence through mathematical properties of the merge function—order of operations, network duplicates, and timing are irrelevant.</figcaption>
 </figure>
@@ -272,17 +254,7 @@ function apply(counter: number, op: Operation): number {
 
 ### Decision Framework
 
-```mermaid
-flowchart TD
-    A[Need CRDT] --> B{Network reliability?}
-    B -->|"Unreliable/P2P"| C{State size?}
-    B -->|"Reliable infrastructure"| D[Operation-based]
-    C -->|"Small/bounded"| E[State-based]
-    C -->|"Large/unbounded"| F[Delta-state]
-    D --> G{Can guarantee causal delivery?}
-    G -->|No| F
-    G -->|Yes| H[Pure operation-based]
-```
+![Diagram](./diagram-1.svg)
 
 ## Common CRDT Data Structures
 
@@ -473,16 +445,7 @@ Correct:  "HellofoobarWorld" or "HellobarfooWorld"
 - **Conflict resolution**: LWW per-property-per-object. Two users changing different properties don't conflict.
 - **Persistence**: State in-memory, checkpointed to S3 every 30-60 seconds. Transaction log in DynamoDB.
 
-```mermaid
-flowchart LR
-    C1[Client 1] -->|Operations| S[Multiplayer Server]
-    C2[Client 2] -->|Operations| S
-    C3[Client 3] -->|Operations| S
-    S -->|Ordered Ops| C1
-    S -->|Ordered Ops| C2
-    S -->|Ordered Ops| C3
-    S -->|Checkpoint| DB[(DynamoDB + S3)]
-```
+![Diagram](./diagram-2.svg)
 
 **What worked:**
 
@@ -508,22 +471,7 @@ flowchart LR
 
 **Internal architecture:**
 
-```mermaid
-flowchart TB
-    subgraph "Yjs Document"
-        direction TB
-        ST[Shared Types] --> SS[Struct Store]
-        SS --> B1[Block 1: clientId=A, seq=0]
-        SS --> B2[Block 2: clientId=A, seq=1]
-        SS --> B3[Block 3: clientId=B, seq=0]
-    end
-
-    subgraph "Encoding"
-        direction TB
-        V1[V1: Variable integers]
-        V2[V2: Run-length encoding]
-    end
-```
+![Diagram](./diagram-3.svg)
 
 **Key optimizations:**
 
@@ -821,20 +769,7 @@ Recent research (Eg-walker, 2024) combines benefits of both:
 
 ### Starting Point Decision
 
-```mermaid
-flowchart TD
-    A[Need collaborative data structure] --> B{Existing library fits?}
-    B -->|Yes| C{Which runtime?}
-    B -->|No| D{Team CRDT experience?}
-    C -->|JavaScript| E[Yjs or Automerge]
-    C -->|Rust| F[Loro or Diamond Types]
-    C -->|JVM| G[Akka Distributed Data]
-    C -->|Erlang| H[riak_dt]
-    D -->|Low| I[Use library anyway - CRDTs are subtle]
-    D -->|High| J{Performance critical?}
-    J -->|No| I
-    J -->|Yes| K[Custom implementation]
-```
+![Diagram](./diagram-4.svg)
 
 ### Library Recommendations
 

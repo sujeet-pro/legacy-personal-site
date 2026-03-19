@@ -8,43 +8,7 @@ A system design for a file synchronization service that keeps files consistent a
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Clients["Client Devices"]
-        C1[Desktop Client]
-        C2[Mobile Client]
-        C3[Web Client]
-    end
-
-    subgraph Edge["Edge Layer"]
-        CDN[CDN - Static Assets]
-        LB[Load Balancer]
-    end
-
-    subgraph Services["Application Services"]
-        API[API Gateway]
-        Meta[Metadata Service]
-        Block[Block Service]
-        Notify[Notification Service]
-        Sync[Sync Engine]
-    end
-
-    subgraph Data["Data Layer"]
-        MetaDB[(Metadata DB)]
-        BlockStore[(Block Storage)]
-        Cache[(Cache Layer)]
-        Queue[Message Queue]
-    end
-
-    C1 & C2 & C3 --> CDN
-    C1 & C2 & C3 --> LB
-    LB --> API
-    API --> Meta & Block & Notify
-    Meta --> MetaDB & Cache
-    Block --> BlockStore
-    Notify --> Queue
-    Sync --> Meta & Block & Queue
-```
+![High-level architecture: clients sync through API gateway to metadata and block services, with real-time notifications via message queue.](./high-level-architecture-clients-sync-through-api-gateway-to-metadata-and-block-s.svg)
 
 <figcaption>High-level architecture: clients sync through API gateway to metadata and block services, with real-time notifications via message queue.</figcaption>
 </figure>
@@ -276,40 +240,7 @@ function findChunkBoundary(
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Client
-        Chunker[CDC Chunker]
-        BCache[Block Cache]
-    end
-
-    subgraph BlockService["Block Service"]
-        Upload[Upload Handler]
-        Download[Download Handler]
-        Dedup[Dedup Check]
-    end
-
-    subgraph Storage["Distributed Storage"]
-        subgraph Zone1["Zone 1 (West)"]
-            Cell1A[Cell 1A]
-            Cell1B[Cell 1B]
-        end
-        subgraph Zone2["Zone 2 (Central)"]
-            Cell2A[Cell 2A]
-        end
-        subgraph Zone3["Zone 3 (East)"]
-            Cell3A[Cell 3A]
-        end
-    end
-
-    Chunker --> BCache
-    BCache --> Upload
-    Upload --> Dedup
-    Dedup -->|"block exists"| Skip[Skip Upload]
-    Dedup -->|"new block"| Zone1 & Zone2
-    Download --> BCache
-    Zone1 -.->|"async replication"| Zone3
-```
+![Block storage with three-zone replication. Blocks stored in at least 2 zones within 1 second, third zone async.](./block-storage-with-three-zone-replication-blocks-stored-in-at-least-2-zones-with.svg)
 
 <figcaption>Block storage with three-zone replication. Blocks stored in at least 2 zones within 1 second, third zone async.</figcaption>
 </figure>
@@ -529,30 +460,7 @@ POST /api/v2/files/upload_session/finish
 
 <figure>
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant M as Metadata Service
-    participant B as Block Service
-
-    Note over C: File changed locally
-    C->>C: Chunk file (CDC)
-    C->>C: Hash each block
-
-    C->>M: Commit blocklist [h1, h2, h3]
-    M->>M: Check which blocks exist
-    M-->>C: Need blocks: [h2]
-
-    C->>B: Upload block h2
-    B-->>C: Block stored
-
-    C->>M: Retry commit [h1, h2, h3]
-    M->>M: All blocks present
-    M-->>C: Commit success, rev=15
-
-    Note over M: Notify other clients
-    M->>M: Publish to notification queue
-```
+![Upload flow: commit blocklist first, upload only missing blocks, then finalize. Streaming sync allows downloads to begin before upload completes.](./upload-flow-commit-blocklist-first-upload-only-missing-blocks-then-finalize-stre.svg)
 
 <figcaption>Upload flow: commit blocklist first, upload only missing blocks, then finalize. Streaming sync allows downloads to begin before upload completes.</figcaption>
 </figure>

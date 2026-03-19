@@ -8,38 +8,7 @@ A defense-in-depth guide to security controls, threat mitigation strategies, and
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Threats["Attack Surface"]
-        XSS["XSS"]
-        CSRF["CSRF"]
-        Injection["Injection"]
-        BAC["Broken Access Control"]
-        Crypto["Crypto Failures"]
-    end
-
-    subgraph Defense["Defense in Depth Layers"]
-        direction TB
-        L1["Network: WAF, TLS 1.3, HSTS"]
-        L2["Transport: Security Headers, CSP"]
-        L3["Application: Auth, Input Validation"]
-        L4["Data: Encryption, Hashing"]
-        L5["Monitoring: Logging, Alerting"]
-    end
-
-    subgraph Controls["Control Types"]
-        Prevent["Preventive"]
-        Detect["Detective"]
-        Correct["Corrective"]
-    end
-
-    Threats --> L1
-    L1 --> L2
-    L2 --> L3
-    L3 --> L4
-    L4 --> L5
-    L5 --> Controls
-```
+![Defense in depth: multiple security layers where each compensates for potential failures in others. Attackers must bypass all layers to compromise the system.](./defense-in-depth-multiple-security-layers-where-each-compensates-for-potential-f.svg)
 
 <figcaption>Defense in depth: multiple security layers where each compensates for potential failures in others. Attackers must bypass all layers to compromise the system.</figcaption>
 </figure>

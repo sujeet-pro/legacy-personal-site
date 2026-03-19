@@ -8,28 +8,7 @@ Measuring frontend performance in production requires capturing real user experi
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph "Browser"
-        A[Performance APIs] --> B[Metrics Collection]
-        B --> C[Beacon/sendBeacon]
-    end
-
-    subgraph "Collection"
-        C --> D[Ingestion Endpoint]
-        D --> E[Processing Pipeline]
-    end
-
-    subgraph "Analysis"
-        E --> F[Aggregation]
-        F --> G[Dashboards]
-        F --> H[Alerting]
-    end
-
-    I[Core Web Vitals] --> A
-    J[Custom Metrics] --> A
-    K[Errors] --> A
-```
+![RUM architecture: browser APIs capture metrics, beacons transmit reliably on page unload, backend pipelines aggregate and surface insights.](./rum-architecture-browser-apis-capture-metrics-beacons-transmit-reliably-on-page-.svg)
 
 <figcaption>RUM architecture: browser APIs capture metrics, beacons transmit reliably on page unload, backend pipelines aggregate and surface insights.</figcaption>
 </figure>

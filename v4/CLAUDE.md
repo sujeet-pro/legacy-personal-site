@@ -8,31 +8,23 @@ Personal technical blog for senior/staff/principal engineers. Built with Astro, 
 
 **Production**: https://sujeet.pro
 
-## Claude Skills
+## Skills
 
-Use these commands for common tasks:
+Use global devkit skills for content and code work:
 
 ### Content Skills
 
-| Command                                            | Description                                |
-| -------------------------------------------------- | ------------------------------------------ |
-| `/write-article <topic>`                           | Write new article with deep research       |
-| `/update-article <path> <prompt>`                  | Update existing article with deep research |
-| `/write-project <folder> [existing-project-path]`  | Write/update project page from local code  |
-
-### Skill Details
-
-See `.claude/skills/`, `.codex/skills/`, and `llm_docs/skills/` for detailed documentation:
-
-- `write-article/SKILL.md` - Claude wrapper for `llm_docs/skills/write-article.md`
-- `update-article/SKILL.md` - Claude wrapper for `llm_docs/skills/update-article.md`
-- `write-project/SKILL.md` - Claude wrapper for `llm_docs/skills/write-project.md`
-- Codex wrappers live in `.codex/skills/` with the same skill names
+| Command                                    | Description                                |
+| ------------------------------------------ | ------------------------------------------ |
+| `/article <topic>`                         | Write new article with deep research       |
+| `/article update <path> <prompt>`          | Update existing article with deep research |
+| `/project-docs <folder>`                   | Write/update project page from local code  |
+| `/blog <topic>`                            | Write a blog post                          |
 
 ### Guidelines
 
-- Content work: `llm_docs/guidelines-content/`
-- Code changes: `llm_docs/guidelines-code/` (only when changing site functionality)
+- Content work: `guidelines/document/`
+- Code changes: `guidelines/coding/` (only when changing site functionality)
 
 ## Tech Stack
 
@@ -92,9 +84,12 @@ content/
 ├── site.json5           # Site metadata
 └── vanity.json5         # Redirects
 
+guidelines/              # Project-specific guidelines (devkit standard)
+├── document/            # Content writing guidelines
+└── coding/              # Codebase change guidelines
+
 scripts/
-├── validation/          # Build validation scripts
-└── copy-katex-assets.ts # Copy KaTeX assets into public
+└── validation/          # Build validation scripts
 
 public/                  # Static assets (fonts, favicons)
 ```
@@ -110,23 +105,24 @@ public/                  # Static assets (fonts, favicons)
 ```bash
 # Development
 npm run dev          # Local dev server
-
-# Production build
 npm run build        # Build for production
-
-# Preview
 npm run preview      # Preview built site locally
 
+# Code quality
+npm run check        # Astro type checking
+npm run lint         # ESLint with auto-fix
+npm run format       # Prettier formatting
+npm run test         # Run tests
+
 # Validation
-npm run validate:build    # Validate built HTML files
 npm run validate:content  # Validate content structure, links, and config files
-npm run validate:local    # Validate local dev server (localhost:4321)
-npm run validate:prod     # Validate production site (sujeet.pro)
+npm run validate:build    # Validate built HTML files (requires build)
+npm run validate:url -- <url>  # Validate a live site (e.g. http://localhost:4321 or https://sujeet.pro)
+npm run validate          # Run all validators (content + build)
 
 # Performance Audits (Unlighthouse)
-npm run lighthouse        # Run Lighthouse on production (mobile)
+npm run lighthouse        # Run Lighthouse on production
 npm run lighthouse:local  # Run Lighthouse on local server
-npm run lighthouse:desktop # Run Lighthouse on production (desktop)
 ```
 
 ### Performance Reports (Unlighthouse)
@@ -229,7 +225,7 @@ Optional:
 
 ### Adding a New Article
 
-Use `/write-article <topic>` or manually:
+Use `/article <topic>` or manually:
 
 1. Create folder: `content/articles/<category>/<topic>/<article>/README.md`
 2. Add H1 title and description paragraph(s) (no frontmatter required)
@@ -264,12 +260,12 @@ This project follows strict styling conventions for maintainability, consistency
 ### Pattern: Custom Classes with @apply
 
 ```astro
-<!-- ❌ BAD: Inline Tailwind classes -->
+<!-- BAD: Inline Tailwind classes -->
 <button class="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
   Click me
 </button>
 
-<!-- ✅ GOOD: Semantic custom class -->
+<!-- GOOD: Semantic custom class -->
 <button class="btn-primary"> Click me </button>
 ```
 

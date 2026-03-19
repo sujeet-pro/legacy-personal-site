@@ -8,29 +8,7 @@ In early 2014, Uber faced an infrastructure crisis: trip data growth was consumi
 
 <figure>
 
-```mermaid
-flowchart TD
-    subgraph "Schemaless Architecture"
-        Client[Client Application] --> Worker[Worker Nodes]
-        Worker --> |"Shard Routing"| Storage1[Storage Node<br/>Master]
-        Worker --> |"Shard Routing"| Storage2[Storage Node<br/>Master]
-        Storage1 --> Minion1A[Minion A]
-        Storage1 --> Minion1B[Minion B]
-        Storage2 --> Minion2A[Minion A]
-        Storage2 --> Minion2B[Minion B]
-    end
-
-    subgraph "Cell Model"
-        Cell["Cell = (row_key, column_name, ref_key) → JSON body"]
-    end
-
-    subgraph "Design Principles"
-        P1[Immutable Writes]
-        P2[Eventual Consistency]
-        P3[Fixed 4096 Shards]
-        P4[MySQL Storage Engine]
-    end
-```
+![Schemaless architecture: worker nodes route requests to sharded MySQL storage nodes. Each cell is immutable and versioned.](./schemaless-architecture-worker-nodes-route-requests-to-sharded-mysql-storage-nod.svg)
 
 <figcaption>Schemaless architecture: worker nodes route requests to sharded MySQL storage nodes. Each cell is immutable and versioned.</figcaption>
 </figure>
@@ -150,20 +128,7 @@ Cell = (row_key, column_name, ref_key) → JSON body
 2. Worker routes to storage node (default: master, configurable per request)
 3. Storage node returns cell with highest `ref_key`
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant W as Worker Node
-    participant M as Master
-    participant R as Minion
-
-    C->>W: Write cell (row_key, column_name, body)
-    W->>W: Hash row_key → shard
-    W->>M: INSERT cell with new ref_key
-    M->>R: Async replication
-    M->>W: ACK
-    W->>C: Success
-```
+![Diagram](./diagram-1.svg)
 
 ## Sharding Architecture
 
@@ -254,21 +219,7 @@ Storage nodes are MySQL instances that:
 
 **Buffered writes (hinted handoff)**:
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant W as Worker
-    participant M1 as Master (down)
-    participant M2 as Other Master
-
-    C->>W: Write cell
-    W->>M1: Attempt write
-    M1--xW: Timeout/Error
-    W->>M2: Buffer write to disk
-    M2->>W: ACK (buffered)
-    W->>C: Success (buffered)
-    Note over M1,M2: When M1 recovers, buffered writes replay
-```
+![Diagram](./diagram-2.svg)
 
 **Trade-off**: Buffered writes are not immediately readable. Client knows the master is down but cannot read the buffered data until recovery.
 
@@ -335,23 +286,7 @@ def on_trip_update(cell):
 3. Workers poll for cells with `added_id > offset`
 4. Process cell, advance offset
 
-```mermaid
-flowchart LR
-    subgraph "Shard N"
-        Cells[(Cells with added_id)]
-    end
-
-    subgraph "Trigger Infrastructure"
-        TW1[Trigger Worker 1]
-        TW2[Trigger Worker 2]
-        ZK[(Offset Storage<br/>ZooKeeper/Schemaless)]
-    end
-
-    Cells --> TW1
-    Cells --> TW2
-    TW1 --> ZK
-    TW2 --> ZK
-```
+![Diagram](./diagram-3.svg)
 
 **Delivery guarantee**: At-least-once. Triggers must be idempotent.
 
@@ -380,13 +315,7 @@ flowchart LR
 
 Migration from PostgreSQL to Schemaless used a **dual-write pattern**:
 
-```mermaid
-flowchart TD
-    App[Application] --> Abstraction["lib/tripstore abstraction"]
-    Abstraction --> |"Always"| PG[(PostgreSQL)]
-    Abstraction --> |"Feature flag"| Schema[(Schemaless)]
-    Abstraction --> |"Shadow reads"| Compare{Compare Results}
-```
+![Diagram](./diagram-4.svg)
 
 1. **Phase 1**: All writes go to PostgreSQL. Shadow writes to Schemaless.
 2. **Phase 2**: Shadow reads from Schemaless, compare with PostgreSQL results.

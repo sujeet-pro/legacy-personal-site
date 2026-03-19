@@ -19,37 +19,7 @@ md2cf works as both a CLI tool and a Node.js library. Point it at a Markdown fil
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph Sources
-        A[Local .md file]
-        B[Remote URL]
-        C[Folder tree]
-    end
-
-    subgraph md2cf
-        D[Markdown Reader]
-        E[Mermaid Renderer]
-        F[MD → ADF Converter]
-        G[TOC Macro Injector]
-        H[Confluence Client]
-    end
-
-    subgraph Confluence Cloud
-        I[REST API v2]
-        J[Pages]
-    end
-
-    A --> D
-    B --> D
-    C --> D
-    D --> E
-    E --> F
-    F --> G
-    G --> H
-    H --> I
-    I --> J
-```
+![md2cf pipeline: Markdown sources are read, Mermaid diagrams rendered to PNG, content converted to ADF, TOC sections replaced with Confluence macros, and pages created or updated via the REST API v2.](./md2cf-pipeline-markdown-sources-are-read-mermaid-diagrams-rendered-to-png-conten.svg)
 
 <figcaption>md2cf pipeline: Markdown sources are read, Mermaid diagrams rendered to PNG, content converted to ADF, TOC sections replaced with Confluence macros, and pages created or updated via the REST API v2.</figcaption>
 </figure>

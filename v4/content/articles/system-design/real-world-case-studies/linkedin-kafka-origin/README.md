@@ -8,32 +8,7 @@ In 2010, LinkedIn faced a data infrastructure crisis: connecting 10 specialized 
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph Before["Before Kafka: O(N²) Integration"]
-        direction TB
-        S1[App Servers] --> DB1[Oracle]
-        S1 --> H1[Hadoop]
-        S1 --> M1[Monitoring]
-        DB1 --> H1
-        DB1 --> DW[Data Warehouse]
-        H1 --> DW
-        M1 --> H1
-    end
-
-    subgraph After["After Kafka: O(N) Integration"]
-        direction TB
-        A1[App Servers] --> K[Kafka]
-        A2[Databases] --> K
-        A3[Logs] --> K
-        K --> C1[Hadoop]
-        K --> C2[Real-time]
-        K --> C3[Search]
-        K --> C4[Data Warehouse]
-    end
-
-    Before -.->|"Kafka as unified bus"| After
-```
+![LinkedIn's data integration complexity before and after Kafka. The O(N²) point-to-point connections collapsed into O(N) connections through a unified log.](./linkedin-s-data-integration-complexity-before-and-after-kafka-the-o-n-point-to-p.svg)
 
 <figcaption>LinkedIn's data integration complexity before and after Kafka. The O(N²) point-to-point connections collapsed into O(N) connections through a unified log.</figcaption>
 </figure>
@@ -261,38 +236,7 @@ Each arrow represents a custom integration.
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph Producers
-        App[App Servers]
-        DB[Database CDC]
-        Log[Log Collectors]
-    end
-
-    subgraph Kafka["Kafka Cluster"]
-        T1[Topic: activity-events]
-        T2[Topic: db-changes]
-        T3[Topic: logs]
-    end
-
-    subgraph Consumers
-        Hadoop[Hadoop]
-        RT[Real-time Processing]
-        Search[Search Indexing]
-        Mon[Monitoring]
-    end
-
-    App --> T1
-    DB --> T2
-    Log --> T3
-
-    T1 --> Hadoop
-    T1 --> RT
-    T2 --> Search
-    T2 --> Hadoop
-    T3 --> Mon
-    T3 --> Hadoop
-```
+![Kafka architecture: producers publish to topics, consumers subscribe independently. Each consumer maintains its own offset.](./kafka-architecture-producers-publish-to-topics-consumers-subscribe-independently.svg)
 
 <figcaption>Kafka architecture: producers publish to topics, consumers subscribe independently. Each consumer maintains its own offset.</figcaption>
 </figure>
@@ -348,23 +292,7 @@ flowchart TB
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph "Topic: user-events"
-        P0["Partition 0<br/>user_id % 3 == 0"]
-        P1["Partition 1<br/>user_id % 3 == 1"]
-        P2["Partition 2<br/>user_id % 3 == 2"]
-    end
-
-    subgraph "Consumer Group A"
-        C0[Consumer 0]
-        C1[Consumer 1]
-    end
-
-    P0 --> C0
-    P1 --> C0
-    P2 --> C1
-```
+![Partitioning enables parallelism. Consumer group distributes partitions across members. Messages with the same key always go to the same partition, preserving per-key ordering.](./partitioning-enables-parallelism-consumer-group-distributes-partitions-across-me.svg)
 
 <figcaption>Partitioning enables parallelism. Consumer group distributes partitions across members. Messages with the same key always go to the same partition, preserving per-key ordering.</figcaption>
 </figure>
@@ -481,13 +409,7 @@ while (true) {
 
 <figure>
 
-```mermaid
-xychart-beta
-    title "LinkedIn Kafka Scale Growth (Messages/Day)"
-    x-axis [2011, 2012, 2013, 2015, 2024]
-    y-axis "Messages (Billions)" 0 --> 8000
-    bar [1, 20, 200, 1000, 7000]
-```
+![LinkedIn's Kafka throughput grew 7,000× in 13 years, demonstrating the scalability of the log-based architecture.](./linkedin-s-kafka-throughput-grew-7-000-in-13-years-demonstrating-the-scalability.svg)
 
 <figcaption>LinkedIn's Kafka throughput grew 7,000× in 13 years, demonstrating the scalability of the log-based architecture.</figcaption>
 </figure>

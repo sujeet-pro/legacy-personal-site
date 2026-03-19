@@ -8,32 +8,7 @@ How Dropbox migrated 500+ petabytes off AWS S3 onto custom infrastructure in und
 
 <figure>
 
-```mermaid
-flowchart TD
-    subgraph "Client Layer"
-        C[Dropbox Client]
-    end
-
-    subgraph "Metadata Layer"
-        ES[Edgestore<br/>Metadata Store]
-    end
-
-    subgraph "Magic Pocket"
-        FE[Frontends] --> BI[Block Index<br/>Sharded MySQL]
-        FE --> |"PUT/GET"| OSD1[OSD Nodes<br/>Zone West]
-        FE --> |"PUT/GET"| OSD2[OSD Nodes<br/>Zone Central]
-        FE --> |"PUT/GET"| OSD3[OSD Nodes<br/>Zone East]
-        M[Master<br/>Coordinator] --> |"repair, GC"| OSD1
-        M --> OSD2
-        M --> OSD3
-        OSD1 <--> |"cross-zone<br/>replication"| OSD2
-        OSD2 <--> OSD3
-        OSD1 <--> OSD3
-    end
-
-    C --> ES
-    ES --> FE
-```
+![Magic Pocket's core architecture: clients interact with Edgestore for metadata, which routes to Magic Pocket frontends. Frontends consult the Block Index for placement and store blocks across three geographic zones with cross-zone replication.](./magic-pocket-s-core-architecture-clients-interact-with-edgestore-for-metadata-wh.svg)
 
 <figcaption>Magic Pocket's core architecture: clients interact with Edgestore for metadata, which routes to Magic Pocket frontends. Frontends consult the Block Index for placement and store blocks across three geographic zones with cross-zone replication.</figcaption>
 </figure>
@@ -175,16 +150,7 @@ Magic Pocket's architecture reflects a single design principle: **immutable, con
 
 <figure>
 
-```mermaid
-flowchart TD
-    subgraph "Data Hierarchy"
-        B["Block (up to 4 MB)<br/>SHA-256 identified"] --> BK["Bucket (~1 GB)<br/>Aggregates blocks by time"]
-        BK --> V["Volume<br/>Replicated across OSDs"]
-        V --> E["Extent (1-2 GB)<br/>Physical on-disk unit, append-only"]
-        E --> CL["Cell (~50 PB raw)<br/>Self-contained cluster"]
-        CL --> Z["Zone<br/>Geographic region"]
-    end
-```
+![Magic Pocket's data hierarchy: blocks aggregate into buckets, buckets into volumes replicated across OSDs, stored as extents within cells, organized by geographic zone.](./magic-pocket-s-data-hierarchy-blocks-aggregate-into-buckets-buckets-into-volumes.svg)
 
 <figcaption>Magic Pocket's data hierarchy: blocks aggregate into buckets, buckets into volumes replicated across OSDs, stored as extents within cells, organized by geographic zone.</figcaption>
 </figure>
@@ -373,16 +339,7 @@ More than **50% of the workload on disks and databases** is internal verificatio
 
 <figure>
 
-```mermaid
-flowchart TD
-    subgraph "Continuous Verification"
-        DS[Disk Scrubber<br/>Full sweep every 1-2 weeks] --> |"bit rot, bad sectors"| REPAIR[Re-replication<br/>& Remediation]
-        MS[Metadata Scanner<br/>1M blocks/sec] --> |"missing blocks"| REPAIR
-        SW[Storage Watcher<br/>1% sample at intervals] --> |"end-to-end failures"| ALERT[Alert & Investigate]
-        TI[Trash Inspector<br/>& Extent Referee] --> |"verify safe deletion"| GC[Garbage Collection]
-        CZV[Cross-Zone Verifier] --> |"zone replication gaps"| REPAIR
-    end
-```
+![Pocket Watch's five verification subsystems, each targeting a different failure mode.](./pocket-watch-s-five-verification-subsystems-each-targeting-a-different-failure-m.svg)
 
 <figcaption>Pocket Watch's five verification subsystems, each targeting a different failure mode.</figcaption>
 </figure>

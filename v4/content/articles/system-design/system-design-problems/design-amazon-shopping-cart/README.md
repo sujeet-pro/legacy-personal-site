@@ -8,58 +8,7 @@ A system design for an e-commerce shopping cart handling millions of concurrent 
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Client Layer"
-        Web[Web App]
-        Mobile[Mobile App]
-    end
-
-    subgraph "Edge & Gateway"
-        CDN[CDN / CloudFront]
-        LB[Load Balancer]
-        GW[API Gateway]
-    end
-
-    subgraph "Application Services"
-        CS[Cart Service]
-        PS[Pricing Service]
-        IS[Inventory Service]
-        COS[Checkout Orchestrator]
-        PayS[Payment Service]
-        NS[Notification Service]
-    end
-
-    subgraph "Data Layer"
-        Redis[(Redis Cluster)]
-        CartDB[(Cart DB)]
-        InvDB[(Inventory DB)]
-        OrderDB[(Order DB)]
-    end
-
-    subgraph "Async Processing"
-        MQ[Message Queue]
-        Workers[Background Workers]
-    end
-
-    Web --> CDN
-    Mobile --> CDN
-    CDN --> LB --> GW
-    GW --> CS
-    GW --> COS
-    CS --> Redis
-    CS --> CartDB
-    CS --> PS
-    CS --> IS
-    IS --> InvDB
-    COS --> PayS
-    COS --> IS
-    COS --> NS
-    COS --> OrderDB
-    CS --> MQ
-    MQ --> Workers
-    Workers --> CartDB
-```
+![High-level shopping cart architecture showing client apps, gateway layer, application services, and data stores with async processing for cart expiration and abandoned cart recovery.](./high-level-shopping-cart-architecture-showing-client-apps-gateway-layer-applicat.svg)
 
 <figcaption>High-level shopping cart architecture showing client apps, gateway layer, application services, and data stores with async processing for cart expiration and abandoned cart recovery.</figcaption>
 </figure>
@@ -207,75 +156,7 @@ This article focuses on **Path B (Availability-First)** because it represents th
 
 ### Service Architecture
 
-```mermaid
-flowchart TB
-    subgraph "Client"
-        Browser[Browser/Mobile]
-    end
-
-    subgraph "Gateway Layer"
-        GW[API Gateway]
-        Auth[Auth Service]
-    end
-
-    subgraph "Cart Domain"
-        CS[Cart Service]
-        Cache[(Redis Cart Cache)]
-        CartDB[(Cart Database)]
-    end
-
-    subgraph "Pricing Domain"
-        PS[Pricing Service]
-        PromoEngine[Promotion Engine]
-        PriceCache[(Price Cache)]
-    end
-
-    subgraph "Inventory Domain"
-        IS[Inventory Service]
-        ResCache[(Reservation Cache)]
-        InvDB[(Inventory Database)]
-    end
-
-    subgraph "Checkout Domain"
-        COS[Checkout Orchestrator]
-        PayS[Payment Service]
-        OrderS[Order Service]
-        OrderDB[(Order Database)]
-    end
-
-    subgraph "Async"
-        Queue[Message Queue]
-        CartWorker[Cart Expiry Worker]
-        NotifyWorker[Notification Worker]
-    end
-
-    Browser --> GW
-    GW --> Auth
-    GW --> CS
-    GW --> COS
-
-    CS --> Cache
-    CS --> CartDB
-    CS --> PS
-    CS --> IS
-
-    PS --> PromoEngine
-    PS --> PriceCache
-
-    IS --> ResCache
-    IS --> InvDB
-
-    COS --> PayS
-    COS --> IS
-    COS --> OrderS
-    OrderS --> OrderDB
-
-    CS --> Queue
-    Queue --> CartWorker
-    Queue --> NotifyWorker
-    CartWorker --> CartDB
-    CartWorker --> IS
-```
+![Diagram](./diagram-1.svg)
 
 ### Cart Service
 
@@ -291,26 +172,7 @@ Manages cart lifecycle: creation, item management, persistence, and merge operat
 
 **Data Flow - Add to Cart:**
 
-```mermaid
-sequenceDiagram
-    participant Client
-    participant CartService
-    participant InventoryService
-    participant PricingService
-    participant Redis
-    participant CartDB
-
-    Client->>CartService: POST /cart/items
-    CartService->>InventoryService: Check availability
-    InventoryService-->>CartService: Available (qty: 50)
-    CartService->>InventoryService: Soft reserve (qty: 1, ttl: 5min)
-    InventoryService-->>CartService: Reservation ID
-    CartService->>PricingService: Get current price
-    PricingService-->>CartService: $29.99
-    CartService->>Redis: Update cart cache
-    CartService->>CartDB: Persist cart (async)
-    CartService-->>Client: 200 OK (cart updated)
-```
+![Diagram](./diagram-2.svg)
 
 ### Inventory Service
 
@@ -325,16 +187,7 @@ Manages stock levels, reservations, and availability across warehouses.
 
 **Reservation State Machine:**
 
-```mermaid
-stateDiagram-v2
-    [*] --> Available
-    Available --> SoftReserved: Add to cart
-    SoftReserved --> Available: TTL expires / Remove from cart
-    SoftReserved --> HardReserved: Payment confirmed
-    HardReserved --> Allocated: Pick ticket created
-    Allocated --> Shipped: Shipment dispatched
-    HardReserved --> Available: Order cancelled
-```
+![Diagram](./diagram-3.svg)
 
 ### Checkout Orchestrator
 
@@ -825,28 +678,7 @@ Cart merge occurs when a guest user authenticates. The system must combine items
 
 ### Merge Algorithm
 
-```mermaid
-flowchart TD
-    A[User logs in with guest_token] --> B{User has existing cart?}
-    B -->|No| C[Convert guest cart to user cart]
-    B -->|Yes| D[Load both carts]
-    D --> E[For each guest cart item]
-    E --> F{Item exists in user cart?}
-    F -->|No| G[Add item to user cart]
-    F -->|Yes| H{Merge strategy}
-    H -->|Sum quantities| I[Add quantities, cap at max]
-    H -->|Keep higher| J[Take max quantity]
-    H -->|Keep user| K[Ignore guest item]
-    G --> L{More items?}
-    I --> L
-    J --> L
-    K --> L
-    L -->|Yes| E
-    L -->|No| M[Update reservations]
-    M --> N[Mark guest cart as merged]
-    N --> O[Return merged cart]
-    C --> O
-```
+![Diagram](./diagram-4.svg)
 
 ### Merge Implementation
 
@@ -960,55 +792,7 @@ The checkout process spans multiple services that must coordinate atomically des
 
 ### Saga Orchestration
 
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Orchestrator
-    participant CartService
-    participant InventoryService
-    participant PaymentService
-    participant OrderService
-
-    Client->>Orchestrator: POST /checkout/complete
-    activate Orchestrator
-
-    Orchestrator->>CartService: Validate cart (prices, availability)
-    CartService-->>Orchestrator: Cart valid
-
-    Orchestrator->>PaymentService: Authorize payment
-    PaymentService-->>Orchestrator: Authorization ID
-
-    Orchestrator->>InventoryService: Convert soft→hard reservations
-    alt Conversion fails
-        InventoryService-->>Orchestrator: Insufficient stock
-        Orchestrator->>PaymentService: Void authorization
-        Orchestrator-->>Client: 409 Conflict (stock unavailable)
-    end
-    InventoryService-->>Orchestrator: Hard reservations confirmed
-
-    Orchestrator->>OrderService: Create order
-    alt Order creation fails
-        OrderService-->>Orchestrator: Error
-        Orchestrator->>InventoryService: Release hard reservations
-        Orchestrator->>PaymentService: Void authorization
-        Orchestrator-->>Client: 500 Error (retry)
-    end
-    OrderService-->>Orchestrator: Order ID
-
-    Orchestrator->>PaymentService: Capture payment
-    alt Capture fails
-        PaymentService-->>Orchestrator: Capture failed
-        Orchestrator->>OrderService: Mark order as payment_failed
-        Orchestrator->>InventoryService: Release hard reservations
-        Orchestrator-->>Client: 402 Payment Required
-    end
-    PaymentService-->>Orchestrator: Capture confirmed
-
-    Orchestrator->>OrderService: Update order status to confirmed
-    Orchestrator->>CartService: Clear cart
-    deactivate Orchestrator
-    Orchestrator-->>Client: 201 Created (order confirmed)
-```
+![Diagram](./diagram-5.svg)
 
 ### Saga State Machine
 
@@ -1410,48 +1194,7 @@ function useCartPriceSync(cartId: string) {
 
 ### AWS Reference Architecture
 
-```mermaid
-flowchart TB
-    subgraph "Edge"
-        CF[CloudFront]
-        WAF[AWS WAF]
-    end
-
-    subgraph "Compute - VPC"
-        ALB[Application Load Balancer]
-        subgraph "ECS Cluster"
-            CartSvc[Cart Service<br/>Fargate]
-            CheckoutSvc[Checkout Service<br/>Fargate]
-            InventorySvc[Inventory Service<br/>Fargate]
-        end
-        StepFn[Step Functions<br/>Checkout Saga]
-    end
-
-    subgraph "Data"
-        ElastiCache[(ElastiCache<br/>Redis Cluster)]
-        RDS[(RDS PostgreSQL<br/>Multi-AZ)]
-        DynamoDB[(DynamoDB<br/>Reservations)]
-    end
-
-    subgraph "Async"
-        SQS[SQS<br/>Cart Events]
-        EventBridge[EventBridge<br/>Scheduler]
-        Lambda[Lambda<br/>Workers]
-    end
-
-    CF --> WAF --> ALB
-    ALB --> CartSvc
-    ALB --> CheckoutSvc
-    CheckoutSvc --> StepFn
-    CartSvc --> ElastiCache
-    CartSvc --> RDS
-    InventorySvc --> RDS
-    InventorySvc --> DynamoDB
-    CartSvc --> SQS
-    SQS --> Lambda
-    EventBridge --> Lambda
-    Lambda --> RDS
-```
+![Diagram](./diagram-6.svg)
 
 ### AWS Service Mapping
 
@@ -1471,30 +1214,7 @@ flowchart TB
 
 For high availability during peak events:
 
-```mermaid
-flowchart TB
-    subgraph "us-east-1 (Primary)"
-        ALB1[ALB]
-        ECS1[ECS Cluster]
-        RDS1[(RDS Primary)]
-        Redis1[(ElastiCache)]
-    end
-
-    subgraph "us-west-2 (Secondary)"
-        ALB2[ALB]
-        ECS2[ECS Cluster]
-        RDS2[(RDS Replica)]
-        Redis2[(ElastiCache)]
-    end
-
-    Route53[Route 53<br/>Latency Routing]
-    GlobalAcc[Global Accelerator]
-
-    Route53 --> GlobalAcc
-    GlobalAcc --> ALB1
-    GlobalAcc --> ALB2
-    RDS1 -.->|Async Replication| RDS2
-```
+![Diagram](./diagram-7.svg)
 
 **Failover Strategy:**
 

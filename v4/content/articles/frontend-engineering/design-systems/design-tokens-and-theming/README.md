@@ -8,33 +8,7 @@ Design tokens encode design decisions as platform-agnostic data, enabling consis
 
 <figure>
 
-```mermaid
-flowchart LR
-    subgraph Source["Source of Truth"]
-        F[Figma/Design Tool]
-        J[Token JSON Files]
-    end
-
-    subgraph Transform["Build Pipeline"]
-        SD[Style Dictionary]
-    end
-
-    subgraph Output["Platform Outputs"]
-        CSS[CSS Variables]
-        SASS[Sass Variables]
-        IOS[Swift/UIColor]
-        AND[Android XML]
-        COMP[Compose/SwiftUI]
-    end
-
-    F --> |Tokens Studio| J
-    J --> SD
-    SD --> CSS
-    SD --> SASS
-    SD --> IOS
-    SD --> AND
-    SD --> COMP
-```
+![Design token pipeline: tokens defined once, transformed per platform.](./design-token-pipeline-tokens-defined-once-transformed-per-platform.svg)
 
 <figcaption>Design token pipeline: tokens defined once, transformed per platform.</figcaption>
 </figure>
@@ -316,35 +290,7 @@ Style Dictionary (originally from Amazon) is the industry standard for token tra
 
 ### Pipeline Architecture
 
-```mermaid
-flowchart TD
-    subgraph Input
-        SRC[Source Tokens<br/>JSON/JSON5/YAML]
-        FIG[Figma<br/>via Tokens Studio]
-    end
-
-    subgraph Pipeline["Style Dictionary Pipeline"]
-        PARSE[Parse & Resolve<br/>References]
-        TRANS[Apply Transforms<br/>name, value, attribute]
-        FORMAT[Format Output]
-    end
-
-    subgraph Output
-        WEB[CSS Custom Props<br/>Sass Variables]
-        IOS[Swift Extensions<br/>UIColor]
-        AND[XML Resources<br/>Compose]
-        DOCS[Documentation<br/>JSON/TypeScript]
-    end
-
-    SRC --> PARSE
-    FIG --> |Sync to Git| SRC
-    PARSE --> TRANS
-    TRANS --> FORMAT
-    FORMAT --> WEB
-    FORMAT --> IOS
-    FORMAT --> AND
-    FORMAT --> DOCS
-```
+![Diagram](./diagram-1.svg)
 
 ### Style Dictionary Configuration
 

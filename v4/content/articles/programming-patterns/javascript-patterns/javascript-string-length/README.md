@@ -17,41 +17,7 @@ Photo by <a href="https://unsplash.com/@rikku72?utm_content=creditCopyText&utm_m
 
 <figure>
 
-```mermaid
-flowchart TD
-    subgraph "User Perception"
-        G["👨‍👩‍👧‍👦<br/>1 grapheme cluster"]
-    end
-
-    subgraph "Unicode Code Points"
-        CP1["👨 U+1F468"]
-        ZWJ1["‍ U+200D"]
-        CP2["👩 U+1F469"]
-        ZWJ2["‍ U+200D"]
-        CP3["👧 U+1F467"]
-        ZWJ3["‍ U+200D"]
-        CP4["👦 U+1F466"]
-    end
-
-    subgraph "UTF-16 Code Units (string.length = 11)"
-        CU1["D83D DC68"]
-        CU2["200D"]
-        CU3["D83D DC69"]
-        CU4["200D"]
-        CU5["D83D DC67"]
-        CU6["200D"]
-        CU7["D83D DC66"]
-    end
-
-    G --> CP1 & CP2 & CP3 & CP4
-    CP1 --> CU1
-    ZWJ1 --> CU2
-    CP2 --> CU3
-    ZWJ2 --> CU4
-    CP3 --> CU5
-    ZWJ3 --> CU6
-    CP4 --> CU7
-```
+![Text exists at multiple abstraction layers: grapheme clusters (what users see), code points (Unicode characters), and code units (what JavaScript counts)](./text-exists-at-multiple-abstraction-layers-grapheme-clusters-what-users-see-code.svg)
 
 <figcaption>Text exists at multiple abstraction layers: grapheme clusters (what users see), code points (Unicode characters), and code units (what JavaScript counts)</figcaption>
 </figure>

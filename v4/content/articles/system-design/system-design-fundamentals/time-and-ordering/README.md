@@ -10,34 +10,7 @@ Time in distributed systems is not what it seems. Physical clocks drift, network
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Time Solutions Spectrum"
-        direction LR
-        PHYSICAL["Physical Clocks<br/>NTP, PTP, TrueTime<br/>Wall-clock ordering"]
-        LOGICAL["Logical Clocks<br/>Lamport, Vector<br/>Causal ordering"]
-        HYBRID["Hybrid Clocks<br/>HLC<br/>Best of both"]
-    end
-
-    subgraph "Ordering Guarantees"
-        direction TB
-        TOTAL["Total Order<br/>All events ordered<br/>Single timeline"]
-        CAUSAL["Causal Order<br/>Cause before effect<br/>Concurrent events unordered"]
-        PARTIAL["Partial Order<br/>Some events comparable<br/>Minimal coordination"]
-    end
-
-    PHYSICAL --> TOTAL
-    LOGICAL --> CAUSAL
-    HYBRID --> CAUSAL
-    HYBRID -.->|"with bounded uncertainty"| TOTAL
-
-    style PHYSICAL fill:#dae8fc,stroke:#6c8ebf
-    style LOGICAL fill:#d5e8d4,stroke:#82b366
-    style HYBRID fill:#fff2cc,stroke:#d6b656
-    style TOTAL fill:#f8cecc,stroke:#b85450
-    style CAUSAL fill:#e1d5e7,stroke:#9673a6
-    style PARTIAL fill:#ffe6cc,stroke:#d79b00
-```
+![The spectrum of time solutions mapped to ordering guarantees they can provide](./the-spectrum-of-time-solutions-mapped-to-ordering-guarantees-they-can-provide.svg)
 
 <figcaption>The spectrum of time solutions mapped to ordering guarantees they can provide</figcaption>
 

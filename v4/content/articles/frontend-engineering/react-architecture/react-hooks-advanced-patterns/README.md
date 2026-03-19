@@ -8,34 +8,7 @@ Advanced hook APIs, performance patterns, and composition techniques for concurr
 
 <figure>
 
-```mermaid
-flowchart TB
-    subgraph "Specialized Hooks by Problem Domain"
-        direction TB
-        subgraph "Concurrent Rendering"
-            useTransition["useTransition<br/>Non-blocking state updates"]
-            useDeferredValue["useDeferredValue<br/>Defer non-critical values"]
-        end
-
-        subgraph "Effect Timing"
-            useLayoutEffect["useLayoutEffect<br/>Before paint (DOM measurement)"]
-            useInsertionEffect["useInsertionEffect<br/>Before layout (CSS injection)"]
-        end
-
-        subgraph "External Integration"
-            useSyncExternalStore["useSyncExternalStore<br/>External store subscription"]
-            use["use<br/>Promise/Context consumption"]
-        end
-
-        subgraph "SSR & Accessibility"
-            useId["useId<br/>Stable unique IDs"]
-        end
-    end
-
-    useTransition --> useDeferredValue
-    useLayoutEffect --> useInsertionEffect
-    use --> useSyncExternalStore
-```
+![Specialized hooks grouped by the problem domain they address. Concurrent hooks optimize UI responsiveness; effect timing hooks control when code runs relative to browser paint; external integration hooks connect React to non-React state.](./specialized-hooks-grouped-by-the-problem-domain-they-address-concurrent-hooks-op.svg)
 
 <figcaption>Specialized hooks grouped by the problem domain they address. Concurrent hooks optimize UI responsiveness; effect timing hooks control when code runs relative to browser paint; external integration hooks connect React to non-React state.</figcaption>
 </figure>

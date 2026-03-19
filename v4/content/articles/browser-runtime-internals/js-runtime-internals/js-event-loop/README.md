@@ -39,41 +39,7 @@ JavaScript's characterization as a "single-threaded, non-blocking, asynchronous,
 
 <figure>
 
-```mermaid
-graph TB
-    subgraph "JavaScript Runtime"
-        subgraph "JavaScript Engine"
-            A["V8/SpiderMonkey/JavaScriptCore"]
-            B[ECMAScript Implementation]
-            C[Call Stack & Heap]
-            D[Garbage Collection]
-        end
-
-        subgraph "Host Environment"
-            E["Browser APIs / Node.js APIs"]
-            F[Event Loop]
-            G[I/O Operations]
-            H[Timer Management]
-        end
-
-        subgraph "Bridge Layer"
-            I[API Bindings]
-            J[Callback Queuing]
-            K[Event Delegation]
-        end
-    end
-
-    A --> B
-    B --> C
-    B --> D
-    E --> F
-    F --> G
-    F --> H
-    B --> I
-    I --> J
-    J --> K
-    K --> F
-```
+![JavaScript runtime architecture showing the relationship between the engine, host environment, and bridge layer components](./javascript-runtime-architecture-showing-the-relationship-between-the-engine-host.svg)
 
 <figcaption>JavaScript runtime architecture showing the relationship between the engine, host environment, and bridge layer components</figcaption>
 
@@ -91,19 +57,7 @@ This run-to-completion model simplifies reasoning about shared state (no need fo
 
 <figure>
 
-```mermaid
-graph LR
-    subgraph "Execution Model"
-        A[Task Queue] --> B[Event Loop]
-        B --> C[Call Stack]
-        C --> D[Function Execution]
-        D --> E[Return/Complete]
-        E --> F[Stack Empty?]
-        F -->|Yes| G[Next Task]
-        F -->|No| D
-        G --> A
-    end
-```
+![Core execution model showing the flow between task queue, event loop, and call stack](./core-execution-model-showing-the-flow-between-task-queue-event-loop-and-call-sta.svg)
 
 <figcaption>Core execution model showing the flow between task queue, event loop, and call stack</figcaption>
 
@@ -113,23 +67,7 @@ graph LR
 
 <figure>
 
-```mermaid
-graph TD
-    A["ECMA-262 (ES2025)"] --> B[Agent Model]
-    B --> C[Jobs & Job Queues]
-    C --> D[HostEnqueuePromiseJob]
-
-    E[WHATWG HTML Standard] --> F[Browser Event Loop]
-    F --> G[Tasks & Microtasks]
-    F --> H[Rendering Pipeline]
-
-    I["Node.js / libuv"] --> J[Phased Event Loop]
-    J --> K["I/O Optimization"]
-    J --> L[Thread Pool]
-
-    D --> F
-    D --> J
-```
+![ECMAScript defines abstract Jobs; host environments implement concrete event loops](./ecmascript-defines-abstract-jobs-host-environments-implement-concrete-event-loop.svg)
 
 <figcaption>ECMAScript defines abstract Jobs; host environments implement concrete event loops</figcaption>
 
@@ -145,19 +83,7 @@ All modern JavaScript environments implement a two-tiered priority system. Per t
 
 <figure>
 
-```mermaid
-graph TD
-    A[Event Loop Tick] --> B[Select Macrotask]
-    B --> C[Execute Macrotask]
-    C --> D[Call Stack Empty?]
-    D -->|No| C
-    D -->|Yes| E[Microtask Checkpoint]
-    E --> F[Process All Microtasks]
-    F --> G[Microtask Queue Empty?]
-    G -->|No| F
-    G -->|Yes| H[Next Phase]
-    H --> A
-```
+![Queue processing model showing the priority system between macrotasks and microtasks in the event loop](./queue-processing-model-showing-the-priority-system-between-macrotasks-and-microt.svg)
 
 <figcaption>Queue processing model showing the priority system between macrotasks and microtasks in the event loop</figcaption>
 
@@ -167,36 +93,7 @@ graph TD
 
 <figure>
 
-```mermaid
-graph TD
-    subgraph "Execution Priority"
-        A[Synchronous Code] --> B[nextTick Queue]
-        B --> C[Microtask Queue]
-        C --> D[Macrotask Queue]
-        D --> E[Event Loop Phases]
-    end
-
-    subgraph "Macrotask Sources"
-        F[setTimeout/setInterval]
-        G[I/O Operations]
-        H[User Events]
-        I[Network Requests]
-    end
-
-    subgraph "Microtask Sources"
-        J[Promise callbacks]
-        K[queueMicrotask]
-        L[MutationObserver]
-    end
-
-    F --> D
-    G --> D
-    H --> D
-    I --> D
-    J --> C
-    K --> C
-    L --> C
-```
+![Priority hierarchy showing the execution order from synchronous code through microtasks to macrotasks](./priority-hierarchy-showing-the-execution-order-from-synchronous-code-through-mic.svg)
 
 <figcaption>Priority hierarchy showing the execution order from synchronous code through microtasks to macrotasks</figcaption>
 
@@ -236,25 +133,7 @@ The WHATWG HTML Living Standard (January 2026) defines the event loop processing
 
 <figure>
 
-```mermaid
-graph TD
-    A[Event Loop Iteration] --> B[Select Task from Queue]
-    B --> C[Execute Task]
-    C --> D[Call Stack Empty?]
-    D -->|No| C
-    D -->|Yes| E[Microtask Checkpoint]
-    E --> F[Drain Microtask Queue]
-    F --> G[Update Rendering?]
-    G -->|Yes| H[Run rAF Callbacks]
-    H --> I[Style Recalculation]
-    I --> J["Layout/Reflow"]
-    J --> K[Paint]
-    K --> L[Composite]
-    G -->|No| M[Idle Period]
-    L --> M
-    M --> N[requestIdleCallback]
-    N --> A
-```
+![WHATWG processing model: Task → Microtasks → Rendering → Idle](./whatwg-processing-model-task-microtasks-rendering-idle.svg)
 
 <figcaption>WHATWG processing model: Task → Microtasks → Rendering → Idle</figcaption>
 
@@ -266,16 +145,7 @@ graph TD
 
 <figure>
 
-```mermaid
-graph LR
-    subgraph "Frame Budget ~16.7ms"
-        A[JS Execution] --> B[rAF Callbacks]
-        B --> C[Style Calculation]
-        C --> D[Layout]
-        D --> E[Paint]
-        E --> F[Composite]
-    end
-```
+![Frame budget allocation at 60fps. Exceeding 16.7ms drops frames.](./frame-budget-allocation-at-60fps-exceeding-16-7ms-drops-frames.svg)
 
 <figcaption>Frame budget allocation at 60fps. Exceeding 16.7ms drops frames.</figcaption>
 
@@ -331,32 +201,7 @@ Node.js implements a phased event loop architecture via libuv, optimized for hig
 
 <figure>
 
-```mermaid
-graph TB
-    subgraph "Node.js Runtime"
-        A[V8 Engine] --> B[JavaScript Execution]
-        C[libuv] --> D[Event Loop]
-        C --> E[Thread Pool]
-        C --> F[I/O Operations]
-    end
-
-    subgraph "OS Abstraction"
-        G[Linux: epoll] --> C
-        H[macOS: kqueue] --> C
-        I[Windows: IOCP] --> C
-    end
-
-    subgraph "Thread Pool"
-        J[File I/O] --> E
-        K[DNS Lookup] --> E
-        L[Crypto Operations] --> E
-    end
-
-    subgraph "Direct I/O"
-        M[Network Sockets] --> F
-        N[HTTP/HTTPS] --> F
-    end
-```
+![libuv architecture showing the integration between V8 engine, libuv event loop, and OS-specific I/O mechanisms](./libuv-architecture-showing-the-integration-between-v8-engine-libuv-event-loop-an.svg)
 
 <figcaption>libuv architecture showing the integration between V8 engine, libuv event loop, and OS-specific I/O mechanisms</figcaption>
 
@@ -368,24 +213,7 @@ As of Node.js 20+, the event loop executes in six phases. Each phase has a FIFO 
 
 <figure>
 
-```mermaid
-graph TD
-    A[Event Loop Tick] --> B[timers]
-    B --> C[pending callbacks]
-    C --> D[idle, prepare]
-    D --> E[poll]
-    E --> F[check]
-    F --> G[close callbacks]
-    G --> A
-
-    subgraph "Phase Details"
-        H[setTimeout/setInterval] --> B
-        I[System Errors] --> C
-        J[I/O Callbacks] --> E
-        K[setImmediate] --> F
-        L[Close Events] --> G
-    end
-```
+![Six phases of the Node.js event loop](./six-phases-of-the-node-js-event-loop.svg)
 
 <figcaption>Six phases of the Node.js event loop</figcaption>
 
@@ -406,21 +234,7 @@ graph TD
 
 <figure>
 
-```mermaid
-graph TD
-    A[Enter Poll Phase] --> B{setImmediate callbacks?}
-    B -->|Yes| C[Don't Block]
-    B -->|No| D{Timers Expiring Soon?}
-    D -->|Yes| E[Wait for Timer]
-    D -->|No| F{Active I/O Operations?}
-    F -->|Yes| G[Wait for I/O]
-    F -->|No| H[Exit Poll]
-
-    C --> I[Proceed to Check]
-    E --> I
-    G --> I
-    H --> I
-```
+![Poll phase decision tree: block for I/O, timers, or proceed immediately](./poll-phase-decision-tree-block-for-i-o-timers-or-proceed-immediately.svg)
 
 <figcaption>Poll phase decision tree: block for I/O, timers, or proceed immediately</figcaption>
 
@@ -438,24 +252,7 @@ Network I/O is **always** performed on the event loop's thread using non-blockin
 
 <figure>
 
-```mermaid
-graph LR
-    subgraph "Thread Pool Operations"
-        A[fs.readFile] --> B[Blocking I/O]
-        C[dns.lookup] --> B
-        D[crypto.pbkdf2] --> B
-        E[zlib.gzip] --> B
-    end
-
-    subgraph "Direct I/O Operations"
-        F[net.Socket] --> G[Non-blocking I/O]
-        H[http.get] --> G
-        I[WebSocket] --> G
-    end
-
-    B --> J[libuv Thread Pool]
-    G --> K[Event Loop Direct]
-```
+![Thread pool for blocking operations; event loop for non-blocking network I/O](./thread-pool-for-blocking-operations-event-loop-for-non-blocking-network-i-o.svg)
 
 <figcaption>Thread pool for blocking operations; event loop for non-blocking network I/O</figcaption>
 
@@ -483,24 +280,7 @@ Node.js provides unique scheduling primitives with distinct priority levels. Cri
 
 <figure>
 
-```mermaid
-graph TD
-    subgraph "Node.js Priority System"
-        A[Synchronous Code] --> B[process.nextTick]
-        B --> C[Microtasks]
-        C --> D[timers Phase]
-        D --> E[poll Phase]
-        E --> F[check Phase]
-        F --> G[close callbacks]
-    end
-
-    subgraph "Scheduling APIs"
-        H[process.nextTick] --> I[Highest Priority]
-        J[Promise.then] --> K[Microtask Level]
-        L[setTimeout] --> M[Timer Phase]
-        N[setImmediate] --> O[Check Phase]
-    end
-```
+![Node.js priority: nextTick → microtasks → event loop phases](./node-js-priority-nexttick-microtasks-event-loop-phases.svg)
 
 <figcaption>Node.js priority: nextTick → microtasks → event loop phases</figcaption>
 
@@ -525,19 +305,7 @@ graph TD
 
 <figure>
 
-```mermaid
-graph TD
-    A[I/O Callback] --> B[Poll Phase]
-    B --> C[Execute I/O Callback]
-    C --> D[process.nextTick Queue]
-    C --> E[setImmediate Queue]
-    D --> F[Drain nextTick]
-    F --> G[Drain Microtasks]
-    G --> H[Check Phase]
-    H --> I[Execute setImmediate]
-    I --> J[Close Callbacks]
-    J --> K[Next Tick]
-```
+![nextTick vs setImmediate execution showing the timing difference between these two Node.js-specific scheduling mechanisms](./nexttick-vs-setimmediate-execution-showing-the-timing-difference-between-these-t.svg)
 
 <figcaption>nextTick vs setImmediate execution showing the timing difference between these two Node.js-specific scheduling mechanisms</figcaption>
 
@@ -549,18 +317,7 @@ Within an I/O callback, `setImmediate()` always executes before `setTimeout(fn, 
 
 <figure>
 
-```mermaid
-graph LR
-    subgraph "Within I/O Cycle"
-        A[I/O Callback] --> B[setImmediate First]
-        B --> C[setTimeout Second]
-    end
-
-    subgraph "Outside I/O Cycle"
-        D[Main Module] --> E[Non-deterministic]
-        E --> F[Performance Dependent]
-    end
-```
+![Inside I/O: deterministic (setImmediate first). Outside I/O: non-deterministic.](./inside-i-o-deterministic-setimmediate-first-outside-i-o-non-deterministic.svg)
 
 <figcaption>Inside I/O: deterministic (setImmediate first). Outside I/O: non-deterministic.</figcaption>
 
@@ -592,30 +349,7 @@ Worker threads (browser Web Workers or Node.js `worker_threads`) provide true pa
 
 <figure>
 
-```mermaid
-graph TB
-    subgraph "Main Thread"
-        A[Main Event Loop] --> B[UI Thread]
-        C[postMessage] --> D[Message Channel]
-    end
-
-    subgraph "Worker Thread"
-        E[Worker Event Loop] --> F[Background Thread]
-        G[onmessage] --> H[Message Handler]
-    end
-
-    subgraph "Communication"
-        I[Structured Clone] --> J[Copy by Default]
-        K[Transferable Objects] --> L[Zero-Copy Transfer]
-        M[SharedArrayBuffer] --> N[Shared Memory]
-    end
-
-    D --> E
-    H --> C
-    I --> D
-    K --> D
-    M --> D
-```
+![Workers have independent event loops; communication via message passing](./workers-have-independent-event-loops-communication-via-message-passing.svg)
 
 <figcaption>Workers have independent event loops; communication via message passing</figcaption>
 
