@@ -1,0 +1,34 @@
+---
+import Breadcrumb from '@/components/core/breadcrumb.astro'
+import Link from '@/components/core/link.astro'
+import Layout from '@/components/layout/index.astro'
+import PostDetailedList from '@/components/post/post-detailed-list.astro'
+import { SITE_POST_TITLE } from '@/configs/site.constants'
+import { getPostContents } from '@/utils/post-content.utils'
+import { Icon } from 'astro-icon/components'
+
+const postContentsAll = await getPostContents({ allowUnpublished: true })
+const postContents = postContentsAll.filter(({ post, category }) => {
+  // TODO: Removing the reviews from draft category
+  if (category.id === 'reviews') return false
+  return !post.data.publishedOn
+})
+---
+
+<Layout title="Sujeet's Posts" description='List of all the posts' noIndex={true}>
+  <Breadcrumb
+    crumbs={[
+      { name: SITE_POST_TITLE, href: '/post' },
+      { name: 'Drafts', href: '/drafts' },
+    ]}
+  />
+  <main id='main-content'>
+    <h1 class='text-4xl font-light text-center my-14'>Drafts</h1>
+    <div role='alert' class='alert alert-error alert-outline my-4'>
+      <Icon name='carbon:warning-alt' class='text-lg' />
+      <span>Warning: These are work in progress contents.</span>
+      <Link href='/post' class='btn btn-soft btn-success btn-sm'>See Published Blogs</Link>
+    </div>
+    <PostDetailedList {postContents} filterable={false} />
+  </main>
+</Layout>

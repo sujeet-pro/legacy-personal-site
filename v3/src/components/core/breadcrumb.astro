@@ -1,0 +1,31 @@
+---
+import { Icon } from 'astro-icon/components'
+import Link from './link.astro'
+
+type Props = {
+  crumbs: { name: string; href: string }[]
+}
+const { crumbs } = Astro.props
+---
+
+<nav class='breadcrumbs text-sm my-6'>
+  <ul>
+    <li>
+      <Link href='/'>
+        <Icon name='carbon:home' />
+        Home
+      </Link>
+    </li>
+    {
+      crumbs.map((crumb, index) =>
+        index < crumbs.length - 1 ? (
+          <li>
+            <Link href={crumb.href}>{crumb.name}</Link>
+          </li>
+        ) : (
+          <li>{crumb.name}</li>
+        ),
+      )
+    }
+  </ul>
+</nav>

@@ -1,0 +1,48 @@
+---
+import type { MarkdownHeading } from 'astro'
+import Accordion from './accordion.astro'
+import Link from './link.astro'
+
+type Props = {
+  headings: MarkdownHeading[]
+}
+type NestedHeading = MarkdownHeading & { children: MarkdownHeading[] }
+function nestedHeading(headings: MarkdownHeading[]): NestedHeading[] {
+  const nested: NestedHeading[] = []
+  let current: NestedHeading | null = null
+  for (const heading of headings) {
+    if (heading.depth > 3) continue
+    if (heading.depth === 2) {
+      current = { ...heading, children: [] }
+      nested.push(current)
+    } else if (current) {
+      current.children.push(heading)
+    }
+  }
+  return nested
+}
+const nestedHeadings = nestedHeading(Astro.props.headings)
+---
+
+<section class='bg-base-200 my-4'>
+  <Accordion title='Table of Contents'>
+    <nav class='toc'>
+      <ul class='list-disc list-inside'>
+        {
+          nestedHeadings.map((heading) => (
+            <li>
+              <Link href={`#${heading.slug}`}>{heading.text}</Link>
+              <ul class='list-[circle] list-inside ml-6'>
+                {heading.children.map((child) => (
+                  <li>
+                    <Link href={`#${child.slug}`}>{child.text}</Link>
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </Accordion>
+</section>

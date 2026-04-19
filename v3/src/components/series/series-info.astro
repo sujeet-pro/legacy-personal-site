@@ -1,0 +1,38 @@
+---
+import Accordion from '@/components/core/accordion.astro'
+import Link from '@/components/core/link.astro'
+import type { SeriesContent } from '@/utils/series-content.utils'
+type Props = {
+  seriesContent: SeriesContent
+  currentPostId: string
+}
+const {
+  seriesContent: { postContents, series },
+  currentPostId,
+} = Astro.props
+const currentPostIdx = postContents.findIndex(({ post }) => post.id === currentPostId)
+
+function getIcon(idx: number) {
+  if (idx === currentPostIdx) {
+    return '★'
+  } else if (idx < currentPostIdx) {
+    return '✓'
+  } else {
+    return '●'
+  }
+}
+---
+
+<section class='bg-base-200 my-4'>
+  <Accordion title={`Part of Series: ${series.data.name}`}>
+    <ul class='steps steps-vertical'>
+      {
+        postContents.map(({ post }, idx) => (
+          <li class:list={['step', { 'step-neutral': idx <= currentPostIdx }]} data-content={getIcon(idx)}>
+            <Link href={`/post/${post.id}`}>{post.data.title}</Link>
+          </li>
+        ))
+      }
+    </ul>
+  </Accordion>
+</section>

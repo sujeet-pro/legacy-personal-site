@@ -1,0 +1,32 @@
+---
+type Props = {
+  href: string
+  class?: string | undefined
+  target?: '_blank' | undefined
+  id?: string | undefined
+}
+
+const { href: to, class: className, target, id } = Astro.props
+const { BASE_URL } = import.meta.env
+let href = to
+let rel: string | null = null
+
+if (BASE_URL !== '/' && !to.startsWith('http')) {
+  if (to === '/') {
+    href = BASE_URL
+  } else if (to.startsWith('/')) {
+    href = BASE_URL + to.substring(1) // ignore the starting slash
+  } else {
+    href = BASE_URL + to
+  }
+}
+
+// Utility functions
+if (target === '_blank') {
+  rel = 'noopener noreferrer'
+}
+---
+
+<a href={href} rel={rel} target={target} class:list={[className, 'link link-hover']} id={id}>
+  <slot />
+</a>

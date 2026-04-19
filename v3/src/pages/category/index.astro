@@ -1,0 +1,38 @@
+---
+import Accordion from '@/components/core/accordion.astro'
+import Breadcrumb from '@/components/core/breadcrumb.astro'
+import Link from '@/components/core/link.astro'
+import Layout from '@/components/layout/index.astro'
+import PostSimpleList from '@/components/post/post-simple-list.astro'
+import { SITE_POST_TITLE } from '@/configs/site.constants'
+import { getPostContents } from '@/utils/post-content.utils'
+import { getGroupedPostContentsByCategory } from '@/utils/post-contents-by-category'
+
+const postContents = await getPostContents()
+const postContentsByCategories = getGroupedPostContentsByCategory(postContents)
+---
+
+<Layout title='Categories | Sujeet.pro' description='List of all the categories, I write about.'>
+  <Breadcrumb
+    crumbs={[
+      { name: SITE_POST_TITLE, href: '/post' },
+      { name: 'All Categories', href: '' },
+    ]}
+  />
+  <main id='main-content'>
+    <h1 class='text-4xl font-light text-center my-14'>Categories</h1>
+
+    {
+      postContentsByCategories.map(({ postContents, category, postCount }) => (
+        <Accordion title={category.data.name}>
+          <h2 class='text-xl ' slot='title'>
+            <Link href={`/category/${category.id}`}>
+              {category.data.name} ({postCount})
+            </Link>
+          </h2>
+          <PostSimpleList {postContents} />
+        </Accordion>
+      ))
+    }
+  </main>
+</Layout>

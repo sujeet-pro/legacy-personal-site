@@ -1,0 +1,17 @@
+---
+import Link from '@/components/core/link.astro'
+import type { CollectionEntry } from 'astro:content'
+
+type Props = {
+  tag: CollectionEntry<'tag'>
+  count?: number | undefined
+  filterTag?: string
+}
+
+const { tag, count, filterTag } = Astro.props
+---
+
+<Link href={`/tag/${tag.id}`}>
+  #<span data-pagefind-filter={filterTag}>{tag.data.name}</span>
+  {count && ` (${count})`}
+</Link>

@@ -1,0 +1,134 @@
+---
+import Breadcrumb from '@/components/core/breadcrumb.astro'
+import FormattedDate from '@/components/core/formatted-date.astro'
+import Link from '@/components/core/link.astro'
+import Markdown from '@/components/core/markdown.astro'
+import ResponsiveImage from '@/components/core/responsive-image.astro'
+import TableOfContents from '@/components/core/table-of-contents.astro'
+import Layout from '@/components/layout/index.astro'
+import SeriesInfo from '@/components/series/series-info.astro'
+import Tag from '@/components/tag/tag.astro'
+import { SITE_POST_TITLE } from '@/configs/site.constants'
+import { getPostContents } from '@/utils/post-content.utils'
+import { getSeriesContents } from '@/utils/series-content.utils'
+import { render } from 'astro:content'
+
+export async function getStaticPaths() {
+  const postContents = await getPostContents({ allowUnpublished: true })
+  const postCount = postContents.length
+  return postContents.map((postContent, index, allPostContents) => ({
+    params: { slug: postContent.post.id },
+    props: {
+      postContent,
+      nextPostContent: index + 1 !== postCount ? allPostContents[index + 1] : null,
+      prevPostContent: index !== 0 ? allPostContents[index - 1] : null,
+    },
+  }))
+}
+
+const { postContent, prevPostContent, nextPostContent } = Astro.props
+const { category, tags, post } = postContent
+const { title, description, publishedOn, lastUpdatedOn, image, imageCredit } = post.data
+const { Content, headings } = await render(post)
+const seriesContents = await getSeriesContents({ postId: post.id })
+// All the reviews must have a article Link
+if (category.id === 'reviews') {
+  const articleLink = post.data.articleLink
+  if (!articleLink) {
+    throw new Error('Review must have an article link')
+  }
+}
+---
+
+<Layout title={title} description={description} noIndex={!publishedOn}>
+  <Breadcrumb
+    crumbs={[
+      { name: SITE_POST_TITLE, href: '/post' },
+      { name: category.data.name, href: `/category/${category.id}` },
+      { name: title, href: '' },
+    ]}
+  />
+  <article data-pagefind-body={publishedOn ? '' : null}>
+    <h1 class='text-4xl font-light'>{title}</h1>
+    <div class='my-2 flex text-sm divide-x divide-base-300'>
+      <span data-pagefind-filter='category' class='pr-2'>{category.data.name}</span>
+      {publishedOn ? <FormattedDate date={publishedOn} class='px-2' /> : <span class='px-2'>In Draft</span>}
+      {
+        lastUpdatedOn && publishedOn && publishedOn.toISOString() !== lastUpdatedOn.toISOString() ? (
+          <span class='px-2'>
+            Last updated: <FormattedDate date={lastUpdatedOn} />
+          </span>
+        ) : null
+      }
+    </div>
+    <p class='my-8 text-2xl font-light'>{description}</p>
+    {
+      category.id === 'reviews' && post.data.articleLink ? (
+        <Link href={post.data.articleLink} target='_blank' class=''>
+          Read the original article
+        </Link>
+      ) : null
+    }
+    {
+      image ? (
+        <ResponsiveImage src={image} alt={title} priority>
+          {imageCredit ? <span class='text-center text-xs italic' set:html={imageCredit} /> : null}
+        </ResponsiveImage>
+      ) : null
+    }
+    {
+      seriesContents.map((seriesContent) =>
+        seriesContent.postContents.length > 1 ? <SeriesInfo {seriesContent} currentPostId={post.id} /> : null,
+      )
+    }
+    {headings.length ? <TableOfContents headings={headings} /> : null}
+    <Markdown elem='main' id='main-content'>
+      <Content />
+    </Markdown>
+  </article>
+
+  <section class='mt-12'>
+    <h2 class='text-lg italic divider divider-start'>Tags</h2>
+    <div class='flex flex-wrap gap-x-5 gap-y-1 text-sm'>
+      {tags.map((tag) => <Tag tag={tag} filterTag='tag' />)}
+    </div>
+  </section>
+
+  <nav class='mt-12'>
+    <h2 class='text-lg italic divider divider-start'>Read More</h2>
+
+    <div class='flex w-full flex-col md:flex-row'>
+      {
+        prevPostContent ? (
+          <div class='card bg-base-200 rounded-box relative flex flex-col gap-4 p-4 flex-1'>
+            <div class=''>
+              <span class='mr-2'>←</span> Read Prev
+            </div>
+            <Link
+              href={`/post/${prevPostContent.post.id}`}
+              class="after:absolute after:top-0 after:left-0 after:right-0 after:bottom-0 after:content-[' ']"
+            >
+              {prevPostContent.post.data.title}
+            </Link>
+          </div>
+        ) : null
+      }
+      {nextPostContent && prevPostContent ? <div class='divider md:divider-horizontal' /> : null}
+      {
+        nextPostContent ? (
+          <div class='card bg-base-200 rounded-box relative flex flex-col gap-4 p-4 flex-1'>
+            <div class='text-right'>
+              Read Next <span class='ml-2'>→</span>
+            </div>
+            <Link
+              href={`/post/${nextPostContent.post.id}`}
+              class="after:absolute after:top-0 after:left-0 after:right-0 after:bottom-0 after:content-[' ']"
+            >
+              {nextPostContent.post.data.title}
+            </Link>{' '}
+          </div>
+        ) : null
+      }
+    </div>
+  </nav>
+</Layout>

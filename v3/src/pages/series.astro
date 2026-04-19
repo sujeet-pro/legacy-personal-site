@@ -1,0 +1,20 @@
+---
+import Layout from '@/components/layout/index.astro'
+import PostSimpleList from '@/components/post/post-simple-list.astro'
+import { getSeriesContents } from '@/utils/series-content.utils'
+
+const seriesContents = await getSeriesContents()
+---
+
+<Layout title='Series' description='All series'>
+  <h1>Series</h1>
+  <p>Here are all the series</p>
+  {
+    seriesContents.map((seriesContent) => (
+      <section>
+        <h2>{seriesContent.series.data.name}</h2>
+        <PostSimpleList postContents={seriesContent.postContents} />
+      </section>
+    ))
+  }
+</Layout>

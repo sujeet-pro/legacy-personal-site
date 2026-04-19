@@ -1,0 +1,38 @@
+---
+type Props = {
+  postId: string
+  prefixTitle?: string
+  headingId?: string
+}
+import Link from '@/components/core/link.astro'
+import { getPostContentsByPostRefs } from '@/utils/post-content.utils'
+import { render } from 'astro:content'
+
+const { postId, prefixTitle = 'More details @ ', headingId } = Astro.props
+const [postContent] = await getPostContentsByPostRefs([{ collection: 'post', id: postId }])
+
+if (!postContent) {
+  throw new Error(`Post with id ${postId} not found`)
+}
+
+const { post } = postContent
+
+let heading = null
+let href = `/post/${post.id}`
+if (headingId) {
+  const { headings } = await render(post)
+  heading = headings.find((h) => h.slug === headingId)
+  if (!heading) {
+    throw new Error(`Heading with id ${headingId} not found`)
+  }
+  href += `#${headingId}`
+}
+---
+
+<div class='my-4 p-4 bg-base-200'>
+  {prefixTitle}
+  <Link href={href}>
+    {post.data.title}
+    {heading ? `(${heading.text})` : null}
+  </Link>
+</div>

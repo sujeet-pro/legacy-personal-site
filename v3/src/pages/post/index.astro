@@ -1,0 +1,37 @@
+---
+import Breadcrumb from '@/components/core/breadcrumb.astro'
+import { SITE_POST_TITLE } from '@/configs/site.constants'
+import Layout from '@/components/layout/index.astro'
+import PostFilter from '@/components/post/post-filter.astro'
+import { getPostContents } from '@/utils/post-content.utils'
+import PostDetailedList from '@/components/post/post-detailed-list.astro'
+
+const postContents = await getPostContents()
+---
+
+<Layout title="Sujeet's Articles" description='List of all the published posts'>
+  <Breadcrumb crumbs={[{ name: SITE_POST_TITLE, href: '/post' }]} />
+  <h1 class='text-4xl font-light text-center my-14'>{SITE_POST_TITLE}</h1>
+  <PostFilter {postContents} />
+  <main id='main-content'>
+    <PostDetailedList {postContents} filterable={true} />
+  </main>
+</Layout>
+
+<script>
+  function markTagsFromQuery() {
+    const urlParams = new URLSearchParams(window.location.search)
+    const tags = urlParams.getAll('tag')
+    tags.forEach((tagId) => {
+      const tagElement = document.querySelector<HTMLInputElement>(
+        `input[type="checkbox"][value="${tagId}"].tag-selector`,
+      )
+      console.log('tagElement', tagElement)
+      if (tagElement) {
+        tagElement.checked = true
+      }
+    })
+  }
+
+  document.addEventListener('DOMContentLoaded', markTagsFromQuery)
+</script>

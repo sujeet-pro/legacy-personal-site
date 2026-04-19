@@ -1,0 +1,55 @@
+---
+import { SITE_CANONICAL_ORIGIN, SITE_TITLE } from '@/configs/site.constants'
+import '@fontsource-variable/open-sans'
+import openSansWoff2 from '@fontsource-variable/open-sans/files/open-sans-latin-wght-normal.woff2?url'
+import Analytics from './analytics.astro'
+
+import Favicons from './favicons.astro'
+import Footer from './footer.astro'
+
+import Header from './header.astro'
+import Seo from './seo.astro'
+
+import './styles/global.css'
+
+type Props = {
+  title: string
+  description: string
+  image?: string | undefined
+  noIndex?: boolean | undefined
+}
+const { title, description, image, noIndex } = Astro.props
+---
+
+<!doctype html>
+<html lang='en' class='scroll-smooth focus:scroll-auto'>
+  <head>
+    <meta charset='utf-8' />
+    {noIndex ? <meta name='robots' content='noindex' /> : null}
+    <meta name='viewport' content='width=device-width,initial-scale=1' />
+    <meta name='generator' content={Astro.generator} />
+    <link rel='preload' as='font' type='font/woff2' href={openSansWoff2} crossorigin='anonymous' />
+    <Seo title={title} description={description} image={image} />
+    <Favicons />
+    <!-- RSS Feed -->
+    <link
+      rel='alternate'
+      type='application/rss+xml'
+      title={SITE_TITLE}
+      href={new URL('rss.xml', SITE_CANONICAL_ORIGIN)}
+    />
+    <!-- SiteMap -->
+    <link rel='sitemap' href={new URL('sitemap-index.xml', SITE_CANONICAL_ORIGIN)} />
+  </head>
+  <body class='antialiased break-words font-primary'>
+    <a href='#main-content' class='sr-only focus:not-sr-only'>Skip to main content</a>
+    <div class='bg-inherit max-w-3xl mx-auto px-4 md:px-8 flex flex-col gap-y-6 min-h-screen'>
+      <Header />
+      <div class='grow w-full'>
+        <slot />
+      </div>
+      <Footer />
+    </div>
+    <Analytics />
+  </body>
+</html>

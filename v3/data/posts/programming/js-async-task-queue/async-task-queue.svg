@@ -1,0 +1,47 @@
+<!-- filepath: /path/to/async-task-queue.svg -->
+<svg width="600" height="400" xmlns="http://www.w3.org/2000/svg">
+    <!-- Background -->
+    <rect width="100%" height="100%" fill="#f9f9f9" />
+
+    <!-- Queue -->
+    <rect x="50" y="50" width="200" height="300" fill="#e0e0e0" stroke="#000" stroke-width="2" />
+    <text x="150" y="40" font-family="Arial" font-size="16" text-anchor="middle">Task Queue</text>
+
+    <!-- Tasks -->
+    <rect x="70" y="70" width="160" height="40" fill="#ffcc00" stroke="#000" stroke-width="1" />
+    <text x="150" y="95" font-family="Arial" font-size="14" text-anchor="middle">Task 1</text>
+
+    <rect x="70" y="120" width="160" height="40" fill="#ffcc00" stroke="#000" stroke-width="1" />
+    <text x="150" y="145" font-family="Arial" font-size="14" text-anchor="middle">Task 2</text>
+
+    <rect x="70" y="170" width="160" height="40" fill="#ffcc00" stroke="#000" stroke-width="1" />
+    <text x="150" y="195" font-family="Arial" font-size="14" text-anchor="middle">Task 3</text>
+
+    <rect x="70" y="220" width="160" height="40" fill="#ffcc00" stroke="#000" stroke-width="1" />
+    <text x="150" y="245" font-family="Arial" font-size="14" text-anchor="middle">Task 4</text>
+
+    <rect x="70" y="270" width="160" height="40" fill="#ffcc00" stroke="#000" stroke-width="1" />
+    <text x="150" y="295" font-family="Arial" font-size="14" text-anchor="middle">Task 5</text>
+
+    <!-- Executors -->
+    <rect x="300" y="70" width="200" height="60" fill="#00ccff" stroke="#000" stroke-width="2" />
+    <text x="400" y="100" font-family="Arial" font-size="16" text-anchor="middle">Executor 1</text>
+
+    <rect x="300" y="150" width="200" height="60" fill="#00ccff" stroke="#000" stroke-width="2" />
+    <text x="400" y="180" font-family="Arial" font-size="16" text-anchor="middle">Executor 2</text>
+
+    <rect x="300" y="230" width="200" height="60" fill="#00ccff" stroke="#000" stroke-width="2" />
+    <text x="400" y="260" font-family="Arial" font-size="16" text-anchor="middle">Executor 3</text>
+
+    <!-- Arrows -->
+    <line x1="250" y1="90" x2="300" y2="100" stroke="#000" stroke-width="2" marker-end="url(#arrow)" />
+    <line x1="250" y1="140" x2="300" y2="160" stroke="#000" stroke-width="2" marker-end="url(#arrow)" />
+    <line x1="250" y1="190" x2="300" y2="240" stroke="#000" stroke-width="2" marker-end="url(#arrow)" />
+
+    <!-- Arrowhead marker -->
+    <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="10" refX="0" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L9,3 z" fill="#000" />
+        </marker>
+    </defs>
+</svg>

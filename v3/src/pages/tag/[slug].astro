@@ -1,0 +1,35 @@
+---
+import Breadcrumb from '@/components/core/breadcrumb.astro'
+import Layout from '@/components/layout/index.astro'
+import PostDetailedList from '@/components/post/post-detailed-list.astro'
+import { SITE_POST_TITLE } from '@/configs/site.constants'
+import { getPostContents } from '@/utils/post-content.utils'
+import { getGroupedPostContentsByTag } from '@/utils/post-contents-by-tag'
+
+export async function getStaticPaths() {
+  const postContents = await getPostContents()
+  const postContentsByTags = getGroupedPostContentsByTag(postContents)
+  return postContentsByTags.map((postContentsByTag) => ({
+    params: { slug: postContentsByTag.tag.id },
+    props: {
+      postContentsByTag,
+    },
+  }))
+}
+const { postContentsByTag } = Astro.props
+const { postContents, tag } = postContentsByTag
+---
+
+<Layout title={tag.data.name} description={`List of all the posts related to category: ${tag.data.name}`}>
+  <Breadcrumb
+    crumbs={[
+      { name: SITE_POST_TITLE, href: '/post' },
+      { name: 'Tags', href: '/tag' },
+      { name: tag.data.name, href: '' },
+    ]}
+  />
+  <main id='main-content'>
+    <h1 class='text-4xl font-light text-center my-14'>{tag.data.name}</h1>
+    <PostDetailedList {postContents} filterable={false} />
+  </main>
+</Layout>
