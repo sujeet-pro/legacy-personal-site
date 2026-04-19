@@ -1,0 +1,15 @@
+---
+import { Card } from "$components"
+import type { CollectionEntry } from "astro:content"
+
+type Props = {
+  topic: CollectionEntry<"topic">
+}
+
+const {
+  data: { title, description, image },
+  slug,
+} = Astro.props.topic
+---
+
+<Card {title} {description} href={`/topic/${slug}`} {image} />

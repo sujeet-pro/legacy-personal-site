@@ -1,0 +1,51 @@
+---
+import Link from "../link/link.astro"
+type Props = {
+  parents?:
+    | {
+        title: string
+        path: string
+      }[]
+    | undefined
+  currentPageTitle: string
+}
+const { currentPageTitle, parents = [] } = Astro.props
+const currentPageHref = Astro.url.pathname
+---
+
+<nav>
+  <ul class="breadcrum-list text-muted text-3">
+    <li class="breadcrum-list-item">
+      <Link href="/">Home</Link>
+    </li>
+    {
+      parents.map(({ title, path }) => (
+        <li class="breadcrum-list-item">
+          <Link href={path}>{title}</Link>
+        </li>
+      ))
+    }
+
+    <li class="breadcrum-list-item">
+      <Link href={currentPageHref} aria-current="page">
+        {currentPageTitle}
+      </Link>
+    </li>
+  </ul>
+</nav>
+
+<style>
+  @layer component.breadcrum {
+    .breadcrum-list {
+      list-style: none;
+      margin-block-start: 0;
+      padding-inline-start: 0;
+      display: flex;
+      flex-wrap: wrap;
+    }
+    .breadcrum-list-item:not(:last-child)::after {
+      content: "/";
+      padding-inline: var(--sp-space-4);
+    }
+  }
+</style>

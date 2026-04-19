@@ -1,0 +1,53 @@
+{
+  "name": "@sujeet-pro/v2",
+  "type": "module",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=20.10.0",
+    "npm": ">=10.2.3"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "x": "npm run clean && npm run check && npm run build",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "gh": "npm run clean && npm run check && npm run build && npm run deploy",
+    "sync": "astro sync",
+    "clean": "rimraf .astro dist",
+    "check": "npm run check:ts && npm run check:lint && npm run check:format",
+    "check:ts": "astro check",
+    "check:format": "prettier . --check --ignore-unknown",
+    "check:lint": "eslint --ext .js,.cjs,.ts,.astro src",
+    "fix": "npm run fix:lint && npm run fix:format",
+    "fix:format": "prettier . --write --ignore-unknown",
+    "fix:lint": "eslint --ext .js,.cjs,.ts,.astro src --fix"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.4.1",
+    "@astrojs/prefetch": "^0.4.1",
+    "@astrojs/rss": "^4.0.4",
+    "@astrojs/sitemap": "^3.0.5",
+    "@astrojs/ts-plugin": "^1.4.0",
+    "@fontsource-variable/open-sans": "^5.0.23",
+    "@iconify-json/carbon": "^1.1.28",
+    "@iconify-json/mdi": "^1.1.64",
+    "@typescript-eslint/eslint-plugin": "^6.19.1",
+    "@typescript-eslint/parser": "^6.19.1",
+    "astro": "^4.2.6",
+    "astro-icon": "^1.0.3",
+    "autoprefixer": "^10.4.17",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-astro": "^0.31.3",
+    "eslint-plugin-jsx-a11y": "^6.8.0",
+    "mdast-util-to-string": "^4.0.0",
+    "prettier": "^3.2.4",
+    "prettier-plugin-astro": "^0.13.0",
+    "reading-time": "^1.5.0",
+    "rehype-accessible-emojis": "^0.3.2",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.3.3"
+  }
+}

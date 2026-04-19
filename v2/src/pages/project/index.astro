@@ -1,0 +1,24 @@
+---
+import { Layout } from "$layout"
+import { ProjectCard } from "$modules/project"
+import { getProjectEntries } from "$modules/project"
+
+const entries = await getProjectEntries()
+const title = "Sujeet's Projects"
+const description = "List of all the projects that I have worked on for different companies"
+---
+
+<Layout {title} {description}>
+  <main class="container flex-1">
+    <h1 class="text-center">{title}</h1>
+    {entries.map((entry) => <ProjectCard entry={entry} />)}
+  </main>
+</Layout>
+
+<style>
+  @layer page {
+    h1 {
+      margin-bottom: var(--sp-space-8);
+    }
+  }
+</style>

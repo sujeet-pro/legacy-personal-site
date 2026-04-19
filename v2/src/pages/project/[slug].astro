@@ -1,0 +1,50 @@
+---
+import type { InferGetStaticPropsType } from "astro"
+import { getEntry } from "astro:content"
+import { Layout } from "$layout"
+import { ArticleContainer, MarkdownToc } from "$components"
+import { CompanyCard } from "$modules/company"
+import { getProjectEntries } from "$modules/project"
+
+// 1. Generate a new path for every collection entry
+export async function getStaticPaths() {
+  const entries = await getProjectEntries()
+  const pages = entries.map((entry) => ({
+    params: { slug: entry.slug },
+    props: { entry: entry },
+  }))
+
+  return pages
+}
+
+type Props = InferGetStaticPropsType<typeof getStaticPaths>
+
+// 2. For your template, you can get the entry directly from the prop
+const { entry } = Astro.props
+const { title, description, company, isContentSummaryOpen } = entry.data
+const { Content, headings } = await entry.render()
+const companyDetails = await getEntry(company)
+---
+
+<Layout {title} {description}>
+  <main class="container flex-1">
+    <ArticleContainer {title} {description} breadcrumbParents={[{ title: "Projects", path: "/project/" }]}>
+      <CompanyCard slot="post-intro" entry={companyDetails} variant="card" displayDuration />
+      <MarkdownToc {headings} isOpen={isContentSummaryOpen} />
+      <Content />
+    </ArticleContainer>
+  </main>
+</Layout>
+
+<style>
+  @layer page {
+    .content-description {
+      font-style: italic;
+    }
+
+    .content-start {
+      margin-top: var(--sp-space-13);
+      margin-bottom: calc(2 * var(--sp-space-13));
+    }
+  }
+</style>

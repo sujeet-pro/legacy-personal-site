@@ -1,0 +1,38 @@
+---
+import Article from "./article.astro"
+import Breadcrumb from "../breadcrumb/breadcrum.astro"
+import Alert from "../alerts/alert.astro"
+
+type Props = {
+  title: string
+  description: string
+  breadcrumbParents?:
+    | {
+        title: string
+        path: string
+      }[]
+    | undefined
+  isDraft?: boolean | undefined
+}
+
+const { title, description, breadcrumbParents, isDraft = false } = Astro.props
+---
+
+{breadcrumbParents?.length ? <Breadcrumb parents={breadcrumbParents} currentPageTitle={title} /> : null}
+{isDraft ? <Alert level="warning">Currently in Draft.</Alert> : null}
+<slot name="pre-intro" />
+<h1>{title}</h1>
+<p class="article-description text-5 text-center">{description}</p>
+<slot name="post-intro" />
+<Article>
+  <slot />
+</Article>
+
+<style>
+  @layer component.article {
+    .article-description {
+      font-style: italic;
+      text-wrap: balance;
+    }
+  }
+</style>

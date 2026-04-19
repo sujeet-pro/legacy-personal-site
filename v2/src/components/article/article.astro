@@ -1,0 +1,25 @@
+---
+type Props = {
+  class?: string | undefined | null
+}
+const { class: className } = Astro.props
+---
+
+<article class:list={["markdown-article", className]}>
+  <slot />
+</article>
+
+<style is:global>
+  @layer component.article {
+    .markdown-article ul {
+      list-style: initial;
+    }
+
+    .markdown-article {
+      p,
+      ul {
+        text-align: justify;
+      }
+    }
+  }
+</style>

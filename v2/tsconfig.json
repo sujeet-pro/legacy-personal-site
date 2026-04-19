@@ -1,0 +1,27 @@
+{
+  "extends": "astro/tsconfigs/strictest",
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "@astrojs/ts-plugin",
+      },
+    ],
+    "strictNullChecks": true,
+    "jsx": "preserve",
+    "baseUrl": ".",
+    "paths": {
+      "$assets/*": ["./src/assets/*"],
+      "$components": ["./src/components/index.ts"],
+      "$constants/*": ["./src/constants/*"],
+      "$content/*": ["./src/content/*"],
+      "$layout": ["./src/layout/index.ts"],
+      "$modules/blog": ["./src/modules/blog/index.ts"],
+      "$modules/company": ["./src/modules/company/index.ts"],
+      "$modules/project": ["./src/modules/project/index.ts"],
+      "$modules/topic": ["./src/modules/topic/index.ts"],
+      "$styles": ["./src/styles/index.css"],
+      "$utils/*": ["./src/utils/*"],
+    } /* Specify a set of entries that re-map imports to additional lookup locations. */,
+    "verbatimModuleSyntax": true,
+  },
+}

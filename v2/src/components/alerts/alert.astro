@@ -1,0 +1,48 @@
+---
+import { Icon } from "astro-icon/components"
+type AlertLevel = "info" | "warning" | "error" | "success"
+type Props = {
+  level: AlertLevel
+}
+
+const { level } = Astro.props
+const iconMap: Record<AlertLevel, string> = {
+  info: "mdi:alert-circle-outline",
+  warning: "mdi:warning-outline",
+  error: "mdi:alert-remove-outline",
+  success: "mdi:alert-circle-check-outline",
+}
+---
+
+<div class:list={["alert", level]}>
+  <Icon name={iconMap[level]} class="icon" />
+  <slot />
+</div>
+
+<style>
+  @layer component.alert {
+    .alert {
+      margin: var(--sp-space-4) 0;
+      padding: var(--sp-space-4);
+      font-size: var(--sp-font-size-4);
+      border-radius: var(--sp-space-4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--sp-space-6);
+    }
+
+    .info {
+      background-color: var(--sp-alert-info-color);
+    }
+    .warning {
+      background-color: var(--sp-alert-warning-color);
+    }
+    .error {
+      background-color: var(--sp-alert-error-color);
+    }
+    .success {
+      background-color: var(--sp-alert-success-color);
+    }
+  }
+</style>

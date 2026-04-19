@@ -1,0 +1,38 @@
+---
+import { Icon } from "astro-icon/components"
+import { Link } from "$components"
+
+type Props = {
+  href: string
+  isExternal?: boolean | undefined
+  iconName: string
+  text: string
+}
+
+const { href, iconName, text, isExternal } = Astro.props
+---
+
+<li>
+  <Link {href} {isExternal} class="footer-link">
+    <Icon class="icon" name={iconName} />
+    <span class="footer-link-text">
+      <slot>{text}</slot>
+    </span>
+  </Link>
+</li>
+
+<style>
+  @layer component.layout-footer-item {
+    .footer-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .footer-link-text {
+      width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+</style>

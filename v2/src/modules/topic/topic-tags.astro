@@ -1,0 +1,29 @@
+---
+import type { CollectionEntry } from "astro:content"
+import TopicTag from "./topic-tag.astro"
+type Props = {
+  topics: CollectionEntry<"topic">[]
+}
+
+const { topics } = Astro.props
+---
+
+<ul class="topic-tags">
+  {
+    topics.map((topic) => (
+      <li>
+        <TopicTag topic={topic} />
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .topic-tags {
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    gap: 1rem;
+    padding-inline-start: 0;
+  }
+</style>

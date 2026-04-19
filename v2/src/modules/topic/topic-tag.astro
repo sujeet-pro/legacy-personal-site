@@ -1,0 +1,28 @@
+---
+import { Link } from "$components"
+import { Icon } from "astro-icon/components"
+import type { CollectionEntry } from "astro:content"
+type Props = {
+  topic: CollectionEntry<"topic">
+}
+
+const {
+  topic: {
+    slug,
+    data: { title },
+  },
+} = Astro.props
+---
+
+<Link class="tag-icon" href={`/topic/${slug}`}>
+  <Icon name="mdi:tag-outline" />
+  {title}
+</Link>
+
+<style>
+  .tag-icon {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+</style>

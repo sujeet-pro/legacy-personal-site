@@ -1,0 +1,140 @@
+---
+import { Image } from "astro:assets"
+import { Icon } from "astro-icon/components"
+import { Layout } from "$layout"
+import { Link } from "$components"
+import sujeetImg from "$assets/author.jpg"
+import { AUTHOR_NAME } from "$constants/global"
+import { BlogCard, getFeaturedBlogs } from "$modules/blog"
+import { ProjectCard, getFeaturedProjects } from "$modules/project"
+import { CompanyCard, getFeaturedCompany } from "$modules/company"
+
+const featuredBlogs = await getFeaturedBlogs()
+const featuredProjects = await getFeaturedProjects()
+const featuredCompanies = await getFeaturedCompany()
+---
+
+<Layout title="I'm Sujeet" description="I help build accessible and performant products on Web.">
+  <main class="container flex-1">
+    <section aria-label="Introduction" class="intro">
+      <Image src={sujeetImg} alt={AUTHOR_NAME} role="presentation" class="img" />
+      <span class="intro-start text-7">Hello, I'm</span>
+      <span class="name typescale-site text-8">{AUTHOR_NAME}</span>
+      <div class="cta">
+        <Link isExternal href="/in" skin="cta" class="cta-link">
+          Connect on LinkedIn <Icon class="cta-icon" name="mdi:linkedin" />
+        </Link>
+      </div>
+    </section>
+    <p class="message text-7">
+      Helping people make the world a better place through <strong>quality software</strong>.
+    </p>
+    <section>
+      <header class="section-header">
+        <h2 class="section-heading">Recent Blogs</h2>
+        <Link href="/blog/">View All Blogs</Link>
+      </header>
+
+      {featuredBlogs.map((blog) => <BlogCard content={blog} />)}
+    </section>
+
+    <section>
+      <header class="section-header">
+        <h2 class="section-heading">Recent Projects</h2>
+        <Link href="/project/">View All Projects</Link>
+      </header>
+      {featuredProjects.map((entry) => <ProjectCard entry={entry} />)}
+    </section>
+
+    <section>
+      <header class="section-header">
+        <h2 class="section-heading">Recent Companies</h2>
+      </header>
+      {featuredCompanies.map((entry) => <CompanyCard entry={entry} variant="list" />)}
+    </section>
+  </main>
+</Layout>
+
+<style>
+  @layer page {
+    main {
+      container-type: inline-size;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: var(--sp-space-6);
+    }
+
+    .intro {
+      display: grid;
+      grid-template-areas:
+        "image"
+        "intro"
+        "name"
+        "cta";
+      column-gap: var(--sp-space-6);
+      place-items: center;
+      text-align: center;
+      /* padding: 0 var(--sp-space-6); */
+
+      @media (min-width: 40rem) {
+        grid-template-areas:
+          "image intro"
+          "image name"
+          "image cta";
+      }
+
+      @container (min-width: 40rem) {
+        grid-template-areas:
+          "image intro"
+          "image name"
+          "image cta";
+      }
+    }
+    .img {
+      grid-area: image;
+      justify-self: center;
+
+      border-radius: 9999px;
+      width: 100%;
+      height: auto;
+      max-width: 14rem;
+    }
+    .intro-start {
+      grid-area: intro;
+    }
+    .name {
+      grid-area: name;
+    }
+    .cta {
+      grid-area: cta;
+    }
+    .message {
+      text-align: center;
+      font-style: italic;
+    }
+    .cta-link {
+      display: flex;
+      gap: var(--sp-space-3);
+      align-items: center;
+    }
+
+    .cta-icon {
+      width: var(--sp-space-7);
+      width: var(--sp-space-7);
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      margin-top: var(--sp-space-8);
+      margin-bottom: var(--sp-space-6);
+      gap: var(--sp-space-3) var(--sp-space-8);
+    }
+    .section-header .section-heading {
+      margin-bottom: 0;
+    }
+  }
+</style>

@@ -1,0 +1,25 @@
+---
+import type { CollectionEntry } from "astro:content"
+import { Card } from "$components"
+
+type Props = {
+  entry: CollectionEntry<"project">
+}
+
+const { entry } = Astro.props
+const { title, description, isDraft } = entry.data
+
+const href = `/project/${entry.slug}`
+---
+
+<Card {title} {description} {href}>
+  <div class="project-card-content">{isDraft ? "Is in Draft" : null}</div>
+</Card>
+
+<style>
+  @layer component.project-card {
+    .project-card-content {
+      grid-area: card-content;
+    }
+  }
+</style>

@@ -1,0 +1,10 @@
+---
+type Props = {
+  date: Date
+}
+
+const { date } = Astro.props
+const display = new Intl.DateTimeFormat("en-IN", { dateStyle: "long" }).format(date)
+---
+
+<time datetime={date.toDateString()}>{display}</time>

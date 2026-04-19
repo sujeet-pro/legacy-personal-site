@@ -1,0 +1,35 @@
+---
+import type { MarkdownHeading } from "astro"
+import Link from "../link/link.astro"
+import { convertToNestedList } from "./markdown-toc.util"
+import Accordion from "../accordion/accordion.astro"
+
+type Props = {
+  headings: MarkdownHeading[]
+  isOpen?: boolean | undefined
+}
+
+const { headings: allHeadings, isOpen = false } = Astro.props
+const headings = convertToNestedList(allHeadings)
+---
+
+<Accordion initialOpen={isOpen} title="Table of Contents">
+  <ul class="toc-content">
+    {
+      headings.map((heading) => (
+        <li>
+          <Link href={`#${heading.slug}`}>{heading.text}</Link>
+          {heading.children.length ? (
+            <ul>
+              {heading.children.map((subheading) => (
+                <li>
+                  <Link href={`#${subheading.slug}`}>{subheading.text}</Link>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </li>
+      ))
+    }
+  </ul>
+</Accordion>

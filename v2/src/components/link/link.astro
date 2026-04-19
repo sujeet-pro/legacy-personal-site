@@ -1,0 +1,88 @@
+---
+import type { HTMLAttributes } from "astro/types"
+import { isExternalUrl } from "$utils/link.util"
+
+type Props = Omit<HTMLAttributes<"a">, "href"> & {
+  class?: string
+  skin?: "no-decorate" | "cta"
+  isExternal?: boolean | undefined
+  href: string
+}
+
+const { href: to, class: className, skin, isExternal: isExternalProp, ...extraProps } = Astro.props
+const { BASE_URL } = import.meta.env
+if (!to) {
+  throw new Error("Href must be provided")
+}
+let href = to
+if (BASE_URL !== "/") {
+  if (to === "/") {
+    href = BASE_URL
+  } else {
+    href = BASE_URL + to
+  }
+}
+
+const isExternal = isExternalProp ?? isExternalUrl(href)
+const isCta = skin === "cta"
+const isCurrent = href === Astro.url.href || href === Astro.url.pathname
+const extraLinkProps: HTMLAttributes<"a"> = {}
+if (isExternal) {
+  extraLinkProps.target = "_blank"
+  extraLinkProps.rel = "noopener noreferrer"
+}
+---
+
+<a
+  aria-current={isCurrent ? "page" : undefined}
+  {...extraLinkProps}
+  {...extraProps}
+  {href}
+  class:list={[
+    "link",
+    {
+      cta: isCta,
+      "link-no-decoration": skin === "no-decorate",
+    },
+    className,
+  ]}
+>
+  <slot />
+</a>
+
+<style>
+  @layer component.link {
+    .link,
+    :global(a:not([class])) {
+      color: inherit;
+      text-decoration: underline;
+      text-decoration-color: var(--sp-foreground-200);
+      transition: text-decoration-color linear 0.15s;
+
+      &:hover {
+        text-decoration-color: inherit;
+      }
+    }
+    .link {
+      text-decoration-color: transparent;
+    }
+    .link-no-decoration {
+      text-decoration: none;
+    }
+
+    .cta {
+      padding: var(--sp-space-4) var(--sp-space-8);
+      border-radius: 999px;
+      background: var(--sp-primary-100);
+      color: var(--sp-primary-800);
+      border: var(--sp-space-1) solid var(--sp-primary-800);
+      display: inline-block;
+
+      &:hover {
+        background: var(--sp-primary-200);
+        color: var(--sp-primary-900);
+        border-color: var(--sp-primary-700);
+      }
+    }
+  }
+</style>

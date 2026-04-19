@@ -1,0 +1,32 @@
+---
+import type { InferGetStaticPropsType } from "astro"
+import { getCollection } from "astro:content"
+import { Layout } from "$layout"
+import { ArticleContainer, ImgFigure, MarkdownToc } from "$components"
+
+export async function getStaticPaths() {
+  const entries = await getCollection("md-pages", ({ data }) => {
+    return import.meta.env.PROD ? !data.isDraft : true
+  })
+  return entries.map((entry) => ({
+    params: { slug: entry.slug },
+    props: { entry: entry },
+  }))
+}
+type Props = InferGetStaticPropsType<typeof getStaticPaths>
+const { entry } = Astro.props
+const { Content, headings } = await entry.render()
+const { title, description, image, imageCredit, isDraft, isContentSummaryOpen } = entry.data
+---
+
+<Layout {title} {description} imageSrc={image.src}>
+  <main class="container flex-1">
+    <ArticleContainer {title} {description} {isDraft}>
+      <Fragment slot="post-intro">
+        <ImgFigure {image} caption={imageCredit} />
+        <MarkdownToc {headings} isOpen={isContentSummaryOpen} />
+      </Fragment>
+      <Content />
+    </ArticleContainer>
+  </main>
+</Layout>

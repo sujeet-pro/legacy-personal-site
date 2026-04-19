@@ -1,0 +1,24 @@
+---
+import { Layout } from "$layout"
+import { BlogCard } from "$modules/blog"
+import { getBlogs } from "$modules/blog"
+
+const blogs = await getBlogs()
+const series = blogs.filter((blog) => !!blog.parent?.isCurrent)
+---
+
+<Layout title="Sujeet's Blogs" description="List of all the blogs">
+  <main class="container flex-1">
+    <h1>Blog Series</h1>
+    {series.map((blog) => <BlogCard content={blog} />)}
+  </main>
+</Layout>
+
+<style>
+  @layer page {
+    h1 {
+      text-align: center;
+      margin-bottom: var(--sp-space-8);
+    }
+  }
+</style>
