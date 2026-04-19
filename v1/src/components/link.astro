@@ -1,0 +1,101 @@
+---
+import { Icon } from 'astro-icon/components'
+import type { LinkConfig } from "../types/link.type";
+type CommonProps = {
+  class?: string;
+  block?: boolean;
+  ellipsis?: boolean;
+  muted?: boolean;
+  skin: "default" | "cta";
+};
+type LinkConfigProp = Omit<LinkConfig, "text">;
+type withConfig = Partial<LinkConfigProp> & { config: LinkConfig };
+type withoutConfig = LinkConfigProp & { config?: null };
+export type Props = CommonProps & (withConfig | withoutConfig);
+
+const {
+  ellipsis,
+  block,
+  skin,
+  muted,
+  class: className,
+  config: linkConfig,
+  ...overridenLinkConfig
+} = Astro.props as Props;
+
+const text = linkConfig?.text;
+const to = overridenLinkConfig.href || linkConfig?.href;
+const isExternal = overridenLinkConfig.isExternal ?? linkConfig?.isExternal;
+const iconName =
+  overridenLinkConfig.iconName !== null
+    ? overridenLinkConfig.iconName || linkConfig?.iconName
+    : null;
+const iconPosition =
+  overridenLinkConfig.iconPosition || linkConfig?.iconPosition || "left";
+
+  const { BASE_URL } = import.meta.env
+if (!to) {
+  throw new Error("Href must be provided")
+}
+let href = to
+if (BASE_URL !== "/") {
+  if (to === "/") {
+    href = BASE_URL
+  } else {
+    href = BASE_URL + to
+    href.replace(/\/\//, '/')
+  }
+}
+
+const isCurrent = href === Astro.url.href || href === Astro.url.pathname;
+// const isSubPath =
+//   href.length > 1 &&
+//   href.startsWith("/") &&
+//   href.endsWith("/") &&
+//   Astro.url.pathname.startsWith(href);
+
+const extraProps = isExternal
+  ? {
+      target: "_blank",
+      rel: "noopener noreferrer",
+    }
+  : {};
+
+const classNameSet = new Set<string>([
+  block ? "flex" : "inline-flex",
+  "items-center gap-1",
+  "underline-offset-4 decoration-double hover:underline",
+]);
+if (skin === "cta") {
+  classNameSet.add("py-3 px-8 rounded-full");
+  classNameSet.add("text-slate-300 bg-slate-900 hover:bg-slate-700");
+  classNameSet.add(
+    "dark:text-slate-700 dark:bg-slate-50 dark:hover:bg-slate-300"
+  );
+}
+---
+
+<a
+  href={href}
+  aria-current={isCurrent ? "page" : undefined}
+  class:list={[
+    className,
+    classNameSet,
+    { "font-bold": isCurrent && !muted, "max-w-full": ellipsis },
+  ]}
+  {...extraProps}
+>
+  {
+    iconName && iconPosition === "left" ? (
+      <Icon class="inline-block w-4 h-4" name={iconName} />
+    ) : null
+  }
+  <span class="w-full overflow-hidden text-ellipsis whitespace-nowrap"
+    ><slot>{text}</slot></span
+  >
+  {
+    iconName && iconPosition === "right" ? (
+      <Icon class="inline-block w-4 h-4" name={iconName} />
+    ) : null
+  }
+</a>

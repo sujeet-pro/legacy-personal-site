@@ -1,0 +1,34 @@
+---
+import { CollectionEntry, getCollection } from "astro:content";
+
+import Layout from "../../layouts/layout.astro";
+import PageHeading from "../../components/page-heading.astro";
+import Breadcrumb from "../../components/breadcrumb.astro";
+import DraftNotice from "../../components/draft-notice.astro";
+
+export async function getStaticPaths() {
+  const entries = await getCollection("page");
+  return entries.map((entry) => ({
+    params: { slug: entry.slug },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props as { entry: CollectionEntry<"page"> };
+const { Content } = await entry.render();
+const { title, description, thumbnail, isDraft } = entry.data;
+---
+
+<Layout
+  article={true}
+  title={title}
+  description={description}
+  image={thumbnail}
+  pageDetails={{ type: "site" }}
+  noIndex={isDraft}
+>
+  <Breadcrumb links={[]} currentPageTitle={title} slot="pre-article" />
+  <DraftNotice showDraft={isDraft} slot="pre-article" />
+  <PageHeading title={title} description={description} thumbnail={thumbnail} />
+  <Content />
+</Layout>

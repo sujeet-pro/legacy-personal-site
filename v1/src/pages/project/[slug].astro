@@ -1,0 +1,57 @@
+---
+import { CollectionEntry, getCollection } from "astro:content";
+import Breadcrumb from "../../components/breadcrumb.astro";
+import DateComponent from "../../components/date.astro";
+import DraftNotice from "../../components/draft-notice.astro";
+import PageHeading from "../../components/page-heading.astro";
+import CompanyDetails from "../../components/profile/company-details.astro";
+import { siteProjects } from "../../constants/link-site";
+import Layout from "../../layouts/layout.astro";
+
+export async function getStaticPaths() {
+  const entries = await getCollection("project");
+  return entries.map((entry) => ({
+    params: { slug: entry.slug },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props as { entry: CollectionEntry<"project"> };
+const { Content } = await entry.render();
+const {
+  title,
+  description,
+  thumbnail,
+  tags,
+  topics,
+  startDate,
+  endDate,
+  isDraft,
+  company,
+} = entry.data;
+---
+
+<Layout
+  article={true}
+  title={title}
+  description={description}
+  image={thumbnail}
+  pageDetails={{
+    type: "article",
+    tags: [...(tags || []), ...(topics || [])],
+    publishedDate: null,
+    updatedDate: null,
+  }}
+  noIndex={isDraft}
+>
+  <Breadcrumb
+    links={[siteProjects]}
+    currentPageTitle={title}
+    slot="pre-article"
+  />
+  <DraftNotice showDraft={isDraft} slot="pre-article" />
+  <CompanyDetails company={company} startDate={startDate} endDate={endDate} />
+  <hr class="my-4" />
+  <PageHeading title={title} description={description} thumbnail={thumbnail} />
+  <Content />
+</Layout>

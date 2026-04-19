@@ -1,0 +1,20 @@
+---
+import Layout from "../../layouts/layout.astro";
+import BlogList from "../../components/blog/blog-list.astro";
+import Breadcrumb from "../../components/breadcrumb.astro";
+
+const title = "Sujeet's Blog";
+const description = "List of all the blog entries written by Sujeet Jaiswal";
+---
+
+<Layout
+  article={false}
+  title={title}
+  description={description}
+  image={null}
+  pageDetails={{ type: "site" }}
+>
+  <Breadcrumb links={[]} currentPageTitle="Blogs" />
+  <h1 class="text-5xl text-center my-8">{title}</h1>
+  <BlogList />
+</Layout>

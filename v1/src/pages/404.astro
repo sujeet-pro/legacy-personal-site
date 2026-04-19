@@ -1,0 +1,49 @@
+---
+import Layout from "../layouts/layout.astro";
+import Link from "../components/link.astro";
+import { siteHome } from "../constants/link-site";
+
+const title = "Page Not Found";
+const description = "The page you are looking for doesn't exits.";
+---
+
+<Layout
+  article={false}
+  title={title}
+  description={description}
+  image={null}
+  pageDetails={{ type: "site" }}
+  class="flex flex-col gap-20 my-24"
+>
+  <section class="flex flex-col gap-10 text-center">
+    <h1 class="text-9xl">Oops!</h1>
+    <p class="text-4xl">404 - Page Not found</p>
+    <div>
+      <Link skin="cta" config={siteHome}>
+        Visit {siteHome.text} Page
+      </Link>
+    </div>
+  </section>
+</Layout>
+
+<script lang="typescript">
+  try {
+  const config = {
+    "/gh": "https://github.com/sujeet-pro",
+    "/in": "https://www.linkedin.com/in/sujeetkrjaiswal/",
+    "/linkedin": "https://www.linkedin.com/in/sujeetkrjaiswal/",
+    "/twitter": "https://twitter.com/sujeetpro",
+    "/ig": "https://www.instagram.com/sujeet__pro/",
+    "/instagram": "https://www.instagram.com/sujeet__pro/",
+    "/dev-to": "https://dev.to/sujeetpro",
+    "/hashnode": "https://hashnode.com/@sujeetpro",
+    "/medium": "https://medium.com/sujeet-pro",
+    "/stackoverflow": "https://stackoverflow.com/users/5570700/sujeet-jaiswal",
+    "/cv":
+      "https://docs.google.com/document/d/1G-zdwqHLTJ9eoDAnyMeWKkb2Bf-0i8dfQ6NWYJ_osL0/edit?usp=sharing",
+  };
+  if(config[window.location.pathname]) {
+    window.location.replace(config[window.location.pathname])
+  }
+  } catch {}
+</script>

@@ -1,0 +1,86 @@
+---
+import Layout from "../layouts/layout.astro";
+import Link from "../components/link.astro";
+import { siteProfile } from "../constants/link-site";
+import sujeetImg from "../assets/sujeet-min.jpg";
+import { Image } from "astro:assets";
+
+const title = "Sujeet Jaiswal";
+const description = "I help build accessible and performant products on Web.";
+---
+
+<Layout
+  article={false}
+  title={title}
+  description={description}
+  image={null}
+  pageDetails={{ type: "site" }}
+  class="flex flex-col gap-20"
+  maxWithContainerClassName="max-w-screen-lg w-full mx-auto"
+>
+  <section aria-label="Introduction" class="">
+    <div
+      class="flex flex-col md:flex-row md:justify-center items-center gap-10 my-4 sm:my-20"
+    >
+      <Image
+        src={sujeetImg}
+        alt="Sujeet Jaiswal"
+        role="presentation"
+        class="rounded-full w-full max-w-xs"
+      />
+      <div class="flex flex-col gap-10 text-center md:text-left">
+        <p class="text-5xl sm:text-6xl">Hello, I'm</p>
+        <h1 class="text-6xl lg:text-8xl">Sujeet Jaiswal</h1>
+        <Link
+          config={siteProfile}
+          iconName={null}
+          class="max-w-max mx-auto md:mx-0"
+          skin="cta"
+        >
+          Resume
+        </Link>
+      </div>
+    </div>
+    <p
+      class="text-4xl sm:text-6xl lg:text-7xl leading-tight sm:leading-tight lg:leading-tight p-4"
+    >
+      Helping people make the world a better place through <strong
+        >quality software</strong
+      >.
+    </p>
+  </section>
+</Layout>
+
+<script>
+  declare global {
+    interface Window {
+      netlifyIdentity: {
+        on(type: string, cb: (user: any) => void): void;
+      };
+    }
+  }
+  function initNetlifyCMSLazily() {
+    if (!window.location.search) return null;
+    const script = document.createElement("script");
+    script.src = "https://identity.netlify.com/v1/netlify-identity-widget.js";
+    script.onload = () => {
+      if (
+        window.netlifyIdentity &&
+        typeof window.netlifyIdentity.on === "function"
+      ) {
+        window.netlifyIdentity.on("init", (user) => {
+          if (!user) {
+            window.netlifyIdentity.on("login", () => {
+              document.location.href = "/studio/";
+            });
+          }
+        });
+      }
+    };
+    document.body.appendChild(script);
+    return null;
+  }
+  setTimeout(() => {
+    initNetlifyCMSLazily();
+  }, 5000);
+</script>

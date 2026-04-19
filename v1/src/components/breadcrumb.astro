@@ -1,0 +1,44 @@
+---
+import { classNameExtraMuted } from "../constants/classnames";
+import { siteHome } from "../constants/link-site";
+import type { LinkConfig } from "../types/link.type";
+import Link from "./link.astro";
+
+type Props = {
+  links: LinkConfig[];
+  currentPageTitle: string;
+  // currentPageHref: string
+};
+const { links, currentPageTitle } = Astro.props as Props;
+const currentPageHref = Astro.url.pathname;
+---
+
+<nav class="my-4">
+  <ul class="flex flex-wrap items-center justify-start gap-2">
+    <li class="flex items-center gap-2">
+      <Link skin="default" config={siteHome} />
+      <span role="presentation" class={classNameExtraMuted}>/</span>
+    </li>
+    {
+      links.map((link) => (
+        <li class="flex items-center gap-2">
+          <Link skin="default" config={link} iconName={null} />
+          <span role="presentation" class={classNameExtraMuted}>
+            /
+          </span>
+        </li>
+      ))
+    }
+    <li class="max-w-full">
+      <Link
+        skin="default"
+        href={currentPageHref}
+        aria-current="page"
+        muted
+        ellipsis
+      >
+        {currentPageTitle}
+      </Link>
+    </li>
+  </ul>
+</nav>

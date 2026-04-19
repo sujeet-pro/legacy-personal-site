@@ -1,0 +1,38 @@
+---
+import { getCollection } from "astro:content";
+import Breadcrumb from "../../components/breadcrumb.astro";
+import Card from "../../components/card.astro";
+import Layout from "../../layouts/layout.astro";
+
+const entries = await getCollection("topic");
+const title = "Topics";
+const description = "List of all the topics";
+---
+
+<Layout
+  article={false}
+  title={title}
+  description={description}
+  image={null}
+  pageDetails={{ type: "site" }}
+>
+  <Breadcrumb links={[]} currentPageTitle={title} />
+  <h1 class="text-5xl text-center my-8">{title}</h1>
+  <ul class="divide-y-2">
+    {
+      entries.map((entry) => {
+        const href = `/topic/${entry.slug}/`;
+        return (
+          <Card
+            title={entry.data.title}
+            description={entry.data.description}
+            iconName={entry.data.iconName}
+            thumbnail={entry.data.thumbnail}
+            isDraft={entry.data.isDraft}
+            href={href}
+          />
+        );
+      })
+    }
+  </ul>
+</Layout>

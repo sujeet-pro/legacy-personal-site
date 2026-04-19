@@ -1,0 +1,43 @@
+---
+import { getCollection } from "astro:content";
+import Breadcrumb from "../../components/breadcrumb.astro";
+import Card from "../../components/card.astro";
+import Layout from "../../layouts/layout.astro";
+
+const entries = await getCollection("project", (entry) => {
+  if (entry.data.isDraft) return false;
+  return true;
+});
+const title = "Sujeet's Projects";
+const description =
+  "List of all the projects that I have worked on for different companies";
+
+entries.sort((a, b) => (a.data.startDate >= b.data.startDate ? -1 : 1));
+---
+
+<Layout
+  article={false}
+  title={title}
+  description={description}
+  image={null}
+  pageDetails={{ type: "site" }}
+>
+  <Breadcrumb links={[]} currentPageTitle="Projects" />
+  <h1 class="text-5xl text-center my-8">{title}</h1>
+  <ul class="divide-y-2">
+    {
+      entries.map((entry) => {
+        const href = `/project/${entry.slug}/`;
+        return (
+          <Card
+            title={entry.data.title}
+            description={entry.data.description}
+            thumbnail={entry.data.thumbnail}
+            isDraft={entry.data.isDraft}
+            href={href}
+          />
+        );
+      })
+    }
+  </ul>
+</Layout>

@@ -1,0 +1,46 @@
+---
+import Link from "../../components/link.astro";
+import { maxWidthContainer } from "../../constants/classnames";
+import { communityLinks } from "../../constants/link-community";
+import { siteLinks } from "../../constants/link-site";
+import { socialLinks } from "../../constants/link-social";
+
+const currentYear = new Date().getFullYear();
+const allLinks = [
+  {
+    category: "Social",
+    links: socialLinks,
+  },
+  {
+    category: "Community",
+    links: communityLinks,
+  },
+  {
+    category: "Site",
+    links: siteLinks,
+  },
+];
+---
+
+<footer class="border-t border-slate-300 dark:border-slate-600 py-6">
+  <nav
+    class:list={[
+      "flex flex-col sm:flex-row justify-between divider-x-2",
+      maxWidthContainer,
+    ]}
+  >
+    {
+      allLinks.map(({ category, links }) => (
+        <ul>
+          <li class="font-bold mb-2">{category}</li>
+          {links.map((link) => (
+            <li>
+              <Link block class="py-3" skin="default" config={link} />
+            </li>
+          ))}
+        </ul>
+      ))
+    }
+  </nav>
+  <p class="text-center mt-4">&copy; {currentYear} Sujeet Jaiswal</p>
+</footer>
