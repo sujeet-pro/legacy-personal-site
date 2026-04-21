@@ -7,7 +7,7 @@ import { getPostContents } from '@/utils/post-content.utils'
 import { getGroupedPostContentsByCategory } from '@/utils/post-contents-by-category'
 
 export async function getStaticPaths() {
-  const postContents = await getPostContents()
+  const postContents = await getPostContents({ allowUnpublished: true })
   const postContentsByCategories = getGroupedPostContentsByCategory(postContents)
   return postContentsByCategories.map((postContentsByCategory) => ({
     params: { slug: postContentsByCategory.category.id },

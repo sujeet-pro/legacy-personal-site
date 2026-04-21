@@ -48,18 +48,18 @@ const SRCSET_RE = /\bsrcset\s*=\s*("([^"]*)"|'([^']*)')/gi
 const META_REFRESH_RE =
   /<meta\s+[^>]*http-equiv\s*=\s*["']?refresh["']?[^>]*content\s*=\s*("([^"]*)"|'([^']*)')/gi
 
-// Strip <pre>…</pre> and <code>…</code> regions so URL-looking strings inside
-// code samples (e.g. `<script src="app.js">` rendered as documentation) don't
-// register as links. Regex is coarse on purpose — archive HTML is static and
-// well-formed.
-function stripCodeBlocks(html) {
+// Strip HTML comments and <pre>/<code> regions so URL-looking strings that are
+// documentation or commented-out templates don't register as links. Regex is
+// coarse on purpose — archive HTML is static and well-formed.
+function stripNonLinks(html) {
   return html
+    .replace(/<!--[\s\S]*?-->/g, "")
     .replace(/<pre\b[^>]*>[\s\S]*?<\/pre>/gi, "")
     .replace(/<code\b[^>]*>[\s\S]*?<\/code>/gi, "")
 }
 
 function extractLinks(rawHtml) {
-  const html = stripCodeBlocks(rawHtml)
+  const html = stripNonLinks(rawHtml)
   const out = []
 
   for (const m of html.matchAll(ATTR_RE)) {
