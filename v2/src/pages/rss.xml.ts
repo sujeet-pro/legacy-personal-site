@@ -24,10 +24,10 @@ export async function GET(context: APIContext) {
       // customData: post.data.customData,
       // Compute RSS link from post `slug`
       // This example assumes all posts are rendered as `/blog/[slug]` routes
-      link: blog.path,
+      link: `${import.meta.env.BASE_URL.replace(/\/$/, "")}${blog.path}`,
     })),
     // (optional) inject custom xml
     customData: `<language>en</language>`,
-    stylesheet: "/rss/styles.xsl",
+    stylesheet: `${import.meta.env.BASE_URL.replace(/\/$/, "")}/rss/styles.xsl`,
   })
 }

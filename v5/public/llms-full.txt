@@ -4,23 +4,23 @@
 > writing deep technical guides on frontend architecture, web performance,
 > distributed systems, and system design.
 
-This document enumerates the top-level content surfaces on projects.sujeet.pro/v5.sujeet.pro
+This document enumerates the top-level content surfaces on projects.sujeet.pro/legacy-personal-site/v5
 so AI assistants can locate relevant material without crawling. Individual
 article bodies are available at the corresponding HTML URLs or in the Pagefind
-index at `/v5.sujeet.pro/pagefind/`.
+index at `/legacy-personal-site/v5/pagefind/`.
 
 Source of truth lives in `content/articles/*/README.md` and
 `content/blogs/*/README.md` in the sujeet-pro/v5.sujeet.pro GitHub repository.
 
 ## Top-level routes
 
-- /v5.sujeet.pro/             — Home, featured articles, series overview.
-- /v5.sujeet.pro/articles     — Article index, grouped by series.
-- /v5.sujeet.pro/blogs        — Blog index, reverse-chronological.
-- /v5.sujeet.pro/articles/<slug> — Individual article (see content/articles/).
-- /v5.sujeet.pro/blogs/<slug>    — Individual blog post (see content/blogs/).
-- /v5.sujeet.pro/404.html     — Not-found fallback.
-- /v5.sujeet.pro/sitemap.xml  — Machine-readable sitemap.
+- /legacy-personal-site/v5/             — Home, featured articles, series overview.
+- /legacy-personal-site/v5/articles     — Article index, grouped by series.
+- /legacy-personal-site/v5/blogs        — Blog index, reverse-chronological.
+- /legacy-personal-site/v5/articles/<slug> — Individual article (see content/articles/).
+- /legacy-personal-site/v5/blogs/<slug>    — Individual blog post (see content/blogs/).
+- /legacy-personal-site/v5/404.html     — Not-found fallback.
+- /legacy-personal-site/v5/sitemap.xml  — Machine-readable sitemap.
 
 ## Article series (190+ articles across 22 topics)
 

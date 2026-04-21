@@ -31,9 +31,9 @@ export default defineConfig({
     "/medium": "https://medium.com/sujeet-pro",
     "/stackoverflow": "https://stackoverflow.com/users/5570700/sujeet-jaiswal",
     "/cv": "https://docs.google.com/document/d/1G-zdwqHLTJ9eoDAnyMeWKkb2Bf-0i8dfQ6NWYJ_osL0/edit?usp=sharing",
-    "/blog/length-of-a-string/": "blog/js-interview-treats/length-of-a-string",
-    "/blog/ssg-mobile-desktop-cls-and-redirection": "/blog/ssg",
-    "/blog/serving-pre-compressed-assets": "/blog/ssg/serving-pre-compressed-assets",
+    "/blog/length-of-a-string/": "/legacy-personal-site/v2/blog/js-interview-treats/length-of-a-string",
+    "/blog/ssg-mobile-desktop-cls-and-redirection": "/legacy-personal-site/v2/blog/ssg",
+    "/blog/serving-pre-compressed-assets": "/legacy-personal-site/v2/blog/ssg/serving-pre-compressed-assets",
   },
   integrations: [icon(), sitemap(), prefetch()],
 })
