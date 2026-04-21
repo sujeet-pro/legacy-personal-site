@@ -5,6 +5,7 @@ const config: GatsbyConfig = {
     title: `websysarch-dot-com`,
     siteUrl: `https://websysarch.com`,
   },
+  pathPrefix: `/legacy-personal-site/websysarch`,
   plugins: [
     'gatsby-plugin-theme-ui',
     {

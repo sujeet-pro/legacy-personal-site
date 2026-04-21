@@ -39,6 +39,7 @@ const sitemapFilter = await createSitemapFilter(SITE_URL)
 export default defineConfig({
   // Full site URL (used for sitemap, canonical URLs)
   site: SITE_URL,
+  base: "/legacy-personal-site/v4",
 
   trailingSlash: "never",
   build: {

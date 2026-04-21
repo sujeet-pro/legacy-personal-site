@@ -8,6 +8,9 @@
 import { getCollection, render } from "astro:content"
 import { parseFrontmatter } from "./helpers"
 import { getArticlesForTopicFromConfig, getCategoryOrderFromConfig, getTopicsForCategoryFromConfig } from "./ordering"
+
+const BASE = (import.meta.env.BASE_URL || "/").replace(/\/$/, "")
+const articlesHref = (...parts: string[]) => `${BASE}/articles/${parts.join("/")}`
 import type {
   CategoryIndex,
   CategoryRef,
@@ -141,7 +144,7 @@ async function processAllContent(): Promise<ProcessedContent> {
       title: frontmatter.title,
       name,
       description: frontmatter.description,
-      href: `/articles/${categoryId}`,
+      href: articlesHref(categoryId),
     }
     categoryLookup.set(categoryId, categoryRef)
 
@@ -153,7 +156,7 @@ async function processAllContent(): Promise<ProcessedContent> {
       minutesRead: frontmatter.minutesRead,
       isDraft: frontmatter.isDraft,
       Content,
-      href: `/articles/${categoryId}`,
+      href: articlesHref(categoryId),
       isIndex: true,
       indexType: "category",
       category: categoryRef,
@@ -177,7 +180,7 @@ async function processAllContent(): Promise<ProcessedContent> {
         title: categoryId,
         name: categoryId,
         description: "",
-        href: `/articles/${categoryId}`,
+        href: articlesHref(categoryId),
       }
       categoryLookup.set(categoryId, categoryRef)
     }
@@ -187,7 +190,7 @@ async function processAllContent(): Promise<ProcessedContent> {
       title: frontmatter.title,
       name,
       description: frontmatter.description,
-      href: `/articles/${categoryId}/${topicId}`,
+      href: articlesHref(categoryId, topicId),
       categoryId,
     }
     topicLookup.set(`${categoryId}/${topicId}`, topicRef)
@@ -200,7 +203,7 @@ async function processAllContent(): Promise<ProcessedContent> {
       minutesRead: frontmatter.minutesRead,
       isDraft: frontmatter.isDraft,
       Content,
-      href: `/articles/${categoryId}/${topicId}`,
+      href: articlesHref(categoryId, topicId),
       isIndex: true,
       indexType: "topic",
       category: categoryRef,
@@ -242,7 +245,7 @@ async function processAllContent(): Promise<ProcessedContent> {
       isDraft: frontmatter.isDraft,
       lastUpdatedOn: item.data.lastUpdatedOn,
       Content,
-      href: `/articles/${frontmatter.pageSlug}`,
+      href: articlesHref(frontmatter.pageSlug),
       categoryId,
       topicId,
       category: categoryRef,

@@ -37,13 +37,17 @@ const iconPosition =
 if (!to) {
   throw new Error("Href must be provided")
 }
+const isAbsoluteUrl = /^[a-z][a-z0-9+.-]*:/i.test(to) || to.startsWith("//") || to.startsWith("#")
+const baseNoSlash = BASE_URL.endsWith("/") ? BASE_URL.slice(0, -1) : BASE_URL
+const alreadyPrefixed = baseNoSlash !== "" && (to === baseNoSlash || to.startsWith(baseNoSlash + "/"))
 let href = to
-if (BASE_URL !== "/") {
+if (BASE_URL !== "/" && !isAbsoluteUrl && !alreadyPrefixed) {
   if (to === "/") {
     href = BASE_URL
+  } else if (to.startsWith("/")) {
+    href = baseNoSlash + to
   } else {
-    href = BASE_URL + to
-    href.replace(/\/\//, '/')
+    href = (BASE_URL.endsWith("/") ? BASE_URL : BASE_URL + "/") + to
   }
 }
 

@@ -16,7 +16,7 @@ import icon from 'astro-icon'
 // https://astro.build/config
 export default defineConfig({
   site: SITE_CANONICAL_ORIGIN,
-  base: '/',
+  base: '/legacy-personal-site/v3/',
   integrations: [
     expressiveCode(),
     mdx(),
@@ -35,12 +35,7 @@ export default defineConfig({
     prefetchAll: true,
     defaultStrategy: 'viewport',
   },
-  experimental: {
-    contentIntellisense: true,
-    clientPrerender: true,
-    svg: true,
-    responsiveImages: true,
-  },
+
   scopedStyleStrategy: 'where',
   output: 'static',
   markdown: {

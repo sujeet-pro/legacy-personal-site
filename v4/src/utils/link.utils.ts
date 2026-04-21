@@ -52,7 +52,17 @@ export function getLinkProps({
     }
   }
 
-  return { href: result, target, rel }
+  return { href: withBase(result), target, rel }
+}
+
+const BASE_URL = import.meta.env.BASE_URL
+
+function withBase(path: string): string {
+  if (!BASE_URL || BASE_URL === "/") return path
+  const base = BASE_URL.endsWith("/") ? BASE_URL.slice(0, -1) : BASE_URL
+  if (path === base || path.startsWith(base + "/")) return path
+  if (path === "/") return base + "/"
+  return base + path
 }
 
 /**
@@ -63,7 +73,7 @@ export function getFilePath(...pathFragments: string[]): string {
     .map((s) => s.replace(/^\/|\/$/g, ""))
     .filter(Boolean)
     .join("/")
-  return "/" + path
+  return withBase("/" + path)
 }
 
 /**

@@ -1,1 +1,18 @@
 .temp/
+
+# Per-version build artifacts (output lives under gh-pages/ which IS committed).
+**/node_modules/
+v1/dist/
+v2/dist/
+v3/dist/
+v4/dist/
+v5/dist/
+websysarch-dot-com/public/
+v*/.astro/
+websysarch-dot-com/.cache/
+v5/pagefind/
+
+# Local env files created during archival builds.
+v4/.env
+
+gh-pages

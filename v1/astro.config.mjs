@@ -12,7 +12,7 @@ import icon from "astro-icon";
 // https://astro.build/config
 export default defineConfig({
   site: "https://projects.sujeet.pro",
-  base: "/v1.sujeet.pro",
+  base: "/legacy-personal-site/v1",
   experimental: {
     assets: true,
   },

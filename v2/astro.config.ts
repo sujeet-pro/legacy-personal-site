@@ -11,7 +11,7 @@ import icon from "astro-icon"
 // https://astro.build/config
 export default defineConfig({
   site: "https://projects.sujeet.pro",
-  base: "/v3.sujeet.pro",
+  base: "/legacy-personal-site/v2",
   prefetch: true,
   scopedStyleStrategy: "where",
   markdown: {

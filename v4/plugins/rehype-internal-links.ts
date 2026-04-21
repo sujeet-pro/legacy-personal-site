@@ -4,18 +4,18 @@ import path from "node:path"
 import type { Plugin } from "unified"
 import { getSlug } from "./utils/slug.utils"
 
+// Base path prefix applied to generated URLs. Read once at module load so
+// worker threads (which may not inherit env reliably on every Node version)
+// still see the correct value as long as they re-evaluate the module.
+// Falls back to an empty string when unset (root-deployed site).
+const BASE_PATH = (process.env.ASTRO_BASE_PATH ?? "").replace(/\/$/, "")
+
 /**
  * Rehype plugin that transforms markdown file path links to site URLs.
  *
- * Enables IDE navigation (Cmd+Click) while producing correct URLs in output.
- *
- * Example:
- *   Input:  [Link](../crdt-for-collaborative-systems/README.md)
- *   Output: [Link](/articles/system-design/core-distributed-patterns/crdt-for-collaborative-systems)
- *
- * Usage in markdown:
- *   - Use relative paths with README.md extension: `../sibling-article/README.md`
- *   - This works for both IDE navigation AND produces correct URLs in build
+ * Also normalises already-absolute links under /articles/ so they get the
+ * deploy base path prefix. This handles content that hand-writes
+ * `/articles/<slug>` as an absolute URL (bypassing the .md transform).
  */
 const rehypeInternalLinks: Plugin<[], Root> = () => {
   return (tree, file) => {
@@ -25,11 +25,14 @@ const rehypeInternalLinks: Plugin<[], Root> = () => {
     const visit = (node: any) => {
       if (node.type === "element" && node.tagName === "a") {
         const href = node.properties?.href as string | undefined
-        if (href && isMarkdownLink(href)) {
-          const transformedUrl = transformLink(href, sourceFilePath)
-          if (transformedUrl) {
-            node.properties.href = transformedUrl
+        if (href) {
+          let next: string | null = null
+          if (isMarkdownLink(href)) {
+            next = transformMarkdownLink(href, sourceFilePath)
+          } else if (isAbsoluteArticleLink(href)) {
+            next = applyBase(href)
           }
+          if (next !== null) node.properties.href = next
         }
       }
       if (node.children) {
@@ -41,48 +44,45 @@ const rehypeInternalLinks: Plugin<[], Root> = () => {
   }
 }
 
-/**
- * Check if a link is a markdown file reference that should be transformed.
- */
 function isMarkdownLink(href: string): boolean {
-  // Skip external URLs, anchors, and protocol links
   if (href.startsWith("http") || href.startsWith("#") || href.includes("://")) {
     return false
   }
-  // Check if it's a markdown file reference
   return href.endsWith(".md") || href.includes(".md#")
 }
 
-/**
- * Transform a markdown file path to a site URL.
- */
-function transformLink(href: string, sourceFilePath: string): string | null {
-  // Extract anchor if present
-  const [linkPath, anchor] = href.split("#")
+// Already-absolute /articles/... links (no base prefix applied).
+function isAbsoluteArticleLink(href: string): boolean {
+  if (href.startsWith("http") || href.includes("://")) return false
+  if (!href.startsWith("/articles/") && href !== "/articles") return false
+  if (!BASE_PATH) return false
+  if (href.startsWith(BASE_PATH + "/")) return false
+  return true
+}
 
-  // linkPath should always exist after split, but guard against empty string
+function applyBase(href: string): string {
+  return `${BASE_PATH}${href}`
+}
+
+function transformMarkdownLink(href: string, sourceFilePath: string): string | null {
+  const [linkPath, anchor] = href.split("#")
   if (!linkPath) return null
 
-  // Resolve relative path to absolute
   const sourceDir = path.dirname(sourceFilePath)
   const absolutePath = path.resolve(sourceDir, linkPath)
 
-  // Verify target exists
   if (!fs.existsSync(absolutePath)) {
     console.warn(`[rehype-internal-links] Target not found: ${absolutePath} (from ${sourceFilePath})`)
     return null
   }
 
-  // Determine if in articles directory
   const articlesDir = path.resolve("./content/articles")
-
   if (absolutePath.startsWith(articlesDir + path.sep)) {
     const slug = getSlug(absolutePath)
-    const url = `/articles/${slug}`
+    const url = `${BASE_PATH}/articles/${slug}`
     return anchor ? `${url}#${anchor}` : url
   }
 
-  // Link is to a markdown file outside content directories
   console.warn(`[rehype-internal-links] Link target not in content directories: ${absolutePath}`)
   return null
 }

@@ -1,0 +1,12 @@
+{
+  "name": "legacy-personal-site-preview",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Local static server that serves ../gh-pages at /legacy-personal-site/, mirroring the GitHub Pages deploy path.",
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node server.mjs",
+    "validate": "node validate.mjs"
+  }
+}
