@@ -1,0 +1,29 @@
+---
+import ArticleCard from "@/components/cards/article-card.astro"
+import SidebarNavSite from "@/components/nav/sidebar-nav-site.astro"
+import Layout from "@/layout/layout.astro"
+import { getAllArticlesIncludingDrafts } from "@/utils/content"
+import { formatCount } from "@/utils/format.utils"
+
+const allArticles = await getAllArticlesIncludingDrafts()
+const drafts = allArticles.filter((article) => article.isDraft).map(({ Content: _, ...rest }) => rest)
+---
+
+<Layout
+  title="Drafts"
+  description="Browse draft articles"
+  crumbs={null}
+  pageType="default"
+  noIndex={true}
+  hasLeftSidebar={true}
+>
+  <SidebarNavSite slot="sidebar-left" />
+  <h1 class="page-title">Drafts</h1>
+  <p class="page-description">
+    {formatCount(drafts.length, "draft")} sorted by date.
+  </p>
+
+  <ul class="article-list">
+    {drafts.map((article) => <ArticleCard {article} />)}
+  </ul>
+</Layout>

@@ -1,0 +1,66 @@
+---
+import Layout from "@/layout/layout.astro"
+import ReadingProgress from "@/layout/reading-progress.astro"
+import SidebarNavProjects from "@/components/nav/sidebar-nav-projects.astro"
+import SidebarToc from "@/components/nav/sidebar-toc.astro"
+import Frontmatter from "@/components/ui/frontmatter.astro"
+import Link from "@/components/ui/link.astro"
+import { Icon } from "astro-icon/components"
+import { getAllProjectPaths, getProjectPage } from "@/utils/content"
+import { render, getCollection } from "astro:content"
+
+export async function getStaticPaths() {
+  const paths = await getAllProjectPaths()
+  return paths.map((slug) => ({ params: { slug } }))
+}
+
+const { slug } = Astro.params
+const project = await getProjectPage(slug)
+if (!project) return Astro.redirect("/404")
+
+// Get headings for TOC
+const projectEntries = await getCollection("project")
+const entry = projectEntries.find((e) => e.id === slug)
+const headings = entry ? (await render(entry)).headings : []
+
+const crumbs = [{ name: "Projects", href: "/projects" }]
+---
+
+<Layout
+  title={project.title}
+  description={project.description}
+  crumbs={crumbs}
+  noIndex={project.isDraft}
+  hasLeftSidebar={true}
+  hasRightSidebar={headings.length > 0}
+  pageType="project"
+>
+  <SidebarNavProjects slot="sidebar-left" currentProjectId={slug} />
+  {headings.length > 0 && <SidebarToc slot="sidebar-right" headings={headings} />}
+
+  <ReadingProgress />
+
+  <div class="project-page-meta">
+    <Frontmatter minutesRead={project.minutesRead} isDraft={project.isDraft} lastUpdatedOn={project.lastUpdatedOn} />
+    {
+      project.gitRepo && (
+        <Link href={project.gitRepo} class="project-page-link-item" target="_blank" rel="noopener noreferrer">
+          <Icon name="carbon:logo-github" class="icon-sm" />
+          <span>Source Code</span>
+        </Link>
+      )
+    }
+    {
+      project.links.map((link) => (
+        <Link href={link.url} class="project-page-link-item" target="_blank" rel="noopener noreferrer">
+          <Icon name="carbon:launch" class="icon-sm" />
+          <span>{link.text}</span>
+        </Link>
+      ))
+    }
+  </div>
+
+  <article id="article-content" class="article-prose-content">
+    <project.Content />
+  </article>
+</Layout>

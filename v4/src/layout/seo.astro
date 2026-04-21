@@ -1,0 +1,41 @@
+---
+import { getSiteConfig } from "@/utils/site.utils"
+
+export type Props = {
+  title: string
+  description: string
+  image?: string | undefined
+  pageType?: "default" | "article" | "blog" | "project" | "listing" | "browse"
+  category?: string | undefined
+  topic?: string | undefined
+}
+
+const siteConfig = await getSiteConfig()
+const defaultDescription = "Sujeet's personal website - Blog and Portfolio"
+const { description, image, pageType = "default", category, topic } = Astro.props
+const title = Astro.props.title ? `${Astro.props.title} - ${siteConfig.name}` : siteConfig.name
+const canonicalURL = siteConfig.origin + Astro.url.pathname
+const seoPageType = pageType === "article" || pageType === "blog" || pageType === "project" ? "article" : "website"
+---
+
+<!-- Canonical URL -->
+<link rel="canonical" href={canonicalURL} />
+<!-- Primary Meta Tags -->
+<title>{title}</title>
+<meta name="title" content={title} />
+<meta name="description" content={description || defaultDescription} />
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content={seoPageType} />
+<meta property="og:url" content={canonicalURL} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+{image ? <meta property="og:image" content={new URL(image, Astro.url)} /> : null}
+
+<!-- Twitter / X -->
+<meta name="twitter:site" content={siteConfig.social.twitter.handle} />
+<meta name="twitter:card" content="summary_large_image" />
+
+<!-- DocSearch facets -->
+{category && <meta name="docsearch:category" content={category} />}
+{topic && <meta name="docsearch:topic" content={topic} />}

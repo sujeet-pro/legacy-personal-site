@@ -1,0 +1,16 @@
+---
+/**
+ * Reading Progress Bar
+ *
+ * A subtle progress indicator that shows how far the user has scrolled
+ * through the article content.
+ */
+---
+
+<div id="reading-progress" class="reading-progress" style="width: 0%"></div>
+
+<script>
+  import { initReadingProgress } from "@/scripts/reading-progress"
+  document.addEventListener("DOMContentLoaded", initReadingProgress)
+  document.addEventListener("astro:page-load", initReadingProgress)
+</script>

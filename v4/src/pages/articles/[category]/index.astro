@@ -1,0 +1,110 @@
+---
+import ArticleCard from "@/components/cards/article-card.astro"
+import TopicCard from "@/components/cards/topic-card.astro"
+import SidebarNavBrowse from "@/components/nav/sidebar-nav-browse.astro"
+import Layout from "@/layout/layout.astro"
+import { getAllCategoryIds, getCategoryPage } from "@/utils/content"
+import { formatCount } from "@/utils/format.utils"
+
+export async function getStaticPaths() {
+  const categoryIds = await getAllCategoryIds()
+  return categoryIds.map((id) => ({
+    params: { category: id },
+  }))
+}
+
+const { category: categoryId } = Astro.params
+const pageData = await getCategoryPage(categoryId)
+
+if (!pageData) {
+  return Astro.redirect("/404")
+}
+
+const { category, index: categoryIndex, topics, articles } = pageData
+const crumbs = null
+const { Content } = categoryIndex
+---
+
+<Layout
+  title={categoryIndex.title}
+  description={categoryIndex.description}
+  {crumbs}
+  pageType="listing"
+  noIndex={categoryIndex.isDraft || articles.length === 0}
+  hasLeftSidebar={true}
+>
+  <SidebarNavBrowse slot="sidebar-left" currentCategoryId={categoryId} />
+  <!-- Render the category's markdown content -->
+  <article class="category-content prose">
+    <Content />
+  </article>
+
+  <!-- Topics Section -->
+  {
+    topics.length > 0 && (
+      <section class="topics-section">
+        <div class="section-divider">
+          <span class="section-divider-text">Browse by Topic</span>
+        </div>
+        <div class="topic-list">
+          {topics.map((topic, index) => (
+            <div class="topic-item-animated" style={`animation-delay: ${index * 80}ms`}>
+              <TopicCard topic={topic} category={category} articleCount={topic.articles.length} />
+            </div>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  <!-- All Articles in Category -->
+  <section class="articles-section">
+    <div class="section-divider">
+      <span class="section-divider-text">All Articles ({formatCount(articles.length, "article")})</span>
+    </div>
+    {
+      articles.length > 0 ? (
+        <ul class="article-list">
+          {articles.map((article, index) => (
+            <div class="article-item-animated" style={`animation-delay: ${Math.min(index * 50, 300)}ms`}>
+              <ArticleCard article={article} headingLevel="h3" />
+            </div>
+          ))}
+        </ul>
+      ) : (
+        <p class="text-muted empty-state">No articles yet in this category.</p>
+      )
+    }
+  </section>
+</Layout>
+
+<style is:global>
+  @reference "tailwindcss";
+
+  .category-content {
+    @apply mb-16;
+    animation: fadeInUp var(--transition-slow) forwards;
+  }
+
+  .topics-section {
+    @apply mb-16;
+  }
+
+  .articles-section {
+    @apply mb-8;
+  }
+
+  .topic-item-animated {
+    animation: fadeInUp var(--transition-slow) forwards;
+    opacity: 0;
+  }
+
+  .article-item-animated {
+    animation: fadeInUp var(--transition-slow) forwards;
+    opacity: 0;
+  }
+
+  .empty-state {
+    @apply py-12 text-center;
+  }
+</style>

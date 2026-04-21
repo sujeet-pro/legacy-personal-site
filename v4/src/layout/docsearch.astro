@@ -1,0 +1,73 @@
+---
+/**
+ * DocSearch Script Component
+ *
+ * Mounts Algolia DocSearch on #docsearch-container in the header.
+ * The container markup lives in header.astro; this component wires up the JS.
+ */
+---
+
+<script>
+  import "@docsearch/css"
+  import {
+    PUBLIC_SUJEET_PRO_ALGOLIA_APP_ID,
+    PUBLIC_SUJEET_PRO_ALGOLIA_API_KEY,
+    PUBLIC_SUJEET_PRO_ALGOLIA_INDEX_NAME,
+  } from "astro:env/client"
+
+  // Expose public env vars for debugging (e.g. console: window.__env)
+  ;(window as any).__env = {
+    PUBLIC_SUJEET_PRO_ALGOLIA_APP_ID,
+    PUBLIC_SUJEET_PRO_ALGOLIA_INDEX_NAME,
+  }
+
+  function initDocSearch() {
+    const container = document.getElementById("docsearch-container")
+    if (!container) return
+    if (container.dataset.docsearchInit) return
+    container.dataset.docsearchInit = "true"
+
+    // Clear any previous content (View Transitions may preserve it)
+    container.innerHTML = ""
+
+    import("@docsearch/js").then(({ default: docsearch }) => {
+      docsearch({
+        appId: PUBLIC_SUJEET_PRO_ALGOLIA_APP_ID,
+        apiKey: PUBLIC_SUJEET_PRO_ALGOLIA_API_KEY,
+        indexName: PUBLIC_SUJEET_PRO_ALGOLIA_INDEX_NAME,
+        container: "#docsearch-container",
+      })
+    })
+  }
+
+  initDocSearch()
+  document.addEventListener("astro:page-load", initDocSearch)
+
+  // Scroll lock when DocSearch modal opens on mobile
+  import { lockScroll, unlockScroll } from "@/utils/scroll-lock"
+
+  const MOBILE_QUERY = "(max-width: 768px)"
+
+  function observeDocSearchModal() {
+    const mobileQuery = window.matchMedia(MOBILE_QUERY)
+    let locked = false
+
+    const observer = new MutationObserver(() => {
+      const isActive = document.body.classList.contains("DocSearch--active")
+      if (isActive && mobileQuery.matches && !locked) {
+        lockScroll()
+        locked = true
+      } else if (!isActive && locked) {
+        unlockScroll()
+        locked = false
+      }
+    })
+
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    })
+  }
+
+  observeDocSearchModal()
+</script>

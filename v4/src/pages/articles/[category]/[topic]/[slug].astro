@@ -1,0 +1,88 @@
+---
+import ArticleCard from "@/components/cards/article-card.astro"
+import Frontmatter from "@/components/ui/frontmatter.astro"
+import SidebarNavArticles from "@/components/nav/sidebar-nav-articles.astro"
+import SidebarToc from "@/components/nav/sidebar-toc.astro"
+import Layout from "@/layout/layout.astro"
+import ReadingProgress from "@/layout/reading-progress.astro"
+import { getAllArticlePaths, getAllArticlesDetailed } from "@/utils/content"
+
+// Generate static paths for all articles (including drafts)
+export async function getStaticPaths() {
+  const paths = await getAllArticlePaths()
+  return paths.map(({ category, topic, slug }) => ({
+    params: { category, topic, slug },
+  }))
+}
+
+const { category, topic, slug } = Astro.params
+const allArticles = await getAllArticlesDetailed()
+const articleDetail = allArticles.find((entry) => entry.card.id === slug)
+
+if (!articleDetail) {
+  return Astro.redirect("/404")
+}
+
+const { article, toc, next: nextArticle, prev: prevArticle } = articleDetail
+const { description, title, minutesRead, Content, isDraft, lastUpdatedOn, category: articleCategory, topic: articleTopic } = article
+
+const crumbs = [
+  { name: articleCategory.name, href: articleCategory.href },
+  { name: articleTopic.name, href: articleTopic.href, title: articleTopic.title },
+]
+
+const hasToc = toc.length > 0
+---
+
+<Layout
+  {title}
+  {description}
+  {crumbs}
+  pageType="article"
+  noIndex={isDraft}
+  hasLeftSidebar={true}
+  hasRightSidebar={hasToc}
+  category={articleCategory.name}
+  topic={articleTopic.name}
+>
+  <SidebarNavArticles slot="sidebar-left" categoryId={category} topicId={topic} currentArticleId={slug} />
+  {hasToc && <SidebarToc slot="sidebar-right" headings={toc} />}
+
+  <!-- Reading Progress Bar -->
+  <ReadingProgress />
+
+  <!-- Article Metadata -->
+  <Frontmatter {minutesRead} {isDraft} {lastUpdatedOn} class="article-frontmatter" />
+
+  <!-- Main Article Content -->
+  <article id="article-content" class="article-prose-content DocSearch-content">
+    <Content />
+  </article>
+
+  <!-- Article Navigation (prev/next) -->
+  {
+    (prevArticle || nextArticle) && (
+      <section class="article-navigation">
+        <div class="section-divider">
+          <span class="section-divider-text">Continue Reading</span>
+        </div>
+        <ul class="article-list">
+          {prevArticle && <ArticleCard textHeading="Previous" article={prevArticle} />}
+          {nextArticle && <ArticleCard textHeading="Next" article={nextArticle} />}
+        </ul>
+      </section>
+    )
+  }
+</Layout>
+
+<style is:global>
+  @reference "tailwindcss";
+
+  .article-frontmatter {
+    @apply mb-8;
+  }
+
+  .article-navigation {
+    @apply mt-16;
+  }
+</style>

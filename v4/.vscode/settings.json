@@ -1,0 +1,25 @@
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "always"
+  },
+  "eslint.validate": [
+    "json",
+    "jsonc",
+    "markdown",
+    "css",
+    "javascript",
+    "javascriptreact",
+    "astro",
+    "typescript",
+    "typescriptreact"
+  ],
+  "cSpell.words": ["devicon", "favicons", "fontsource", "frontmatter", "iconify", "katex", "pagefind", "prefersdark"],
+  "[xml]": {
+    "editor.defaultFormatter": "redhat.vscode-xml"
+  },
+  "files.associations": {
+    "*.css": "tailwindcss"
+  }
+}

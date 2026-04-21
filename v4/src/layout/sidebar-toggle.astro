@@ -1,0 +1,20 @@
+---
+/**
+ * Sidebar Toggle Script
+ *
+ * Handles sidebar open/close behavior:
+ * - Desktop (>=1440px): toggle `is-collapsed` class on inline sidebars
+ * - Mobile (<1440px): toggle `is-open` class + backdrop visibility
+ * - localStorage persistence for sidebar state
+ * - Escape key and backdrop click close sidebars
+ * - Uses matchMedia for reliable breakpoint detection
+ */
+---
+
+<script>
+  import { initSidebarToggle } from "@/scripts/sidebar-toggle"
+  // Run immediately — module scripts are deferred so DOM is ready.
+  initSidebarToggle()
+  // Re-run on View Transition navigations (new DOM elements need fresh listeners)
+  document.addEventListener("astro:page-load", initSidebarToggle)
+</script>

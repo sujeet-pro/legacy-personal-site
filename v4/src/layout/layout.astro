@@ -1,0 +1,168 @@
+---
+import { ClientRouter } from "astro:transitions"
+import "@/styles/global.css"
+import Header from "./header.astro"
+import Footer from "./footer.astro"
+import Favicons from "./favicons.astro"
+import Seo from "./seo.astro"
+import type { Props as SeoProps } from "./seo.astro"
+import { getFilePath } from "@/utils/link.utils"
+import Breadcrumb from "./breadcrumb.astro"
+import type { Crumb } from "./breadcrumb.astro"
+import ImageModal from "./image-modal.astro"
+import GoogleAnalytics from "./google-analytics.astro"
+import SidebarToggle from "./sidebar-toggle.astro"
+import ScrollSpy from "./scroll-spy.astro"
+import ThemeScript from "./theme-script.astro"
+import ThemeToggle from "./theme-toggle.astro"
+import DocSearch from "./docsearch.astro"
+
+interface Props extends SeoProps {
+  noIndex?: boolean | undefined | null
+  crumbs: Crumb[] | null
+  /** Container width: "default" (680px) or "wide" (900px) */
+  containerWidth?: "default" | "wide"
+  /** Page type for sidebar behavior */
+  pageType?: "default" | "article" | "blog" | "project" | "listing" | "browse"
+  /** Whether to show left sidebar */
+  hasLeftSidebar?: boolean
+  /** Whether to show right sidebar */
+  hasRightSidebar?: boolean
+}
+
+const {
+  noIndex,
+  crumbs,
+  containerWidth = "default",
+  pageType = "default",
+  hasLeftSidebar = false,
+  hasRightSidebar = false,
+  ...seoProps
+} = Astro.props
+
+// Font paths with base path support
+const openSansFontPath = getFilePath("fonts/open-sans-latin-wght-normal.woff2")
+const jetBrainsMonoFontPath = getFilePath("fonts/jetbrains-mono-latin-400-normal.woff2")
+// Container class based on width prop (used when no sidebars)
+const containerClass = containerWidth === "wide" ? "content-container-wide" : "content-container"
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <ClientRouter />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <ThemeScript />
+    {noIndex ? <meta name="robots" content="noindex" /> : null}
+    <!-- Inline font-face declarations with base path -->
+    <style
+      set:html={`
+      @font-face {
+        font-family: "Open Sans";
+        font-style: normal;
+        font-weight: 300 800;
+        font-display: swap;
+        src: url("${openSansFontPath}") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+          U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: "JetBrains Mono";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("${jetBrainsMonoFontPath}") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+          U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+    `}
+    ></style>
+    <!-- Preload local fonts -->
+    <link rel="preload" as="font" type="font/woff2" href={openSansFontPath} crossorigin="anonymous" />
+    <link rel="preload" as="font" type="font/woff2" href={jetBrainsMonoFontPath} crossorigin="anonymous" />
+    <Favicons />
+    <meta name="docsearch:language" content="en" />
+    <Seo {...seoProps} />
+    <link rel="alternate" type="application/rss+xml" href={getFilePath("rss.xml")} />
+    <link rel="sitemap" href={getFilePath("sitemap-index.xml")} />
+    <!-- LLM-friendly content -->
+    <link rel="alternate" type="text/plain" href={getFilePath("llms.txt")} title="LLM Index" />
+    <link rel="alternate" type="text/plain" href={getFilePath("llms-full.txt")} title="LLM Full Content" />
+  </head>
+  <body>
+    <a href="#main" class="skip-link">Skip to main content</a>
+    <Header hasLeftSidebar={hasLeftSidebar} hasRightSidebar={hasRightSidebar} />
+
+    {
+      hasLeftSidebar || hasRightSidebar ? (
+        /* 3-column layout with sidebars */
+        <div class="zen-layout">
+          {hasLeftSidebar && (
+            <aside id="left-sidebar" class="zen-sidebar zen-sidebar-left" aria-label="Navigation sidebar">
+              <div class="zen-sidebar-header">
+                <span class="zen-sidebar-header-title">Navigation</span>
+                <button class="zen-sidebar-close" data-sidebar-close="left" aria-label="Close navigation sidebar">
+                  <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M8 8l16 16M24 8L8 24" />
+                  </svg>
+                </button>
+              </div>
+              <div class="zen-sidebar-content">
+                <slot name="sidebar-left" />
+              </div>
+            </aside>
+          )}
+          <main id="main" class="zen-main">
+            <div class="page-content">
+              {crumbs && <Breadcrumb {crumbs} />}
+              <slot />
+            </div>
+            <Footer />
+          </main>
+          {hasRightSidebar && (
+            <aside id="right-sidebar" class="zen-sidebar zen-sidebar-right" aria-label="Table of contents">
+              <div class="zen-sidebar-header">
+                <span class="zen-sidebar-header-title">On This Page</span>
+                <button class="zen-sidebar-close" data-sidebar-close="right" aria-label="Close table of contents">
+                  <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M8 8l16 16M24 8L8 24" />
+                  </svg>
+                </button>
+              </div>
+              <div class="zen-sidebar-content">
+                <slot name="sidebar-right" />
+              </div>
+            </aside>
+          )}
+        </div>
+      ) : (
+        /* Single column layout (no sidebars) */
+        <main id="main" class="flex-1">
+          <div class:list={[containerClass, "page-content"]}>
+            {crumbs && <Breadcrumb {crumbs} />}
+            <slot />
+          </div>
+        </main>
+      )
+    }
+
+    {/* Sidebar backdrop for mobile */}
+    {(hasLeftSidebar || hasRightSidebar) && <div id="sidebar-backdrop" class="zen-sidebar-backdrop" />}
+
+    {!(hasLeftSidebar || hasRightSidebar) && <Footer />}
+    <ImageModal />
+    <GoogleAnalytics />
+
+    {(hasLeftSidebar || hasRightSidebar) && <SidebarToggle />}
+    {hasRightSidebar && <ScrollSpy />}
+    <ThemeToggle />
+    <DocSearch />
+    <script>
+      import { initMermaidTheme } from "@/scripts/mermaid-theme"
+      document.addEventListener("DOMContentLoaded", initMermaidTheme)
+      document.addEventListener("astro:page-load", initMermaidTheme)
+    </script>
+  </body>
+</html>

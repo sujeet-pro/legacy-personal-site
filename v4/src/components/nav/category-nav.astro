@@ -1,0 +1,29 @@
+---
+// This component is no longer used in the new single-column layout
+// Keeping for backwards compatibility but functionality moved to article page inline dropdown
+
+interface CategoryArticle {
+  id: string
+  title: string
+  href: string
+}
+
+interface Props {
+  categoryName: string
+  articles: CategoryArticle[]
+  currentArticleId: string
+  class?: string
+}
+
+const {
+  categoryName: _categoryName,
+  articles: _articles,
+  currentArticleId: _currentArticleId,
+  class: className,
+} = Astro.props
+---
+
+<!-- This component is deprecated - use inline topic-articles-dropdown in article page instead -->
+<div class:list={["category-nav-deprecated", className]} style="display: none;">
+  <p>CategoryNav component is deprecated. Use inline dropdown instead.</p>
+</div>
