@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Static server that mirrors the GitHub Pages deploy path:
-//   gh-pages/*  →  http://localhost:<PORT>/legacy-personal-site/*
+//   docs/*  →  http://localhost:<PORT>/legacy-personal-site/*
 // Use: `node server.mjs`  (or `npm start`).  PORT env var overrides the default.
 
 import { createServer } from "node:http"
@@ -10,7 +10,7 @@ import { dirname, extname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
 const here = dirname(fileURLToPath(import.meta.url))
-const root = resolve(here, "..", "gh-pages")
+const root = resolve(here, "..", "docs")
 const base = "/legacy-personal-site"
 const port = Number(process.env.PORT ?? 8787)
 

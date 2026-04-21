@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-// Validates every link in every HTML file under ../gh-pages.
+// Validates every link in every HTML file under ../docs.
 //
 // Rules:
-//   • gh-pages/ is the deploy root and will be served at /legacy-personal-site/.
-//   • An absolute link "/foo" on disk resolves to  gh-pages/foo  (the leading
+//   • docs/ is the deploy root and will be served at /legacy-personal-site/.
+//   • An absolute link "/foo" on disk resolves to  docs/foo  (the leading
 //     "/legacy-personal-site/" prefix is stripped first; unprefixed absolute
 //     links are flagged).
 //   • A relative link resolves against the HTML file's directory.
@@ -22,7 +22,7 @@ import { dirname, join, relative, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
 const here = dirname(fileURLToPath(import.meta.url))
-const root = resolve(here, "..", "gh-pages")
+const root = resolve(here, "..", "docs")
 const basePrefix = "/legacy-personal-site"
 const asJson = process.argv.includes("--json")
 
@@ -159,12 +159,12 @@ async function checkLink({ htmlFile, url }) {
   } else {
     // Relative — resolve against HTML file's directory.
     fsPath = resolve(dirname(htmlFile), stripped)
-    // Must stay inside gh-pages.
+    // Must stay inside docs.
     if (fsPath !== root && !fsPath.startsWith(root + "/")) {
       return {
         ok: false,
         issue: "escapes-root",
-        detail: `resolves outside gh-pages: ${fsPath}`,
+        detail: `resolves outside docs: ${fsPath}`,
       }
     }
   }

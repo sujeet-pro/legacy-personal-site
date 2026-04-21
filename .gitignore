@@ -1,6 +1,6 @@
 .temp/
 
-# Per-version build artifacts (output lives under gh-pages/ which IS committed).
+# Per-version build artifacts (output lives under docs/ which IS committed).
 **/node_modules/
 v1/dist/
 v2/dist/
