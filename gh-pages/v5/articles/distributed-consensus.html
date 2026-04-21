@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en-US" class="no-js color-scheme-auto theme-paper"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light dark"><script>(function(){try{var p=JSON.parse(localStorage.getItem('pagesmith-theme'));if(p){var d=document.documentElement;if(p.colorScheme)d.className=d.className.replace(/color-scheme-\w+/,'color-scheme-'+p.colorScheme);if(p.theme)d.className=d.className.replace(/theme-\w[\w-]*/,'theme-'+p.theme);if(p.textSize&&p.textSize!=='base')d.dataset.textSize=p.textSize}}catch(e){}})();</script><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://www.google-analytics.com https://analytics.google.com; object-src 'none'; base-uri 'self'; form-action 'self'"><meta name="referrer" content="strict-origin-when-cross-origin"><title>Distributed Consensus — Sujeet Jaiswal - Principal Software Engineer</title><meta name="description" content="A practitioner's tour of Paxos, Raft, Zab, PBFT, and HotStuff — why consensus is provably hard (FLP), how each protocol navigates the safety-vs-liveness trade-off, and how etcd, ZooKeeper, Consul, and CockroachDB realise these ideas in production."><link rel="canonical" href="https://projects.sujeet.pro/legacy-personal-site/v5/articles/distributed-consensus"><meta property="og:type" content="article"><meta property="og:url" content="https://projects.sujeet.pro/legacy-personal-site/v5/articles/distributed-consensus"><meta property="og:title" content="Distributed Consensus — Sujeet Jaiswal - Principal Software Engineer"><meta property="og:description" content="A practitioner's tour of Paxos, Raft, Zab, PBFT, and HotStuff — why consensus is provably hard (FLP), how each protocol navigates the safety-vs-liveness trade-off, and how etcd, ZooKeeper, Consul, and CockroachDB realise these ideas in production."><meta property="og:locale" content="en_US"><meta property="og:site_name" content="Sujeet Jaiswal"><meta property="article:author" content="Sujeet Jaiswal"><meta property="article:published_time" content="2026-02-03T00:00:00.000Z"><meta property="article:modified_time" content="Tue Apr 21 2026 05:30:00 GMT+0530 (India Standard Time)"><meta property="article:tag" content="Distributed Systems"><meta property="article:tag" content="System Design"><meta property="article:tag" content="Reliability"><meta property="article:tag" content="Databases"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="Distributed Consensus — Sujeet Jaiswal - Principal Software Engineer"><meta name="twitter:description" content="A practitioner's tour of Paxos, Raft, Zab, PBFT, and HotStuff — why consensus is provably hard (FLP), how each protocol navigates the safety-vs-liveness trade-off, and how etcd, ZooKeeper, Consul, and CockroachDB realise these ideas in production."><meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#020617" media="(prefers-color-scheme: dark)"><link rel="preload" href="/legacy-personal-site/v5/assets/fonts/open-sans-variable.63a65b9b.woff2" as="font" type="font/woff2" crossorigin=""><link rel="preconnect" href="https://www.googletagmanager.com" crossorigin=""><link rel="stylesheet" href="/legacy-personal-site/v5/pagefind/pagefind-component-ui.css"><link rel="stylesheet" href="/legacy-personal-site/v5/assets/index-BlmQN5MU.d5ff1cea.css"><script>document.documentElement.classList.remove('no-js')</script><script src="/legacy-personal-site/v5/pagefind/pagefind-component-ui.js" type="module"></script><script async src="https://www.googletagmanager.com/gtag/js?id=G-1Z2TP5LG65"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-1Z2TP5LG65');</script></head><body><header class="doc-header"><a href="#doc-main-content" class="doc-skip-link" data-skip-link="" onclick="document.getElementById('doc-main-content')?.focus()">Skip to main content</a><div class="doc-header-inner"><div class="doc-header-left"><button type="button" class="doc-sidebar-toggle" aria-label="Toggle navigation" aria-controls="sidebar-modal" aria-expanded="false" data-sidebar-toggle=""><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 5h14M3 10h14M3 15h14"/></svg></button><a href="/legacy-personal-site/v5" class="doc-logo">Sujeet Jaiswal</a></div><nav class="doc-nav" aria-label="Primary navigation"><a href="/legacy-personal-site/v5/articles" class="active">Articles</a><a href="/legacy-personal-site/v5/blogs">Blogs</a></nav><div class="doc-header-right"><pagefind-modal-trigger class="doc-search-trigger"></pagefind-modal-trigger><div class="doc-theme-toggle no-js-hidden" data-theme-toggle="" data-ps-theme-controls=""><button type="button" class="doc-theme-toggle-btn" aria-label="Change theme" aria-expanded="false" aria-haspopup="true" aria-controls="doc-theme-dropdown" data-theme-toggle-btn="" data-ps-theme-toggle-button=""><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="10" cy="10" r="4"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.93 4.93l1.41 1.41M13.66 13.66l1.41 1.41M4.93 15.07l1.41-1.41M13.66 6.34l1.41-1.41"/></svg></button><div id="doc-theme-dropdown" class="doc-theme-dropdown" data-theme-dropdown="" data-ps-theme-dropdown="" hidden><fieldset class="doc-theme-group"><legend>Appearance</legend><label class="doc-theme-option" data-scheme="auto"><input type="radio" name="colorScheme" value="auto" checked>Auto</label><label class="doc-theme-option" data-scheme="light"><input type="radio" name="colorScheme" value="light">Light</label><label class="doc-theme-option" data-scheme="dark"><input type="radio" name="colorScheme" value="dark">Dark</label></fieldset><fieldset class="doc-theme-group"><legend>Theme</legend><label class="doc-theme-option" data-theme="paper"><input type="radio" name="theme" value="paper" checked>Paper</label><label class="doc-theme-option" data-theme="high-contrast"><input type="radio" name="theme" value="high-contrast">High Contrast</label></fieldset><fieldset class="doc-theme-group"><legend>Text Size</legend><div class="doc-text-size-options"><label class="doc-text-size-option" title="Small"><input class="sr-only" type="radio" name="textSize" value="small"><span class="doc-text-size-label" data-size="small" aria-hidden="true">A</span><span class="sr-only">Small text size</span></label><label class="doc-text-size-option" title="Default"><input class="sr-only" type="radio" name="textSize" value="base" checked><span class="doc-text-size-label" data-size="base" aria-hidden="true">A</span><span class="sr-only">Default text size</span></label><label class="doc-text-size-option" title="Large"><input class="sr-only" type="radio" name="textSize" value="large"><span class="doc-text-size-label" data-size="large" aria-hidden="true">A</span><span class="sr-only">Large text size</span></label></div></fieldset></div></div></div></div></header><div class="doc-layout"><aside class="doc-sidebar"><nav class="doc-sidebar-nav" aria-label="Documentation navigation"><div class="doc-sidebar-section"><p class="doc-sidebar-heading">Series</p><ul class="doc-sidebar-list "><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-rendering-pipeline-overview" class="doc-sidebar-link">Critical Rendering Path</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-rendering-pipeline-overview" class="doc-sidebar-link">CRP: Pipeline Overview</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-dom-construction" class="doc-sidebar-link">CRP: DOM Construction</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-cssom-construction" class="doc-sidebar-link">CRP: CSSOM Construction</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-style-recalculation" class="doc-sidebar-link">CRP: Style Recalc</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-layout" class="doc-sidebar-link">CRP: Layout</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-prepaint" class="doc-sidebar-link">CRP: Prepaint</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-paint" class="doc-sidebar-link">CRP: Paint</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-commit" class="doc-sidebar-link">CRP: Commit</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-layerize" class="doc-sidebar-link">CRP: Layerize</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-raster" class="doc-sidebar-link">CRP: Raster</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-composit" class="doc-sidebar-link">CRP: Composite</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-draw" class="doc-sidebar-link">CRP: Draw</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/v8-engine-architecture" class="doc-sidebar-link">JavaScript Runtime Internals</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/v8-engine-architecture" class="doc-sidebar-link">V8 Engine</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/browser-internals" class="doc-sidebar-link">Browser Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/browser-event-loop" class="doc-sidebar-link">Browser Event Loop</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/nodejs-runtime-architecture" class="doc-sidebar-link">Node.js Runtime</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/libuv-event-loop-internals" class="doc-sidebar-link">libuv Internals</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/nodejs-event-loop" class="doc-sidebar-link">Node.js Event Loop</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/js-event-loop" class="doc-sidebar-link">JS Event Loop</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/auth-foundations-sessions-tokens" class="doc-sidebar-link">Web Security &amp; Authentication</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/auth-foundations-sessions-tokens" class="doc-sidebar-link">Auth Foundations</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-app-security-architecture" class="doc-sidebar-link">Web App Security</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/csrf-and-cors-defense" class="doc-sidebar-link">CSRF &amp; CORS</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/oauth-oidc-flow-guide" class="doc-sidebar-link">OAuth &amp; OIDC</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/csp-violation-reporting-pipeline" class="doc-sidebar-link">CSP Reporting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/owasp-top-10-guide" class="doc-sidebar-link">OWASP Top 10</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-resolution-path" class="doc-sidebar-link">Networking Protocols</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-resolution-path" class="doc-sidebar-link">DNS: Resolution Path</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-records-ttl-and-caching" class="doc-sidebar-link">DNS: Records &amp; TTL</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-security-doh-dot-dnssec" class="doc-sidebar-link">DNS: Security</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-troubleshooting-playbook" class="doc-sidebar-link">DNS: Troubleshooting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/tls-1-3-handshake-and-https" class="doc-sidebar-link">TLS 1.3 &amp; HTTPS</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/http1-1-to-http2-evolution" class="doc-sidebar-link">HTTP/1.1 → HTTP/2</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/http3-quic-and-tls" class="doc-sidebar-link">HTTP/3 &amp; QUIC</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dom-api-essentials" class="doc-sidebar-link">Browser APIs &amp; Accessibility</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dom-api-essentials" class="doc-sidebar-link">DOM API Essentials</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-components" class="doc-sidebar-link">Web Components</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/intersection-observer" class="doc-sidebar-link">Intersection Observer</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-workers-and-worklets" class="doc-sidebar-link">Web Workers &amp; Worklets</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/fetch-and-streaming-apis" class="doc-sidebar-link">Fetch &amp; Streams</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/storage-apis-local-indexeddb" class="doc-sidebar-link">Browser Storage APIs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/service-workers-and-cache-api" class="doc-sidebar-link">Service Workers</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/accessibility-testing-tooling" class="doc-sidebar-link">A11y Testing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/wcag-2-2-practical-guide" class="doc-sidebar-link">WCAG 2.2</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/frontend-architecture-at-scale" class="doc-sidebar-link">Frontend Architecture Patterns</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/frontend-architecture-at-scale" class="doc-sidebar-link">Frontend Arch at Scale</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/micro-frontends-architecture" class="doc-sidebar-link">Micro-Frontends</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rendering-strategies-csr-ssr-ssg-isr" class="doc-sidebar-link">CSR / SSR / SSG / ISR</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/state-management-patterns" class="doc-sidebar-link">State Management</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/data-fetching-patterns" class="doc-sidebar-link">Data Fetching</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/css-architecture-strategies" class="doc-sidebar-link">CSS Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/component-architecture-blueprint" class="doc-sidebar-link">Component Architecture</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-infrastructure-stack" class="doc-sidebar-link">Web Performance Optimization</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-infrastructure-stack" class="doc-sidebar-link">Perf: Infrastructure</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-javascript-optimization" class="doc-sidebar-link">Perf: JavaScript</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-css-typography" class="doc-sidebar-link">Perf: CSS &amp; Typography</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-image-optimization" class="doc-sidebar-link">Perf: Images</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/core-web-vitals-measurement" class="doc-sidebar-link">Core Web Vitals</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-overview" class="doc-sidebar-link">Perf: Overview</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-system-adoption-foundations" class="doc-sidebar-link">Design Systems &amp; React</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-system-adoption-foundations" class="doc-sidebar-link">DS: Adoption</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-tokens-and-theming" class="doc-sidebar-link">Design Tokens</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/component-library-architecture-and-governance" class="doc-sidebar-link">Component Library</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-system-implementation-scaling" class="doc-sidebar-link">DS: Implementation</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-hooks-fundamentals" class="doc-sidebar-link">React Hooks</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-rendering-architecture" class="doc-sidebar-link">React Rendering</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-hooks-advanced-patterns" class="doc-sidebar-link">React Hooks: Advanced</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-performance-patterns" class="doc-sidebar-link">React Performance</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rendering-strategies" class="doc-sidebar-link">Frontend System Design</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rendering-strategies" class="doc-sidebar-link">Modern Rendering</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/image-loading-optimization" class="doc-sidebar-link">Image Loading</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/bundle-splitting-strategies" class="doc-sidebar-link">Bundle Splitting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/virtualization-and-windowing" class="doc-sidebar-link">Virtualization</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/performance-monitoring-client" class="doc-sidebar-link">Client Perf Monitoring</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/client-state-management" class="doc-sidebar-link">Client State</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/real-time-sync-client" class="doc-sidebar-link">Real-Time Sync</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/offline-first-architecture" class="doc-sidebar-link">Offline-First</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/widget-framework" class="doc-sidebar-link">Widget Framework</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-rich-text-editor" class="doc-sidebar-link">Rich Text Editor</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-infinite-feed" class="doc-sidebar-link">Infinite Feed</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-drag-drop-system" class="doc-sidebar-link">Drag &amp; Drop</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-form-builder" class="doc-sidebar-link">Form Builder</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-data-grid" class="doc-sidebar-link">Data Grid</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-file-uploader" class="doc-sidebar-link">File Uploader</a></li></ul></li><li class="doc-sidebar-item  expanded"><a href="/legacy-personal-site/v5/articles/consistency-and-cap-theorem" class="doc-sidebar-link">Distributed Systems Core</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/consistency-and-cap-theorem" class="doc-sidebar-link">CAP Theorem</a></li><li class="doc-sidebar-item active "><a href="/legacy-personal-site/v5/articles/distributed-consensus" class="doc-sidebar-link">Distributed Consensus</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/time-and-ordering" class="doc-sidebar-link">Time &amp; Ordering</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/failure-modes-and-resilience" class="doc-sidebar-link">Failure Modes</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rate-limiting-strategies" class="doc-sidebar-link">Rate Limiting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/circuit-breaker-patterns" class="doc-sidebar-link">Circuit Breakers</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/capacity-planning-and-estimation" class="doc-sidebar-link">Capacity Planning</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/storage-choices-sql-vs-nosql" class="doc-sidebar-link">Data Storage &amp; Indexing</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/storage-choices-sql-vs-nosql" class="doc-sidebar-link">SQL vs NoSQL</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/sharding-and-replication" class="doc-sidebar-link">Sharding &amp; Replication</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/indexing-and-query-optimization" class="doc-sidebar-link">Indexing &amp; Queries</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/transactions-and-acid" class="doc-sidebar-link">Transactions &amp; ACID</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/caching-fundamentals-and-strategies" class="doc-sidebar-link">Caching Fundamentals</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/load-balancers-architecture" class="doc-sidebar-link">Infrastructure Components</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/load-balancers-architecture" class="doc-sidebar-link">Load Balancers</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/cdn-architecture-and-caching" class="doc-sidebar-link">CDN Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/api-gateway-patterns" class="doc-sidebar-link">API Gateway</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/service-discovery-and-registry" class="doc-sidebar-link">Service Discovery</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-deep-dive" class="doc-sidebar-link">DNS: Deep Dive</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/queues-and-pubsub" class="doc-sidebar-link">Queues &amp; Pub/Sub</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/event-driven-architecture" class="doc-sidebar-link">Event-Driven Arch</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rpc-and-api-design" class="doc-sidebar-link">RPC &amp; API Design</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crdt-for-collaborative-systems" class="doc-sidebar-link">Core Distributed Patterns</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crdt-for-collaborative-systems" class="doc-sidebar-link">CRDTs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/operational-transformation" class="doc-sidebar-link">OT</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-locking" class="doc-sidebar-link">Distributed Locking</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/exactly-once-delivery" class="doc-sidebar-link">Exactly-Once</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/event-sourcing-deep-dive" class="doc-sidebar-link">Event Sourcing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/change-data-capture" class="doc-sidebar-link">CDC</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/database-migrations-at-scale" class="doc-sidebar-link">DB Migrations</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/multi-region-architecture" class="doc-sidebar-link">Multi-Region</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/lru-cache-design" class="doc-sidebar-link">System Design Building Blocks</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/lru-cache-design" class="doc-sidebar-link">LRU Cache</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/unique-id-generation" class="doc-sidebar-link">Unique IDs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-cache-design" class="doc-sidebar-link">Distributed Cache</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/blob-storage-design" class="doc-sidebar-link">Blob Storage</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-search-engine" class="doc-sidebar-link">Search Engine</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-logging-system" class="doc-sidebar-link">Logging System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-monitoring" class="doc-sidebar-link">Monitoring</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/task-scheduler-design" class="doc-sidebar-link">Task Scheduler</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/sharded-counters" class="doc-sidebar-link">Sharded Counters</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/leaderboard-design" class="doc-sidebar-link">Leaderboard</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-key-value-store" class="doc-sidebar-link">System Design Scenarios</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-key-value-store" class="doc-sidebar-link">Key-Value Store</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-distributed-file-system" class="doc-sidebar-link">Distributed File System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-time-series-database" class="doc-sidebar-link">Time-Series DB</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-youtube-video-platform" class="doc-sidebar-link">YouTube</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-netflix-streaming" class="doc-sidebar-link">Netflix</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-instagram-photo-sharing" class="doc-sidebar-link">Instagram</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-spotify-music-streaming" class="doc-sidebar-link">Spotify</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-real-time-chat-messaging" class="doc-sidebar-link">Chat &amp; Messaging</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-social-feed" class="doc-sidebar-link">Social Feed</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-notification-system" class="doc-sidebar-link">Notifications</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-email-system" class="doc-sidebar-link">Email System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-uber-ride-hailing" class="doc-sidebar-link">Uber</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-maps" class="doc-sidebar-link">Google Maps</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-yelp-proximity-service" class="doc-sidebar-link">Yelp / Proximity</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-search-autocomplete" class="doc-sidebar-link">Search Autocomplete</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-web-crawler" class="doc-sidebar-link">Web Crawler</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-search" class="doc-sidebar-link">Google Search</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-docs-collaboration" class="doc-sidebar-link">Google Docs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-dropbox-file-sync" class="doc-sidebar-link">Dropbox Sync</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-calendar" class="doc-sidebar-link">Google Calendar</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-issue-tracker" class="doc-sidebar-link">Issue Tracker</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-payment-system" class="doc-sidebar-link">Payment System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-flash-sale-system" class="doc-sidebar-link">Flash Sale</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-amazon-shopping-cart" class="doc-sidebar-link">Shopping Cart</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/url-shortener-design" class="doc-sidebar-link">URL Shortener</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-pastebin" class="doc-sidebar-link">Pastebin</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-api-rate-limiter" class="doc-sidebar-link">API Rate Limiter</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-cookie-consent-service" class="doc-sidebar-link">Cookie Consent</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/facebook-2021-outage-analysis" class="doc-sidebar-link">Case Studies: Outages &amp; Reliability</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/facebook-2021-outage-analysis" class="doc-sidebar-link">Facebook 2021</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/aws-kinesis-2020-outage" class="doc-sidebar-link">AWS Kinesis 2020</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/stripe-idempotency-reliability" class="doc-sidebar-link">Stripe Idempotency</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/discord-rust-read-states" class="doc-sidebar-link">Discord: Go → Rust</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/graceful-degradation" class="doc-sidebar-link">Graceful Degradation</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/shopify-pod-architecture" class="doc-sidebar-link">Case Studies: Architecture</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/shopify-pod-architecture" class="doc-sidebar-link">Shopify Pods</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/netflix-microservices-evolution" class="doc-sidebar-link">Netflix Microservices</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/twitter-timeline-architecture" class="doc-sidebar-link">Twitter Timeline</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/facebook-tao-social-graph" class="doc-sidebar-link">Facebook TAO</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/uber-microservices-journey" class="doc-sidebar-link">Uber Microservices</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/uber-schemaless-datastore" class="doc-sidebar-link">Uber Schemaless</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/slack-distributed-architecture" class="doc-sidebar-link">Slack Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/linkedin-kafka-origin" class="doc-sidebar-link">LinkedIn → Kafka</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dropbox-magic-pocket" class="doc-sidebar-link">Case Studies: Data &amp; Migrations</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dropbox-magic-pocket" class="doc-sidebar-link">Dropbox Magic Pocket</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/instagram-cassandra-migration" class="doc-sidebar-link">Instagram → Cassandra</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/youtube-vitess-scaling" class="doc-sidebar-link">YouTube + Vitess</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/github-mysql-migration" class="doc-sidebar-link">GitHub MySQL</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/pinterest-mysql-sharding" class="doc-sidebar-link">Pinterest Sharding</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/discord-message-storage" class="doc-sidebar-link">Discord Messages</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/figma-multiplayer-infrastructure" class="doc-sidebar-link">Figma Multiplayer</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/whatsapp-erlang-scaling" class="doc-sidebar-link">WhatsApp + Erlang</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/edge-delivery-and-cache-invalidation" class="doc-sidebar-link">Platform Delivery &amp; Reliability</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/edge-delivery-and-cache-invalidation" class="doc-sidebar-link">Edge Delivery</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/deployment-strategies-blue-green-canary" class="doc-sidebar-link">Blue-Green &amp; Canary</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/ssg-performance-optimizations" class="doc-sidebar-link">SSG on CloudFront</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/build-pipelines-ci-cd" class="doc-sidebar-link">Build Pipelines</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/ecommerce-ssg-to-ssr-migration" class="doc-sidebar-link">SSG → SSR Migration</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/data-migration-strategies" class="doc-sidebar-link">Data Migrations</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/slos-slis-error-budgets" class="doc-sidebar-link">SLOs &amp; SLIs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/logging-metrics-tracing" class="doc-sidebar-link">Logs / Metrics / Traces</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/drm-basics-for-streaming" class="doc-sidebar-link">Media Systems &amp; Testing</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/drm-basics-for-streaming" class="doc-sidebar-link">DRM Basics</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/video-transcoding-pipeline" class="doc-sidebar-link">Video Transcoding</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-video-playback-architecture" class="doc-sidebar-link">Web Video Playback</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/image-processing-service-design" class="doc-sidebar-link">Image Processing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/load-testing-strategy-capacity-planning" class="doc-sidebar-link">Load Testing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/k6-load-testing-overview" class="doc-sidebar-link">k6 Load Testing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/statsig-experimentation-overview" class="doc-sidebar-link">Statsig</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/arrays-and-hash-maps" class="doc-sidebar-link">Data Structures &amp; Algorithms</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/arrays-and-hash-maps" class="doc-sidebar-link">Arrays &amp; Hash Maps</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/trees-and-graphs" class="doc-sidebar-link">Trees &amp; Graphs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/heaps-and-priority-queues" class="doc-sidebar-link">Heaps &amp; PQs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/sorting-algorithms-guide" class="doc-sidebar-link">Sorting Algorithms</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/search-algorithms-guide" class="doc-sidebar-link">Search Algorithms</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/k-crystal-balls-problem" class="doc-sidebar-link">K Crystal Balls</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/publish-subscribe-pattern" class="doc-sidebar-link">JavaScript Patterns</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/publish-subscribe-pattern" class="doc-sidebar-link">Pub/Sub</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/exponential-backoff-retry-strategy" class="doc-sidebar-link">Exponential Backoff</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/async-queue-pattern" class="doc-sidebar-link">Async Queue</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/javascript-error-handling-patterns" class="doc-sidebar-link">JS Error Handling</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/javascript-string-length" class="doc-sidebar-link">JS String Length</a></li></ul></li></ul></div></nav></aside><div class="doc-content"><nav class="doc-breadcrumbs" aria-label="Breadcrumbs"><a href="/legacy-personal-site/v5/articles">Articles</a><span class="doc-breadcrumb-sep" aria-hidden="true">/</span><a href="/legacy-personal-site/v5/articles">Dist. Systems</a><span class="doc-breadcrumb-sep" aria-hidden="true">/</span><span aria-current="page">Distributed Consensus</span></nav><details class="doc-toc-mobile"><summary>On this page</summary><nav class="doc-toc" aria-label="Table of contents" data-ps-toc=""><p class="doc-toc-title">On this page</p><ul class="doc-toc-list"><li class="doc-toc-item depth-2"><a href="#mental-model">Mental model</a></li><li class="doc-toc-item depth-2"><a href="#why-consensus-is-hard-flp-and-its-escape-hatches">Why consensus is hard: FLP and its escape hatches</a></li><li class="doc-toc-item depth-3"><a href="#the-three-practical-escape-hatches">The three practical escape hatches</a></li><li class="doc-toc-item depth-2"><a href="#paxos-the-foundation">Paxos: the foundation</a></li><li class="doc-toc-item depth-3"><a href="#roles-and-the-two-phases">Roles and the two phases</a></li><li class="doc-toc-item depth-3"><a href="#why-paxos-made-simple-still-produces-hard-implementations">Why “Paxos Made Simple” still produces hard implementations</a></li><li class="doc-toc-item depth-3"><a href="#multi-paxos-a-stable-leader">Multi-Paxos: a stable leader</a></li><li class="doc-toc-item depth-3"><a href="#cheap-paxos-and-leaderless-variants">Cheap Paxos and leaderless variants</a></li><li class="doc-toc-item depth-3"><a href="#flexible-paxos-quorums-revisited">Flexible Paxos: quorums revisited</a></li><li class="doc-toc-item depth-3"><a href="#zab-and-zookeeper">Zab and ZooKeeper</a></li><li class="doc-toc-item depth-2"><a href="#raft-designed-for-understandability">Raft: designed for understandability</a></li><li class="doc-toc-item depth-3"><a href="#state-machine-and-election">State machine and election</a></li><li class="doc-toc-item depth-3"><a href="#log-replication-and-the-safety-invariants">Log replication and the safety invariants</a></li><li class="doc-toc-item depth-3"><a href="#linearizable-reads-without-paying-a-raft-round">Linearizable reads without paying a Raft round</a></li><li class="doc-toc-item depth-3"><a href="#membership-changes">Membership changes</a></li><li class="doc-toc-item depth-3"><a href="#raft-in-production-etcd">Raft in production: etcd</a></li><li class="doc-toc-item depth-2"><a href="#quorum-systems">Quorum systems</a></li><li class="doc-toc-item depth-3"><a href="#readwrite-quorums">Read/write quorums</a></li><li class="doc-toc-item depth-3"><a href="#witnesses-and-learners">Witnesses and learners</a></li><li class="doc-toc-item depth-2"><a href="#byzantine-fault-tolerance">Byzantine fault tolerance</a></li><li class="doc-toc-item depth-3"><a href="#pbft">PBFT</a></li><li class="doc-toc-item depth-3"><a href="#hotstuff-and-the-modern-bft-family">HotStuff and the modern BFT family</a></li><li class="doc-toc-item depth-2"><a href="#consensus-in-production-choosing-a-system">Consensus in production: choosing a system</a></li><li class="doc-toc-item depth-3"><a href="#etcd-the-kubernetes-substrate">etcd: the Kubernetes substrate</a></li><li class="doc-toc-item depth-3"><a href="#consul-raft-for-catalog-gossip-for-membership">Consul: Raft for catalog, gossip for membership</a></li><li class="doc-toc-item depth-3"><a href="#cockroachdb-multiraft-and-parallel-commits">CockroachDB: MultiRaft and Parallel Commits</a></li><li class="doc-toc-item depth-3"><a href="#spanner-multi-paxos-plus-truetime">Spanner: Multi-Paxos plus TrueTime</a></li><li class="doc-toc-item depth-2"><a href="#common-production-pitfalls">Common production pitfalls</a></li><li class="doc-toc-item depth-3"><a href="#1-disk-fsync-latency-causes-phantom-elections">1. Disk fsync latency causes phantom elections</a></li><li class="doc-toc-item depth-3"><a href="#2-even-numbered-or-2-node-clusters">2. Even-numbered or 2-node clusters</a></li><li class="doc-toc-item depth-3"><a href="#3-cross-region-clusters-with-default-timeouts">3. Cross-region clusters with default timeouts</a></li><li class="doc-toc-item depth-3"><a href="#4-reading-stale-data-from-followers">4. Reading stale data from followers</a></li><li class="doc-toc-item depth-3"><a href="#5-confusing-crash-fault-and-byzantine-fault-budgets">5. Confusing crash-fault and Byzantine-fault budgets</a></li><li class="doc-toc-item depth-2"><a href="#practical-takeaways">Practical takeaways</a></li><li class="doc-toc-item depth-2"><a href="#appendix">Appendix</a></li><li class="doc-toc-item depth-3"><a href="#prerequisites">Prerequisites</a></li><li class="doc-toc-item depth-3"><a href="#glossary">Glossary</a></li><li class="doc-toc-item depth-3"><a href="#summary">Summary</a></li><li class="doc-toc-item depth-3"><a href="#references">References</a></li><li class="doc-toc-item depth-2"><a href="#footnote-label">Footnotes</a></li></ul></nav></details><main><article id="doc-main-content" tabindex="-1" data-pagefind-body=""><div class="site-content-meta"><div class="site-content-meta-row"><span>Published Feb 3, 2026</span><span>Updated Apr 21, 2026</span></div><div class="site-tag-list" aria-label="Tags"><span class="site-pill site-pill-subtle">Distributed Systems</span><span class="site-pill site-pill-subtle">System Design</span><span class="site-pill site-pill-subtle">Reliability</span><span class="site-pill site-pill-subtle">Databases</span></div></div><div class="prose"><h1 id="distributed-consensus"><a href="#distributed-consensus">Distributed Consensus</a></h1>
+<p>Consensus is the problem of getting <code>N</code> machines to agree on a single value
+even when some of them crash, the network drops or reorders messages, and
+local clocks drift. Every replicated database, every leader-elected control
+plane, and every blockchain you operate solves a version of it. This article
+walks the design space top-down: why consensus is provably impossible in the
+fully asynchronous model, how Paxos and Raft escape that result with
+partial-synchrony assumptions, what Zab and Multi-Paxos do differently for
+log replication, what changes when participants can lie (BFT), and where the
+production failure modes actually live (almost always: disk
+fsync, partition healing, and quorum sizing).</p>
+<p><figure class="ps-figure ps-figure-themed ps-figure-zoomable"><picture><source srcset="/legacy-personal-site/v5/assets/leader-based-replication-dark.247941ca.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" data-scheme="dark"><source srcset="/legacy-personal-site/v5/assets/leader-based-replication-light.f2321d3d.svg" type="image/svg+xml" data-scheme="light"><img src="/legacy-personal-site/v5/assets/leader-based-replication-light.f2321d3d.svg" alt="Leader-based replication: a write commits once a Raft or Multi-Paxos leader sees a quorum of acks; the late follower catches up on the next heartbeat." width="1740" height="1028" style="max-width:min(1740px,100%)"></picture><figcaption>Leader-based replication: a write commits once a Raft or Multi-Paxos leader sees a quorum of acks; the late follower catches up on the next heartbeat.</figcaption><button type="button" class="ps-img-zoom-btn" hidden aria-label="Zoom image" data-ps-img-zoom-btn=""><svg class="ps-img-zoom-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6"></path></svg></button></figure></p>
+<h2 id="mental-model"><a href="#mental-model">Mental model</a></h2>
+<p>Five ideas you need before reading anything else:</p>
+<ol>
+<li><strong>Consensus = atomic broadcast.</strong> Single-value agreement and totally
+ordered broadcast are equivalent reductions of one another in the
+asynchronous-with-failures model<sup><a href="#user-content-fn-chandra-toueg-1996" id="user-content-fnref-chandra-toueg-1996" data-footnote-ref aria-describedby="footnote-label">1</a></sup>. Every
+“consensus protocol” you actually deploy — Multi-Paxos, Raft, Zab — is
+really an atomic broadcast that decides one log entry at a time.</li>
+<li><strong>Safety holds always; liveness only sometimes.</strong> Real protocols
+guarantee correctness (no two replicas commit different values for the
+same slot) under any network behaviour, but only guarantee progress
+when the network is “well-behaved enough” — typically the partial
+synchrony assumption of <a href="https://groups.csail.mit.edu/tds/papers/Lynch/jacm88.pdf" rel="noopener noreferrer" target="_blank">Dwork, Lynch, and Stockmeyer
+(1988)</a>.</li>
+<li><strong>Quorum intersection is the load-bearing primitive.</strong> If every
+decision is taken by some quorum <code>Q</code> and any two quorums share at
+least one node, no committed value is ever lost. Majorities are the
+easiest way to satisfy this — but <a href="https://arxiv.org/abs/1608.06696" rel="noopener noreferrer" target="_blank">Flexible Paxos</a> showed they
+are not the only way.</li>
+<li><strong>A leader is an optimisation, not a requirement.</strong> Classical Paxos is
+leaderless and symmetric; Raft, Zab, Multi-Paxos, ViewstampedReplication,
+and PBFT all elect a leader to amortise the prepare phase across many
+decisions. Leaders cut steady-state messages from <code>O(n)</code> round-trips per
+value to one, at the cost of a more complex view-change.</li>
+<li><strong>Crash-fault and Byzantine-fault costs are different.</strong> Tolerating <code>f</code>
+crashes needs <code>2f + 1</code> nodes; tolerating <code>f</code> Byzantine nodes (lying,
+colluding, equivocating) needs <code>3f + 1</code><sup><a href="#user-content-fn-byzantine-1982" id="user-content-fnref-byzantine-1982" data-footnote-ref aria-describedby="footnote-label">2</a></sup>. The factor
+of two on the bound is the headline cost of moving from
+trusted-operator to adversarial environments.</li>
+</ol>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Protocol</th>
+<th>Failure model</th>
+<th>Min nodes for <code>f</code> faults</th>
+<th>Steady-state messages per value</th>
+<th>Production examples</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Paxos / Multi-Paxos</td>
+<td>Crash, async</td>
+<td><code>2f + 1</code></td>
+<td><code>O(n)</code> after stable leader</td>
+<td>Spanner, Chubby, DynamoDB<sup><a href="#user-content-fn-dyn-2022" id="user-content-fnref-dyn-2022" data-footnote-ref aria-describedby="footnote-label">3</a></sup></td>
+</tr>
+<tr>
+<td>Raft</td>
+<td>Crash, async</td>
+<td><code>2f + 1</code></td>
+<td><code>O(n)</code> after stable leader</td>
+<td>etcd, Consul, CockroachDB, TiKV</td>
+</tr>
+<tr>
+<td>Zab</td>
+<td>Crash + primary order</td>
+<td><code>2f + 1</code></td>
+<td><code>O(n)</code> after stable primary</td>
+<td>ZooKeeper</td>
+</tr>
+<tr>
+<td>Viewstamped Replication</td>
+<td>Crash, async</td>
+<td><code>2f + 1</code></td>
+<td><code>O(n)</code> after stable primary</td>
+<td>Original VR, MongoDB-style designs</td>
+</tr>
+<tr>
+<td>PBFT</td>
+<td>Byzantine, partial sync</td>
+<td><code>3f + 1</code></td>
+<td><code>O(n²)</code> per slot</td>
+<td>Hyperledger Fabric (variants)</td>
+</tr>
+<tr>
+<td>HotStuff / DiemBFT</td>
+<td>Byzantine, partial sync</td>
+<td><code>3f + 1</code></td>
+<td><code>O(n)</code> per phase<sup><a href="#user-content-fn-hotstuff-2019" id="user-content-fnref-hotstuff-2019" data-footnote-ref aria-describedby="footnote-label">4</a></sup></td>
+<td>Diem/Aptos, Espresso</td>
+</tr>
+</tbody>
+</table></div>
+<div class="markdown-alert markdown-alert-note">
+<p class="markdown-alert-title"><span class="octicon octicon-note" style="--oct-icon: url(&#x22;data:image/svg+xml;utf8,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; class=&#x27;octicon octicon-info mr-2&#x27; viewBox=&#x27;0 0 16 16&#x27; version=&#x27;1.1&#x27; width=&#x27;16&#x27; height=&#x27;16&#x27; aria-hidden=&#x27;true&#x27;%3E%3Cpath d=&#x27;M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z&#x27;%3E%3C/path%3E%3C/svg%3E&#x22;)"></span>Note</p>
+<p>“Paxos” refers to many things in the literature: the original
+single-decree Synod protocol, Multi-Paxos with a stable leader, Fast
+Paxos, Generalised Paxos, EPaxos, and Flexible Paxos. Whenever the
+distinction matters this article uses the precise name.</p>
+</div>
+<h2 id="why-consensus-is-hard-flp-and-its-escape-hatches"><a href="#why-consensus-is-hard-flp-and-its-escape-hatches">Why consensus is hard: FLP and its escape hatches</a></h2>
+<p>The <a href="https://groups.csail.mit.edu/tds/papers/Lynch/jacm85.pdf" rel="noopener noreferrer" target="_blank">Fischer–Lynch–Paterson theorem (1985)</a> proves that in a fully
+asynchronous message-passing system where even <strong>one</strong> process may crash,
+no deterministic protocol can guarantee that consensus terminates in every
+execution. The proof (FLP §3, Lemmas 2–3) is constructive: it builds an
+adversarial scheduler that keeps the system perpetually “bivalent” — able
+to decide either <code>0</code> or <code>1</code> — by carefully delaying the single message
+whose ordering would force the decision. Termination, not safety, is what
+FLP takes from you.</p>
+<p><figure class="ps-figure ps-figure-themed ps-figure-zoomable"><picture><source srcset="/legacy-personal-site/v5/assets/flp-bivalency-dark.eb9287de.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" data-scheme="dark"><source srcset="/legacy-personal-site/v5/assets/flp-bivalency-light.7dc84619.svg" type="image/svg+xml" data-scheme="light"><img src="/legacy-personal-site/v5/assets/flp-bivalency-light.7dc84619.svg" alt="FLP intuition. The adversarial scheduler keeps the system in a bivalent configuration forever by delaying the one decision-forcing message at every step." width="444" height="817" style="max-width:min(444px,100%)"></picture><figcaption>FLP intuition. The adversarial scheduler keeps the system in a bivalent configuration forever by delaying the one decision-forcing message at every step.</figcaption><button type="button" class="ps-img-zoom-btn" hidden aria-label="Zoom image" data-ps-img-zoom-btn=""><svg class="ps-img-zoom-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6"></path></svg></button></figure></p>
+<p>Three load-bearing assumptions in the FLP model are what real systems
+relax:</p>
+<ul>
+<li><strong>Fully asynchronous network.</strong> Messages can be delayed arbitrarily but
+not lost. Partial synchrony — where the network is async only for
+bounded periods — is the standard escape hatch.</li>
+<li><strong>Deterministic protocol.</strong> No randomness allowed. Adding coin flips
+changes the picture: <a href="https://dl.acm.org/doi/10.1145/800221.806707" rel="noopener noreferrer" target="_blank">Ben-Or (1983)</a> showed an
+asynchronous Byzantine agreement protocol that terminates with
+probability <code>1</code>, even though any single round may fail.</li>
+<li><strong>At least one crash.</strong> Without crashes, even synchronous voting is
+trivial.</li>
+</ul>
+<h3 id="the-three-practical-escape-hatches"><a href="#the-three-practical-escape-hatches">The three practical escape hatches</a></h3>
+<p><strong>1. Partial synchrony.</strong> Assume the network is asynchronous most of the
+time but eventually behaves synchronously long enough for the protocol to
+make progress. Safety holds always; liveness holds eventually. This is
+the <a href="https://groups.csail.mit.edu/tds/papers/Lynch/jacm88.pdf" rel="noopener noreferrer" target="_blank">DLS model</a> and the foundation under every leader-based
+protocol you actually run. In Raft and Multi-Paxos this assumption shows
+up as the election timeout: if the leader fails to heartbeat within a
+bounded window, followers assume “the network has been async long
+enough” and start a new view.</p>
+<p><strong>2. Randomisation.</strong> Use random coin flips (or a verifiable random
+function) to break adversarial schedules. Ben-Or’s protocol, Rabin’s
+shared-coin protocol, and modern random-leader BFT protocols
+(Algorand-style) all sit in this branch.</p>
+<p><strong>3. Failure detectors.</strong> Treat “is node <code>X</code> alive?” as an oracle. Even
+an unreliable oracle suffices: <a href="https://www.cs.princeton.edu/courses/archive/fall08/cos597B/papers/unreliable.pdf" rel="noopener noreferrer" target="_blank">Chandra and Toueg (1996)</a>
+showed that the eventually-weak detector class <code>◇W</code> is enough for
+consensus given a majority of correct processes, and
+<a href="https://www.cs.utexas.edu/~lorenzo/corsi/cs380d/papers/weakestfd.pdf" rel="noopener noreferrer" target="_blank">Chandra–Hadzilacos–Toueg (1996)</a> proved that the
+eventual-leader detector <code>Ω</code> is the <em>weakest</em> failure detector that
+solves consensus. Implementing <code>Ω</code> in practice is what every Raft
+heartbeat loop is doing.</p>
+<div class="markdown-alert markdown-alert-important">
+<p class="markdown-alert-title"><span class="octicon octicon-important" style="--oct-icon: url(&#x22;data:image/svg+xml;utf8,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; class=&#x27;octicon octicon-report mr-2&#x27; viewBox=&#x27;0 0 16 16&#x27; version=&#x27;1.1&#x27; width=&#x27;16&#x27; height=&#x27;16&#x27; aria-hidden=&#x27;true&#x27;%3E%3Cpath d=&#x27;M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v9.5A1.75 1.75 0 0 1 14.25 13H8.06l-2.573 2.573A1.458 1.458 0 0 1 3 14.543V13H1.75A1.75 1.75 0 0 1 0 11.25Zm1.75-.25a.25.25 0 0 0-.25.25v9.5c0 .138.112.25.25.25h2a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h6.5a.25.25 0 0 0 .25-.25v-9.5a.25.25 0 0 0-.25-.25Zm7 2.25v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 9a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z&#x27;%3E%3C/path%3E%3C/svg%3E&#x22;)"></span>Important</p>
+<p>FLP is not “consensus is impossible.” It is “no protocol can give you
+a worst-case bound on termination under fully adversarial scheduling.”
+Real networks are not adversarially scheduled, so timeouts are enough
+in practice — but the result is what forces every production protocol
+to expose a tunable: election timeout, heartbeat interval, lease TTL.</p>
+</div>
+<h2 id="paxos-the-foundation"><a href="#paxos-the-foundation">Paxos: the foundation</a></h2>
+<p>Lamport’s <a href="https://lamport.azurewebsites.net/pubs/lamport-paxos.pdf" rel="noopener noreferrer" target="_blank">Part-Time Parliament</a> (TOCS 1998, originally
+submitted in 1990) is the classical consensus algorithm. It is not
+historically the first — <a href="https://pmg.csail.mit.edu/papers/vr.pdf" rel="noopener noreferrer" target="_blank">Oki and Liskov’s Viewstamped Replication
+(PODC 1988)</a> arrived a year earlier and provides the same
+guarantees with a primary-backup framing — but Paxos is the one whose
+framework other protocols mostly build on. Lamport’s later <a href="https://lamport.azurewebsites.net/pubs/paxos-simple.pdf" rel="noopener noreferrer" target="_blank">Paxos Made
+Simple</a> is the readable presentation; the original is
+deliberately allegorical.</p>
+<h3 id="roles-and-the-two-phases"><a href="#roles-and-the-two-phases">Roles and the two phases</a></h3>
+<p>Paxos splits the protocol into three roles, usually colocated on the
+same physical nodes:</p>
+<ul>
+<li><strong>Proposers</strong> initiate proposals.</li>
+<li><strong>Acceptors</strong> vote on them.</li>
+<li><strong>Learners</strong> observe what was decided.</li>
+</ul>
+<p>Each consensus round is identified by a globally unique, monotonically
+increasing <strong>proposal number</strong> <code>n</code> (often a <code>(round, node-id)</code> pair so
+that ties break deterministically).</p>
+<p><figure class="ps-figure ps-figure-themed ps-figure-zoomable"><picture><source srcset="/legacy-personal-site/v5/assets/paxos-two-phase-dark.0587fe77.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" data-scheme="dark"><source srcset="/legacy-personal-site/v5/assets/paxos-two-phase-light.58cd9737.svg" type="image/svg+xml" data-scheme="light"><img src="/legacy-personal-site/v5/assets/paxos-two-phase-light.58cd9737.svg" alt="Single-decree Paxos: a Prepare/Promise round establishes the proposal number, then an Accept/Accepted round commits the value once a majority replies." width="1158" height="952" style="max-width:min(1158px,100%)"></picture><figcaption>Single-decree Paxos: a Prepare/Promise round establishes the proposal number, then an Accept/Accepted round commits the value once a majority replies.</figcaption><button type="button" class="ps-img-zoom-btn" hidden aria-label="Zoom image" data-ps-img-zoom-btn=""><svg class="ps-img-zoom-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6"></path></svg></button></figure></p>
+<p><strong>Phase 1 — Prepare / Promise.</strong> A proposer picks a fresh <code>n</code> and sends
+<code>prepare(n)</code> to a majority of acceptors. Each acceptor either ignores
+the prepare (because it has already promised something <code>≥ n</code>) or
+responds with <code>promise(n, accepted)</code> carrying the highest-numbered
+value it has previously accepted, if any. Once the proposer hears from a
+majority it knows two things: no acceptor in that majority will accept
+any older proposal, and if the slot already has an outcome it will be
+the value carried by the highest-numbered promise.</p>
+<p><strong>Phase 2 — Accept / Accepted.</strong> The proposer sends <code>accept(n, v)</code> —
+where <code>v</code> is the highest-numbered accepted value from Phase 1, or its
+own value if the slot was empty — to (at least) the same majority. An
+acceptor that has not promised to a higher proposal accepts and replies.
+Once a majority accepts, the value is <strong>chosen</strong>. Any subsequent prepare
+with a larger <code>n</code> that touches that majority will discover the chosen
+value and propagate it.</p>
+<p>The whole correctness argument rides on <strong>quorum intersection</strong>: every
+two majorities share at least one acceptor, so the highest-numbered
+accepted value follows the proposer through Phase 1 and cannot be
+overwritten.</p>
+<h3 id="why-paxos-made-simple-still-produces-hard-implementations"><a href="#why-paxos-made-simple-still-produces-hard-implementations">Why “Paxos Made Simple” still produces hard implementations</a></h3>
+<p>Single-decree Paxos is concise. Real systems need <strong>Multi-Paxos</strong> —
+agreement on a sequence of slots — plus catch-up, snapshotting, leader
+stability, and reconfiguration. The team that built Google’s Chubby
+service <a href="https://www.cs.utexas.edu/users/lorenzo/corsi/cs380d/papers/paper2-1.pdf" rel="noopener noreferrer" target="_blank">described the gap bluntly</a>:</p>
+<blockquote>
+<p>There are significant gaps between the description of the Paxos
+algorithm and the needs of a real-world system.</p>
+</blockquote>
+<p>The gaps they listed (and that every implementor still hits) are:</p>
+<ul>
+<li><strong>Liveness under contention.</strong> Two competing proposers can livelock,
+each invalidating the other’s prepare. Multi-Paxos elects a stable
+distinguished proposer; protocols like
+<a href="https://www.usenix.org/legacy/event/osdi08/tech/full_papers/mao/mao.pdf" rel="noopener noreferrer" target="_blank">Mencius</a>
+rotate the role.</li>
+<li><strong>Disk durability.</strong> Every promise and accept must hit stable storage
+before the acceptor replies. fsync latency, not network RTT, ends up
+bounding throughput.</li>
+<li><strong>Catch-up.</strong> A fallen-behind acceptor needs to replay missed slots
+without holding up new proposals.</li>
+<li><strong>Reconfiguration.</strong> Adding or removing acceptors. Lamport revisited
+this in
+<a href="https://lamport.azurewebsites.net/pubs/reconfiguration.pdf" rel="noopener noreferrer" target="_blank"><em>Reconfigurable State Machines</em></a>
+in 2009; production systems instead borrow Raft-style mechanisms (see
+below).</li>
+<li><strong>Fast Paxos and friends.</strong> <a href="https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-2005-112.pdf" rel="noopener noreferrer" target="_blank">Fast Paxos</a> saves a round
+trip in the common case at the cost of needing larger quorums (at
+least <code>⌈3n/4⌉</code>) — an early example of the quorum-vs-latency knob that
+Flexible Paxos later generalised.</li>
+</ul>
+<h3 id="multi-paxos-a-stable-leader"><a href="#multi-paxos-a-stable-leader">Multi-Paxos: a stable leader</a></h3>
+<p>Basic Paxos pays two round-trips per decided value. Multi-Paxos pins a
+distinguished proposer and runs Phase 1 once for an entire window of
+sequence numbers. Each new value then needs only Phase 2: a single
+round-trip from leader to majority. If the leader fails, a new leader
+must run Phase 1 against the same range to recover any partially
+committed slots before proposing fresh ones.</p>
+<p>The cost is the operational complexity of leader leases, lease renewal
+under skew, and disambiguating “I am no longer leader” from “my
+proposal is just slow.” Most production “Paxos” systems are really
+Multi-Paxos with a leader-lease optimisation on top.</p>
+<h3 id="cheap-paxos-and-leaderless-variants"><a href="#cheap-paxos-and-leaderless-variants">Cheap Paxos and leaderless variants</a></h3>
+<p>Two more Paxos variants matter for the design space, even though almost
+no one runs them in plain form:</p>
+<ul>
+<li><strong>Cheap Paxos</strong> (<a href="https://lamport.azurewebsites.net/pubs/web-dsn-submission.pdf" rel="noopener noreferrer" target="_blank">Lamport &#x26; Massa, DSN 2004</a>) keeps
+<code>f + 1</code> “main” acceptors that handle the steady state and <code>f</code>
+“auxiliary” acceptors that only participate when a main acceptor is
+unavailable. The total node count is still <code>2f + 1</code>, but the
+auxiliaries can be small / cheap (a witness VM, a phone) — the design
+is the ancestor of every “witness” and “tiebreaker” replica that
+modern systems ship with.</li>
+<li><strong>EPaxos (Egalitarian Paxos)</strong> (<a href="https://www.cs.cmu.edu/~dga/papers/epaxos-sosp2013.pdf" rel="noopener noreferrer" target="_blank">Moraru, Andersen, Kaminsky, SOSP
+2013</a>) is the canonical leaderless multi-decree variant.
+Any replica can propose, and <em>non-conflicting</em> commands commit in a
+single round-trip via a “fast quorum” of size <code>⌊3f/2⌋ + 1</code>.
+Conflicting commands fall back to a two-round slow path that
+establishes a dependency order. EPaxos’s appeal is geographic
+load-spreading (no leader bottleneck), but the dependency tracking is
+notoriously fiddly to implement correctly — recent work
+(<a href="https://www.usenix.org/system/files/nsdi21-tollman.pdf" rel="noopener noreferrer" target="_blank">EPaxos Revisited, NSDI 2021</a>) identified
+long-standing recovery bugs in the original protocol. Almost every
+production “EPaxos-flavoured” system ships a substantially modified
+variant.</li>
+</ul>
+<h3 id="flexible-paxos-quorums-revisited"><a href="#flexible-paxos-quorums-revisited">Flexible Paxos: quorums revisited</a></h3>
+<p>The classical proof requires every two quorums to intersect. <a href="https://arxiv.org/abs/1608.06696" rel="noopener noreferrer" target="_blank">Howard,
+Malkhi, and Spiegelman’s Flexible Paxos (OPODIS 2016)</a> showed
+that this is overconservative: only the <strong>Phase 1 quorum</strong> of any round
+must intersect with the <strong>Phase 2 quorum</strong> of every previous round. Two
+Phase 2 quorums in the same round may be disjoint.</p>
+<p><figure class="ps-figure ps-figure-themed ps-figure-zoomable"><picture><source srcset="/legacy-personal-site/v5/assets/flexible-paxos-quorums-dark.0b4aaa86.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" data-scheme="dark"><source srcset="/legacy-personal-site/v5/assets/flexible-paxos-quorums-light.825fe73b.svg" type="image/svg+xml" data-scheme="light"><img src="/legacy-personal-site/v5/assets/flexible-paxos-quorums-light.825fe73b.svg" alt="Flexible Paxos: the only mandatory intersection is between phase-1 (leader election) and phase-2 (replication) quorums; majorities everywhere are sufficient but not necessary." width="880" height="374" style="max-width:min(880px,100%)"></picture><figcaption>Flexible Paxos: the only mandatory intersection is between phase-1 (leader election) and phase-2 (replication) quorums; majorities everywhere are sufficient but not necessary.</figcaption><button type="button" class="ps-img-zoom-btn" hidden aria-label="Zoom image" data-ps-img-zoom-btn=""><svg class="ps-img-zoom-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6"></path></svg></button></figure></p>
+<p>The practical consequence: you can shrink the hot-path Phase 2 quorum
+(faster commits, lower throughput-floor) by paying with a larger Phase 1
+quorum (slower, infrequent leader changes). <a href="https://fpaxos.github.io/" rel="noopener noreferrer" target="_blank">Heidi Howard’s blog</a>
+walks the design space; CockroachDB’s
+<a href="https://www.cockroachlabs.com/blog/quorum-leases/" rel="noopener noreferrer" target="_blank">Quorum Leases</a>
+applies similar reasoning to read-only quorums.</p>
+<h3 id="zab-and-zookeeper"><a href="#zab-and-zookeeper">Zab and ZooKeeper</a></h3>
+<p>ZooKeeper does not run Paxos. It runs <strong>Zab</strong> (ZooKeeper Atomic
+Broadcast), introduced in <a href="https://www.cs.cornell.edu/courses/cs6452/2012sp/papers/zab-ieee.pdf" rel="noopener noreferrer" target="_blank">Junqueira, Reed, and Serafini’s DSN 2011
+paper</a>. Zab is a primary-order atomic broadcast protocol
+optimised for ZooKeeper’s use case — coordination primitives backed by a
+hierarchical znode tree.</p>
+<p>The differences from Multi-Paxos that matter in practice:</p>
+<ul>
+<li><strong>Explicit primary, not symmetric proposers.</strong> All writes go through
+the primary; the primary’s transactions commit in the order it
+proposes them.</li>
+<li><strong>Prefix property.</strong> If transaction <code>m</code> is delivered, every
+transaction the primary proposed before <code>m</code> has been delivered. This
+is stronger than what multi-decree Paxos gives you across leader
+changes, where two distinguished proposers might interleave decisions
+for adjacent slots.</li>
+<li><strong>Recovery first, then activation.</strong> A new primary cannot accept
+client requests until it has pushed its committed prefix to a quorum.</li>
+</ul>
+<p>ZooKeeper trades that primary-order guarantee for a slightly larger
+recovery cost; in exchange you get a small, well-tested coordination
+kernel that almost every Hadoop-era system bolted on top of.</p>
+<div class="markdown-alert markdown-alert-note">
+<p class="markdown-alert-title"><span class="octicon octicon-note" style="--oct-icon: url(&#x22;data:image/svg+xml;utf8,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; class=&#x27;octicon octicon-info mr-2&#x27; viewBox=&#x27;0 0 16 16&#x27; version=&#x27;1.1&#x27; width=&#x27;16&#x27; height=&#x27;16&#x27; aria-hidden=&#x27;true&#x27;%3E%3Cpath d=&#x27;M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z&#x27;%3E%3C/path%3E%3C/svg%3E&#x22;)"></span>Note</p>
+<p>The classic example was Apache Kafka, which used ZooKeeper for broker
+metadata, controller election, and consumer offsets. KRaft (Kafka’s
+self-managed Raft quorum, <a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-833%3A+Mark+KRaft+as+Production+Ready" rel="noopener noreferrer" target="_blank">KIP-833</a>) was marked
+production-ready in <strong>Kafka 3.3.1 (October 2022)</strong>, ZooKeeper mode
+was deprecated in 3.5, and ZooKeeper support was <strong>fully removed in
+<a href="https://kafka.apache.org/blog" rel="noopener noreferrer" target="_blank">Kafka 4.0 (March 2025)</a></strong>. New Kafka clusters are
+KRaft-only.</p>
+</div>
+<h2 id="raft-designed-for-understandability"><a href="#raft-designed-for-understandability">Raft: designed for understandability</a></h2>
+<p><a href="https://web.stanford.edu/~ouster/cgi-bin/papers/raft-atc14.pdf" rel="noopener noreferrer" target="_blank">Raft (USENIX ATC 2014)</a> is a deliberate redesign of
+Multi-Paxos with one explicit goal — being easier to teach, prove, and
+implement. The paper opens with that as the thesis:</p>
+<blockquote>
+<p>Our approach was unusual in that our primary goal was understandability:
+could we define a consensus algorithm for practical systems and describe
+it in a way that is significantly easier to learn than Paxos?</p>
+</blockquote>
+<p>Raft buys understandability with three opinionated decisions:</p>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Paxos</th>
+<th>Raft</th>
+<th>Pay-off</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Any node can propose</td>
+<td>Only the current leader proposes</td>
+<td>One source of truth for log order</td>
+</tr>
+<tr>
+<td>Acceptors may have gaps in their accepted slots</td>
+<td>Followers’ logs are strict prefixes of the leader’s</td>
+<td>Easier recovery; leader pushes one log forward</td>
+</tr>
+<tr>
+<td>Symmetric reasoning</td>
+<td>Three explicit roles (Follower, Candidate, Leader)</td>
+<td>Implementations are state machines, not graphs</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="state-machine-and-election"><a href="#state-machine-and-election">State machine and election</a></h3>
+<p>Each Raft node is in one of three roles: <strong>Follower</strong>, <strong>Candidate</strong>, or
+<strong>Leader</strong>. Time is divided into <strong>terms</strong> — Raft’s logical clock — each
+of which has at most one leader.</p>
+<p><figure class="ps-figure ps-figure-themed ps-figure-zoomable"><picture><source srcset="/legacy-personal-site/v5/assets/raft-states-dark.8e077102.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" data-scheme="dark"><source srcset="/legacy-personal-site/v5/assets/raft-states-light.cdcffa92.svg" type="image/svg+xml" data-scheme="light"><img src="/legacy-personal-site/v5/assets/raft-states-light.cdcffa92.svg" alt="Raft node states. With PreVote enabled, candidates first run a non-binding pre-election so that a node returning from a partition cannot disrupt the existing leader by bumping the term unilaterally." width="831" height="602" style="max-width:min(831px,100%)"></picture><figcaption>Raft node states. With PreVote enabled, candidates first run a non-binding pre-election so that a node returning from a partition cannot disrupt the existing leader by bumping the term unilaterally.</figcaption><button type="button" class="ps-img-zoom-btn" hidden aria-label="Zoom image" data-ps-img-zoom-btn=""><svg class="ps-img-zoom-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6"></path></svg></button></figure></p>
+<p>A follower that does not hear from the leader within its <strong>election
+timeout</strong> transitions to candidate, increments its term, votes for
+itself, and asks every peer for a vote. A candidate wins if it collects
+votes from a majority for the same term. Two refinements that every
+production implementation enables:</p>
+<ul>
+<li><strong>Randomised timeouts.</strong> Each node draws its election timeout from a
+small range (the paper uses 150–300 ms as a study setting). Different
+timeouts make split votes statistically rare.</li>
+<li><strong>Vote restriction.</strong> A node only grants a vote if the candidate’s log
+is at least as up-to-date — same term with a longer log, or a higher
+last-log term. Combined with the leader-completeness invariant, this
+is what guarantees no committed entry is ever lost across leader
+changes.</li>
+<li><strong>PreVote.</strong> Before bumping its term, a candidate runs a non-binding
+pre-election to check it would actually win. Without PreVote, a node
+that was network-partitioned and came back with an inflated term
+forces the legitimate leader to step down even though the cluster was
+healthy. PreVote was introduced in §9.6 of <a href="https://github.com/ongardie/dissertation/blob/master/online.pdf" rel="noopener noreferrer" target="_blank">Ongaro’s
+dissertation</a> and is exposed as <code>--pre-vote</code> in
+<a href="https://github.com/etcd-io/etcd/issues/17328" rel="noopener noreferrer" target="_blank">etcd</a> and the equivalent flag in TiKV’s <code>raft-rs</code>.</li>
+</ul>
+<h3 id="log-replication-and-the-safety-invariants"><a href="#log-replication-and-the-safety-invariants">Log replication and the safety invariants</a></h3>
+<p>The leader receives client writes, appends them to its local log, and
+sends <code>AppendEntries</code> RPCs to every follower. A follower acknowledges
+once the entry is on its disk; the leader advances its <code>commitIndex</code>
+once a majority — counting itself — has acknowledged. Followers learn
+the new commit index on the next heartbeat or <code>AppendEntries</code>.</p>
+<p>The Raft paper identifies five named safety properties that a correct
+implementation must preserve:</p>
+<ol>
+<li><strong>Election Safety</strong> — at most one leader per term.</li>
+<li><strong>Leader Append-Only</strong> — a leader never overwrites or deletes
+entries in its own log; it only appends.</li>
+<li><strong>Log Matching</strong> — if two logs contain an entry with the same index
+and term, the logs are identical in all preceding entries.</li>
+<li><strong>Leader Completeness</strong> — if an entry is committed in some term, it
+appears in the log of every leader of all higher-numbered terms.</li>
+<li><strong>State Machine Safety</strong> — if a node has applied an entry at a given
+index, no other node ever applies a different entry at the same
+index.</li>
+</ol>
+<p>Together those five buy the same end-to-end guarantee as Multi-Paxos.
+“Log Matching” is the workhorse: the consistency check on each
+<code>AppendEntries</code> (the leader includes the index and term of the entry
+<em>before</em> the new one) lets a follower detect divergence in <code>O(1)</code> and
+forces the leader to walk back <code>nextIndex</code> until logs agree.</p>
+<p><figure class="ps-figure ps-figure-themed ps-figure-zoomable"><picture><source srcset="/legacy-personal-site/v5/assets/raft-log-replication-dark.e59a80ec.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" data-scheme="dark"><source srcset="/legacy-personal-site/v5/assets/raft-log-replication-light.43550b06.svg" type="image/svg+xml" data-scheme="light"><img src="/legacy-personal-site/v5/assets/raft-log-replication-light.43550b06.svg" alt="Raft log replication. The leader sends AppendEntries with prevLogIndex and prevLogTerm; followers either accept and append, or reject and force the leader to walk back nextIndex until logs converge." width="1360" height="722" style="max-width:min(1360px,100%)"></picture><figcaption>Raft log replication. The leader sends AppendEntries with prevLogIndex and prevLogTerm; followers either accept and append, or reject and force the leader to walk back nextIndex until logs converge.</figcaption><button type="button" class="ps-img-zoom-btn" hidden aria-label="Zoom image" data-ps-img-zoom-btn=""><svg class="ps-img-zoom-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6"></path></svg></button></figure></p>
+<div class="markdown-alert markdown-alert-important">
+<p class="markdown-alert-title"><span class="octicon octicon-important" style="--oct-icon: url(&#x22;data:image/svg+xml;utf8,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; class=&#x27;octicon octicon-report mr-2&#x27; viewBox=&#x27;0 0 16 16&#x27; version=&#x27;1.1&#x27; width=&#x27;16&#x27; height=&#x27;16&#x27; aria-hidden=&#x27;true&#x27;%3E%3Cpath d=&#x27;M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v9.5A1.75 1.75 0 0 1 14.25 13H8.06l-2.573 2.573A1.458 1.458 0 0 1 3 14.543V13H1.75A1.75 1.75 0 0 1 0 11.25Zm1.75-.25a.25.25 0 0 0-.25.25v9.5c0 .138.112.25.25.25h2a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h6.5a.25.25 0 0 0 .25-.25v-9.5a.25.25 0 0 0-.25-.25Zm7 2.25v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 9a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z&#x27;%3E%3C/path%3E%3C/svg%3E&#x22;)"></span>Important</p>
+<p>A leader can only mark entries from its <strong>current term</strong> as committed
+by counting acks. Entries from prior terms become committed only
+indirectly — by being the prefix of a current-term entry that reaches
+quorum. Raft §5.4.2 calls this out as the consequence of Figure 8: a
+leader that naively commits a replicated-but-not-current-term entry
+can have it overwritten by a future leader.</p>
+</div>
+<h3 id="linearizable-reads-without-paying-a-raft-round"><a href="#linearizable-reads-without-paying-a-raft-round">Linearizable reads without paying a Raft round</a></h3>
+<p>Naively, a linearizable read needs a fresh consensus round to confirm
+the leader is still the leader. That doubles read latency. Two
+optimisations are now standard:</p>
+<p><figure class="ps-figure ps-figure-themed ps-figure-zoomable"><picture><source srcset="/legacy-personal-site/v5/assets/readindex-linearizable-read-dark.a525fdbc.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" data-scheme="dark"><source srcset="/legacy-personal-site/v5/assets/readindex-linearizable-read-light.0904b4be.svg" type="image/svg+xml" data-scheme="light"><img src="/legacy-personal-site/v5/assets/readindex-linearizable-read-light.0904b4be.svg" alt="Linearizable reads in etcd. ReadIndex confirms leadership via a heartbeat round before serving from the leader&#x27;s local state; lease-based reads skip the round-trip but rely on bounded clock drift." width="917" height="1240" style="max-width:min(917px,100%)"></picture><figcaption>Linearizable reads in etcd. ReadIndex confirms leadership via a heartbeat round before serving from the leader's local state; lease-based reads skip the round-trip but rely on bounded clock drift.</figcaption><button type="button" class="ps-img-zoom-btn" hidden aria-label="Zoom image" data-ps-img-zoom-btn=""><svg class="ps-img-zoom-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6"></path></svg></button></figure></p>
+<ul>
+<li><strong>ReadIndex</strong> (Raft thesis §6.4, default in <a href="https://etcd.io/docs/v3.5/learning/api_guarantees/" rel="noopener noreferrer" target="_blank">etcd</a>). The
+leader records its current <code>commitIndex</code>, sends a heartbeat, and
+waits for quorum acks. Once it confirms it is still leader, it serves
+the read from local state at that index. No new log entry, but still
+one round-trip of network confirmation.</li>
+<li><strong>Lease-based reads.</strong> While the leader holds a valid heartbeat
+lease, it serves linearizable reads with no network round-trip at
+all. Safety relies on bounded clock drift between leader and
+followers — a much stronger assumption than ReadIndex needs. etcd
+exposes this as <code>ReadOnlyLeaseBased</code> and explicitly warns about
+clock-skew sensitivity.</li>
+</ul>
+<p>CockroachDB pushes this further: every range has a <strong>leaseholder</strong> that
+serves linearizable reads from local state. By default the leaseholder
+is colocated with the Raft leader<sup><a href="#user-content-fn-crdb-leaseholder" id="user-content-fnref-crdb-leaseholder" data-footnote-ref aria-describedby="footnote-label">5</a></sup>; a lease-transfer
+machinery keeps them together so that the read-serving replica is
+always the one driving the consensus group, avoiding an extra hop.</p>
+<h3 id="membership-changes"><a href="#membership-changes">Membership changes</a></h3>
+<p>Adding or removing nodes is the second-classic Raft footgun. Naively
+swapping <code>Cold</code> for <code>Cnew</code> allows two disjoint majorities to exist
+simultaneously and commit conflicting values. The original Raft paper
+solves this with <strong>joint consensus</strong>: enter a transitional configuration
+<code>Cold,new</code> that requires a majority of <em>both</em> committees, then commit
+<code>Cnew</code>. The Raft thesis chapter 4 introduces a simpler <strong>single-server
+membership change</strong> — only one node added or removed at a time, so
+the old and new majorities always intersect. That algorithm had a known
+liveness/safety bug across leader changes; the fix is for a leader to
+commit a no-op from its current term before processing any membership
+change<sup><a href="#user-content-fn-single-server-bug" id="user-content-fnref-single-server-bug" data-footnote-ref aria-describedby="footnote-label">6</a></sup>.</p>
+<p>Most production Raft implementations use the single-server variant plus
+a non-voting <strong>Learner / staging</strong> role. etcd added Learners in
+<a href="https://etcd.io/docs/v3.4/learning/design-learner/" rel="noopener noreferrer" target="_blank">v3.4</a>: the new node receives <code>AppendEntries</code> like a
+follower but does not count toward quorum or vote until the operator
+promotes it. That eliminates the most common reconfiguration outage,
+which is adding a slow new member and pushing the cluster onto a
+quorum that includes a node still snapshotting its initial state.</p>
+<h3 id="raft-in-production-etcd"><a href="#raft-in-production-etcd">Raft in production: etcd</a></h3>
+<p><a href="https://etcd.io/docs/v3.5/" rel="noopener noreferrer" target="_blank">etcd</a> is the most widely deployed Raft implementation. It
+backs Kubernetes (every cluster keeps API-server state in etcd), CoreDNS
+service discovery, M3DB, and any number of internal control planes. It
+graduated to a CNCF top-level project in <a href="https://www.cncf.io/announcements/2020/11/24/cloud-native-computing-foundation-announces-etcd-graduation/" rel="noopener noreferrer" target="_blank">November 2020</a>.</p>
+<p>The performance envelope is dominated by two things:</p>
+<ul>
+<li><strong>fsync latency.</strong> Every Raft entry must be on the leader’s disk
+before the leader counts its own ack, and on each follower’s disk
+before the follower acks. etcd’s hardware guidance is uncompromising:
+the Prometheus metric <code>wal_fsync_duration_seconds</code> should keep its
+99th percentile under <strong>10 ms</strong> in production<sup><a href="#user-content-fn-etcd-fsync" id="user-content-fnref-etcd-fsync" data-footnote-ref aria-describedby="footnote-label">7</a></sup>.</li>
+<li><strong>Heartbeat / election timing.</strong> etcd’s defaults are
+<code>heartbeat-interval = 100 ms</code> and <code>election-timeout = 1000 ms</code>. The
+<a href="https://etcd.io/docs/v3.4/tuning/" rel="noopener noreferrer" target="_blank">tuning guide</a> requires <code>election-timeout ≥ 10 × RTT</code>
+between members; cross-region clusters typically run
+<code>heartbeat-interval ≈ RTT</code> and election timeouts of several seconds.</li>
+</ul>
+<div class="markdown-alert markdown-alert-warning">
+<p class="markdown-alert-title"><span class="octicon octicon-warning" style="--oct-icon: url(&#x22;data:image/svg+xml;utf8,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; class=&#x27;octicon octicon-alert mr-2&#x27; viewBox=&#x27;0 0 16 16&#x27; version=&#x27;1.1&#x27; width=&#x27;16&#x27; height=&#x27;16&#x27; aria-hidden=&#x27;true&#x27;%3E%3Cpath d=&#x27;M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z&#x27;%3E%3C/path%3E%3C/svg%3E&#x22;)"></span>Warning</p>
+<p>The most common Kubernetes-control-plane outage is “etcd cluster on
+shared/network-attached storage starts seeing P99 fsync above 10 ms,
+which causes the leader to miss its heartbeat window, which triggers
+an unnecessary election, which forces a snapshot to catch the
+followers up, which makes fsync worse.” Alert on
+<code>etcd_disk_wal_fsync_duration_seconds</code> p99, not just averages, and
+isolate etcd from noisy neighbours on the same disk.</p>
+</div>
+<h2 id="quorum-systems"><a href="#quorum-systems">Quorum systems</a></h2>
+<p>Quorum overlap is the engine that makes everything in this article work.
+Beyond the Paxos and Raft majorities, two ideas are worth knowing:</p>
+<h3 id="readwrite-quorums"><a href="#readwrite-quorums">Read/write quorums</a></h3>
+<p>The classical <a href="https://dl.acm.org/doi/10.1145/800215.806583" rel="noopener noreferrer" target="_blank">Gifford weighted voting</a> result says a
+replicated register is linearizable if every read intersects every write
+— that is, <code>R + W > N</code>. The same arithmetic is the foundation under
+Dynamo-style stores (<a href="https://cassandra.apache.org/doc/latest/cassandra/architecture/dynamo.html" rel="noopener noreferrer" target="_blank">Cassandra</a>, <a href="https://www.usenix.org/conference/atc22/presentation/elhemali" rel="noopener noreferrer" target="_blank">DynamoDB</a>,
+Riak), where <code>R</code>, <code>W</code>, and <code>N</code> are exposed to the client per operation:</p>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Configuration</th>
+<th><code>R</code></th>
+<th><code>W</code></th>
+<th>Trade-off</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Read-heavy</td>
+<td><code>1</code></td>
+<td><code>N</code></td>
+<td>Fast reads, slow and partition-sensitive writes</td>
+</tr>
+<tr>
+<td>Write-heavy</td>
+<td><code>N</code></td>
+<td><code>1</code></td>
+<td>Fast writes, expensive reads</td>
+</tr>
+<tr>
+<td>Balanced</td>
+<td><code>⌈(N+1)/2⌉</code></td>
+<td><code>⌈(N+1)/2⌉</code></td>
+<td>Equal latency; what consensus systems do</td>
+</tr>
+</tbody>
+</table></div>
+<p>Consensus systems fix <code>R = W = ⌈(N+1)/2⌉</code> because they need
+linearizability <em>across slots</em>, not just per register. Dynamo-style
+systems give up that cross-slot ordering in exchange for per-operation
+tunability.</p>
+<h3 id="witnesses-and-learners"><a href="#witnesses-and-learners">Witnesses and learners</a></h3>
+<p>Two-node consensus is impossible (no majority survives any failure), but
+real deployments still need to tolerate one failure on a budget. The
+standard answer is a <strong>witness</strong> node: it participates in elections and
+log durability for metadata only, no data. Microsoft Azure Storage uses
+witnesses in stretch deployments, etcd Learners are the Raft equivalent
+on the read path, and several Paxos implementations expose
+“non-voting members” with similar semantics.</p>
+<h2 id="byzantine-fault-tolerance"><a href="#byzantine-fault-tolerance">Byzantine fault tolerance</a></h2>
+<p>Crash-fault tolerance assumes failed nodes simply stop responding.
+Byzantine fault tolerance (BFT) assumes failed nodes can do anything —
+send conflicting messages to different peers (equivocate), forge votes,
+collude with each other, or selectively delay messages. The 1982
+<a href="https://lamport.azurewebsites.net/pubs/byz.pdf" rel="noopener noreferrer" target="_blank">Byzantine Generals paper</a> proved the basic lower
+bound: tolerating <code>f</code> Byzantine faults requires <code>N ≥ 3f + 1</code>.</p>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Fault model</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Private datacenter</td>
+<td>Crash</td>
+<td>Nodes are run by the same operator; no incentive to lie</td>
+</tr>
+<tr>
+<td>Multi-tenant cloud</td>
+<td>Crash</td>
+<td>Hypervisor isolates tenants; control plane is trusted</td>
+</tr>
+<tr>
+<td>Public blockchain</td>
+<td>Byzantine</td>
+<td>Untrusted participants with economic incentives to cheat</td>
+</tr>
+<tr>
+<td>Cross-org consortium</td>
+<td>Byzantine</td>
+<td>Operators do not fully trust each other</td>
+</tr>
+<tr>
+<td>Critical / military</td>
+<td>Byzantine</td>
+<td>Adversary may compromise a subset of nodes</td>
+</tr>
+</tbody>
+</table></div>
+<p>The intuition for <code>3f + 1</code>: with at most <code>f</code> Byzantine nodes, you cannot
+distinguish “<code>f</code> honest replicas are silent” from “<code>f</code> Byzantine
+replicas are lying.” To make any decision safely you must hear from
+<code>2f + 1</code> replicas, of which at least <code>f + 1</code> are honest, so the cluster
+must contain at least <code>3f + 1</code> nodes total.</p>
+<h3 id="pbft"><a href="#pbft">PBFT</a></h3>
+<p><a href="https://pmg.csail.mit.edu/papers/osdi99.pdf" rel="noopener noreferrer" target="_blank">Castro and Liskov’s Practical Byzantine Fault Tolerance (OSDI
+1999)</a> was the first protocol to make BFT cheap enough to
+deploy on commodity hardware. It runs in a partial-synchrony model and
+has three phases per request once a stable primary exists:</p>
+<ol>
+<li><strong>Pre-prepare.</strong> Primary assigns a sequence number and broadcasts
+the request.</li>
+<li><strong>Prepare.</strong> Replicas that accept the proposal broadcast a
+<code>prepare</code> message; once a node sees <code>2f + 1</code> matching prepares (its
+own counts), it knows the request will not be reordered.</li>
+<li><strong>Commit.</strong> Replicas broadcast <code>commit</code>; on <code>2f + 1</code> matching
+commits, the request is delivered.</li>
+</ol>
+<p>A separate <strong>view-change</strong> runs whenever a primary is suspected, with
+quadratic message complexity — every replica broadcasts its view-change
+message to every other replica.</p>
+<p><figure class="ps-figure ps-figure-themed ps-figure-zoomable"><picture><source srcset="/legacy-personal-site/v5/assets/bft-message-pattern-dark.dd99ed01.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" data-scheme="dark"><source srcset="/legacy-personal-site/v5/assets/bft-message-pattern-light.0ca73b1a.svg" type="image/svg+xml" data-scheme="light"><img src="/legacy-personal-site/v5/assets/bft-message-pattern-light.0ca73b1a.svg" alt="PBFT and HotStuff message patterns. PBFT replicates votes all-to-all and pays O(n²) per slot. HotStuff routes votes through the leader, which aggregates them into a quorum certificate, giving O(n) authenticators per phase." width="801" height="702" style="max-width:min(801px,100%)"></picture><figcaption>PBFT and HotStuff message patterns. PBFT replicates votes all-to-all and pays O(n²) per slot. HotStuff routes votes through the leader, which aggregates them into a quorum certificate, giving O(n) authenticators per phase.</figcaption><button type="button" class="ps-img-zoom-btn" hidden aria-label="Zoom image" data-ps-img-zoom-btn=""><svg class="ps-img-zoom-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6"></path></svg></button></figure></p>
+<p>The all-to-all fan-out is what limits PBFT to small committees — past
+roughly 20–30 nodes, the <code>O(n²)</code> message volume drowns useful
+throughput.</p>
+<h3 id="hotstuff-and-the-modern-bft-family"><a href="#hotstuff-and-the-modern-bft-family">HotStuff and the modern BFT family</a></h3>
+<p><a href="https://arxiv.org/abs/1803.05069" rel="noopener noreferrer" target="_blank">HotStuff (PODC 2019)</a> is the headline modern BFT
+protocol. Its two contributions:</p>
+<ul>
+<li><strong>Linear authenticator complexity per phase.</strong> Replicas send their
+votes to the leader; the leader aggregates them into a single
+threshold-signed <strong>Quorum Certificate (QC)</strong>. Each phase therefore
+costs <code>O(n)</code> authenticators instead of PBFT’s <code>O(n²)</code>.</li>
+<li><strong>Three-chain commit.</strong> A block is committed once it is the third in
+an unbroken chain of QCs (Prepare, Pre-commit, Commit). The same
+three-phase structure also handles view-changes — there is no
+separate quadratic view-change protocol, which is the headline
+difference from PBFT.</li>
+</ul>
+<p>HotStuff is the basis of LibraBFT (then DiemBFT, now Aptos), and several
+modern proof-of-stake L1 chains pick up the same QC-based design.
+<a href="https://arxiv.org/abs/1807.04938" rel="noopener noreferrer" target="_blank">Tendermint</a>, used in the Cosmos ecosystem, predates
+HotStuff and shares the leader-aggregated QC idea but couples block
+production tightly with consensus rounds.</p>
+<div class="markdown-alert markdown-alert-caution">
+<p class="markdown-alert-title"><span class="octicon octicon-caution" style="--oct-icon: url(&#x22;data:image/svg+xml;utf8,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; class=&#x27;octicon octicon-stop mr-2&#x27; viewBox=&#x27;0 0 16 16&#x27; version=&#x27;1.1&#x27; width=&#x27;16&#x27; height=&#x27;16&#x27; aria-hidden=&#x27;true&#x27;%3E%3Cpath d=&#x27;M4.47.22A.749.749 0 0 1 5 0h6c.199 0 .389.079.53.22l4.25 4.25c.141.14.22.331.22.53v6a.749.749 0 0 1-.22.53l-4.25 4.25A.749.749 0 0 1 11 16H5a.749.749 0 0 1-.53-.22L.22 11.53A.749.749 0 0 1 0 11V5c0-.199.079-.389.22-.53Zm.84 1.28L1.5 5.31v5.38l3.81 3.81h5.38l3.81-3.81V5.31L10.69 1.5ZM8 4a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 8 4Zm0 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z&#x27;%3E%3C/path%3E%3C/svg%3E&#x22;)"></span>Caution</p>
+<p>Do not pay BFT prices for crash-fault problems. A 5-node etcd cluster
+tolerates two crashes with <code>2f + 1</code> and <code>O(n)</code> messages; a BFT
+equivalent needs 7 nodes and several times the message traffic. BFT is
+the right answer for adversarial environments, not for “we want to be
+extra safe.”</p>
+</div>
+<h2 id="consensus-in-production-choosing-a-system"><a href="#consensus-in-production-choosing-a-system">Consensus in production: choosing a system</a></h2>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>System</th>
+<th>Protocol</th>
+<th>Data model</th>
+<th>Consistency</th>
+<th>Best fit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ZooKeeper</td>
+<td>Zab</td>
+<td>Hierarchical (znodes)</td>
+<td>Linearizable</td>
+<td>Coordination primitives, locks, leader leases</td>
+</tr>
+<tr>
+<td>etcd</td>
+<td>Raft</td>
+<td>Flat KV</td>
+<td>Linearizable</td>
+<td>Kubernetes, control planes, service registry</td>
+</tr>
+<tr>
+<td>Consul</td>
+<td>Raft + Serf</td>
+<td>Flat KV</td>
+<td>Strong (Raft) for KV, eventual for membership</td>
+<td>Service discovery, multi-DC mesh</td>
+</tr>
+<tr>
+<td>CockroachDB</td>
+<td>MultiRaft</td>
+<td>SQL</td>
+<td>Serializable (per-key linearizable)</td>
+<td>Distributed OLTP, multi-region apps</td>
+</tr>
+<tr>
+<td>TiKV</td>
+<td>MultiRaft</td>
+<td>KV / SQL via TiDB</td>
+<td>Snapshot isolation / Serializable</td>
+<td>HTAP, large-scale KV</td>
+</tr>
+<tr>
+<td>Spanner</td>
+<td>Multi-Paxos + TrueTime</td>
+<td>SQL</td>
+<td>External consistency (linearizable transactions)</td>
+<td>Globally distributed transactional store</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="etcd-the-kubernetes-substrate"><a href="#etcd-the-kubernetes-substrate">etcd: the Kubernetes substrate</a></h3>
+<p>etcd is the boring, reliable Raft store that backs Kubernetes’ API
+server. The defaults assume a 3- or 5-node cluster on dedicated SSDs in
+a single datacenter. The <a href="https://kubernetes.io/docs/tasks/administer-cluster/configure-upgrade-etcd/" rel="noopener noreferrer" target="_blank">Kubernetes operations
+guide</a> recommends:</p>
+<ul>
+<li><strong>3 nodes</strong> for most clusters; <strong>5 nodes</strong> for production where
+surviving two simultaneous failures matters.</li>
+<li><strong>Always odd.</strong> A 4-node cluster tolerates the same one failure as a
+3-node cluster but pays for an extra ack on every write.</li>
+<li><strong>Stay below 7.</strong> Raft write latency is set by the slowest member of
+the quorum; more replicas means a higher tail.</li>
+</ul>
+<p>The watch API is what makes etcd fit Kubernetes: controllers <code>WATCH</code> a
+prefix and react to incremental changes without polling. Watch storms
+from misbehaving controllers (resyncing entire collections, no
+backoff) are the most common etcd-side cause of API-server
+unavailability.</p>
+<h3 id="consul-raft-for-catalog-gossip-for-membership"><a href="#consul-raft-for-catalog-gossip-for-membership">Consul: Raft for catalog, gossip for membership</a></h3>
+<p>Consul splits its consistency story by data type. The KV store and
+service catalog use HashiCorp’s <a href="https://github.com/hashicorp/raft" rel="noopener noreferrer" target="_blank">Raft library</a> —
+linearizable, per-datacenter. Membership and failure detection use
+<strong>Serf</strong>, a SWIM-style gossip protocol that propagates state in <code>O(log N)</code> rounds. The reasoning is straightforward: service registration
+needs strong consistency so that two clients agree on which instance to
+talk to, but liveness signals are fundamentally probabilistic and can
+tolerate eventual delivery.</p>
+<p>Multi-datacenter Consul keeps one Raft cluster per DC and uses WAN
+gossip to exchange catalog snapshots — explicit acknowledgement that
+running a single Raft group across the WAN is not viable.</p>
+<h3 id="cockroachdb-multiraft-and-parallel-commits"><a href="#cockroachdb-multiraft-and-parallel-commits">CockroachDB: MultiRaft and Parallel Commits</a></h3>
+<p>CockroachDB shards its keyspace into ranges, each defaulting to <strong>512
+MiB</strong><sup><a href="#user-content-fn-crdb-range" id="user-content-fnref-crdb-range" data-footnote-ref aria-describedby="footnote-label">8</a></sup>, and runs an <strong>independent Raft group per range</strong>.
+The “MultiRaft” naming is from CockroachDB itself; TiKV uses the same
+pattern. Per-range Raft has two consequences:</p>
+<ul>
+<li><strong>Each range has its own leader / leaseholder.</strong> Different ranges can
+put their leaseholders on different nodes, so write load spreads
+naturally across the cluster instead of bottlenecking on a single
+Raft leader.</li>
+<li><strong>Cross-range transactions need a separate concurrency-control
+layer.</strong> CockroachDB layers a transactional protocol on top: write
+intents (provisional values) on the affected ranges via Raft, then a
+transaction record that flips the intents to committed.
+<a href="https://www.cockroachlabs.com/blog/parallel-commits/" rel="noopener noreferrer" target="_blank">Parallel Commits</a> removes one Raft round from the
+commit latency by writing the transaction record in parallel with the
+intents — the price is that recovery must be able to reconstruct
+whether the transaction committed by inspecting intents.</li>
+</ul>
+<h3 id="spanner-multi-paxos-plus-truetime"><a href="#spanner-multi-paxos-plus-truetime">Spanner: Multi-Paxos plus TrueTime</a></h3>
+<p><a href="https://research.google.com/archive/spanner-osdi2012.pdf" rel="noopener noreferrer" target="_blank">Spanner</a> is the only widely deployed system that
+gets globally distributed linearizable transactions. It uses
+Multi-Paxos within each Paxos group (a few replicas per data shard) and
+relies on TrueTime — Google’s GPS- and atomic-clock-disciplined time
+service — to bound clock uncertainty. Transactions wait out the
+uncertainty interval before reporting commit, so external observers see
+a strictly increasing commit-time order.</p>
+<p>The Spanner architecture is covered in depth in
+<a href="consistency-and-cap-theorem"><em>Consistency models and the CAP theorem</em></a>;
+this article only treats it as the existence proof that consensus +
+disciplined time = global linearizability.</p>
+<h2 id="common-production-pitfalls"><a href="#common-production-pitfalls">Common production pitfalls</a></h2>
+<h3 id="1-disk-fsync-latency-causes-phantom-elections"><a href="#1-disk-fsync-latency-causes-phantom-elections">1. Disk fsync latency causes phantom elections</a></h3>
+<p>The dominant Raft outage pattern is <em>not</em> network partition. It is the
+storage stack: the leader fails to sync its WAL within the heartbeat
+window, follower heartbeats time out, an election runs, the new leader
+inherits the same disk problem, and the cluster oscillates.</p>
+<ul>
+<li>Monitor <code>wal_fsync_duration_seconds</code> and
+<code>backend_commit_duration_seconds</code> p99, not means.</li>
+<li>Use dedicated NVMe with predictable latency. Network-attached storage
+almost always violates the [10 ms p99 fsync floor][etcd-fsync] under
+load.</li>
+<li>Cap concurrent etcd snapshots; a defragmentation that runs while
+Kubernetes is creating thousands of objects will starve fsync.</li>
+</ul>
+<h3 id="2-even-numbered-or-2-node-clusters"><a href="#2-even-numbered-or-2-node-clusters">2. Even-numbered or 2-node clusters</a></h3>
+<p>A 2-node Raft cluster cannot survive any failure (quorum is 2). A
+4-node cluster tolerates the same one failure as a 3-node cluster but
+pays for an extra ack per write. Always use 3, 5, or 7. If you need
+geographic redundancy without paying for three full datacenters, use a
+3-node Raft group with one <strong>witness</strong> replica in the third site (data
+goes to the two production sites; the witness votes on elections only).</p>
+<h3 id="3-cross-region-clusters-with-default-timeouts"><a href="#3-cross-region-clusters-with-default-timeouts">3. Cross-region clusters with default timeouts</a></h3>
+<p><code>election-timeout = 1000 ms</code> works in a single datacenter where RTT is
+sub-millisecond. Across regions, a 60 ms RTT can blow that budget on
+two slow heartbeats and trigger spurious elections. The
+<a href="https://etcd.io/docs/v3.4/tuning/" rel="noopener noreferrer" target="_blank">etcd tuning rule</a> is <code>election-timeout ≥ 10 × RTT</code>; for a
+US-East-to-EU round trip that means at least 800 ms — and you probably
+want PreVote enabled to avoid disruptive resets when partitions heal.</p>
+<h3 id="4-reading-stale-data-from-followers"><a href="#4-reading-stale-data-from-followers">4. Reading stale data from followers</a></h3>
+<p>Load-balancing reads across followers without the lease or ReadIndex
+machinery breaks read-your-writes. Either:</p>
+<ul>
+<li>Read from the leader (or CockroachDB leaseholder) to get
+linearizability for free, <strong>or</strong></li>
+<li>Use ReadIndex / lease-based reads, <strong>or</strong></li>
+<li>Explicitly opt into bounded staleness with a stale-read API
+(<code>AS OF SYSTEM TIME</code> in CockroachDB,
+<a href="https://etcd.io/docs/v3.5/learning/api_guarantees/#linearizability" rel="noopener noreferrer" target="_blank"><code>WithSerializable()</code></a>
+on the etcd v3 client (or <code>etcdctl get --consistency=s</code>),
+follower reads in TiKV).</li>
+</ul>
+<p>The wrong fix — pushing reads to followers without changing the
+consistency contract — is the single most common cause of
+“intermittent stale-data bug” tickets in distributed databases.</p>
+<h3 id="5-confusing-crash-fault-and-byzantine-fault-budgets"><a href="#5-confusing-crash-fault-and-byzantine-fault-budgets">5. Confusing crash-fault and Byzantine-fault budgets</a></h3>
+<p>A 5-node Raft cluster tolerates two crashes (<code>2f + 1</code>). A 5-node BFT
+cluster tolerates <strong>one</strong> Byzantine fault (<code>3f + 1</code>, so <code>f = 1</code>). Mixing
+the formulas — sizing a BFT cluster as if <code>2f + 1</code> worked — silently
+breaks safety. Always state the fault model first, then compute the
+quorum.</p>
+<h2 id="practical-takeaways"><a href="#practical-takeaways">Practical takeaways</a></h2>
+<ul>
+<li>Pick the smallest plausible model. Crash-fault <code>2f + 1</code> is enough for
+any single-operator deployment. Reach for BFT only when you genuinely
+do not trust a subset of operators.</li>
+<li>Almost every “consensus problem” in your stack is really log
+replication. Reach for Raft (etcd, Consul) or Multi-Paxos (Spanner,
+Chubby) before you think about anything more exotic.</li>
+<li>The hot path is dominated by disk fsync, not network latency. Pin
+your consensus group to dedicated NVMe and alert on p99 fsync.</li>
+<li>Read latency is a separate problem from write consensus. Use
+ReadIndex or lease-based reads to avoid paying a Raft round per
+read; use follower reads with explicit staleness when reads dominate.</li>
+<li>The choice between ZooKeeper, etcd, Consul, and a MultiRaft database
+is mostly an ecosystem decision (Hadoop vs Kubernetes vs HashiCorp vs
+SQL workload), not a correctness one.</li>
+<li>Treat election timeouts, lease durations, and quorum sizes as
+load-bearing operational parameters. They embed your assumption about
+partial synchrony; defaults that work at single-DC RTTs do not work
+cross-region.</li>
+</ul>
+<h2 id="appendix"><a href="#appendix">Appendix</a></h2>
+<h3 id="prerequisites"><a href="#prerequisites">Prerequisites</a></h3>
+<ul>
+<li>Distributed-systems basics: <a href="consistency-and-cap-theorem">CAP and PACELC</a>,
+network partitions, replication.</li>
+<li>Consistency models: linearizability, sequential consistency,
+serializability, eventual consistency.</li>
+<li>Networking primitives: RTT, TCP retransmits, message ordering
+guarantees.</li>
+</ul>
+<h3 id="glossary"><a href="#glossary">Glossary</a></h3>
+<ul>
+<li><strong>Term / view / ballot.</strong> Logical clock identifying a single
+leadership epoch. “Term” in Raft, “view” in PBFT/HotStuff/VR,
+“ballot” or “round” in Paxos.</li>
+<li><strong>Quorum.</strong> Minimum number of nodes that must participate in a
+decision such that any two quorums share at least one node.</li>
+<li><strong>Linearizable.</strong> Operations appear to take effect at some point
+between their invocation and response — the strongest
+single-object consistency model.</li>
+<li><strong>Liveness.</strong> The system eventually decides.</li>
+<li><strong>Safety.</strong> The system never decides incorrectly (no two replicas
+commit conflicting values).</li>
+<li><strong>External consistency.</strong> Spanner’s name for linearizability across
+multi-object transactions.</li>
+<li><strong>Atomic broadcast.</strong> Total-order broadcast to all replicas;
+equivalent to consensus.</li>
+</ul>
+<h3 id="summary"><a href="#summary">Summary</a></h3>
+<ul>
+<li><strong>FLP</strong> rules out deterministic consensus in fully async systems with
+even one crash. Real systems escape via partial synchrony, randomness,
+or failure detectors.</li>
+<li><strong>Paxos</strong> is the foundational protocol; Multi-Paxos pins a stable
+leader; Flexible Paxos shows quorums need only intersect across
+phases.</li>
+<li><strong>Raft</strong> trades generality for understandability and is what every
+modern crash-fault production system actually runs.</li>
+<li><strong>Zab</strong> gives ZooKeeper its primary-order broadcast; Kafka has now
+moved off ZooKeeper to its own KRaft.</li>
+<li><strong>PBFT</strong> made BFT practical at small committee sizes; <strong>HotStuff</strong>
+pulled the per-phase cost down to linear and reused the same
+three-chain structure for view-change.</li>
+<li><strong>Production failure modes</strong> are dominated by disk fsync latency,
+cross-region timeout misconfiguration, and reading stale data from
+followers.</li>
+</ul>
+<h3 id="references"><a href="#references">References</a></h3>
+<ul>
+<li>Fischer, Lynch, Paterson — <a href="https://groups.csail.mit.edu/tds/papers/Lynch/jacm85.pdf" rel="noopener noreferrer" target="_blank"><em>Impossibility of Distributed Consensus
+with One Faulty Process</em></a> (JACM 1985).</li>
+<li>Dwork, Lynch, Stockmeyer — <a href="https://groups.csail.mit.edu/tds/papers/Lynch/jacm88.pdf" rel="noopener noreferrer" target="_blank"><em>Consensus in the Presence of Partial
+Synchrony</em></a> (JACM 1988).</li>
+<li>Ben-Or — <a href="https://dl.acm.org/doi/10.1145/800221.806707" rel="noopener noreferrer" target="_blank"><em>Another advantage of free choice: Completely
+asynchronous agreement protocols</em></a> (PODC 1983).</li>
+<li>Chandra, Toueg — <a href="https://www.cs.princeton.edu/courses/archive/fall08/cos597B/papers/unreliable.pdf" rel="noopener noreferrer" target="_blank"><em>Unreliable Failure Detectors for Reliable
+Distributed Systems</em></a> (JACM 1996).</li>
+<li>Chandra, Hadzilacos, Toueg — <a href="https://www.cs.utexas.edu/~lorenzo/corsi/cs380d/papers/weakestfd.pdf" rel="noopener noreferrer" target="_blank"><em>The Weakest Failure Detector for
+Solving Consensus</em></a> (JACM 1996).</li>
+<li>Lamport — <a href="https://lamport.azurewebsites.net/pubs/lamport-paxos.pdf" rel="noopener noreferrer" target="_blank"><em>The Part-Time Parliament</em></a> (TOCS 1998).</li>
+<li>Lamport — <a href="https://lamport.azurewebsites.net/pubs/paxos-simple.pdf" rel="noopener noreferrer" target="_blank"><em>Paxos Made Simple</em></a> (2001).</li>
+<li>Oki, Liskov — <a href="https://pmg.csail.mit.edu/papers/vr.pdf" rel="noopener noreferrer" target="_blank"><em>Viewstamped Replication</em></a> (PODC 1988).</li>
+<li>Chandra, Griesemer, Redstone — <a href="https://www.cs.utexas.edu/users/lorenzo/corsi/cs380d/papers/paper2-1.pdf" rel="noopener noreferrer" target="_blank"><em>Paxos Made Live</em></a>
+(PODC 2007).</li>
+<li>Howard, Malkhi, Spiegelman — <a href="https://arxiv.org/abs/1608.06696" rel="noopener noreferrer" target="_blank"><em>Flexible Paxos: Quorum Intersection
+Revisited</em></a> (OPODIS 2016).</li>
+<li>Lamport — <a href="https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-2005-112.pdf" rel="noopener noreferrer" target="_blank"><em>Fast Paxos</em></a> (Distributed Computing
+2006).</li>
+<li>Lamport, Massa — <a href="https://lamport.azurewebsites.net/pubs/web-dsn-submission.pdf" rel="noopener noreferrer" target="_blank"><em>Cheap Paxos</em></a> (DSN 2004).</li>
+<li>Moraru, Andersen, Kaminsky — <a href="https://www.cs.cmu.edu/~dga/papers/epaxos-sosp2013.pdf" rel="noopener noreferrer" target="_blank"><em>There Is More Consensus in Egalitarian
+Parliaments</em></a> (SOSP 2013).</li>
+<li>Tollman, Park, Ports — <a href="https://www.usenix.org/system/files/nsdi21-tollman.pdf" rel="noopener noreferrer" target="_blank"><em>EPaxos Revisited</em></a>
+(NSDI 2021).</li>
+<li>Junqueira, Reed, Serafini — <a href="https://www.cs.cornell.edu/courses/cs6452/2012sp/papers/zab-ieee.pdf" rel="noopener noreferrer" target="_blank"><em>Zab: High-performance broadcast for
+primary-backup systems</em></a> (DSN 2011).</li>
+<li>Ongaro, Ousterhout — <a href="https://web.stanford.edu/~ouster/cgi-bin/papers/raft-atc14.pdf" rel="noopener noreferrer" target="_blank"><em>In Search of an Understandable Consensus
+Algorithm</em></a> (USENIX ATC 2014).</li>
+<li>Ongaro — <a href="https://github.com/ongardie/dissertation/blob/master/online.pdf" rel="noopener noreferrer" target="_blank"><em>Consensus: Bridging Theory and Practice</em></a>
+(Stanford PhD dissertation, 2014).</li>
+<li>Lamport, Shostak, Pease — <a href="https://lamport.azurewebsites.net/pubs/byz.pdf" rel="noopener noreferrer" target="_blank"><em>The Byzantine Generals
+Problem</em></a> (TOPLAS 1982).</li>
+<li>Castro, Liskov — <a href="https://pmg.csail.mit.edu/papers/osdi99.pdf" rel="noopener noreferrer" target="_blank"><em>Practical Byzantine Fault Tolerance</em></a>
+(OSDI 1999).</li>
+<li>Yin, Malkhi, Reiter, Gueta, Abraham — <a href="https://arxiv.org/abs/1803.05069" rel="noopener noreferrer" target="_blank"><em>HotStuff: BFT Consensus with
+Linearity and Responsiveness</em></a> (PODC 2019).</li>
+<li>Corbett et al. — <a href="https://research.google.com/archive/spanner-osdi2012.pdf" rel="noopener noreferrer" target="_blank"><em>Spanner: Google’s Globally-Distributed
+Database</em></a> (OSDI 2012).</li>
+<li>Elhemali et al. — <a href="https://www.usenix.org/conference/atc22/presentation/elhemali" rel="noopener noreferrer" target="_blank"><em>Amazon DynamoDB: A Scalable, Predictably Performant,
+and Fully Managed NoSQL Database Service</em></a> (USENIX ATC 2022).</li>
+<li><a href="https://etcd.io/docs/v3.5/" rel="noopener noreferrer" target="_blank">etcd documentation</a> — Tuning, hardware, learner, and
+API-guarantees pages.</li>
+<li><a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-833%3A+Mark+KRaft+as+Production+Ready" rel="noopener noreferrer" target="_blank">Kafka KIP-833</a> and <a href="https://kafka.apache.org/blog" rel="noopener noreferrer" target="_blank">Kafka 4.0 release notes</a>.</li>
+</ul>
+<section data-footnotes class="footnotes"><h2 class="sr-only" id="footnote-label"><a href="#footnote-label">Footnotes</a></h2>
+<ol>
+<li id="user-content-fn-chandra-toueg-1996">
+<p>§6 of Chandra &#x26; Toueg, <em>Unreliable Failure
+Detectors for Reliable Distributed Systems</em>, <a href="https://www.cs.princeton.edu/courses/archive/fall08/cos597B/papers/unreliable.pdf" rel="noopener noreferrer" target="_blank">JACM 1996</a>,
+proves Atomic Broadcast and Consensus are equivalent in
+asynchronous systems with failure detectors. <a href="#user-content-fnref-chandra-toueg-1996" data-footnote-backref="" aria-label="Back to reference 1" class="data-footnote-backref">↩</a></p>
+</li>
+<li id="user-content-fn-byzantine-1982">
+<p>Lamport, Shostak, Pease, <em>The Byzantine Generals
+Problem</em> — <a href="https://lamport.azurewebsites.net/pubs/byz.pdf" rel="noopener noreferrer" target="_blank">TOPLAS 1982</a> — establishes the
+<code>N ≥ 3f + 1</code> bound for Byzantine agreement. <a href="#user-content-fnref-byzantine-1982" data-footnote-backref="" aria-label="Back to reference 2" class="data-footnote-backref">↩</a></p>
+</li>
+<li id="user-content-fn-dyn-2022">
+<p>Elhemali et al., <em>Amazon DynamoDB</em> —
+<a href="https://www.usenix.org/conference/atc22/presentation/elhemali" rel="noopener noreferrer" target="_blank">USENIX ATC 2022</a> — describes Multi-Paxos within each
+partition’s replication group. <a href="#user-content-fnref-dyn-2022" data-footnote-backref="" aria-label="Back to reference 3" class="data-footnote-backref">↩</a></p>
+</li>
+<li id="user-content-fn-hotstuff-2019">
+<p>Yin et al., <em>HotStuff</em> —
+<a href="https://arxiv.org/abs/1803.05069" rel="noopener noreferrer" target="_blank">PODC 2019</a> §1 — linear authenticator complexity per
+phase via threshold-signed quorum certificates. <a href="#user-content-fnref-hotstuff-2019" data-footnote-backref="" aria-label="Back to reference 4" class="data-footnote-backref">↩</a></p>
+</li>
+<li id="user-content-fn-crdb-leaseholder">
+<p>Cockroach Labs documentation,
+<a href="https://www.cockroachlabs.com/docs/stable/architecture/reads-and-writes-overview" rel="noopener noreferrer" target="_blank">Reads and Writes in CockroachDB</a>: “the
+leaseholder is the same replica as the Raft leader, except during
+lease transfers.” A background process actively rebalances leases
+to keep the two colocated. <a href="#user-content-fnref-crdb-leaseholder" data-footnote-backref="" aria-label="Back to reference 5" class="data-footnote-backref">↩</a></p>
+</li>
+<li id="user-content-fn-single-server-bug">
+<p>Diego Ongaro,
+<a href="https://groups.google.com/g/raft-dev/c/t4xj6dJTP6E" rel="noopener noreferrer" target="_blank"><em>Bug in single-server membership changes</em></a>
+(raft-dev mailing list, 2015), describes both the safety hole and
+the “leader must commit a no-op from its current term first” fix. <a href="#user-content-fnref-single-server-bug" data-footnote-backref="" aria-label="Back to reference 6" class="data-footnote-backref">↩</a></p>
+</li>
+<li id="user-content-fn-etcd-fsync">
+<p>etcd hardware recommendations and
+<a href="https://etcd.io/docs/v3.4/tuning/" rel="noopener noreferrer" target="_blank">etcd FAQ</a> state that
+<code>wal_fsync_duration_seconds</code> p99 should stay below 10 ms in
+production; the <a href="https://access.redhat.com/solutions/4885641" rel="noopener noreferrer" target="_blank">Red Hat performance
+guide</a> reproduces the
+same number for OpenShift’s etcd nodes. <a href="#user-content-fnref-etcd-fsync" data-footnote-backref="" aria-label="Back to reference 7" class="data-footnote-backref">↩</a></p>
+</li>
+<li id="user-content-fn-crdb-range">
+<p>CockroachDB docs,
+<a href="https://www.cockroachlabs.com/glossary/distributed-db/range-shard/" rel="noopener noreferrer" target="_blank"><em>Range / Shard</em></a>: “A range is 512 MiB or
+smaller by default.” <a href="#user-content-fnref-crdb-range" data-footnote-backref="" aria-label="Back to reference 8" class="data-footnote-backref">↩</a></p>
+</li>
+</ol>
+</section></div></article></main><footer class="doc-footer"><div class="doc-page-meta"><a href="https://github.com/sujeet-pro/v5.sujeet.pro/blob/main/content/articles/distributed-consensus/README.md" class="doc-edit-link" target="_blank" rel="noopener noreferrer">Edit this page</a><span class="doc-last-updated">Last updated: <time datetime="Tue Apr 21 2026 05:30:00 GMT+0530 (India Standard Time)">April 21, 2026</time></span></div><nav class="doc-article-nav" aria-label="Page navigation"><a href="/legacy-personal-site/v5/articles/consistency-and-cap-theorem" class="doc-article-link doc-article-prev"><span class="doc-article-label">Previous</span><span class="doc-article-title">CAP Theorem</span></a><a href="/legacy-personal-site/v5/articles/time-and-ordering" class="doc-article-link doc-article-next"><span class="doc-article-label">Next</span><span class="doc-article-title">Time &amp; Ordering</span></a></nav><nav class="doc-footer-links doc-footer-links-grouped" aria-label="Footer links" style="--doc-footer-columns:2;--doc-footer-columns-compact:2"><div class="doc-footer-link-group"><p class="doc-footer-link-group-header">Content</p><div class="doc-footer-link-group-links"><a class="doc-footer-group-link" href="/legacy-personal-site/v5/articles"><span class="doc-footer-link-label">Articles</span></a><a class="doc-footer-group-link" href="/legacy-personal-site/v5/blogs"><span class="doc-footer-link-label">Blogs</span></a></div></div><div class="doc-footer-link-group"><p class="doc-footer-link-group-header">Profiles</p><div class="doc-footer-link-group-links"><a class="doc-footer-group-link" href="https://github.com/sujeet-pro" target="_blank" rel="noopener noreferrer"><span class="doc-footer-link-label">GitHub</span></a><a class="doc-footer-group-link" href="https://www.linkedin.com/in/sujeetkrjaiswal/" target="_blank" rel="noopener noreferrer"><span class="doc-footer-link-label">LinkedIn</span></a><a class="doc-footer-group-link" href="https://twitter.com/sujeetpro" target="_blank" rel="noopener noreferrer"><span class="doc-footer-link-label">Twitter</span></a></div></div></nav><div class="doc-footer-theme no-js-hidden" data-footer-theme=""><div class="doc-footer-theme-group"><span class="doc-footer-theme-label">Appearance</span><div class="doc-footer-theme-options" data-footer-scheme="" data-ps-footer-scheme=""><button type="button" data-scheme="auto" class="active" aria-pressed="true">Auto</button><button type="button" data-scheme="light" aria-pressed="false">Light</button><button type="button" data-scheme="dark" aria-pressed="false">Dark</button></div></div><div class="doc-footer-theme-group"><span class="doc-footer-theme-label">Theme</span><div class="doc-footer-theme-options" data-footer-theme-type="" data-ps-footer-theme=""><button type="button" data-theme="paper" class="active" aria-pressed="true">Paper</button><button type="button" data-theme="high-contrast" aria-pressed="false">High Contrast</button></div></div><div class="doc-footer-theme-group"><span class="doc-footer-theme-label">Text Size</span><div class="doc-footer-theme-options" data-footer-text-size="" data-ps-footer-text-size=""><button type="button" data-size="small" aria-pressed="false" aria-label="Small text"><span class="doc-text-size-label" data-size="small" aria-hidden="true">A</span></button><button type="button" data-size="base" class="active" aria-pressed="true" aria-label="Default text"><span class="doc-text-size-label" data-size="base" aria-hidden="true">A</span></button><button type="button" data-size="large" aria-pressed="false" aria-label="Large text"><span class="doc-text-size-label" data-size="large" aria-hidden="true">A</span></button></div></div></div><div class="doc-footer-legal"><p class="doc-footer-copyright">© <span class="doc-footer-year-range" data-current-year-range=""><span class="doc-footer-year-start">2024</span><span class="doc-footer-year-separator" aria-hidden="true">–</span><span id="pagesmith-footer-year-end" data-start-year="2024" data-rendered-year="2026" data-auto-update="true">2026</span></span> Sujeet Jaiswal</p><p class="doc-footer-signoff"><span class="doc-footer-legal-separator" aria-hidden="true">|</span>Made with <span aria-hidden="true">❤</span> using <a href="https://projects.sujeet.pro/pagesmith/" target="_blank" rel="noopener noreferrer">Pagesmith</a><span> and is maintained by <a href="https://sujeet.pro" target="_blank" rel="noopener noreferrer">Sujeet Jaiswal</a></span></p></div></footer></div><aside class="doc-aside"><nav class="doc-toc" aria-label="Table of contents" data-ps-toc=""><p class="doc-toc-title">On this page</p><ul class="doc-toc-list"><li class="doc-toc-item depth-2"><a href="#mental-model">Mental model</a></li><li class="doc-toc-item depth-2"><a href="#why-consensus-is-hard-flp-and-its-escape-hatches">Why consensus is hard: FLP and its escape hatches</a></li><li class="doc-toc-item depth-3"><a href="#the-three-practical-escape-hatches">The three practical escape hatches</a></li><li class="doc-toc-item depth-2"><a href="#paxos-the-foundation">Paxos: the foundation</a></li><li class="doc-toc-item depth-3"><a href="#roles-and-the-two-phases">Roles and the two phases</a></li><li class="doc-toc-item depth-3"><a href="#why-paxos-made-simple-still-produces-hard-implementations">Why “Paxos Made Simple” still produces hard implementations</a></li><li class="doc-toc-item depth-3"><a href="#multi-paxos-a-stable-leader">Multi-Paxos: a stable leader</a></li><li class="doc-toc-item depth-3"><a href="#cheap-paxos-and-leaderless-variants">Cheap Paxos and leaderless variants</a></li><li class="doc-toc-item depth-3"><a href="#flexible-paxos-quorums-revisited">Flexible Paxos: quorums revisited</a></li><li class="doc-toc-item depth-3"><a href="#zab-and-zookeeper">Zab and ZooKeeper</a></li><li class="doc-toc-item depth-2"><a href="#raft-designed-for-understandability">Raft: designed for understandability</a></li><li class="doc-toc-item depth-3"><a href="#state-machine-and-election">State machine and election</a></li><li class="doc-toc-item depth-3"><a href="#log-replication-and-the-safety-invariants">Log replication and the safety invariants</a></li><li class="doc-toc-item depth-3"><a href="#linearizable-reads-without-paying-a-raft-round">Linearizable reads without paying a Raft round</a></li><li class="doc-toc-item depth-3"><a href="#membership-changes">Membership changes</a></li><li class="doc-toc-item depth-3"><a href="#raft-in-production-etcd">Raft in production: etcd</a></li><li class="doc-toc-item depth-2"><a href="#quorum-systems">Quorum systems</a></li><li class="doc-toc-item depth-3"><a href="#readwrite-quorums">Read/write quorums</a></li><li class="doc-toc-item depth-3"><a href="#witnesses-and-learners">Witnesses and learners</a></li><li class="doc-toc-item depth-2"><a href="#byzantine-fault-tolerance">Byzantine fault tolerance</a></li><li class="doc-toc-item depth-3"><a href="#pbft">PBFT</a></li><li class="doc-toc-item depth-3"><a href="#hotstuff-and-the-modern-bft-family">HotStuff and the modern BFT family</a></li><li class="doc-toc-item depth-2"><a href="#consensus-in-production-choosing-a-system">Consensus in production: choosing a system</a></li><li class="doc-toc-item depth-3"><a href="#etcd-the-kubernetes-substrate">etcd: the Kubernetes substrate</a></li><li class="doc-toc-item depth-3"><a href="#consul-raft-for-catalog-gossip-for-membership">Consul: Raft for catalog, gossip for membership</a></li><li class="doc-toc-item depth-3"><a href="#cockroachdb-multiraft-and-parallel-commits">CockroachDB: MultiRaft and Parallel Commits</a></li><li class="doc-toc-item depth-3"><a href="#spanner-multi-paxos-plus-truetime">Spanner: Multi-Paxos plus TrueTime</a></li><li class="doc-toc-item depth-2"><a href="#common-production-pitfalls">Common production pitfalls</a></li><li class="doc-toc-item depth-3"><a href="#1-disk-fsync-latency-causes-phantom-elections">1. Disk fsync latency causes phantom elections</a></li><li class="doc-toc-item depth-3"><a href="#2-even-numbered-or-2-node-clusters">2. Even-numbered or 2-node clusters</a></li><li class="doc-toc-item depth-3"><a href="#3-cross-region-clusters-with-default-timeouts">3. Cross-region clusters with default timeouts</a></li><li class="doc-toc-item depth-3"><a href="#4-reading-stale-data-from-followers">4. Reading stale data from followers</a></li><li class="doc-toc-item depth-3"><a href="#5-confusing-crash-fault-and-byzantine-fault-budgets">5. Confusing crash-fault and Byzantine-fault budgets</a></li><li class="doc-toc-item depth-2"><a href="#practical-takeaways">Practical takeaways</a></li><li class="doc-toc-item depth-2"><a href="#appendix">Appendix</a></li><li class="doc-toc-item depth-3"><a href="#prerequisites">Prerequisites</a></li><li class="doc-toc-item depth-3"><a href="#glossary">Glossary</a></li><li class="doc-toc-item depth-3"><a href="#summary">Summary</a></li><li class="doc-toc-item depth-3"><a href="#references">References</a></li><li class="doc-toc-item depth-2"><a href="#footnote-label">Footnotes</a></li></ul></nav></aside></div><dialog class="doc-sidebar-modal" id="sidebar-modal" data-sidebar-modal=""><div class="doc-sidebar-modal-backdrop" data-sidebar-close=""></div><div class="doc-sidebar-modal-panel"><button type="button" class="doc-sidebar-modal-close" data-sidebar-close="" aria-label="Close navigation"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m5 5 10 10M15 5 5 15"/></svg></button><nav class="doc-sidebar-nav" aria-label="Navigation"><div class="doc-sidebar-section"><p class="doc-sidebar-heading">Navigation</p><ul class="doc-sidebar-list "><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles" class="doc-sidebar-link">Articles</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/blogs" class="doc-sidebar-link">Blogs</a></li></ul></div><div class="doc-sidebar-section"><p class="doc-sidebar-heading">Series</p><ul class="doc-sidebar-list "><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-rendering-pipeline-overview" class="doc-sidebar-link">Critical Rendering Path</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-rendering-pipeline-overview" class="doc-sidebar-link">CRP: Pipeline Overview</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-dom-construction" class="doc-sidebar-link">CRP: DOM Construction</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-cssom-construction" class="doc-sidebar-link">CRP: CSSOM Construction</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-style-recalculation" class="doc-sidebar-link">CRP: Style Recalc</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-layout" class="doc-sidebar-link">CRP: Layout</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-prepaint" class="doc-sidebar-link">CRP: Prepaint</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-paint" class="doc-sidebar-link">CRP: Paint</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-commit" class="doc-sidebar-link">CRP: Commit</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-layerize" class="doc-sidebar-link">CRP: Layerize</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-raster" class="doc-sidebar-link">CRP: Raster</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-composit" class="doc-sidebar-link">CRP: Composite</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-draw" class="doc-sidebar-link">CRP: Draw</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/v8-engine-architecture" class="doc-sidebar-link">JavaScript Runtime Internals</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/v8-engine-architecture" class="doc-sidebar-link">V8 Engine</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/browser-internals" class="doc-sidebar-link">Browser Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/browser-event-loop" class="doc-sidebar-link">Browser Event Loop</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/nodejs-runtime-architecture" class="doc-sidebar-link">Node.js Runtime</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/libuv-event-loop-internals" class="doc-sidebar-link">libuv Internals</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/nodejs-event-loop" class="doc-sidebar-link">Node.js Event Loop</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/js-event-loop" class="doc-sidebar-link">JS Event Loop</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/auth-foundations-sessions-tokens" class="doc-sidebar-link">Web Security &amp; Authentication</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/auth-foundations-sessions-tokens" class="doc-sidebar-link">Auth Foundations</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-app-security-architecture" class="doc-sidebar-link">Web App Security</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/csrf-and-cors-defense" class="doc-sidebar-link">CSRF &amp; CORS</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/oauth-oidc-flow-guide" class="doc-sidebar-link">OAuth &amp; OIDC</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/csp-violation-reporting-pipeline" class="doc-sidebar-link">CSP Reporting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/owasp-top-10-guide" class="doc-sidebar-link">OWASP Top 10</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-resolution-path" class="doc-sidebar-link">Networking Protocols</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-resolution-path" class="doc-sidebar-link">DNS: Resolution Path</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-records-ttl-and-caching" class="doc-sidebar-link">DNS: Records &amp; TTL</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-security-doh-dot-dnssec" class="doc-sidebar-link">DNS: Security</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-troubleshooting-playbook" class="doc-sidebar-link">DNS: Troubleshooting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/tls-1-3-handshake-and-https" class="doc-sidebar-link">TLS 1.3 &amp; HTTPS</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/http1-1-to-http2-evolution" class="doc-sidebar-link">HTTP/1.1 → HTTP/2</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/http3-quic-and-tls" class="doc-sidebar-link">HTTP/3 &amp; QUIC</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dom-api-essentials" class="doc-sidebar-link">Browser APIs &amp; Accessibility</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dom-api-essentials" class="doc-sidebar-link">DOM API Essentials</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-components" class="doc-sidebar-link">Web Components</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/intersection-observer" class="doc-sidebar-link">Intersection Observer</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-workers-and-worklets" class="doc-sidebar-link">Web Workers &amp; Worklets</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/fetch-and-streaming-apis" class="doc-sidebar-link">Fetch &amp; Streams</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/storage-apis-local-indexeddb" class="doc-sidebar-link">Browser Storage APIs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/service-workers-and-cache-api" class="doc-sidebar-link">Service Workers</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/accessibility-testing-tooling" class="doc-sidebar-link">A11y Testing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/wcag-2-2-practical-guide" class="doc-sidebar-link">WCAG 2.2</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/frontend-architecture-at-scale" class="doc-sidebar-link">Frontend Architecture Patterns</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/frontend-architecture-at-scale" class="doc-sidebar-link">Frontend Arch at Scale</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/micro-frontends-architecture" class="doc-sidebar-link">Micro-Frontends</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rendering-strategies-csr-ssr-ssg-isr" class="doc-sidebar-link">CSR / SSR / SSG / ISR</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/state-management-patterns" class="doc-sidebar-link">State Management</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/data-fetching-patterns" class="doc-sidebar-link">Data Fetching</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/css-architecture-strategies" class="doc-sidebar-link">CSS Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/component-architecture-blueprint" class="doc-sidebar-link">Component Architecture</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-infrastructure-stack" class="doc-sidebar-link">Web Performance Optimization</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-infrastructure-stack" class="doc-sidebar-link">Perf: Infrastructure</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-javascript-optimization" class="doc-sidebar-link">Perf: JavaScript</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-css-typography" class="doc-sidebar-link">Perf: CSS &amp; Typography</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-image-optimization" class="doc-sidebar-link">Perf: Images</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/core-web-vitals-measurement" class="doc-sidebar-link">Core Web Vitals</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-overview" class="doc-sidebar-link">Perf: Overview</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-system-adoption-foundations" class="doc-sidebar-link">Design Systems &amp; React</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-system-adoption-foundations" class="doc-sidebar-link">DS: Adoption</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-tokens-and-theming" class="doc-sidebar-link">Design Tokens</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/component-library-architecture-and-governance" class="doc-sidebar-link">Component Library</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-system-implementation-scaling" class="doc-sidebar-link">DS: Implementation</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-hooks-fundamentals" class="doc-sidebar-link">React Hooks</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-rendering-architecture" class="doc-sidebar-link">React Rendering</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-hooks-advanced-patterns" class="doc-sidebar-link">React Hooks: Advanced</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-performance-patterns" class="doc-sidebar-link">React Performance</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rendering-strategies" class="doc-sidebar-link">Frontend System Design</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rendering-strategies" class="doc-sidebar-link">Modern Rendering</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/image-loading-optimization" class="doc-sidebar-link">Image Loading</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/bundle-splitting-strategies" class="doc-sidebar-link">Bundle Splitting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/virtualization-and-windowing" class="doc-sidebar-link">Virtualization</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/performance-monitoring-client" class="doc-sidebar-link">Client Perf Monitoring</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/client-state-management" class="doc-sidebar-link">Client State</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/real-time-sync-client" class="doc-sidebar-link">Real-Time Sync</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/offline-first-architecture" class="doc-sidebar-link">Offline-First</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/widget-framework" class="doc-sidebar-link">Widget Framework</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-rich-text-editor" class="doc-sidebar-link">Rich Text Editor</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-infinite-feed" class="doc-sidebar-link">Infinite Feed</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-drag-drop-system" class="doc-sidebar-link">Drag &amp; Drop</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-form-builder" class="doc-sidebar-link">Form Builder</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-data-grid" class="doc-sidebar-link">Data Grid</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-file-uploader" class="doc-sidebar-link">File Uploader</a></li></ul></li><li class="doc-sidebar-item  expanded"><a href="/legacy-personal-site/v5/articles/consistency-and-cap-theorem" class="doc-sidebar-link">Distributed Systems Core</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/consistency-and-cap-theorem" class="doc-sidebar-link">CAP Theorem</a></li><li class="doc-sidebar-item active "><a href="/legacy-personal-site/v5/articles/distributed-consensus" class="doc-sidebar-link">Distributed Consensus</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/time-and-ordering" class="doc-sidebar-link">Time &amp; Ordering</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/failure-modes-and-resilience" class="doc-sidebar-link">Failure Modes</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rate-limiting-strategies" class="doc-sidebar-link">Rate Limiting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/circuit-breaker-patterns" class="doc-sidebar-link">Circuit Breakers</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/capacity-planning-and-estimation" class="doc-sidebar-link">Capacity Planning</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/storage-choices-sql-vs-nosql" class="doc-sidebar-link">Data Storage &amp; Indexing</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/storage-choices-sql-vs-nosql" class="doc-sidebar-link">SQL vs NoSQL</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/sharding-and-replication" class="doc-sidebar-link">Sharding &amp; Replication</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/indexing-and-query-optimization" class="doc-sidebar-link">Indexing &amp; Queries</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/transactions-and-acid" class="doc-sidebar-link">Transactions &amp; ACID</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/caching-fundamentals-and-strategies" class="doc-sidebar-link">Caching Fundamentals</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/load-balancers-architecture" class="doc-sidebar-link">Infrastructure Components</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/load-balancers-architecture" class="doc-sidebar-link">Load Balancers</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/cdn-architecture-and-caching" class="doc-sidebar-link">CDN Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/api-gateway-patterns" class="doc-sidebar-link">API Gateway</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/service-discovery-and-registry" class="doc-sidebar-link">Service Discovery</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-deep-dive" class="doc-sidebar-link">DNS: Deep Dive</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/queues-and-pubsub" class="doc-sidebar-link">Queues &amp; Pub/Sub</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/event-driven-architecture" class="doc-sidebar-link">Event-Driven Arch</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rpc-and-api-design" class="doc-sidebar-link">RPC &amp; API Design</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crdt-for-collaborative-systems" class="doc-sidebar-link">Core Distributed Patterns</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crdt-for-collaborative-systems" class="doc-sidebar-link">CRDTs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/operational-transformation" class="doc-sidebar-link">OT</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-locking" class="doc-sidebar-link">Distributed Locking</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/exactly-once-delivery" class="doc-sidebar-link">Exactly-Once</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/event-sourcing-deep-dive" class="doc-sidebar-link">Event Sourcing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/change-data-capture" class="doc-sidebar-link">CDC</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/database-migrations-at-scale" class="doc-sidebar-link">DB Migrations</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/multi-region-architecture" class="doc-sidebar-link">Multi-Region</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/lru-cache-design" class="doc-sidebar-link">System Design Building Blocks</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/lru-cache-design" class="doc-sidebar-link">LRU Cache</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/unique-id-generation" class="doc-sidebar-link">Unique IDs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-cache-design" class="doc-sidebar-link">Distributed Cache</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/blob-storage-design" class="doc-sidebar-link">Blob Storage</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-search-engine" class="doc-sidebar-link">Search Engine</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-logging-system" class="doc-sidebar-link">Logging System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-monitoring" class="doc-sidebar-link">Monitoring</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/task-scheduler-design" class="doc-sidebar-link">Task Scheduler</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/sharded-counters" class="doc-sidebar-link">Sharded Counters</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/leaderboard-design" class="doc-sidebar-link">Leaderboard</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-key-value-store" class="doc-sidebar-link">System Design Scenarios</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-key-value-store" class="doc-sidebar-link">Key-Value Store</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-distributed-file-system" class="doc-sidebar-link">Distributed File System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-time-series-database" class="doc-sidebar-link">Time-Series DB</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-youtube-video-platform" class="doc-sidebar-link">YouTube</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-netflix-streaming" class="doc-sidebar-link">Netflix</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-instagram-photo-sharing" class="doc-sidebar-link">Instagram</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-spotify-music-streaming" class="doc-sidebar-link">Spotify</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-real-time-chat-messaging" class="doc-sidebar-link">Chat &amp; Messaging</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-social-feed" class="doc-sidebar-link">Social Feed</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-notification-system" class="doc-sidebar-link">Notifications</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-email-system" class="doc-sidebar-link">Email System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-uber-ride-hailing" class="doc-sidebar-link">Uber</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-maps" class="doc-sidebar-link">Google Maps</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-yelp-proximity-service" class="doc-sidebar-link">Yelp / Proximity</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-search-autocomplete" class="doc-sidebar-link">Search Autocomplete</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-web-crawler" class="doc-sidebar-link">Web Crawler</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-search" class="doc-sidebar-link">Google Search</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-docs-collaboration" class="doc-sidebar-link">Google Docs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-dropbox-file-sync" class="doc-sidebar-link">Dropbox Sync</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-calendar" class="doc-sidebar-link">Google Calendar</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-issue-tracker" class="doc-sidebar-link">Issue Tracker</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-payment-system" class="doc-sidebar-link">Payment System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-flash-sale-system" class="doc-sidebar-link">Flash Sale</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-amazon-shopping-cart" class="doc-sidebar-link">Shopping Cart</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/url-shortener-design" class="doc-sidebar-link">URL Shortener</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-pastebin" class="doc-sidebar-link">Pastebin</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-api-rate-limiter" class="doc-sidebar-link">API Rate Limiter</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-cookie-consent-service" class="doc-sidebar-link">Cookie Consent</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/facebook-2021-outage-analysis" class="doc-sidebar-link">Case Studies: Outages &amp; Reliability</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/facebook-2021-outage-analysis" class="doc-sidebar-link">Facebook 2021</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/aws-kinesis-2020-outage" class="doc-sidebar-link">AWS Kinesis 2020</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/stripe-idempotency-reliability" class="doc-sidebar-link">Stripe Idempotency</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/discord-rust-read-states" class="doc-sidebar-link">Discord: Go → Rust</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/graceful-degradation" class="doc-sidebar-link">Graceful Degradation</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/shopify-pod-architecture" class="doc-sidebar-link">Case Studies: Architecture</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/shopify-pod-architecture" class="doc-sidebar-link">Shopify Pods</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/netflix-microservices-evolution" class="doc-sidebar-link">Netflix Microservices</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/twitter-timeline-architecture" class="doc-sidebar-link">Twitter Timeline</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/facebook-tao-social-graph" class="doc-sidebar-link">Facebook TAO</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/uber-microservices-journey" class="doc-sidebar-link">Uber Microservices</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/uber-schemaless-datastore" class="doc-sidebar-link">Uber Schemaless</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/slack-distributed-architecture" class="doc-sidebar-link">Slack Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/linkedin-kafka-origin" class="doc-sidebar-link">LinkedIn → Kafka</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dropbox-magic-pocket" class="doc-sidebar-link">Case Studies: Data &amp; Migrations</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dropbox-magic-pocket" class="doc-sidebar-link">Dropbox Magic Pocket</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/instagram-cassandra-migration" class="doc-sidebar-link">Instagram → Cassandra</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/youtube-vitess-scaling" class="doc-sidebar-link">YouTube + Vitess</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/github-mysql-migration" class="doc-sidebar-link">GitHub MySQL</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/pinterest-mysql-sharding" class="doc-sidebar-link">Pinterest Sharding</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/discord-message-storage" class="doc-sidebar-link">Discord Messages</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/figma-multiplayer-infrastructure" class="doc-sidebar-link">Figma Multiplayer</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/whatsapp-erlang-scaling" class="doc-sidebar-link">WhatsApp + Erlang</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/edge-delivery-and-cache-invalidation" class="doc-sidebar-link">Platform Delivery &amp; Reliability</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/edge-delivery-and-cache-invalidation" class="doc-sidebar-link">Edge Delivery</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/deployment-strategies-blue-green-canary" class="doc-sidebar-link">Blue-Green &amp; Canary</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/ssg-performance-optimizations" class="doc-sidebar-link">SSG on CloudFront</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/build-pipelines-ci-cd" class="doc-sidebar-link">Build Pipelines</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/ecommerce-ssg-to-ssr-migration" class="doc-sidebar-link">SSG → SSR Migration</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/data-migration-strategies" class="doc-sidebar-link">Data Migrations</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/slos-slis-error-budgets" class="doc-sidebar-link">SLOs &amp; SLIs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/logging-metrics-tracing" class="doc-sidebar-link">Logs / Metrics / Traces</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/drm-basics-for-streaming" class="doc-sidebar-link">Media Systems &amp; Testing</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/drm-basics-for-streaming" class="doc-sidebar-link">DRM Basics</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/video-transcoding-pipeline" class="doc-sidebar-link">Video Transcoding</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-video-playback-architecture" class="doc-sidebar-link">Web Video Playback</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/image-processing-service-design" class="doc-sidebar-link">Image Processing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/load-testing-strategy-capacity-planning" class="doc-sidebar-link">Load Testing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/k6-load-testing-overview" class="doc-sidebar-link">k6 Load Testing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/statsig-experimentation-overview" class="doc-sidebar-link">Statsig</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/arrays-and-hash-maps" class="doc-sidebar-link">Data Structures &amp; Algorithms</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/arrays-and-hash-maps" class="doc-sidebar-link">Arrays &amp; Hash Maps</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/trees-and-graphs" class="doc-sidebar-link">Trees &amp; Graphs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/heaps-and-priority-queues" class="doc-sidebar-link">Heaps &amp; PQs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/sorting-algorithms-guide" class="doc-sidebar-link">Sorting Algorithms</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/search-algorithms-guide" class="doc-sidebar-link">Search Algorithms</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/k-crystal-balls-problem" class="doc-sidebar-link">K Crystal Balls</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/publish-subscribe-pattern" class="doc-sidebar-link">JavaScript Patterns</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/publish-subscribe-pattern" class="doc-sidebar-link">Pub/Sub</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/exponential-backoff-retry-strategy" class="doc-sidebar-link">Exponential Backoff</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/async-queue-pattern" class="doc-sidebar-link">Async Queue</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/javascript-error-handling-patterns" class="doc-sidebar-link">JS Error Handling</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/javascript-string-length" class="doc-sidebar-link">JS String Length</a></li></ul></li></ul></div></nav></div></dialog><pagefind-modal reset-on-close=""><pagefind-modal-header><pagefind-input></pagefind-input></pagefind-modal-header><pagefind-modal-body><pagefind-summary></pagefind-summary><pagefind-results></pagefind-results></pagefind-modal-body><pagefind-modal-footer><pagefind-keyboard-hints></pagefind-keyboard-hints></pagefind-modal-footer></pagefind-modal><script src="/legacy-personal-site/v5/assets/index-DWHO1FvG.ff92fc92.js" type="module"></script></body></html>

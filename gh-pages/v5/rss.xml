@@ -1,0 +1,597 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+<channel>
+  <title>Sujeet Jaiswal - Principal Software Engineer</title>
+  <link>https://projects.sujeet.pro/legacy-personal-site/v5</link>
+  <description>Personal blog and portfolio of Sujeet Jaiswal, a Principal Software Engineer crafting exceptional user experiences through innovative frontend architecture and scalable design systems.</description>
+  <language>en-US</language>
+  <lastBuildDate>Tue, 21 Apr 2026 23:09:57 GMT</lastBuildDate>
+  <item>
+    <title>macOS System Setup</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/blogs/system-setup</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/blogs/system-setup</guid>
+    <pubDate>Tue, 21 Apr 2026 00:00:00 GMT</pubDate>
+    <description>How my macOS dev environment is provisioned from a single curl command — Ansible-driven Homebrew, mise runtimes, symlinked configs, templated git/SSH identities, and a cleanup loop that keeps the repo and the system in sync.</description>
+    <category>Productivity</category>
+    <category>Developer Experience</category>
+  </item>
+  <item>
+    <title>Web Components: Custom Elements, Shadow DOM, and practical boundaries</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/web-components</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/web-components</guid>
+    <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    <description>A senior-level tour of Custom Elements, Shadow DOM, templates and slots, lifecycle semantics, styling and accessibility at the encapsulation boundary, form association, and framework interoperability — with clear criteria for when standards-native components earn their complexity.</description>
+    <category>Web Platform</category>
+    <category>Custom Elements</category>
+    <category>Shadow DOM</category>
+    <category>Accessibility</category>
+  </item>
+  <item>
+    <title>Intersection Observer API: visibility without scroll listeners</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/intersection-observer</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/intersection-observer</guid>
+    <pubDate>Fri, 20 Mar 2026 00:00:00 GMT</pubDate>
+    <description>How Intersection Observer defers visibility work to the browser, what root, rootMargin, scrollMargin, and thresholds actually mean, when callbacks fire in the rendering pipeline, the cross-origin and V2 (trackVisibility) caveats, and when to reach for a different API instead.</description>
+    <category>Web Platform</category>
+    <category>Web APIs</category>
+    <category>DOM</category>
+    <category>JavaScript</category>
+    <category>Performance</category>
+  </item>
+  <item>
+    <title>Rendering Strategies: CSR, SSR, SSG, and ISR</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/rendering-strategies-csr-ssr-ssg-isr</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/rendering-strategies-csr-ssr-ssg-isr</guid>
+    <pubDate>Mon, 16 Feb 2026 00:00:00 GMT</pubDate>
+    <description>A thorough comparison of CSR, SSR, SSG, and ISR — their mechanics, performance profiles, failure modes, and design trade-offs — plus modern hybrids like streaming SSR, islands architecture, and Partial Prerendering.</description>
+    <category>Frontend</category>
+    <category>Architecture</category>
+    <category>Patterns</category>
+  </item>
+  <item>
+    <title>CSS Architecture Strategies: BEM, Utility-First, and CSS-in-JS</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/css-architecture-strategies</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/css-architecture-strategies</guid>
+    <pubDate>Mon, 16 Feb 2026 00:00:00 GMT</pubDate>
+    <description>Comparing BEM, utility-first (Tailwind v4), CSS-in-JS, and CSS Modules as scaling strategies — analyzing their trade-offs around specificity, dead code, coupling, and how modern CSS features like @layer, @scope, and :has() are shifting the landscape.</description>
+    <category>CSS</category>
+    <category>Frontend</category>
+    <category>Architecture</category>
+    <category>Patterns</category>
+    <category>Design Systems</category>
+  </item>
+  <item>
+    <title>Facebook 2021 Outage: BGP Withdrawal, DNS Collapse, and the Backbone That Disappeared</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/facebook-2021-outage-analysis</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/facebook-2021-outage-analysis</guid>
+    <pubDate>Mon, 16 Feb 2026 00:00:00 GMT</pubDate>
+    <description>Anatomy of the October 2021 Meta outage — how a backbone maintenance command triggered global BGP withdrawal, collapsed DNS for 3.5 billion users, and exposed fatal shared-fate dependencies in every recovery path.</description>
+    <category>Case Study</category>
+    <category>Reliability</category>
+    <category>Outages</category>
+  </item>
+  <item>
+    <title>AWS Kinesis 2020 Outage: Thread Limits, Thundering Herds, and Hidden Dependencies</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/aws-kinesis-2020-outage</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/aws-kinesis-2020-outage</guid>
+    <pubDate>Mon, 16 Feb 2026 00:00:00 GMT</pubDate>
+    <description>A deep-dive into the 2020 AWS Kinesis outage where a routine capacity addition hit an OS thread limit, cascading through CloudWatch, Lambda, and Cognito for 17 hours due to O(N^2) scaling and hidden dependencies.</description>
+    <category>Case Study</category>
+    <category>Reliability</category>
+    <category>Outages</category>
+  </item>
+  <item>
+    <title>Uber: From Monolith to Domain-Oriented Microservices</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/uber-microservices-journey</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/uber-microservices-journey</guid>
+    <pubDate>Mon, 16 Feb 2026 00:00:00 GMT</pubDate>
+    <description>Uber&apos;s three-phase architecture evolution — from a Python/Node.js monolith to 4,000+ microservices to Domain-Oriented Microservice Architecture (DOMA) — showing how each phase solved scaling bottlenecks while creating new organizational challenges.</description>
+    <category>Case Study</category>
+    <category>Architecture</category>
+    <category>System Design</category>
+    <category>Microservices</category>
+  </item>
+  <item>
+    <title>Slack: Scaling a Real-Time Messaging Platform from Monolith to Distributed Architecture</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/slack-distributed-architecture</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/slack-distributed-architecture</guid>
+    <pubDate>Mon, 16 Feb 2026 00:00:00 GMT</pubDate>
+    <description>How Slack scaled from a PHP monolith to a distributed architecture — migrating to Vitess for flexible sharding, building Flannel for edge caching, and adopting cellular infrastructure for 99.99% availability — all without a big-bang rewrite.</description>
+    <category>Case Study</category>
+    <category>Architecture</category>
+    <category>System Design</category>
+  </item>
+  <item>
+    <title>Browser Storage APIs: localStorage, IndexedDB, and Beyond</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/storage-apis-local-indexeddb</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/storage-apis-local-indexeddb</guid>
+    <pubDate>Mon, 09 Feb 2026 00:00:00 GMT</pubDate>
+    <description>Browser-side persistence from localStorage through IndexedDB, OPFS, and the Cache API — comparing quota models, transaction semantics, threading guarantees, and eviction behavior under the unified WHATWG Storage Standard.</description>
+    <category>Browser</category>
+    <category>Web APIs</category>
+    <category>JavaScript</category>
+    <category>Storage</category>
+    <category>Performance</category>
+  </item>
+  <item>
+    <title>Design Pastebin: Text Sharing, Expiration, and Abuse Prevention</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-pastebin</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-pastebin</guid>
+    <pubDate>Mon, 09 Feb 2026 00:00:00 GMT</pubDate>
+    <description>Designing a Pastebin-like text sharing service with collision-free URL generation, multi-tier storage with content deduplication, expiration strategies, and abuse prevention — all at sub-100ms read latency.</description>
+    <category>System Design</category>
+    <category>Interview Prep</category>
+  </item>
+  <item>
+    <title>Design an API Rate Limiter: Distributed Throttling, Multi-Tenant Quotas, and Graceful Degradation</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-api-rate-limiter</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-api-rate-limiter</guid>
+    <pubDate>Mon, 09 Feb 2026 00:00:00 GMT</pubDate>
+    <description>Distributed API rate limiting with sliding window counters, Redis-backed atomic counting, multi-tenant hierarchical quotas, and fail-open resilience. Covers sub-millisecond decision latency at 500K+ checks per second.</description>
+    <category>System Design</category>
+    <category>Interview Prep</category>
+  </item>
+  <item>
+    <title>Figma: Building Multiplayer Infrastructure for Real-Time Design Collaboration</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/figma-multiplayer-infrastructure</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/figma-multiplayer-infrastructure</guid>
+    <pubDate>Mon, 09 Feb 2026 00:00:00 GMT</pubDate>
+    <description>How Figma built real-time multiplayer editing for 200 concurrent users by rejecting both OT and pure CRDTs in favor of server-authoritative last-writer-wins at the property level, backed by Rust and DynamoDB.</description>
+    <category>Case Study</category>
+    <category>System Design</category>
+    <category>Distributed Systems</category>
+    <category>Reliability</category>
+  </item>
+  <item>
+    <title>Stripe: Idempotency for Payment Reliability</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/stripe-idempotency-reliability</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/stripe-idempotency-reliability</guid>
+    <pubDate>Sun, 08 Feb 2026 00:00:00 GMT</pubDate>
+    <description>How Stripe makes payment APIs safe to retry — Idempotency-Key, atomic phases, recovery points, transactionally-staged job drains, and what changed in API v2.</description>
+    <category>Case Study</category>
+    <category>Distributed Systems</category>
+    <category>System Design</category>
+    <category>API Design</category>
+    <category>Idempotency</category>
+    <category>Reliability</category>
+  </item>
+  <item>
+    <title>Discord: Rewriting Read States from Go to Rust</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/discord-rust-read-states</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/discord-rust-read-states</guid>
+    <pubDate>Sun, 08 Feb 2026 00:00:00 GMT</pubDate>
+    <description>Why Discord rewrote their Read States service from Go to Rust — Go&apos;s garbage collector caused unavoidable 2-minute latency spikes by scanning millions of live cache entries, and Rust&apos;s ownership model eliminated them entirely.</description>
+    <category>Case Study</category>
+    <category>Reliability</category>
+    <category>Performance</category>
+    <category>Rust</category>
+    <category>Go</category>
+    <category>Garbage Collection</category>
+  </item>
+  <item>
+    <title>Shopify: Pod Architecture for Multi-Tenant Isolation at Scale</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/shopify-pod-architecture</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/shopify-pod-architecture</guid>
+    <pubDate>Sun, 08 Feb 2026 00:00:00 GMT</pubDate>
+    <description>How Shopify evolved from a sharded Rails monolith to pod-based isolation — containing blast radius per failure domain, enabling sub-minute pod failover, and surviving 489 million edge requests per minute on Black Friday 2025.</description>
+    <category>Case Study</category>
+    <category>Architecture</category>
+    <category>System Design</category>
+    <category>Distributed Systems</category>
+    <category>Reliability Engineering</category>
+    <category>Databases</category>
+    <category>Migrations</category>
+  </item>
+  <item>
+    <title>Netflix: From Monolith to Microservices — A 7-Year Architecture Evolution</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/netflix-microservices-evolution</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/netflix-microservices-evolution</guid>
+    <pubDate>Sun, 08 Feb 2026 00:00:00 GMT</pubDate>
+    <description>Trace Netflix&apos;s 7-year migration from a monolithic Oracle backend to hundreds of microservices on AWS — the phased approach, the OSS tools born from production pain (Eureka, Hystrix, Zuul, Simian Army), and the cultural shifts that made it possible.</description>
+    <category>Case Study</category>
+    <category>Architecture</category>
+    <category>System Design</category>
+    <category>Distributed Systems</category>
+    <category>Cloud Native</category>
+    <category>Resilience</category>
+  </item>
+  <item>
+    <title>Twitter/X: Timeline Architecture and the Recommendation Algorithm</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/twitter-timeline-architecture</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/twitter-timeline-architecture</guid>
+    <pubDate>Sun, 08 Feb 2026 00:00:00 GMT</pubDate>
+    <description>Twitter&apos;s timeline architecture across three eras — fanout-on-write with Redis, the multi-service ML recommendation pipeline (SimClusters, MaskNet), and X&apos;s Grok-based Phoenix/Thunder system — tracing the trade-offs between read latency, ranking quality, and system complexity.</description>
+    <category>Case Study</category>
+    <category>Architecture</category>
+    <category>System Design</category>
+    <category>Distributed Systems</category>
+    <category>Recommendation Systems</category>
+  </item>
+  <item>
+    <title>Facebook TAO: The Social Graph&apos;s Distributed Cache</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/facebook-tao-social-graph</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/facebook-tao-social-graph</guid>
+    <pubDate>Sun, 08 Feb 2026 00:00:00 GMT</pubDate>
+    <description>A deep dive into TAO, Facebook&apos;s graph-aware caching layer that replaced lookaside memcache with a two-tier write-through architecture. The 2013 paper described 1B reads/sec at 96.4% hit rate; by 2021 it served 10B+ reads/sec on petabytes of data.</description>
+    <category>Case Study</category>
+    <category>Architecture</category>
+    <category>System Design</category>
+    <category>Distributed Systems</category>
+    <category>Databases</category>
+  </item>
+  <item>
+    <title>Uber Schemaless: Building a Scalable Datastore on MySQL</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/uber-schemaless-datastore</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/uber-schemaless-datastore</guid>
+    <pubDate>Sun, 08 Feb 2026 00:00:00 GMT</pubDate>
+    <description>How Uber built Schemaless — a horizontally scalable, append-only datastore layered on sharded MySQL — to escape a single-PostgreSQL bottleneck. Covers the immutable cell model, fixed 4,096-shard layout, two-cluster buffered writes, eventually consistent indexes, and the trigger framework.</description>
+    <category>Case Study</category>
+    <category>Architecture</category>
+    <category>System Design</category>
+    <category>Databases</category>
+    <category>Distributed Systems</category>
+    <category>Migrations</category>
+  </item>
+  <item>
+    <title>LinkedIn and the Birth of Apache Kafka: Solving the O(N²) Data Integration Problem</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/linkedin-kafka-origin</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/linkedin-kafka-origin</guid>
+    <pubDate>Sun, 08 Feb 2026 00:00:00 GMT</pubDate>
+    <description>How LinkedIn&apos;s O(N squared) data pipeline problem led to the creation of Apache Kafka — a distributed commit log that replaced fragile point-to-point integrations with a unified, scalable data bus.</description>
+    <category>Case Study</category>
+    <category>Architecture</category>
+    <category>System Design</category>
+    <category>Distributed Systems</category>
+    <category>Data Engineering</category>
+  </item>
+  <item>
+    <title>Dropbox Magic Pocket: Building Exabyte-Scale Blob Storage</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/dropbox-magic-pocket</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/dropbox-magic-pocket</guid>
+    <pubDate>Sun, 08 Feb 2026 00:00:00 GMT</pubDate>
+    <description>How Dropbox built Magic Pocket — a content-addressable, exabyte-scale block store — to migrate 500+ PB off S3, save $74.6M net, and achieve 12+ nines of durability with SMR drives, erasure coding, and continuous integrity verification.</description>
+    <category>Case Study</category>
+    <category>Storage</category>
+    <category>Distributed Systems</category>
+    <category>Infrastructure</category>
+    <category>Migrations</category>
+    <category>Data</category>
+  </item>
+  <item>
+    <title>Instagram: From Redis to Cassandra and the Rocksandra Storage Engine</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/instagram-cassandra-migration</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/instagram-cassandra-migration</guid>
+    <pubDate>Sun, 08 Feb 2026 00:00:00 GMT</pubDate>
+    <description>How Instagram migrated activity feed and fraud detection from Redis to Cassandra for ≈75% cost savings, then built Rocksandra (a RocksDB-based pluggable storage engine) to drop P99 reads from 60 ms to 20 ms and GC stalls by ~10x — a seven-year evolution from 12 nodes to 1,000+ across six data centres.</description>
+    <category>Case Study</category>
+    <category>Data</category>
+    <category>Migrations</category>
+    <category>Distributed Systems</category>
+    <category>Storage</category>
+    <category>Databases</category>
+  </item>
+  <item>
+    <title>YouTube: Scaling MySQL to Serve Billions with Vitess</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/youtube-vitess-scaling</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/youtube-vitess-scaling</guid>
+    <pubDate>Sun, 08 Feb 2026 00:00:00 GMT</pubDate>
+    <description>How YouTube built Vitess to scale MySQL from 4 shards to 256 across tens of thousands of nodes, solving cascading connection storms, enabling zero-downtime resharding, and serving millions of queries per second — and why they eventually migrated to Spanner anyway.</description>
+    <category>Case Study</category>
+    <category>Databases</category>
+    <category>Distributed Systems</category>
+    <category>Data</category>
+    <category>Migrations</category>
+    <category>Architecture</category>
+  </item>
+  <item>
+    <title>GitHub: Scaling MySQL from One Database to 1,200+ Hosts</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/github-mysql-migration</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/github-mysql-migration</guid>
+    <pubDate>Sun, 08 Feb 2026 00:00:00 GMT</pubDate>
+    <description>How GitHub scaled MySQL from a single database to 1,200+ hosts and 5.5M QPS through vertical partitioning, custom tooling (gh-ost, orchestrator, freno), Vitess adoption, and a rolling MySQL 8.0 upgrade — without a big rewrite.</description>
+    <category>Case Study</category>
+    <category>Data</category>
+    <category>Migrations</category>
+  </item>
+  <item>
+    <title>Pinterest: MySQL Sharding from Zero to Billions of Objects</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/pinterest-mysql-sharding</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/pinterest-mysql-sharding</guid>
+    <pubDate>Sun, 08 Feb 2026 00:00:00 GMT</pubDate>
+    <description>How Pinterest replaced three failing NoSQL stores with sharded MySQL — a 64-bit ID scheme that embeds routing, virtual shards for painless growth, and a &quot;boring technology&quot; philosophy still running a decade later.</description>
+    <category>Case Study</category>
+    <category>Databases</category>
+    <category>Migrations</category>
+    <category>Distributed Systems</category>
+    <category>Architecture</category>
+  </item>
+  <item>
+    <title>Discord: From Billions to Trillions of Messages — A Three-Database Journey</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/discord-message-storage</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/discord-message-storage</guid>
+    <pubDate>Sun, 08 Feb 2026 00:00:00 GMT</pubDate>
+    <description>How Discord evolved message storage from MongoDB to Cassandra to ScyllaDB across trillions of messages — solving JVM GC pauses, hot partitions, and tombstone storms with Rust data services and request coalescing.</description>
+    <category>Case Study</category>
+    <category>Data</category>
+    <category>Databases</category>
+    <category>Distributed Systems</category>
+    <category>Migrations</category>
+  </item>
+  <item>
+    <title>WhatsApp: 2 Million Connections Per Server with Erlang</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/whatsapp-erlang-scaling</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/whatsapp-erlang-scaling</guid>
+    <pubDate>Sun, 08 Feb 2026 00:00:00 GMT</pubDate>
+    <description>How WhatsApp pushed Erlang/BEAM and FreeBSD to 2 million concurrent connections per server, served 465 million users with ~32 engineers, and patched the VM (timer wheels, GC throttling, pg2) to keep a small fleet ahead of growth — a case study in vertical density and runtime co-design.</description>
+    <category>Case Study</category>
+    <category>Distributed Systems</category>
+    <category>System Design</category>
+    <category>Erlang</category>
+    <category>Outages</category>
+  </item>
+  <item>
+    <title>Design a Distributed Key-Value Store</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-key-value-store</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-key-value-store</guid>
+    <pubDate>Fri, 06 Feb 2026 00:00:00 GMT</pubDate>
+    <description>Distributed key-value store design exploring the Dynamo/Cassandra AP model with consistent hashing, quorum replication, vector clocks, gossip protocols, and LSM-tree storage -- contrasted against CP alternatives like etcd for strong consistency.</description>
+    <category>System Design</category>
+    <category>Interview Prep</category>
+    <category>Distributed Systems</category>
+    <category>Databases</category>
+    <category>Storage</category>
+  </item>
+  <item>
+    <title>Design a Distributed File System</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-distributed-file-system</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-distributed-file-system</guid>
+    <pubDate>Fri, 06 Feb 2026 00:00:00 GMT</pubDate>
+    <description>System design for a GFS/HDFS-style distributed file system covering single-master metadata management, large-chunk storage, rack-aware replication, and relaxed consistency models for petabyte-scale batch processing on commodity hardware.</description>
+    <category>System Design</category>
+    <category>Interview Prep</category>
+    <category>Distributed Systems</category>
+    <category>Storage</category>
+  </item>
+  <item>
+    <title>Design a Time Series Database</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-time-series-database</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-time-series-database</guid>
+    <pubDate>Fri, 06 Feb 2026 00:00:00 GMT</pubDate>
+    <description>Designing a time-series database for metrics and monitoring — LSM-style block storage, Gorilla compression at ~1.37 bytes/sample, inverted-index label lookup, cardinality control, tiered retention, and distributed query fanout.</description>
+    <category>System Design</category>
+    <category>Interview Prep</category>
+    <category>Databases</category>
+    <category>Storage</category>
+    <category>Distributed Systems</category>
+    <category>Reliability</category>
+  </item>
+  <item>
+    <title>Design a YouTube-Style Video Platform</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-youtube-video-platform</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-youtube-video-platform</guid>
+    <pubDate>Fri, 06 Feb 2026 00:00:00 GMT</pubDate>
+    <description>Designing a YouTube-scale video platform — resumable chunked uploads, chunk-parallel and per-shot transcoding, CMAF-packaged HLS/DASH delivery, hybrid ABR, multi-tier CDN caching, and metadata + view-count systems for billions of daily watch hours.</description>
+    <category>System Design</category>
+    <category>Interview Prep</category>
+    <category>Media</category>
+    <category>Networking</category>
+    <category>CDN</category>
+  </item>
+  <item>
+    <title>Design Netflix Video Streaming</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-netflix-streaming</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-netflix-streaming</guid>
+    <pubDate>Fri, 06 Feb 2026 00:00:00 GMT</pubDate>
+    <description>A deep dive into Netflix&apos;s streaming architecture — Open Connect CDN, per-title and shot-based encoding, AV1 rollout, adaptive bitrate playback, multi-DRM, and the personalization stack that drives most viewing hours.</description>
+    <category>System Design</category>
+    <category>Interview Prep</category>
+    <category>Architecture</category>
+    <category>Case Study</category>
+    <category>Media</category>
+    <category>CDN</category>
+  </item>
+  <item>
+    <title>Design Instagram: Photo Sharing at Scale</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-instagram-photo-sharing</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-instagram-photo-sharing</guid>
+    <pubDate>Fri, 06 Feb 2026 00:00:00 GMT</pubDate>
+    <description>Photo-sharing platform design at Instagram scale covering hybrid fan-out feed generation, multi-resolution image processing pipelines, 24-hour TTL Stories architecture, and ML-powered Explore recommendations serving billions of users.</description>
+    <category>System Design</category>
+    <category>Architecture</category>
+    <category>Distributed Systems</category>
+    <category>Databases</category>
+    <category>Interview Prep</category>
+  </item>
+  <item>
+    <title>Design Spotify Music Streaming</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-spotify-music-streaming</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-spotify-music-streaming</guid>
+    <pubDate>Fri, 06 Feb 2026 00:00:00 GMT</pubDate>
+    <description>How Spotify is architected at 696M+ MAU — multi-CDN audio delivery, Ogg Vorbis with a 2025 lossless tier, a hybrid recommendation pipeline (collaborative filtering + content-based + NLP), DRM-protected offline sync, and a proxyless gRPC service mesh built on the Backstage developer platform.</description>
+    <category>System Design</category>
+    <category>Interview Prep</category>
+    <category>Distributed Systems</category>
+    <category>Architecture</category>
+    <category>Media</category>
+    <category>Case Study</category>
+    <category>CDN</category>
+    <category>Recommendation Systems</category>
+  </item>
+  <item>
+    <title>Design a Social Feed (Facebook/Instagram)</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-social-feed</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-social-feed</guid>
+    <pubDate>Fri, 06 Feb 2026 00:00:00 GMT</pubDate>
+    <description>Designing a social feed system at Facebook/Instagram scale — hybrid push/pull fan-out, multi-stage ML ranking, TAO-style graph storage, cache leasing for consistency, and the celebrity problem where one post fans out to millions.</description>
+    <category>System Design</category>
+    <category>Distributed Systems</category>
+    <category>Architecture</category>
+    <category>Caching</category>
+    <category>Case Study</category>
+    <category>Interview Prep</category>
+  </item>
+  <item>
+    <title>Design a Notification System</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-notification-system</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-notification-system</guid>
+    <pubDate>Fri, 06 Feb 2026 00:00:00 GMT</pubDate>
+    <description>A staff-level reference for designing a multi-channel notification platform — event ingestion, priority routing, user preferences and quiet hours, rate limiting, aggregation, retries, and at-least-once delivery across push, email, SMS, and in-app for billions of messages per day.</description>
+    <category>System Design</category>
+    <category>Interview Prep</category>
+    <category>Architecture</category>
+    <category>Reliability</category>
+    <category>Notifications</category>
+  </item>
+  <item>
+    <title>Design an Email System</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-email-system</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-email-system</guid>
+    <pubDate>Fri, 06 Feb 2026 00:00:00 GMT</pubDate>
+    <description>System design for a Gmail-scale email service covering SMTP delivery pipelines, SPF/DKIM/DMARC authentication, Bayesian + ML spam filtering, conversation threading, and full-text search across billions of daily messages.</description>
+    <category>System Design</category>
+    <category>Interview Prep</category>
+    <category>Architecture</category>
+    <category>Distributed Systems</category>
+  </item>
+  <item>
+    <title>Design Google Maps</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-google-maps</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-google-maps</guid>
+    <pubDate>Fri, 06 Feb 2026 00:00:00 GMT</pubDate>
+    <description>System design for a mapping and navigation platform: quadtree vector tiles (MVT), Contraction Hierarchies for sub-millisecond routing on continental road networks, HMM map matching, and graph-neural-network ETA prediction.</description>
+    <category>System Design</category>
+    <category>Interview Prep</category>
+    <category>Distributed Systems</category>
+    <category>Algorithms</category>
+    <category>Geospatial</category>
+    <category>Routing</category>
+  </item>
+  <item>
+    <title>Design Yelp: Location-Based Business Discovery Platform</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-yelp-proximity-service</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-yelp-proximity-service</guid>
+    <pubDate>Fri, 06 Feb 2026 00:00:00 GMT</pubDate>
+    <description>Designing a Yelp-like proximity service — geospatial indexing strategies (geohash, quadtree/S2, BKD/R-tree), multi-signal ranking that blends distance with relevance, review ingestion with the transactional outbox pattern, and sub-100ms search at a 100:1 read/write ratio.</description>
+    <category>System Design</category>
+    <category>Interview Prep</category>
+    <category>Geospatial</category>
+  </item>
+  <item>
+    <title>Design a URL Shortener: IDs, Storage, and Scale</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/url-shortener-design</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/url-shortener-design</guid>
+    <pubDate>Fri, 06 Feb 2026 00:00:00 GMT</pubDate>
+    <description>Staff-level system design for a URL shortener — ID generation, multi-tier caching for sub-50 ms redirects, sharding, async analytics with ClickHouse, abuse prevention, and the failure modes that actually hit production.</description>
+    <category>System Design</category>
+    <category>Distributed Systems</category>
+    <category>Reliability Engineering</category>
+    <category>Interview Prep</category>
+  </item>
+  <item>
+    <title>Modern Rendering Architectures: RSC, Streaming, Islands, and Resumability</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/rendering-strategies</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/rendering-strategies</guid>
+    <pubDate>Wed, 04 Feb 2026 00:00:00 GMT</pubDate>
+    <description>How modern frameworks compose static, server-streamed, and client-only rendering inside one page — React Server Components, Suspense streaming, islands architecture, Partial Prerendering, and Qwik resumability — with a decision framework grounded in INP and bundle cost.</description>
+    <category>Frontend</category>
+    <category>Rendering</category>
+    <category>React</category>
+    <category>Architecture</category>
+    <category>System Design</category>
+    <category>Web Vitals</category>
+  </item>
+  <item>
+    <title>Image Loading Optimization</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/image-loading-optimization</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/image-loading-optimization</guid>
+    <pubDate>Wed, 04 Feb 2026 00:00:00 GMT</pubDate>
+    <description>How to deliver images on the web without trading LCP for CLS or bandwidth for fidelity — native lazy loading, responsive images, AVIF/WebP negotiation, fetchpriority, preload, and the layout-shift mechanics behind width/height.</description>
+    <category>Frontend</category>
+    <category>Performance</category>
+    <category>Web Vitals</category>
+    <category>Browser</category>
+  </item>
+  <item>
+    <title>Bundle Splitting Strategies</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/bundle-splitting-strategies</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/bundle-splitting-strategies</guid>
+    <pubDate>Wed, 04 Feb 2026 00:00:00 GMT</pubDate>
+    <description>Route-based, component-level, vendor, and module-federation splitting for shrinking initial JavaScript payloads, with Webpack, Vite, and esbuild configurations, resource-hint sequencing, and HTTP/2 chunk-count trade-offs.</description>
+    <category>Frontend</category>
+    <category>Performance</category>
+    <category>Web Vitals</category>
+    <category>Build Systems</category>
+    <category>Optimization</category>
+    <category>React</category>
+  </item>
+  <item>
+    <title>Client Performance Monitoring</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/performance-monitoring-client</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/performance-monitoring-client</guid>
+    <pubDate>Wed, 04 Feb 2026 00:00:00 GMT</pubDate>
+    <description>Capture real user performance with Core Web Vitals (LCP, INP, CLS), browser Performance APIs, and Real User Monitoring — including sampling strategies, attribution debugging, and reliable beacon transmission.</description>
+    <category>Frontend</category>
+    <category>Performance</category>
+    <category>Web Vitals</category>
+    <category>Web APIs</category>
+    <category>Architecture</category>
+  </item>
+  <item>
+    <title>Client State Management</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/client-state-management</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/client-state-management</guid>
+    <pubDate>Wed, 04 Feb 2026 00:00:00 GMT</pubDate>
+    <description>Match the tool to the state category: TanStack Query for server state, useState/Zustand for UI state, React Hook Form for forms, and URL parameters for shareable state — with trade-offs for each.</description>
+    <category>State Management</category>
+    <category>React</category>
+    <category>Frontend</category>
+    <category>System Design</category>
+    <category>Architecture</category>
+  </item>
+  <item>
+    <title>Design a Form Builder</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-form-builder</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-form-builder</guid>
+    <pubDate>Wed, 04 Feb 2026 00:00:00 GMT</pubDate>
+    <description>Schema-driven form generation with JSON Schema and TypeScript-first validators, the state, validation, conditional, and persistence patterns behind production form builders, and how Typeform, Form.io, JSON Forms, and the React Hook Form + Zod stack actually compose.</description>
+    <category>Frontend</category>
+    <category>System Design</category>
+    <category>Architecture</category>
+    <category>React</category>
+    <category>TypeScript</category>
+    <category>Accessibility</category>
+  </item>
+  <item>
+    <title>Design a Data Grid</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-data-grid</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-data-grid</guid>
+    <pubDate>Wed, 04 Feb 2026 00:00:00 GMT</pubDate>
+    <description>Architectural patterns for high-performance data grids: virtualization strategies, column pinning, the headless vs full-featured trade-off, and what production grids do to render millions of rows at 60 fps.</description>
+    <category>Frontend</category>
+    <category>System Design</category>
+    <category>Architecture</category>
+  </item>
+  <item>
+    <title>Design a File Uploader</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-file-uploader</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/design-file-uploader</guid>
+    <pubDate>Wed, 04 Feb 2026 00:00:00 GMT</pubDate>
+    <description>How to design a production-grade web file uploader: chunked uploads, the tus resumable protocol, presigned direct-to-storage flows, browser memory limits, XHR vs fetch progress, magic-byte validation, and the architectures behind Dropbox, Google Drive, S3 multipart, and Slack.</description>
+    <category>Frontend</category>
+    <category>System Design</category>
+    <category>Architecture</category>
+    <category>Web APIs</category>
+    <category>File Upload</category>
+  </item>
+  <item>
+    <title>Distributed Locking</title>
+    <link>https://projects.sujeet.pro/legacy-personal-site/v5/articles/distributed-locking</link>
+    <guid>https://projects.sujeet.pro/legacy-personal-site/v5/articles/distributed-locking</guid>
+    <pubDate>Wed, 04 Feb 2026 00:00:00 GMT</pubDate>
+    <description>How distributed locks actually work across Redis, ZooKeeper, etcd, and Chubby — covering lease-based expiration, the Redlock controversy, fencing tokens, and when you need correctness locks versus efficiency locks.</description>
+    <category>Distributed Systems</category>
+    <category>Patterns</category>
+    <category>System Design</category>
+  </item>
+</channel>
+</rss>

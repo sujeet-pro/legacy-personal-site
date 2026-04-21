@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en-US" class="no-js color-scheme-auto theme-paper"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light dark"><script>(function(){try{var p=JSON.parse(localStorage.getItem('pagesmith-theme'));if(p){var d=document.documentElement;if(p.colorScheme)d.className=d.className.replace(/color-scheme-\w+/,'color-scheme-'+p.colorScheme);if(p.theme)d.className=d.className.replace(/theme-\w[\w-]*/,'theme-'+p.theme);if(p.textSize&&p.textSize!=='base')d.dataset.textSize=p.textSize}}catch(e){}})();</script><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://www.google-analytics.com https://analytics.google.com; object-src 'none'; base-uri 'self'; form-action 'self'"><meta name="referrer" content="strict-origin-when-cross-origin"><title>LinkedIn and the Birth of Apache Kafka: Solving the O(N²) Data Integration Problem — Sujeet Jaiswal - Principal Software Engineer</title><meta name="description" content="How LinkedIn's O(N squared) data pipeline problem led to the creation of Apache Kafka — a distributed commit log that replaced fragile point-to-point integrations with a unified, scalable data bus."><link rel="canonical" href="https://projects.sujeet.pro/legacy-personal-site/v5/articles/linkedin-kafka-origin"><meta property="og:type" content="article"><meta property="og:url" content="https://projects.sujeet.pro/legacy-personal-site/v5/articles/linkedin-kafka-origin"><meta property="og:title" content="LinkedIn and the Birth of Apache Kafka: Solving the O(N²) Data Integration Problem — Sujeet Jaiswal - Principal Software Engineer"><meta property="og:description" content="How LinkedIn's O(N squared) data pipeline problem led to the creation of Apache Kafka — a distributed commit log that replaced fragile point-to-point integrations with a unified, scalable data bus."><meta property="og:locale" content="en_US"><meta property="og:site_name" content="Sujeet Jaiswal"><meta property="article:author" content="Sujeet Jaiswal"><meta property="article:published_time" content="2026-02-08T00:00:00.000Z"><meta property="article:modified_time" content="Tue Apr 21 2026 05:30:00 GMT+0530 (India Standard Time)"><meta property="article:tag" content="Case Study"><meta property="article:tag" content="Architecture"><meta property="article:tag" content="System Design"><meta property="article:tag" content="Distributed Systems"><meta property="article:tag" content="Data Engineering"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="LinkedIn and the Birth of Apache Kafka: Solving the O(N²) Data Integration Problem — Sujeet Jaiswal - Principal Software Engineer"><meta name="twitter:description" content="How LinkedIn's O(N squared) data pipeline problem led to the creation of Apache Kafka — a distributed commit log that replaced fragile point-to-point integrations with a unified, scalable data bus."><meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#020617" media="(prefers-color-scheme: dark)"><link rel="preload" href="/legacy-personal-site/v5/assets/fonts/open-sans-variable.63a65b9b.woff2" as="font" type="font/woff2" crossorigin=""><link rel="preconnect" href="https://www.googletagmanager.com" crossorigin=""><link rel="stylesheet" href="/legacy-personal-site/v5/pagefind/pagefind-component-ui.css"><link rel="stylesheet" href="/legacy-personal-site/v5/assets/index-BlmQN5MU.d5ff1cea.css"><script>document.documentElement.classList.remove('no-js')</script><script src="/legacy-personal-site/v5/pagefind/pagefind-component-ui.js" type="module"></script><script async src="https://www.googletagmanager.com/gtag/js?id=G-1Z2TP5LG65"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-1Z2TP5LG65');</script></head><body><header class="doc-header"><a href="#doc-main-content" class="doc-skip-link" data-skip-link="" onclick="document.getElementById('doc-main-content')?.focus()">Skip to main content</a><div class="doc-header-inner"><div class="doc-header-left"><button type="button" class="doc-sidebar-toggle" aria-label="Toggle navigation" aria-controls="sidebar-modal" aria-expanded="false" data-sidebar-toggle=""><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 5h14M3 10h14M3 15h14"/></svg></button><a href="/legacy-personal-site/v5" class="doc-logo">Sujeet Jaiswal</a></div><nav class="doc-nav" aria-label="Primary navigation"><a href="/legacy-personal-site/v5/articles" class="active">Articles</a><a href="/legacy-personal-site/v5/blogs">Blogs</a></nav><div class="doc-header-right"><pagefind-modal-trigger class="doc-search-trigger"></pagefind-modal-trigger><div class="doc-theme-toggle no-js-hidden" data-theme-toggle="" data-ps-theme-controls=""><button type="button" class="doc-theme-toggle-btn" aria-label="Change theme" aria-expanded="false" aria-haspopup="true" aria-controls="doc-theme-dropdown" data-theme-toggle-btn="" data-ps-theme-toggle-button=""><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="10" cy="10" r="4"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.93 4.93l1.41 1.41M13.66 13.66l1.41 1.41M4.93 15.07l1.41-1.41M13.66 6.34l1.41-1.41"/></svg></button><div id="doc-theme-dropdown" class="doc-theme-dropdown" data-theme-dropdown="" data-ps-theme-dropdown="" hidden><fieldset class="doc-theme-group"><legend>Appearance</legend><label class="doc-theme-option" data-scheme="auto"><input type="radio" name="colorScheme" value="auto" checked>Auto</label><label class="doc-theme-option" data-scheme="light"><input type="radio" name="colorScheme" value="light">Light</label><label class="doc-theme-option" data-scheme="dark"><input type="radio" name="colorScheme" value="dark">Dark</label></fieldset><fieldset class="doc-theme-group"><legend>Theme</legend><label class="doc-theme-option" data-theme="paper"><input type="radio" name="theme" value="paper" checked>Paper</label><label class="doc-theme-option" data-theme="high-contrast"><input type="radio" name="theme" value="high-contrast">High Contrast</label></fieldset><fieldset class="doc-theme-group"><legend>Text Size</legend><div class="doc-text-size-options"><label class="doc-text-size-option" title="Small"><input class="sr-only" type="radio" name="textSize" value="small"><span class="doc-text-size-label" data-size="small" aria-hidden="true">A</span><span class="sr-only">Small text size</span></label><label class="doc-text-size-option" title="Default"><input class="sr-only" type="radio" name="textSize" value="base" checked><span class="doc-text-size-label" data-size="base" aria-hidden="true">A</span><span class="sr-only">Default text size</span></label><label class="doc-text-size-option" title="Large"><input class="sr-only" type="radio" name="textSize" value="large"><span class="doc-text-size-label" data-size="large" aria-hidden="true">A</span><span class="sr-only">Large text size</span></label></div></fieldset></div></div></div></div></header><div class="doc-layout"><aside class="doc-sidebar"><nav class="doc-sidebar-nav" aria-label="Documentation navigation"><div class="doc-sidebar-section"><p class="doc-sidebar-heading">Series</p><ul class="doc-sidebar-list "><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-rendering-pipeline-overview" class="doc-sidebar-link">Critical Rendering Path</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-rendering-pipeline-overview" class="doc-sidebar-link">CRP: Pipeline Overview</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-dom-construction" class="doc-sidebar-link">CRP: DOM Construction</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-cssom-construction" class="doc-sidebar-link">CRP: CSSOM Construction</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-style-recalculation" class="doc-sidebar-link">CRP: Style Recalc</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-layout" class="doc-sidebar-link">CRP: Layout</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-prepaint" class="doc-sidebar-link">CRP: Prepaint</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-paint" class="doc-sidebar-link">CRP: Paint</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-commit" class="doc-sidebar-link">CRP: Commit</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-layerize" class="doc-sidebar-link">CRP: Layerize</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-raster" class="doc-sidebar-link">CRP: Raster</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-composit" class="doc-sidebar-link">CRP: Composite</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-draw" class="doc-sidebar-link">CRP: Draw</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/v8-engine-architecture" class="doc-sidebar-link">JavaScript Runtime Internals</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/v8-engine-architecture" class="doc-sidebar-link">V8 Engine</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/browser-internals" class="doc-sidebar-link">Browser Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/browser-event-loop" class="doc-sidebar-link">Browser Event Loop</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/nodejs-runtime-architecture" class="doc-sidebar-link">Node.js Runtime</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/libuv-event-loop-internals" class="doc-sidebar-link">libuv Internals</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/nodejs-event-loop" class="doc-sidebar-link">Node.js Event Loop</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/js-event-loop" class="doc-sidebar-link">JS Event Loop</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/auth-foundations-sessions-tokens" class="doc-sidebar-link">Web Security &amp; Authentication</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/auth-foundations-sessions-tokens" class="doc-sidebar-link">Auth Foundations</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-app-security-architecture" class="doc-sidebar-link">Web App Security</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/csrf-and-cors-defense" class="doc-sidebar-link">CSRF &amp; CORS</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/oauth-oidc-flow-guide" class="doc-sidebar-link">OAuth &amp; OIDC</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/csp-violation-reporting-pipeline" class="doc-sidebar-link">CSP Reporting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/owasp-top-10-guide" class="doc-sidebar-link">OWASP Top 10</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-resolution-path" class="doc-sidebar-link">Networking Protocols</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-resolution-path" class="doc-sidebar-link">DNS: Resolution Path</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-records-ttl-and-caching" class="doc-sidebar-link">DNS: Records &amp; TTL</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-security-doh-dot-dnssec" class="doc-sidebar-link">DNS: Security</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-troubleshooting-playbook" class="doc-sidebar-link">DNS: Troubleshooting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/tls-1-3-handshake-and-https" class="doc-sidebar-link">TLS 1.3 &amp; HTTPS</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/http1-1-to-http2-evolution" class="doc-sidebar-link">HTTP/1.1 → HTTP/2</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/http3-quic-and-tls" class="doc-sidebar-link">HTTP/3 &amp; QUIC</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dom-api-essentials" class="doc-sidebar-link">Browser APIs &amp; Accessibility</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dom-api-essentials" class="doc-sidebar-link">DOM API Essentials</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-components" class="doc-sidebar-link">Web Components</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/intersection-observer" class="doc-sidebar-link">Intersection Observer</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-workers-and-worklets" class="doc-sidebar-link">Web Workers &amp; Worklets</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/fetch-and-streaming-apis" class="doc-sidebar-link">Fetch &amp; Streams</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/storage-apis-local-indexeddb" class="doc-sidebar-link">Browser Storage APIs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/service-workers-and-cache-api" class="doc-sidebar-link">Service Workers</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/accessibility-testing-tooling" class="doc-sidebar-link">A11y Testing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/wcag-2-2-practical-guide" class="doc-sidebar-link">WCAG 2.2</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/frontend-architecture-at-scale" class="doc-sidebar-link">Frontend Architecture Patterns</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/frontend-architecture-at-scale" class="doc-sidebar-link">Frontend Arch at Scale</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/micro-frontends-architecture" class="doc-sidebar-link">Micro-Frontends</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rendering-strategies-csr-ssr-ssg-isr" class="doc-sidebar-link">CSR / SSR / SSG / ISR</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/state-management-patterns" class="doc-sidebar-link">State Management</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/data-fetching-patterns" class="doc-sidebar-link">Data Fetching</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/css-architecture-strategies" class="doc-sidebar-link">CSS Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/component-architecture-blueprint" class="doc-sidebar-link">Component Architecture</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-infrastructure-stack" class="doc-sidebar-link">Web Performance Optimization</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-infrastructure-stack" class="doc-sidebar-link">Perf: Infrastructure</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-javascript-optimization" class="doc-sidebar-link">Perf: JavaScript</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-css-typography" class="doc-sidebar-link">Perf: CSS &amp; Typography</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-image-optimization" class="doc-sidebar-link">Perf: Images</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/core-web-vitals-measurement" class="doc-sidebar-link">Core Web Vitals</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-overview" class="doc-sidebar-link">Perf: Overview</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-system-adoption-foundations" class="doc-sidebar-link">Design Systems &amp; React</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-system-adoption-foundations" class="doc-sidebar-link">DS: Adoption</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-tokens-and-theming" class="doc-sidebar-link">Design Tokens</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/component-library-architecture-and-governance" class="doc-sidebar-link">Component Library</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-system-implementation-scaling" class="doc-sidebar-link">DS: Implementation</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-hooks-fundamentals" class="doc-sidebar-link">React Hooks</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-rendering-architecture" class="doc-sidebar-link">React Rendering</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-hooks-advanced-patterns" class="doc-sidebar-link">React Hooks: Advanced</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-performance-patterns" class="doc-sidebar-link">React Performance</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rendering-strategies" class="doc-sidebar-link">Frontend System Design</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rendering-strategies" class="doc-sidebar-link">Modern Rendering</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/image-loading-optimization" class="doc-sidebar-link">Image Loading</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/bundle-splitting-strategies" class="doc-sidebar-link">Bundle Splitting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/virtualization-and-windowing" class="doc-sidebar-link">Virtualization</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/performance-monitoring-client" class="doc-sidebar-link">Client Perf Monitoring</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/client-state-management" class="doc-sidebar-link">Client State</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/real-time-sync-client" class="doc-sidebar-link">Real-Time Sync</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/offline-first-architecture" class="doc-sidebar-link">Offline-First</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/widget-framework" class="doc-sidebar-link">Widget Framework</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-rich-text-editor" class="doc-sidebar-link">Rich Text Editor</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-infinite-feed" class="doc-sidebar-link">Infinite Feed</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-drag-drop-system" class="doc-sidebar-link">Drag &amp; Drop</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-form-builder" class="doc-sidebar-link">Form Builder</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-data-grid" class="doc-sidebar-link">Data Grid</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-file-uploader" class="doc-sidebar-link">File Uploader</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/consistency-and-cap-theorem" class="doc-sidebar-link">Distributed Systems Core</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/consistency-and-cap-theorem" class="doc-sidebar-link">CAP Theorem</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-consensus" class="doc-sidebar-link">Distributed Consensus</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/time-and-ordering" class="doc-sidebar-link">Time &amp; Ordering</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/failure-modes-and-resilience" class="doc-sidebar-link">Failure Modes</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rate-limiting-strategies" class="doc-sidebar-link">Rate Limiting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/circuit-breaker-patterns" class="doc-sidebar-link">Circuit Breakers</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/capacity-planning-and-estimation" class="doc-sidebar-link">Capacity Planning</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/storage-choices-sql-vs-nosql" class="doc-sidebar-link">Data Storage &amp; Indexing</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/storage-choices-sql-vs-nosql" class="doc-sidebar-link">SQL vs NoSQL</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/sharding-and-replication" class="doc-sidebar-link">Sharding &amp; Replication</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/indexing-and-query-optimization" class="doc-sidebar-link">Indexing &amp; Queries</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/transactions-and-acid" class="doc-sidebar-link">Transactions &amp; ACID</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/caching-fundamentals-and-strategies" class="doc-sidebar-link">Caching Fundamentals</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/load-balancers-architecture" class="doc-sidebar-link">Infrastructure Components</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/load-balancers-architecture" class="doc-sidebar-link">Load Balancers</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/cdn-architecture-and-caching" class="doc-sidebar-link">CDN Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/api-gateway-patterns" class="doc-sidebar-link">API Gateway</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/service-discovery-and-registry" class="doc-sidebar-link">Service Discovery</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-deep-dive" class="doc-sidebar-link">DNS: Deep Dive</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/queues-and-pubsub" class="doc-sidebar-link">Queues &amp; Pub/Sub</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/event-driven-architecture" class="doc-sidebar-link">Event-Driven Arch</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rpc-and-api-design" class="doc-sidebar-link">RPC &amp; API Design</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crdt-for-collaborative-systems" class="doc-sidebar-link">Core Distributed Patterns</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crdt-for-collaborative-systems" class="doc-sidebar-link">CRDTs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/operational-transformation" class="doc-sidebar-link">OT</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-locking" class="doc-sidebar-link">Distributed Locking</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/exactly-once-delivery" class="doc-sidebar-link">Exactly-Once</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/event-sourcing-deep-dive" class="doc-sidebar-link">Event Sourcing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/change-data-capture" class="doc-sidebar-link">CDC</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/database-migrations-at-scale" class="doc-sidebar-link">DB Migrations</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/multi-region-architecture" class="doc-sidebar-link">Multi-Region</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/lru-cache-design" class="doc-sidebar-link">System Design Building Blocks</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/lru-cache-design" class="doc-sidebar-link">LRU Cache</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/unique-id-generation" class="doc-sidebar-link">Unique IDs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-cache-design" class="doc-sidebar-link">Distributed Cache</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/blob-storage-design" class="doc-sidebar-link">Blob Storage</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-search-engine" class="doc-sidebar-link">Search Engine</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-logging-system" class="doc-sidebar-link">Logging System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-monitoring" class="doc-sidebar-link">Monitoring</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/task-scheduler-design" class="doc-sidebar-link">Task Scheduler</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/sharded-counters" class="doc-sidebar-link">Sharded Counters</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/leaderboard-design" class="doc-sidebar-link">Leaderboard</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-key-value-store" class="doc-sidebar-link">System Design Scenarios</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-key-value-store" class="doc-sidebar-link">Key-Value Store</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-distributed-file-system" class="doc-sidebar-link">Distributed File System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-time-series-database" class="doc-sidebar-link">Time-Series DB</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-youtube-video-platform" class="doc-sidebar-link">YouTube</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-netflix-streaming" class="doc-sidebar-link">Netflix</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-instagram-photo-sharing" class="doc-sidebar-link">Instagram</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-spotify-music-streaming" class="doc-sidebar-link">Spotify</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-real-time-chat-messaging" class="doc-sidebar-link">Chat &amp; Messaging</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-social-feed" class="doc-sidebar-link">Social Feed</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-notification-system" class="doc-sidebar-link">Notifications</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-email-system" class="doc-sidebar-link">Email System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-uber-ride-hailing" class="doc-sidebar-link">Uber</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-maps" class="doc-sidebar-link">Google Maps</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-yelp-proximity-service" class="doc-sidebar-link">Yelp / Proximity</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-search-autocomplete" class="doc-sidebar-link">Search Autocomplete</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-web-crawler" class="doc-sidebar-link">Web Crawler</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-search" class="doc-sidebar-link">Google Search</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-docs-collaboration" class="doc-sidebar-link">Google Docs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-dropbox-file-sync" class="doc-sidebar-link">Dropbox Sync</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-calendar" class="doc-sidebar-link">Google Calendar</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-issue-tracker" class="doc-sidebar-link">Issue Tracker</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-payment-system" class="doc-sidebar-link">Payment System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-flash-sale-system" class="doc-sidebar-link">Flash Sale</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-amazon-shopping-cart" class="doc-sidebar-link">Shopping Cart</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/url-shortener-design" class="doc-sidebar-link">URL Shortener</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-pastebin" class="doc-sidebar-link">Pastebin</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-api-rate-limiter" class="doc-sidebar-link">API Rate Limiter</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-cookie-consent-service" class="doc-sidebar-link">Cookie Consent</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/facebook-2021-outage-analysis" class="doc-sidebar-link">Case Studies: Outages &amp; Reliability</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/facebook-2021-outage-analysis" class="doc-sidebar-link">Facebook 2021</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/aws-kinesis-2020-outage" class="doc-sidebar-link">AWS Kinesis 2020</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/stripe-idempotency-reliability" class="doc-sidebar-link">Stripe Idempotency</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/discord-rust-read-states" class="doc-sidebar-link">Discord: Go → Rust</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/graceful-degradation" class="doc-sidebar-link">Graceful Degradation</a></li></ul></li><li class="doc-sidebar-item  expanded"><a href="/legacy-personal-site/v5/articles/shopify-pod-architecture" class="doc-sidebar-link">Case Studies: Architecture</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/shopify-pod-architecture" class="doc-sidebar-link">Shopify Pods</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/netflix-microservices-evolution" class="doc-sidebar-link">Netflix Microservices</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/twitter-timeline-architecture" class="doc-sidebar-link">Twitter Timeline</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/facebook-tao-social-graph" class="doc-sidebar-link">Facebook TAO</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/uber-microservices-journey" class="doc-sidebar-link">Uber Microservices</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/uber-schemaless-datastore" class="doc-sidebar-link">Uber Schemaless</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/slack-distributed-architecture" class="doc-sidebar-link">Slack Architecture</a></li><li class="doc-sidebar-item active "><a href="/legacy-personal-site/v5/articles/linkedin-kafka-origin" class="doc-sidebar-link">LinkedIn → Kafka</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dropbox-magic-pocket" class="doc-sidebar-link">Case Studies: Data &amp; Migrations</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dropbox-magic-pocket" class="doc-sidebar-link">Dropbox Magic Pocket</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/instagram-cassandra-migration" class="doc-sidebar-link">Instagram → Cassandra</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/youtube-vitess-scaling" class="doc-sidebar-link">YouTube + Vitess</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/github-mysql-migration" class="doc-sidebar-link">GitHub MySQL</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/pinterest-mysql-sharding" class="doc-sidebar-link">Pinterest Sharding</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/discord-message-storage" class="doc-sidebar-link">Discord Messages</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/figma-multiplayer-infrastructure" class="doc-sidebar-link">Figma Multiplayer</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/whatsapp-erlang-scaling" class="doc-sidebar-link">WhatsApp + Erlang</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/edge-delivery-and-cache-invalidation" class="doc-sidebar-link">Platform Delivery &amp; Reliability</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/edge-delivery-and-cache-invalidation" class="doc-sidebar-link">Edge Delivery</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/deployment-strategies-blue-green-canary" class="doc-sidebar-link">Blue-Green &amp; Canary</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/ssg-performance-optimizations" class="doc-sidebar-link">SSG on CloudFront</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/build-pipelines-ci-cd" class="doc-sidebar-link">Build Pipelines</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/ecommerce-ssg-to-ssr-migration" class="doc-sidebar-link">SSG → SSR Migration</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/data-migration-strategies" class="doc-sidebar-link">Data Migrations</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/slos-slis-error-budgets" class="doc-sidebar-link">SLOs &amp; SLIs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/logging-metrics-tracing" class="doc-sidebar-link">Logs / Metrics / Traces</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/drm-basics-for-streaming" class="doc-sidebar-link">Media Systems &amp; Testing</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/drm-basics-for-streaming" class="doc-sidebar-link">DRM Basics</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/video-transcoding-pipeline" class="doc-sidebar-link">Video Transcoding</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-video-playback-architecture" class="doc-sidebar-link">Web Video Playback</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/image-processing-service-design" class="doc-sidebar-link">Image Processing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/load-testing-strategy-capacity-planning" class="doc-sidebar-link">Load Testing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/k6-load-testing-overview" class="doc-sidebar-link">k6 Load Testing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/statsig-experimentation-overview" class="doc-sidebar-link">Statsig</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/arrays-and-hash-maps" class="doc-sidebar-link">Data Structures &amp; Algorithms</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/arrays-and-hash-maps" class="doc-sidebar-link">Arrays &amp; Hash Maps</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/trees-and-graphs" class="doc-sidebar-link">Trees &amp; Graphs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/heaps-and-priority-queues" class="doc-sidebar-link">Heaps &amp; PQs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/sorting-algorithms-guide" class="doc-sidebar-link">Sorting Algorithms</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/search-algorithms-guide" class="doc-sidebar-link">Search Algorithms</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/k-crystal-balls-problem" class="doc-sidebar-link">K Crystal Balls</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/publish-subscribe-pattern" class="doc-sidebar-link">JavaScript Patterns</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/publish-subscribe-pattern" class="doc-sidebar-link">Pub/Sub</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/exponential-backoff-retry-strategy" class="doc-sidebar-link">Exponential Backoff</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/async-queue-pattern" class="doc-sidebar-link">Async Queue</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/javascript-error-handling-patterns" class="doc-sidebar-link">JS Error Handling</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/javascript-string-length" class="doc-sidebar-link">JS String Length</a></li></ul></li></ul></div></nav></aside><div class="doc-content"><nav class="doc-breadcrumbs" aria-label="Breadcrumbs"><a href="/legacy-personal-site/v5/articles">Articles</a><span class="doc-breadcrumb-sep" aria-hidden="true">/</span><a href="/legacy-personal-site/v5/articles">Arch Cases</a><span class="doc-breadcrumb-sep" aria-hidden="true">/</span><span aria-current="page">LinkedIn → Kafka</span></nav><details class="doc-toc-mobile"><summary>On this page</summary><nav class="doc-toc" aria-label="Table of contents" data-ps-toc=""><p class="doc-toc-title">On this page</p><ul class="doc-toc-list"><li class="doc-toc-item depth-2"><a href="#abstract">Abstract</a></li><li class="doc-toc-item depth-2"><a href="#context">Context</a></li><li class="doc-toc-item depth-3"><a href="#the-system">The System</a></li><li class="doc-toc-item depth-3"><a href="#the-trigger">The Trigger</a></li><li class="doc-toc-item depth-3"><a href="#constraints">Constraints</a></li><li class="doc-toc-item depth-2"><a href="#the-problem">The Problem</a></li><li class="doc-toc-item depth-3"><a href="#symptoms">Symptoms</a></li><li class="doc-toc-item depth-3"><a href="#root-cause-analysis">Root Cause Analysis</a></li><li class="doc-toc-item depth-2"><a href="#options-considered">Options Considered</a></li><li class="doc-toc-item depth-3"><a href="#option-1-improve-existing-pipelines">Option 1: Improve Existing Pipelines</a></li><li class="doc-toc-item depth-3"><a href="#option-2-centralized-database">Option 2: Centralized Database</a></li><li class="doc-toc-item depth-3"><a href="#option-3-adopt-open-source-messaging">Option 3: Adopt Open Source Messaging</a></li><li class="doc-toc-item depth-3"><a href="#option-4-build-a-distributed-commit-log-chosen">Option 4: Build a Distributed Commit Log (Chosen)</a></li><li class="doc-toc-item depth-3"><a href="#decision-factors">Decision Factors</a></li><li class="doc-toc-item depth-2"><a href="#implementation">Implementation</a></li><li class="doc-toc-item depth-3"><a href="#architecture-overview">Architecture Overview</a></li><li class="doc-toc-item depth-3"><a href="#core-design-decisions">Core Design Decisions</a></li><li class="doc-toc-item depth-3"><a href="#api-design">API Design</a></li><li class="doc-toc-item depth-3"><a href="#migration-strategy">Migration Strategy</a></li><li class="doc-toc-item depth-2"><a href="#outcome">Outcome</a></li><li class="doc-toc-item depth-3"><a href="#metrics-comparison">Metrics Comparison</a></li><li class="doc-toc-item depth-3"><a href="#timeline">Timeline</a></li><li class="doc-toc-item depth-3"><a href="#unexpected-benefits">Unexpected Benefits</a></li><li class="doc-toc-item depth-3"><a href="#remaining-limitations-as-of-initial-release">Remaining Limitations (as of initial release)</a></li><li class="doc-toc-item depth-2"><a href="#what-changed-since">What Changed Since</a></li><li class="doc-toc-item depth-3"><a href="#coordination-zookeeper--kraft">Coordination: ZooKeeper → KRaft</a></li><li class="doc-toc-item depth-3"><a href="#delivery-at-least-once--exactly-once">Delivery: at-least-once → exactly-once</a></li><li class="doc-toc-item depth-3"><a href="#storage-local-disks--tiered">Storage: local disks → tiered</a></li><li class="doc-toc-item depth-3"><a href="#linkedins-broader-data-integration-story-databus-and-brooklin">LinkedIn’s broader data-integration story: Databus and Brooklin</a></li><li class="doc-toc-item depth-3"><a href="#the-stream-processing-ecosystem-grew-on-top">The stream-processing ecosystem grew on top</a></li><li class="doc-toc-item depth-2"><a href="#lessons-learned">Lessons Learned</a></li><li class="doc-toc-item depth-3"><a href="#technical-lessons">Technical Lessons</a></li><li class="doc-toc-item depth-3"><a href="#process-lessons">Process Lessons</a></li><li class="doc-toc-item depth-3"><a href="#organizational-lessons">Organizational Lessons</a></li><li class="doc-toc-item depth-2"><a href="#applying-this-to-your-system">Applying This to Your System</a></li><li class="doc-toc-item depth-3"><a href="#when-this-pattern-applies">When This Pattern Applies</a></li><li class="doc-toc-item depth-3"><a href="#checklist-for-evaluation">Checklist for Evaluation</a></li><li class="doc-toc-item depth-3"><a href="#starting-points">Starting Points</a></li><li class="doc-toc-item depth-2"><a href="#conclusion">Conclusion</a></li><li class="doc-toc-item depth-2"><a href="#appendix">Appendix</a></li><li class="doc-toc-item depth-3"><a href="#prerequisites">Prerequisites</a></li><li class="doc-toc-item depth-3"><a href="#terminology">Terminology</a></li><li class="doc-toc-item depth-3"><a href="#summary">Summary</a></li><li class="doc-toc-item depth-3"><a href="#references">References</a></li></ul></nav></details><main><article id="doc-main-content" tabindex="-1" data-pagefind-body=""><div class="site-content-meta"><div class="site-content-meta-row"><span>Published Feb 8, 2026</span><span>Updated Apr 21, 2026</span></div><div class="site-tag-list" aria-label="Tags"><span class="site-pill site-pill-subtle">Case Study</span><span class="site-pill site-pill-subtle">Architecture</span><span class="site-pill site-pill-subtle">System Design</span><span class="site-pill site-pill-subtle">Distributed Systems</span><span class="site-pill site-pill-subtle">Data Engineering</span></div></div><div class="prose"><h1 id="linkedin-and-the-birth-of-apache-kafka-solving-the-on-data-integration-problem"><a href="#linkedin-and-the-birth-of-apache-kafka-solving-the-on-data-integration-problem">LinkedIn and the Birth of Apache Kafka: Solving the O(N²) Data Integration Problem</a></h1>
+<p>By 2010, LinkedIn’s data plumbing was failing: every new data source meant another bespoke pipeline to every downstream system, and the wiring grew with the <em>square</em> of the system count. Oracle SQL*Loader jobs from the OLTP database into the warehouse ran for days with manual babysitting, and despite significant engineering effort, only <a href="https://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying" rel="noopener noreferrer" target="_blank">about 14% of their activity data was making it into Hadoop</a>. Traditional messaging systems like ActiveMQ required a full TCP/IP roundtrip per message — <a href="https://notes.stephenholiday.com/Kafka.pdf" rel="noopener noreferrer" target="_blank">not feasible for the throughput requirements of log-style traffic</a>. Jay Kreps, Neha Narkhede, and Jun Rao built Kafka to collapse this complexity: a distributed commit log that decouples producers from consumers, turning N×M point-to-point integrations into N+M attachments to a shared bus. This case study unpacks the architectural decisions that made Kafka the backbone of modern data infrastructure.</p>
+<p><figure class="ps-figure ps-figure-themed ps-figure-zoomable"><picture><source srcset="/legacy-personal-site/v5/assets/linkedin-s-data-integration-complexity-before-and-after-kafka-the-o-n-point-to-p-dark.077064fa.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" data-scheme="dark"><source srcset="/legacy-personal-site/v5/assets/linkedin-s-data-integration-complexity-before-and-after-kafka-the-o-n-point-to-p-light.dfc2c2aa.svg" type="image/svg+xml" data-scheme="light"><img src="/legacy-personal-site/v5/assets/linkedin-s-data-integration-complexity-before-and-after-kafka-the-o-n-point-to-p-light.dfc2c2aa.svg" alt="LinkedIn&#x27;s data integration complexity before and after Kafka. The O(N²) point-to-point connections collapsed into O(N) connections through a unified log." width="1483" height="591" style="max-width:min(1483px,100%)"></picture><figcaption>LinkedIn's data integration complexity before and after Kafka. The O(N²) point-to-point connections collapsed into O(N) connections through a unified log.</figcaption><button type="button" class="ps-img-zoom-btn" hidden aria-label="Zoom image" data-ps-img-zoom-btn=""><svg class="ps-img-zoom-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6"></path></svg></button></figure></p>
+<h2 id="abstract"><a href="#abstract">Abstract</a></h2>
+<p><strong>The core insight</strong>: Data integration is fundamentally a problem of decoupling producers from consumers. Every data source (databases, applications, logs) and every data sink (Hadoop, search, real-time processing) creates a potential integration point. With N sources and M sinks, point-to-point integration requires O(N×M) custom pipelines—each with its own failure modes, data formats, and operational burden.</p>
+<p><strong>Kafka’s solution</strong>: A distributed commit log as a universal data bus. Producers append to the log without knowing who consumes. Consumers read from the log at their own pace without affecting producers. The log provides:</p>
+<ul>
+<li><strong>Ordering guarantees</strong> within partitions (critical for event processing)</li>
+<li><strong>Durability</strong> via disk persistence and replication</li>
+<li><strong>Scalability</strong> via horizontal partitioning</li>
+<li><strong>Decoupling</strong> via pull-based consumption</li>
+</ul>
+<p><strong>Key design decisions and their rationale</strong>:</p>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Decision</th>
+<th>Why</th>
+<th>Trade-off</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Log-based storage</strong></td>
+<td>Sequential I/O saturates disk bandwidth; random I/O doesn’t</td>
+<td>Requires compaction for key-based workloads</td>
+</tr>
+<tr>
+<td><strong>Pull-based consumers</strong></td>
+<td>Consumer controls pace; avoids overwhelming slow consumers</td>
+<td>Adds latency vs. push (median 2ms acceptable)</td>
+</tr>
+<tr>
+<td><strong>Partitioned topics</strong></td>
+<td>Parallelism bounded by partition count, not broker count</td>
+<td>Consumer groups limited to partition count</td>
+</tr>
+<tr>
+<td><strong>Stateless brokers</strong></td>
+<td>Simplifies failover; consumer tracks own offset</td>
+<td>Consumer must manage offset commits</td>
+</tr>
+<tr>
+<td><strong>Leader-follower replication</strong></td>
+<td>f+1 replicas tolerate f failures (vs. 2f+1 for quorum)</td>
+<td>Assumes datacenter reliability</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Scale progression at LinkedIn</strong>:</p>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Year</th>
+<th>Messages/Day</th>
+<th>Growth</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Jul 2011</td>
+<td>1 billion</td>
+<td>Baseline</td>
+<td><a href="https://www.hpcwire.com/bigdatawire/2015/09/02/kafka-tops-1-trillion-messages-per-day-at-linkedin/" rel="noopener noreferrer" target="_blank">LinkedIn / BigDATAwire</a></td>
+</tr>
+<tr>
+<td>2012</td>
+<td>20 billion</td>
+<td>20×</td>
+<td><a href="https://www.hpcwire.com/bigdatawire/2015/09/02/kafka-tops-1-trillion-messages-per-day-at-linkedin/" rel="noopener noreferrer" target="_blank">BigDATAwire</a></td>
+</tr>
+<tr>
+<td>Jul 2013</td>
+<td>200 billion</td>
+<td>200×</td>
+<td><a href="https://www.hpcwire.com/bigdatawire/2015/09/02/kafka-tops-1-trillion-messages-per-day-at-linkedin/" rel="noopener noreferrer" target="_blank">BigDATAwire</a></td>
+</tr>
+<tr>
+<td>Sep 2015</td>
+<td>1.1 trillion</td>
+<td>1,100×</td>
+<td><a href="https://www.confluent.io/blog/apache-kafka-hits-1-1-trillion-messages-per-day-joins-the-4-comma-club/" rel="noopener noreferrer" target="_blank">Confluent / LinkedIn</a></td>
+</tr>
+<tr>
+<td>Oct 2019</td>
+<td>7 trillion</td>
+<td>7,000×</td>
+<td><a href="https://www.linkedin.com/blog/engineering/open-source/apache-kafka-trillion-messages" rel="noopener noreferrer" target="_blank">LinkedIn Engineering</a></td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="context"><a href="#context">Context</a></h2>
+<h3 id="the-system"><a href="#the-system">The System</a></h3>
+<p>In 2010, LinkedIn’s data infrastructure consisted of multiple specialized systems:</p>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Purpose</th>
+<th>Scale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Oracle</strong></td>
+<td>Transactional data (profiles, connections)</td>
+<td>Primary OLTP</td>
+</tr>
+<tr>
+<td><strong>Hadoop</strong></td>
+<td>Batch analytics (82 daily jobs, 16TB intermediate data)</td>
+<td>14% of data covered</td>
+</tr>
+<tr>
+<td><strong>Voldemort</strong></td>
+<td>Key-value store (also built at LinkedIn)</td>
+<td>Serving tier</td>
+</tr>
+<tr>
+<td><strong>Azkaban</strong></td>
+<td>Workflow orchestration</td>
+<td>ETL scheduling</td>
+</tr>
+<tr>
+<td><strong>Data Warehouse</strong></td>
+<td>Business analytics</td>
+<td>Offline queries</td>
+</tr>
+</tbody>
+</table></div>
+<p>The team needed to track activity events: page views, search queries, ad impressions, profile views, connection requests, and content interactions. These events fed both offline analytics (Hadoop, data warehouse) and emerging real-time use cases (monitoring, personalization, fraud detection).</p>
+<h3 id="the-trigger"><a href="#the-trigger">The Trigger</a></h3>
+<p><strong>2008-2010</strong>: LinkedIn’s data pipelines were failing under scale:</p>
+<p><strong>The SQL*Loader bottleneck</strong>: Loading data from the OLTP Oracle estate into the data warehouse used Oracle SQL*Loader. The process ran for days, with most of that time spent on the actual transfer, and required manual intervention when it failed.</p>
+<p><strong>The integration complexity explosion</strong>: With N data sources and M data consumers, the team faced O(N×M) integration points. Each new data source meant building custom connectors to every consumer. Each new consumer meant integrating with every source.</p>
+<blockquote>
+<p>“We put lots of effort into pushing activity data through custom pipelines into Hadoop, and even more into getting our reporting data there too, but were only successful in getting a subset of around 14 percent of our data.”
+— Jay Kreps, “The Log” (2013)</p>
+</blockquote>
+<p><strong>The real-time gap</strong>: Business teams wanted sub-second latency for data visibility. The batch-oriented infrastructure delivered data hours or days after generation.</p>
+<h3 id="constraints"><a href="#constraints">Constraints</a></h3>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Constraint</th>
+<th>Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Throughput</strong></td>
+<td>Billions of events/day; ~172,000 msg/sec sustained peak</td>
+</tr>
+<tr>
+<td><strong>Latency</strong></td>
+<td>Batch was hours; needed seconds</td>
+</tr>
+<tr>
+<td><strong>Consumer variety</strong></td>
+<td>Hadoop (batch), real-time search, monitoring—different speeds</td>
+</tr>
+<tr>
+<td><strong>Operational overhead</strong></td>
+<td>No budget for per-consumer custom infrastructure</td>
+</tr>
+<tr>
+<td><strong>Fault tolerance</strong></td>
+<td>Multi-datacenter replication required</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="the-problem"><a href="#the-problem">The Problem</a></h2>
+<h3 id="symptoms"><a href="#symptoms">Symptoms</a></h3>
+<p><strong>Data staleness</strong>: Activity data took hours or days to reach analytics systems. Product teams couldn’t measure feature impact in real-time.</p>
+<p><strong>Pipeline fragility</strong>: Custom pipelines between systems failed frequently. Each failure required debugging specific to that pipeline’s implementation.</p>
+<p><strong>Coverage gap</strong>: Despite significant investment, most data never reached the analytical systems that needed it. The team estimated only 14% of relevant data was accessible in Hadoop.</p>
+<p><strong>Operational burden</strong>: Each data flow required dedicated engineering attention. Adding a new data source meant weeks of integration work with every downstream consumer.</p>
+<h3 id="root-cause-analysis"><a href="#root-cause-analysis">Root Cause Analysis</a></h3>
+<p><strong>Investigation process</strong>:</p>
+<ol>
+<li><strong>Initial hypothesis</strong>: The problem was specific pipelines—fix each one individually.</li>
+<li><strong>Pattern recognition</strong>: Every pipeline had the same fundamental issues: serialization mismatches, flow control problems, failure handling complexity.</li>
+<li><strong>The insight</strong>: The problem was architectural—point-to-point integration doesn’t scale with system count.</li>
+</ol>
+<p><strong>The actual root cause</strong>: No unified abstraction for data in motion. Each data flow was a one-off implementation with custom:</p>
+<ul>
+<li>Serialization format</li>
+<li>Transport mechanism</li>
+<li>Error handling</li>
+<li>Backpressure strategy</li>
+<li>Monitoring approach</li>
+</ul>
+<p><strong>Why existing solutions failed</strong>:</p>
+<p><strong>Traditional messaging systems (ActiveMQ, RabbitMQ)</strong>:</p>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Issue</th>
+<th>Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Full TCP roundtrip per message</td>
+<td><a href="https://notes.stephenholiday.com/Kafka.pdf" rel="noopener noreferrer" target="_blank">No producer-side batching API</a>; per-message overhead caps connection throughput well below log-style needs</td>
+</tr>
+<tr>
+<td>Weak distributed support</td>
+<td>No native partitioning across machines; clustering bolted on</td>
+</tr>
+<tr>
+<td>Memory-buffered queues</td>
+<td>Performance cliff when consumers fall behind and the queue spills</td>
+</tr>
+<tr>
+<td>ACK-per-message overhead</td>
+<td>CPU and I/O costs scale linearly with message count, not bytes</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Log aggregation systems (Facebook Scribe)</strong>:</p>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Issue</th>
+<th>Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Push-based model</td>
+<td>Overwhelmed slow consumers</td>
+</tr>
+<tr>
+<td>Batch-oriented</td>
+<td>Not suitable for real-time consumers</td>
+</tr>
+<tr>
+<td>Implementation-specific</td>
+<td>Exposed internals to downstream users</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="options-considered"><a href="#options-considered">Options Considered</a></h2>
+<h3 id="option-1-improve-existing-pipelines"><a href="#option-1-improve-existing-pipelines">Option 1: Improve Existing Pipelines</a></h3>
+<p><strong>Approach</strong>: Fix each point-to-point pipeline individually. Standardize serialization, add monitoring, improve error handling.</p>
+<p><strong>Pros</strong>:</p>
+<ul>
+<li>No new infrastructure to build</li>
+<li>Incremental improvement</li>
+</ul>
+<p><strong>Cons</strong>:</p>
+<ul>
+<li>O(N×M) effort scales with data systems</li>
+<li>Doesn’t address fundamental complexity</li>
+<li>Each new system still requires O(N) integrations</li>
+</ul>
+<p><strong>Why not chosen</strong>: The team had already tried this. Despite significant effort, they couldn’t keep up with the integration demands of new data sources and consumers.</p>
+<h3 id="option-2-centralized-database"><a href="#option-2-centralized-database">Option 2: Centralized Database</a></h3>
+<p><strong>Approach</strong>: Route all data through a single database (Oracle or Hadoop).</p>
+<p><strong>Pros</strong>:</p>
+<ul>
+<li>Single integration point</li>
+<li>Familiar operational model</li>
+</ul>
+<p><strong>Cons</strong>:</p>
+<ul>
+<li>No single database handles both OLTP and analytics workloads efficiently</li>
+<li>Databases optimized for querying, not for high-throughput data transport</li>
+<li>Oracle already the bottleneck (2-3 day SQL*Loader jobs)</li>
+</ul>
+<p><strong>Why not chosen</strong>: Databases are optimized for state management, not data movement. Using a database as a message bus conflates two different concerns.</p>
+<h3 id="option-3-adopt-open-source-messaging"><a href="#option-3-adopt-open-source-messaging">Option 3: Adopt Open Source Messaging</a></h3>
+<p><strong>Approach</strong>: Deploy ActiveMQ or RabbitMQ as a message bus.</p>
+<p><strong>Pros</strong>:</p>
+<ul>
+<li>Mature software</li>
+<li>JMS ecosystem compatibility</li>
+</ul>
+<p><strong>Cons</strong>:</p>
+<ul>
+<li>Throughput limitations (TCP roundtrip per message)</li>
+<li>No native horizontal partitioning</li>
+<li>Memory pressure under consumer lag</li>
+</ul>
+<p><strong>Why not chosen</strong>: The team tested these systems. Throughput was orders of magnitude below requirements. At billions of events per day, the per-message overhead was prohibitive.</p>
+<h3 id="option-4-build-a-distributed-commit-log-chosen"><a href="#option-4-build-a-distributed-commit-log-chosen">Option 4: Build a Distributed Commit Log (Chosen)</a></h3>
+<p><strong>Approach</strong>: Build a new system from first principles, optimized for:</p>
+<ol>
+<li>High-throughput ingestion (millions of events/second)</li>
+<li>Durable storage with configurable retention</li>
+<li>Multiple independent consumers at different speeds</li>
+<li>Horizontal scalability via partitioning</li>
+</ol>
+<p><strong>Pros</strong>:</p>
+<ul>
+<li>Designed for LinkedIn’s specific scale requirements</li>
+<li>Log abstraction provides ordering and durability</li>
+<li>Decoupled producers and consumers</li>
+</ul>
+<p><strong>Cons</strong>:</p>
+<ul>
+<li>Significant upfront engineering investment</li>
+<li>Operational learning curve for new system</li>
+<li>Risk of building something nobody uses</li>
+</ul>
+<p><strong>Why chosen</strong>: No existing system met the throughput, scalability, and multi-consumer requirements simultaneously.</p>
+<h3 id="decision-factors"><a href="#decision-factors">Decision Factors</a></h3>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Factor</th>
+<th>ActiveMQ</th>
+<th>Scribe</th>
+<th>New System (Kafka)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Throughput</td>
+<td>Low (per-msg overhead)</td>
+<td>High (batch)</td>
+<td>High (batched I/O)</td>
+</tr>
+<tr>
+<td>Real-time</td>
+<td>Yes</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Multi-consumer</td>
+<td>Limited</td>
+<td>Limited</td>
+<td>Native</td>
+</tr>
+<tr>
+<td>Horizontal scale</td>
+<td>Manual</td>
+<td>Yes</td>
+<td>Native partitioning</td>
+</tr>
+<tr>
+<td>Durability</td>
+<td>Optional</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Team expertise</td>
+<td>Partial</td>
+<td>None</td>
+<td>Full control</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="implementation"><a href="#implementation">Implementation</a></h2>
+<h3 id="architecture-overview"><a href="#architecture-overview">Architecture Overview</a></h3>
+<p><strong>Before: Point-to-Point</strong></p>
+<figure class="ps-code-block" style="--ps-code-light-bg:#fff;--ps-code-dark-bg:#24292e;--ps-code-light-fg:#24292e;--ps-code-dark-fg:#e1e4e8" data-ps-code-lang="text" data-ps-code-wrap="false" data-ps-code-line-numbers="true" data-ps-code-renderer="pagesmith" data-ps-code-frame="code"><div class="ps-code-toolbar ps-code-toolbar--code"><div class="ps-code-toolbar-main ps-code-toolbar-main--code"><span class="ps-code-toolbar-chip"><span class="ps-code-language-badge ps-code-language-badge--text" data-ps-code-language="text" style="--ps-code-language-badge-bg:hsl(213 62% 42%);--ps-code-language-badge-fg:#ffffff" aria-hidden="true" title="Text">TXT</span><span class="ps-code-toolbar-label">Text</span></span></div><button class="ps-code-copy" type="button" data-ps-code-copy="true" data-copy-label="Copy" data-copied-label="Copied" data-error-label="Retry" aria-label="Copy code block" title="Copy"><svg class="ps-code-copy-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"></rect><path d="M10.5 5.5V4a1.5 1.5 0 0 0-1.5-1.5H4A1.5 1.5 0 0 0 2.5 4v5A1.5 1.5 0 0 0 4 10.5h1.5"></path></svg><svg class="ps-code-copy-icon ps-code-copy-icon--copied" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 9 6.5 12 12.5 4.5"></path></svg></button></div><div class="ps-code-body"><pre class="ps-code-pre shiki shiki-themes" tabindex="0" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8"><code class="ps-code-code language-text"><span class="ps-code-line" data-ps-code-line="1"><span class="ps-code-line-number" aria-hidden="true">1</span><span class="ps-code-line-content"><span>App → Oracle → SQL*Loader → Data Warehouse</span></span></span><span class="ps-code-line" data-ps-code-line="2"><span class="ps-code-line-number" aria-hidden="true">2</span><span class="ps-code-line-content"><span>App → Custom ETL → Hadoop</span></span></span><span class="ps-code-line" data-ps-code-line="3"><span class="ps-code-line-number" aria-hidden="true">3</span><span class="ps-code-line-content"><span>App → Direct → Monitoring</span></span></span><span class="ps-code-line" data-ps-code-line="4"><span class="ps-code-line-number" aria-hidden="true">4</span><span class="ps-code-line-content"><span>Database → CDC → Search Index</span></span></span></code></pre></div></figure>
+<p>Each arrow represents a custom integration.</p>
+<p><strong>After: Kafka as Central Hub</strong></p>
+<p><figure class="ps-figure ps-figure-themed ps-figure-zoomable"><picture><source srcset="/legacy-personal-site/v5/assets/kafka-architecture-producers-publish-to-topics-consumers-subscribe-independently-dark.8e0fba25.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" data-scheme="dark"><source srcset="/legacy-personal-site/v5/assets/kafka-architecture-producers-publish-to-topics-consumers-subscribe-independently-light.e67e20e5.svg" type="image/svg+xml" data-scheme="light"><img src="/legacy-personal-site/v5/assets/kafka-architecture-producers-publish-to-topics-consumers-subscribe-independently-light.e67e20e5.svg" alt="Kafka architecture: producers publish to topics, consumers subscribe independently. Each consumer maintains its own offset." width="870" height="413" style="max-width:min(870px,100%)"></picture><figcaption>Kafka architecture: producers publish to topics, consumers subscribe independently. Each consumer maintains its own offset.</figcaption><button type="button" class="ps-img-zoom-btn" hidden aria-label="Zoom image" data-ps-img-zoom-btn=""><svg class="ps-img-zoom-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6"></path></svg></button></figure></p>
+<h3 id="core-design-decisions"><a href="#core-design-decisions">Core Design Decisions</a></h3>
+<h4 id="decision-1-log-based-storage"><a href="#decision-1-log-based-storage">Decision 1: Log-Based Storage</a></h4>
+<p><strong>The insight</strong>: Sequential disk I/O is fast—comparable to network I/O. Random disk I/O is 10,000× slower. A commit log (append-only writes, sequential reads) exploits this asymmetry.</p>
+<p><strong>Implementation</strong>:</p>
+<ul>
+<li>Messages appended to segment files in offset order</li>
+<li>Segment files immutable after closing (simplifies replication, caching)</li>
+<li>OS page cache handles read caching (no application-level cache needed)</li>
+<li>Linear reads can prefetch efficiently</li>
+</ul>
+<p><strong>Benchmark result (2014)</strong>: <a href="https://engineering.linkedin.com/kafka/benchmarking-apache-kafka-2-million-writes-second-three-cheap-machines" rel="noopener noreferrer" target="_blank">821,557 records/sec</a> (≈78 MB/sec) from a single producer thread on commodity hardware, no replication, 100-byte records. Adding 3× asynchronous replication and three concurrent producers pushed the same cluster past 2 million writes/sec.</p>
+<p><strong>Trade-off</strong>: Log-based storage requires periodic compaction for key-based workloads. Kafka added log compaction in 0.8 to retain only the latest value per key.</p>
+<p>The other consequence of “log as the storage primitive” is that <em>position</em> — not message identity — is how consumers track progress. Each topic partition is a single append-only sequence; every consumer group records its own offset into that sequence and can move forward, backward, or sideways independently of the producers and of the other consumers.</p>
+<p><figure class="ps-figure ps-figure-themed ps-figure-zoomable"><picture><source srcset="/legacy-personal-site/v5/assets/log-with-consumer-offsets-dark.ade060b1.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" data-scheme="dark"><source srcset="/legacy-personal-site/v5/assets/log-with-consumer-offsets-light.bc1ee12e.svg" type="image/svg+xml" data-scheme="light"><img src="/legacy-personal-site/v5/assets/log-with-consumer-offsets-light.bc1ee12e.svg" alt="A topic partition is an append-only log. Each consumer group tracks its own offset into the same log, so a real-time alerter, a stream processor, and a Hadoop batch job can read at completely different positions without affecting the producer or one another." width="1120" height="374" style="max-width:min(1120px,100%)"></picture><figcaption>A topic partition is an append-only log. Each consumer group tracks its own offset, so heterogeneous consumers can read the same records at completely different positions without affecting the producer or one another.</figcaption><button type="button" class="ps-img-zoom-btn" hidden aria-label="Zoom image" data-ps-img-zoom-btn=""><svg class="ps-img-zoom-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6"></path></svg></button></figure></p>
+<h4 id="decision-2-pull-based-consumers"><a href="#decision-2-pull-based-consumers">Decision 2: Pull-Based Consumers</a></h4>
+<p><strong>The insight</strong>: Push-based systems must choose between overwhelming slow consumers or implementing complex per-consumer flow control. Pull lets consumers control their own pace.</p>
+<p><strong>Implementation</strong>:</p>
+<ul>
+<li>Consumers issue fetch requests specifying topic, partition, and offset</li>
+<li>Broker returns available messages up to configured batch size</li>
+<li>Consumer commits offsets after processing (at-least-once) or before (at-most-once)</li>
+</ul>
+<p><strong>Advantages</strong>:</p>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Benefit</th>
+<th>Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Batching efficiency</strong></td>
+<td>Consumer fetches many messages per request</td>
+</tr>
+<tr>
+<td><strong>Consumer-controlled pace</strong></td>
+<td>Slow consumers don’t affect producers</td>
+</tr>
+<tr>
+<td><strong>Catch-up capability</strong></td>
+<td>Lagging consumer can catch up without backpressure</td>
+</tr>
+<tr>
+<td><strong>Replay</strong></td>
+<td>Consumer can re-read from any offset</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Trade-off</strong>: Pull adds latency (consumer must poll). Kafka mitigates with long-polling: a consumer request blocks until data is available or a timeout expires. The 2014 LinkedIn benchmark measured <a href="https://engineering.linkedin.com/kafka/benchmarking-apache-kafka-2-million-writes-second-three-cheap-machines" rel="noopener noreferrer" target="_blank">end-to-end latency at ≈2 ms median and ≈3 ms p99</a> for a producer/broker/consumer round trip on a same-rack cluster.</p>
+<h4 id="decision-3-partitioned-topics"><a href="#decision-3-partitioned-topics">Decision 3: Partitioned Topics</a></h4>
+<p><strong>The insight</strong>: A single log can’t scale beyond one broker’s capacity. Partitioning distributes data across brokers while maintaining order within each partition.</p>
+<p><strong>Implementation</strong>:</p>
+<ul>
+<li>Topic divided into N partitions</li>
+<li>Producer chooses partition (hash of key, round-robin, or custom)</li>
+<li>Each partition is an independent, ordered log</li>
+<li>Consumer group assigns partitions to consumers</li>
+</ul>
+<p><figure class="ps-figure ps-figure-themed ps-figure-zoomable"><picture><source srcset="/legacy-personal-site/v5/assets/partitioning-enables-parallelism-consumer-group-distributes-partitions-across-me-dark.8d3ea683.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" data-scheme="dark"><source srcset="/legacy-personal-site/v5/assets/partitioning-enables-parallelism-consumer-group-distributes-partitions-across-me-light.b9fe4f10.svg" type="image/svg+xml" data-scheme="light"><img src="/legacy-personal-site/v5/assets/partitioning-enables-parallelism-consumer-group-distributes-partitions-across-me-light.b9fe4f10.svg" alt="Partitioning enables parallelism. Consumer group distributes partitions across members. Messages with the same key always go to the same partition, preserving per-key ordering." width="1038" height="386" style="max-width:min(1038px,100%)"></picture><figcaption>Partitioning enables parallelism. Consumer group distributes partitions across members. Messages with the same key always go to the same partition, preserving per-key ordering.</figcaption><button type="button" class="ps-img-zoom-btn" hidden aria-label="Zoom image" data-ps-img-zoom-btn=""><svg class="ps-img-zoom-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6"></path></svg></button></figure></p>
+<p><strong>Trade-off</strong>: Consumer parallelism is bounded by partition count. A topic with 10 partitions can have at most 10 consumers in a group processing in parallel. Choose partition count based on expected peak parallelism.</p>
+<h4 id="decision-4-stateless-brokers"><a href="#decision-4-stateless-brokers">Decision 4: Stateless Brokers</a></h4>
+<p><strong>The insight</strong>: Tracking consumer offsets in brokers adds complexity and coupling. If brokers are stateless (from a consumer perspective), failover is simpler.</p>
+<p><strong>Implementation</strong>:</p>
+<ul>
+<li>Brokers store messages but not consumer state</li>
+<li>Consumers track their own offsets (originally in ZooKeeper, later in Kafka itself)</li>
+<li>Broker failure doesn’t lose consumer progress</li>
+</ul>
+<p><strong>Trade-off</strong>: Consumers must commit offsets explicitly. Failure between processing and commit can cause reprocessing (at-least-once semantics). Exactly-once requires additional coordination (added in Kafka 0.11 with idempotent producers and transactions).</p>
+<h4 id="decision-5-leader-follower-replication"><a href="#decision-5-leader-follower-replication">Decision 5: Leader-Follower Replication</a></h4>
+<p><strong>The insight</strong>: Quorum-based replication (like Paxos/Raft) requires 2f+1 replicas to tolerate f failures. Leader-follower only requires f+1 replicas—half the hardware cost.</p>
+<p><strong>Implementation</strong> (added in <a href="https://lists.apache.org/thread/mzbgy2f5ywnq9ov5d1xgtpfx0d5vnfv8" rel="noopener noreferrer" target="_blank">Kafka 0.8.0, December 2013</a>; design write-up published <a href="https://engineering.linkedin.com/kafka/intra-cluster-replication-apache-kafka" rel="noopener noreferrer" target="_blank">earlier in 2013</a>):</p>
+<ul>
+<li>Each partition has one leader and N-1 followers.</li>
+<li>Producers write only to the leader; followers fetch from the leader on the same protocol consumers use.</li>
+<li>The In-Sync Replica (ISR) set tracks followers within <code>replica.lag.time.max.ms</code> of the leader.</li>
+<li>A record is “committed” when every replica in the ISR has appended it; only committed records are exposed to consumers (the high-watermark).</li>
+<li>Leader failure triggers controller-driven leader election from the ISR. Out-of-sync replicas are not elected unless <code>unclean.leader.election.enable=true</code>.</li>
+</ul>
+<p><figure class="ps-figure ps-figure-themed ps-figure-zoomable"><picture><source srcset="/legacy-personal-site/v5/assets/isr-replication-flow-dark.bc244c18.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" data-scheme="dark"><source srcset="/legacy-personal-site/v5/assets/isr-replication-flow-light.8cb2a16c.svg" type="image/svg+xml" data-scheme="light"><img src="/legacy-personal-site/v5/assets/isr-replication-flow-light.8cb2a16c.svg" alt="ISR replication: producer waits for all in-sync followers to fetch and append a record before the leader advances the high-watermark and acks the producer." width="1107" height="1048" style="max-width:min(1107px,100%)"></picture><figcaption>ISR replication. Followers fetch from the leader on the same protocol consumers use; the leader advances the high-watermark only after every in-sync replica has the record, and elects new leaders only from the surviving ISR.</figcaption><button type="button" class="ps-img-zoom-btn" hidden aria-label="Zoom image" data-ps-img-zoom-btn=""><svg class="ps-img-zoom-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6"></path></svg></button></figure></p>
+<p><strong>Trade-off</strong>: Leader-follower assumes a low-latency, low-partition environment — typically a single datacenter or availability zone. For multi-datacenter, Kafka relies on asynchronous mirroring (MirrorMaker / MirrorMaker 2) rather than synchronous replication, which trades RPO for partition tolerance.</p>
+<h3 id="api-design"><a href="#api-design">API Design</a></h3>
+<p><strong>Three core design principles</strong> (from Jun Rao’s announcement):</p>
+<ol>
+<li><strong>Simple API</strong>: Producers send messages to topics. Consumers read messages from topics. No complex transaction semantics.</li>
+<li><strong>Low overhead</strong>: Batch messages in network transfers. Use efficient binary protocol. Zero-copy transfer from disk to network.</li>
+<li><strong>Scale-out architecture</strong>: Horizontal scaling via partition count. No single-node bottlenecks.</li>
+</ol>
+<p><strong>Producer API (simplified)</strong>:</p>
+<figure class="ps-code-block" style="--ps-code-light-bg:#fff;--ps-code-dark-bg:#24292e;--ps-code-light-fg:#24292e;--ps-code-dark-fg:#e1e4e8" data-ps-code-lang="java" data-ps-code-wrap="false" data-ps-code-line-numbers="true" data-ps-code-renderer="pagesmith" data-ps-code-frame="code"><div class="ps-code-toolbar ps-code-toolbar--code"><div class="ps-code-toolbar-main ps-code-toolbar-main--code"><span class="ps-code-toolbar-chip"><span class="ps-code-language-badge ps-code-language-badge--icon" data-ps-code-language="java" style="--ps-code-language-badge-bg:#f89820;--ps-code-language-badge-fg:#111827" aria-hidden="true" title="Java"><svg class="ps-code-language-icon ps-code-language-icon--monogram" viewBox="0 0 20 20" aria-hidden="true"><text x="10" y="12.5" text-anchor="middle" font-size="7" font-weight="700" fill="currentColor">JV</text></svg></span><span class="ps-code-toolbar-label">Java</span></span></div><button class="ps-code-copy" type="button" data-ps-code-copy="true" data-copy-label="Copy" data-copied-label="Copied" data-error-label="Retry" aria-label="Copy code block" title="Copy"><svg class="ps-code-copy-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"></rect><path d="M10.5 5.5V4a1.5 1.5 0 0 0-1.5-1.5H4A1.5 1.5 0 0 0 2.5 4v5A1.5 1.5 0 0 0 4 10.5h1.5"></path></svg><svg class="ps-code-copy-icon ps-code-copy-icon--copied" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 9 6.5 12 12.5 4.5"></path></svg></button></div><div class="ps-code-body"><pre class="ps-code-pre shiki shiki-themes" tabindex="0" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8"><code class="ps-code-code language-java"><span class="ps-code-line" data-ps-code-line="1"><span class="ps-code-line-number" aria-hidden="true">1</span><span class="ps-code-line-content"><span style="color:#6A737D;--shiki-dark:#6A737D">// Send message to topic, let Kafka choose partition</span></span></span><span class="ps-code-line" data-ps-code-line="2"><span class="ps-code-line-number" aria-hidden="true">2</span><span class="ps-code-line-content"><span style="color:#24292E;--shiki-dark:#E1E4E8">producer.</span><span style="color:#6F42C1;--shiki-dark:#B392F0">send</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(</span><span style="color:#D73A49;--shiki-dark:#F97583">new</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ProducerRecord&#x3C;>(</span><span style="color:#032F62;--shiki-dark:#9ECBFF">"user-events"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, userId, eventJson));</span></span></span><span class="ps-code-line" data-ps-code-line="3"><span class="ps-code-line-number" aria-hidden="true">3</span><span class="ps-code-line-content"></span></span><span class="ps-code-line" data-ps-code-line="4"><span class="ps-code-line-number" aria-hidden="true">4</span><span class="ps-code-line-content"><span style="color:#6A737D;--shiki-dark:#6A737D">// Send to specific partition</span></span></span><span class="ps-code-line" data-ps-code-line="5"><span class="ps-code-line-number" aria-hidden="true">5</span><span class="ps-code-line-content"><span style="color:#24292E;--shiki-dark:#E1E4E8">producer.</span><span style="color:#6F42C1;--shiki-dark:#B392F0">send</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(</span><span style="color:#D73A49;--shiki-dark:#F97583">new</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> ProducerRecord&#x3C;>(</span><span style="color:#032F62;--shiki-dark:#9ECBFF">"user-events"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, partition, userId, eventJson));</span></span></span></code></pre></div></figure>
+<p><strong>Consumer API (simplified)</strong>:</p>
+<figure class="ps-code-block" style="--ps-code-light-bg:#fff;--ps-code-dark-bg:#24292e;--ps-code-light-fg:#24292e;--ps-code-dark-fg:#e1e4e8" data-ps-code-lang="java" data-ps-code-wrap="false" data-ps-code-line-numbers="true" data-ps-code-renderer="pagesmith" data-ps-code-frame="code"><div class="ps-code-toolbar ps-code-toolbar--code"><div class="ps-code-toolbar-main ps-code-toolbar-main--code"><span class="ps-code-toolbar-chip"><span class="ps-code-language-badge ps-code-language-badge--icon" data-ps-code-language="java" style="--ps-code-language-badge-bg:#f89820;--ps-code-language-badge-fg:#111827" aria-hidden="true" title="Java"><svg class="ps-code-language-icon ps-code-language-icon--monogram" viewBox="0 0 20 20" aria-hidden="true"><text x="10" y="12.5" text-anchor="middle" font-size="7" font-weight="700" fill="currentColor">JV</text></svg></span><span class="ps-code-toolbar-label">Java</span></span></div><button class="ps-code-copy" type="button" data-ps-code-copy="true" data-copy-label="Copy" data-copied-label="Copied" data-error-label="Retry" aria-label="Copy code block" title="Copy"><svg class="ps-code-copy-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"></rect><path d="M10.5 5.5V4a1.5 1.5 0 0 0-1.5-1.5H4A1.5 1.5 0 0 0 2.5 4v5A1.5 1.5 0 0 0 4 10.5h1.5"></path></svg><svg class="ps-code-copy-icon ps-code-copy-icon--copied" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 9 6.5 12 12.5 4.5"></path></svg></button></div><div class="ps-code-body"><pre class="ps-code-pre shiki shiki-themes" tabindex="0" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8"><code class="ps-code-code language-java"><span class="ps-code-line" data-ps-code-line="1"><span class="ps-code-line-number" aria-hidden="true">1</span><span class="ps-code-line-content"><span style="color:#24292E;--shiki-dark:#E1E4E8">consumer.</span><span style="color:#6F42C1;--shiki-dark:#B392F0">subscribe</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(Arrays.</span><span style="color:#6F42C1;--shiki-dark:#B392F0">asList</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(</span><span style="color:#032F62;--shiki-dark:#9ECBFF">"user-events"</span><span style="color:#24292E;--shiki-dark:#E1E4E8">));</span></span></span><span class="ps-code-line" data-ps-code-line="2"><span class="ps-code-line-number" aria-hidden="true">2</span><span class="ps-code-line-content"><span style="color:#D73A49;--shiki-dark:#F97583">while</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> (</span><span style="color:#005CC5;--shiki-dark:#79B8FF">true</span><span style="color:#24292E;--shiki-dark:#E1E4E8">) {</span></span></span><span class="ps-code-line" data-ps-code-line="3"><span class="ps-code-line-number" aria-hidden="true">3</span><span class="ps-code-line-content"><span style="color:#24292E;--shiki-dark:#E1E4E8">    ConsumerRecords&#x3C;</span><span style="color:#D73A49;--shiki-dark:#F97583">String</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, </span><span style="color:#D73A49;--shiki-dark:#F97583">String</span><span style="color:#24292E;--shiki-dark:#E1E4E8">> records </span><span style="color:#D73A49;--shiki-dark:#F97583">=</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> consumer.</span><span style="color:#6F42C1;--shiki-dark:#B392F0">poll</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(Duration.</span><span style="color:#6F42C1;--shiki-dark:#B392F0">ofMillis</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(</span><span style="color:#005CC5;--shiki-dark:#79B8FF">100</span><span style="color:#24292E;--shiki-dark:#E1E4E8">));</span></span></span><span class="ps-code-line" data-ps-code-line="4"><span class="ps-code-line-number" aria-hidden="true">4</span><span class="ps-code-line-content"><span style="color:#24292E;--shiki-dark:#E1E4E8">    </span><span style="color:#D73A49;--shiki-dark:#F97583">for</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> (ConsumerRecord&#x3C;</span><span style="color:#D73A49;--shiki-dark:#F97583">String</span><span style="color:#24292E;--shiki-dark:#E1E4E8">, </span><span style="color:#D73A49;--shiki-dark:#F97583">String</span><span style="color:#24292E;--shiki-dark:#E1E4E8">> record </span><span style="color:#D73A49;--shiki-dark:#F97583">:</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> records) {</span></span></span><span class="ps-code-line" data-ps-code-line="5"><span class="ps-code-line-number" aria-hidden="true">5</span><span class="ps-code-line-content"><span style="color:#24292E;--shiki-dark:#E1E4E8">        </span><span style="color:#6F42C1;--shiki-dark:#B392F0">process</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(record.</span><span style="color:#6F42C1;--shiki-dark:#B392F0">key</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(), record.</span><span style="color:#6F42C1;--shiki-dark:#B392F0">value</span><span style="color:#24292E;--shiki-dark:#E1E4E8">(), record.</span><span style="color:#6F42C1;--shiki-dark:#B392F0">offset</span><span style="color:#24292E;--shiki-dark:#E1E4E8">());</span></span></span><span class="ps-code-line" data-ps-code-line="6"><span class="ps-code-line-number" aria-hidden="true">6</span><span class="ps-code-line-content"><span style="color:#24292E;--shiki-dark:#E1E4E8">    }</span></span></span><span class="ps-code-line" data-ps-code-line="7"><span class="ps-code-line-number" aria-hidden="true">7</span><span class="ps-code-line-content"><span style="color:#24292E;--shiki-dark:#E1E4E8">    consumer.</span><span style="color:#6F42C1;--shiki-dark:#B392F0">commitSync</span><span style="color:#24292E;--shiki-dark:#E1E4E8">();</span></span></span><span class="ps-code-line" data-ps-code-line="8"><span class="ps-code-line-number" aria-hidden="true">8</span><span class="ps-code-line-content"><span style="color:#24292E;--shiki-dark:#E1E4E8">}</span></span></span></code></pre></div></figure>
+<h3 id="migration-strategy"><a href="#migration-strategy">Migration Strategy</a></h3>
+<p>LinkedIn rolled out Kafka topic-by-topic during 2011 — by July 2011 the cluster was already carrying <a href="https://www.hpcwire.com/bigdatawire/2015/09/02/kafka-tops-1-trillion-messages-per-day-at-linkedin/" rel="noopener noreferrer" target="_blank">1 billion messages/day</a>. The pattern that fell out of that rollout — and the one most teams still use when migrating onto a log — looks like this:</p>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>What runs</th>
+<th>Goal</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. Shadow</td>
+<td>New code dual-writes to old pipeline + Kafka</td>
+<td>Validate completeness, ordering, schema compatibility</td>
+</tr>
+<tr>
+<td>2. Consumer swap</td>
+<td>Move one consumer at a time to read from Kafka</td>
+<td>Compare outputs; keep the legacy path live as a fallback</td>
+</tr>
+<tr>
+<td>3. Producer cutover</td>
+<td>Switch producers to Kafka-only; decommission legacy</td>
+<td>Reclaim resources; remove the second source of truth</td>
+</tr>
+</tbody>
+</table></div>
+<div class="markdown-alert markdown-alert-note">
+<p class="markdown-alert-title"><span class="octicon octicon-note" style="--oct-icon: url(&#x22;data:image/svg+xml;utf8,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; class=&#x27;octicon octicon-info mr-2&#x27; viewBox=&#x27;0 0 16 16&#x27; version=&#x27;1.1&#x27; width=&#x27;16&#x27; height=&#x27;16&#x27; aria-hidden=&#x27;true&#x27;%3E%3Cpath d=&#x27;M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z&#x27;%3E%3C/path%3E%3C/svg%3E&#x22;)"></span>Note</p>
+<p>The phase names above are an idealized reconstruction of how teams now stage onto a log; LinkedIn’s contemporary write-ups describe the rollout as topic-by-topic and consumer-by-consumer, not as three crisp phases. Treat it as a playbook, not a historical timeline.</p>
+</div>
+<p>Two properties of the log made this safe to do incrementally:</p>
+<ul>
+<li><strong>Replayable retention.</strong> Kafka’s per-partition offset tracking lets a new or fixed consumer rewind to any retained offset; a 7-day retention window is enough to catch most bugs found in production.</li>
+<li><strong>Independent consumer groups.</strong> A “shadow” consumer group can read the same topic in parallel with the legacy path without backpressuring producers or affecting other consumers.</li>
+</ul>
+<h2 id="outcome"><a href="#outcome">Outcome</a></h2>
+<h3 id="metrics-comparison"><a href="#metrics-comparison">Metrics Comparison</a></h3>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Before Kafka</th>
+<th>After Kafka</th>
+<th>Improvement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Data latency to analytics</td>
+<td>Hours-days</td>
+<td>Seconds</td>
+<td>~10,000×</td>
+</tr>
+<tr>
+<td>Activity data coverage in Hadoop</td>
+<td>~14%</td>
+<td>Approaching 100% as topics migrated</td>
+<td>~7×</td>
+</tr>
+<tr>
+<td>Integration effort per new system</td>
+<td>O(N) wiring</td>
+<td>O(1) attachment to the bus</td>
+<td>Linear → constant</td>
+</tr>
+<tr>
+<td>Sustained throughput</td>
+<td>n/a</td>
+<td><a href="http://sites.computer.org/debull/A12june/p33.pdf" rel="noopener noreferrer" target="_blank">172K msg/sec sustained, peak hour, 2012</a></td>
+<td>—</td>
+</tr>
+<tr>
+<td>Peak throughput</td>
+<td>n/a</td>
+<td><a href="https://engineering.linkedin.com/apache-kafka/how-we_re-improving-and-advancing-kafka-linkedin" rel="noopener noreferrer" target="_blank">4.5M msg/sec across the LinkedIn fleet, 2015</a></td>
+<td>—</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="timeline"><a href="#timeline">Timeline</a></h3>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Milestone</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Christmas 2009/2010</strong></td>
+<td>Jay Kreps writes first Kafka code</td>
+</tr>
+<tr>
+<td><strong>2010</strong></td>
+<td>Jun Rao and Neha Narkhede join; first production version</td>
+</tr>
+<tr>
+<td><strong>January 11, 2011</strong></td>
+<td>Kafka open-sourced</td>
+</tr>
+<tr>
+<td><strong>July 4, 2011</strong></td>
+<td>Kafka enters Apache Incubator</td>
+</tr>
+<tr>
+<td><strong>July 2011</strong></td>
+<td>1 billion messages/day in LinkedIn production</td>
+</tr>
+<tr>
+<td><strong>October 23, 2012</strong></td>
+<td>Kafka graduates to Apache Top-Level Project</td>
+</tr>
+<tr>
+<td><strong>February 2013</strong></td>
+<td>Intra-cluster replication design announced (ApacheCon)</td>
+</tr>
+<tr>
+<td><strong>December 3, 2013</strong></td>
+<td><a href="https://lists.apache.org/thread/mzbgy2f5ywnq9ov5d1xgtpfx0d5vnfv8" rel="noopener noreferrer" target="_blank">Apache Kafka 0.8.0 released with replication</a></td>
+</tr>
+<tr>
+<td><strong>September 23, 2014</strong></td>
+<td><a href="https://en.wikipedia.org/wiki/Confluent" rel="noopener noreferrer" target="_blank">Confluent founded</a> by Kreps, Narkhede, Rao</td>
+</tr>
+<tr>
+<td><strong>June 28, 2017</strong></td>
+<td>Kafka 0.11 — idempotent producer, transactions, exactly-once semantics</td>
+</tr>
+<tr>
+<td><strong>October 2019</strong></td>
+<td>LinkedIn surpasses <a href="https://www.linkedin.com/blog/engineering/open-source/apache-kafka-trillion-messages" rel="noopener noreferrer" target="_blank">7 trillion messages/day</a></td>
+</tr>
+<tr>
+<td><strong>October 2022</strong></td>
+<td><a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-833%3A+Mark+KRaft+as+Production+Ready" rel="noopener noreferrer" target="_blank">KRaft marked production-ready</a> in Kafka 3.3, removing the ZooKeeper dependency for new clusters</td>
+</tr>
+<tr>
+<td><strong>November 2024</strong></td>
+<td><a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-405%3A+Kafka+Tiered+Storage" rel="noopener noreferrer" target="_blank">Tiered storage (KIP-405)</a> reaches GA in Kafka 3.9 — old segments offload to object storage</td>
+</tr>
+<tr>
+<td><strong>March 2025</strong></td>
+<td>Kafka 4.0 ships KRaft-only; ZooKeeper support fully removed</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="unexpected-benefits"><a href="#unexpected-benefits">Unexpected Benefits</a></h3>
+<p><strong>Stream processing foundation</strong>: Kafka’s ordered, durable log became the foundation for <a href="https://en.wikipedia.org/wiki/Apache_Samza" rel="noopener noreferrer" target="_blank">Apache Samza</a> — donated to Apache in 2013, first 0.7.0 release in mid-2014 — and later for Kafka Streams, KSQL/ksqlDB, and the Kafka-on-Flink integrations, all of which treat the log as a database changelog.</p>
+<p><strong>Change Data Capture (CDC)</strong>: The same architecture that handled activity events could capture database changes, unifying application events and database mutations in a single infrastructure.</p>
+<p><strong>Multi-datacenter replication</strong>: Kafka’s MirrorMaker enabled cross-datacenter data replication, supporting LinkedIn’s global deployment without fundamental architecture changes.</p>
+<h3 id="remaining-limitations-as-of-initial-release"><a href="#remaining-limitations-as-of-initial-release">Remaining Limitations (as of initial release)</a></h3>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Limitation</th>
+<th>Resolution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>No replication</td>
+<td>Added in 0.8.0 (December 2013)</td>
+</tr>
+<tr>
+<td>Offsets in ZooKeeper</td>
+<td>Moved to internal <code>__consumer_offsets</code> topic in 0.9 (November 2015)</td>
+</tr>
+<tr>
+<td>At-least-once only</td>
+<td>Idempotent producers + transactions in 0.11 (June 2017) → exactly-once EOS</td>
+</tr>
+<tr>
+<td>No transactional writes</td>
+<td>Transactions added in 0.11 (June 2017)</td>
+</tr>
+<tr>
+<td>ZooKeeper dependency</td>
+<td>KRaft GA in 3.3 (Oct 2022); ZooKeeper fully removed in 4.0 (Mar 2025)</td>
+</tr>
+<tr>
+<td>Disk-only retention</td>
+<td>Tiered storage (KIP-405) GA in 3.9 (Nov 2024) — cold segments to object store</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="what-changed-since"><a href="#what-changed-since">What Changed Since</a></h2>
+<p>Kafka in 2026 is the same <em>abstraction</em> as Kafka in 2011 — a partitioned, replicated, append-only log with consumer-driven offsets — but almost every major implementation choice has been revisited.</p>
+<p><figure class="ps-figure ps-figure-themed ps-figure-zoomable"><picture><source srcset="/legacy-personal-site/v5/assets/kafka-evolution-timeline-dark.51333f06.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" data-scheme="dark"><source srcset="/legacy-personal-site/v5/assets/kafka-evolution-timeline-light.44e149ab.svg" type="image/svg+xml" data-scheme="light"><img src="/legacy-personal-site/v5/assets/kafka-evolution-timeline-light.44e149ab.svg" alt="Kafka design evolution from the first commit at LinkedIn through KRaft-only, exactly-once, and tiered storage." width="1205" height="664" style="max-width:min(1205px,100%)"></picture><figcaption>Kafka design evolution at and beyond LinkedIn — coordination, consistency, and storage have all been re-engineered while the log abstraction stayed put.</figcaption><button type="button" class="ps-img-zoom-btn" hidden aria-label="Zoom image" data-ps-img-zoom-btn=""><svg class="ps-img-zoom-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6"></path></svg></button></figure></p>
+<h3 id="coordination-zookeeper--kraft"><a href="#coordination-zookeeper--kraft">Coordination: ZooKeeper → KRaft</a></h3>
+<p>The original 2011 design parked all cluster metadata, controller election, and consumer offsets in ZooKeeper. That coupling capped partition counts and made operations a two-system problem. Two staged moves removed it:</p>
+<ul>
+<li><strong>0.9 (Nov 2015)</strong> moved consumer offsets out of ZooKeeper into an internal <code>__consumer_offsets</code> compacted topic — Kafka started using its own log to store its own state.</li>
+<li><strong><a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-500%3A+Replace+ZooKeeper+with+a+Self-Managed+Metadata+Quorum" rel="noopener noreferrer" target="_blank">KIP-500</a></strong> reified that idea for <em>all</em> metadata: a Raft-replicated metadata log inside Kafka itself. KRaft was marked production-ready in 3.3 (Oct 2022), and Kafka 4.0 (Mar 2025) removed ZooKeeper entirely.</li>
+</ul>
+<h3 id="delivery-at-least-once--exactly-once"><a href="#delivery-at-least-once--exactly-once">Delivery: at-least-once → exactly-once</a></h3>
+<p>Original Kafka guaranteed at-least-once at best — producer retries could duplicate, and consumers had to be idempotent. Kafka <a href="https://www.confluent.io/blog/exactly-once-semantics-are-possible-heres-how-apache-kafka-does-it/" rel="noopener noreferrer" target="_blank">0.11 (June 2017)</a> added two primitives that, together, gave the system end-to-end exactly-once semantics inside the Kafka boundary:</p>
+<ul>
+<li><strong>Idempotent producer</strong> — broker assigns a producer ID and deduplicates on <code>(PID, sequence)</code> per partition.</li>
+<li><strong>Transactions</strong> — atomic writes across multiple partitions plus the consumer’s offset commit, with <code>read_committed</code> consumers skipping uncommitted records.</li>
+</ul>
+<h3 id="storage-local-disks--tiered"><a href="#storage-local-disks--tiered">Storage: local disks → tiered</a></h3>
+<p><a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-405%3A+Kafka+Tiered+Storage" rel="noopener noreferrer" target="_blank">KIP-405</a> (GA in 3.9, Nov 2024) lets brokers offload sealed log segments to object storage (S3, GCS, ABS) while keeping recent segments local. The hot path keeps its sequential-I/O bet; cold retention scales independently of broker disks.</p>
+<h3 id="linkedins-broader-data-integration-story-databus-and-brooklin"><a href="#linkedins-broader-data-integration-story-databus-and-brooklin">LinkedIn’s broader data-integration story: Databus and Brooklin</a></h3>
+<p>Kafka was never the <em>only</em> data-movement system at LinkedIn — it was the activity-event piece of a wider story:</p>
+<ul>
+<li><strong><a href="https://engineering.linkedin.com/data-replication/open-sourcing-databus-linkedins-low-latency-change-data-capture-system" rel="noopener noreferrer" target="_blank">Databus</a></strong> (in production since 2011, open-sourced 2013) was LinkedIn’s database-log-mining CDC system, feeding row-level changes from Oracle and MySQL into search, graph, and cache tiers. It is the spiritual ancestor of every modern Debezium-style CDC pipeline.</li>
+<li><strong><a href="https://www.linkedin.com/blog/engineering/open-source/brooklin-open-source" rel="noopener noreferrer" target="_blank">Brooklin</a></strong> (open-sourced 2019) generalized that pattern: a multi-tenant streaming bridge that mirrors Kafka clusters (replacing MirrorMaker for many use cases) and shuttles data between heterogeneous systems (Kafka, Kinesis, Event Hubs, Espresso CDC).</li>
+</ul>
+<p>The architectural lesson is that “the log” became the <em>integration contract</em> — Databus, Kafka, and Brooklin all expose ordered, replayable streams, so any consumer can attach without producers needing to know about it.</p>
+<h3 id="the-stream-processing-ecosystem-grew-on-top"><a href="#the-stream-processing-ecosystem-grew-on-top">The stream-processing ecosystem grew on top</a></h3>
+<p>Once the log was the source of truth, <em>processing</em> the log became the next layer:</p>
+<ul>
+<li><strong><a href="https://samza.apache.org/" rel="noopener noreferrer" target="_blank">Apache Samza</a></strong> (LinkedIn, donated 2013) — the first stream processor designed natively against Kafka partitions.</li>
+<li><strong>Kafka Streams</strong> (Confluent, 2016) — a library, not a cluster; treats every state store as a Kafka changelog.</li>
+<li><strong>ksqlDB</strong> (Confluent, 2017) — SQL over Kafka topics.</li>
+<li><strong>Apache Flink</strong> + Kafka — the dominant pairing for stateful, exactly-once stream processing in 2026.</li>
+</ul>
+<p>Each of these treats Kafka as a database changelog rather than as a queue, which is the core argument of <a href="https://www.oreilly.com/library/view/i-heart-logs/9781491909379/" rel="noopener noreferrer" target="_blank">Jay Kreps’ <em>I Heart Logs</em></a> (O’Reilly, 2014).</p>
+<h2 id="lessons-learned"><a href="#lessons-learned">Lessons Learned</a></h2>
+<h3 id="technical-lessons"><a href="#technical-lessons">Technical Lessons</a></h3>
+<h4 id="1-sequential-io-changes-everything"><a href="#1-sequential-io-changes-everything">1. Sequential I/O Changes Everything</a></h4>
+<p><strong>The insight</strong>: Modern storage has vastly different performance for sequential vs. random access. <a href="https://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying" rel="noopener noreferrer" target="_blank">Kreps’ “The Log”</a> cites the rough 600 MB/s sequential vs. 100 KB/s random gap on commodity disks of the era — a roughly 6,000× difference that sits at the heart of why an append-only log can outrun a B-tree as a transport. A commit log is a deliberate bet on that asymmetry.</p>
+<p><strong>How it applies elsewhere</strong>:</p>
+<ul>
+<li>Write-ahead logs in databases (PostgreSQL WAL, MySQL binlog)</li>
+<li>Log-structured merge trees (LSM-trees) in Cassandra, RocksDB</li>
+<li>Event sourcing architectures</li>
+</ul>
+<p><strong>Warning signs you might benefit from this</strong>:</p>
+<ul>
+<li>Random I/O bottlenecks on database writes</li>
+<li>High write amplification in storage layer</li>
+<li>Inefficient disk utilization</li>
+</ul>
+<h4 id="2-decouple-producers-from-consumers"><a href="#2-decouple-producers-from-consumers">2. Decouple Producers from Consumers</a></h4>
+<p><strong>The insight</strong>: Point-to-point integration creates O(N×M) complexity. A central bus reduces it to O(N+M). More importantly, it allows producers and consumers to evolve independently.</p>
+<p><strong>How it applies elsewhere</strong>:</p>
+<ul>
+<li>API gateways decoupling frontend from backend services</li>
+<li>Schema registries decoupling data format from transport</li>
+<li>Feature stores decoupling ML training from feature computation</li>
+</ul>
+<p><strong>Warning signs</strong>:</p>
+<ul>
+<li>Every new data source requires integration with every consumer</li>
+<li>Producer changes break consumers</li>
+<li>No way to add new consumers without producer changes</li>
+</ul>
+<h4 id="3-pull-beats-push-for-heterogeneous-consumers"><a href="#3-pull-beats-push-for-heterogeneous-consumers">3. Pull Beats Push for Heterogeneous Consumers</a></h4>
+<p><strong>The insight</strong>: When consumers have different speeds (batch vs. real-time), push-based systems must either throttle to the slowest consumer or implement complex per-consumer buffering. Pull delegates this complexity to the consumer.</p>
+<p><strong>How it applies elsewhere</strong>:</p>
+<ul>
+<li>Git (pull-based) vs. centralized VCS (push-based)</li>
+<li>RSS/Atom feeds (pull-based) vs. email notifications (push-based)</li>
+<li>Polling-based monitoring vs. push-based metrics</li>
+</ul>
+<p><strong>When pull doesn’t work</strong>:</p>
+<ul>
+<li>Ultra-low-latency requirements (sub-millisecond)</li>
+<li>Consumers can’t implement polling logic</li>
+<li>Network constraints prevent consumer-initiated connections</li>
+</ul>
+<h4 id="4-the-log-is-a-fundamental-abstraction"><a href="#4-the-log-is-a-fundamental-abstraction">4. The Log is a Fundamental Abstraction</a></h4>
+<p><strong>The insight</strong>: A totally ordered, append-only sequence of records is the simplest possible storage abstraction. It can represent database state (via changelog), message passing (via topics), and replicated state machines (via consensus logs).</p>
+<p><strong>How it applies elsewhere</strong>:</p>
+<ul>
+<li>Database replication (replicate the WAL, derive state)</li>
+<li>Event sourcing (log is the source of truth, state is derived)</li>
+<li>Distributed consensus (Raft log, Paxos log)</li>
+</ul>
+<p><strong>Further reading</strong>: Jay Kreps’ “The Log” blog post (2013) explores this abstraction in depth.</p>
+<h3 id="process-lessons"><a href="#process-lessons">Process Lessons</a></h3>
+<h4 id="1-build-for-your-actual-scale"><a href="#1-build-for-your-actual-scale">1. Build for Your Actual Scale</a></h4>
+<p><strong>The insight</strong>: LinkedIn built Kafka for billions of messages/day because that was their actual requirement. Existing systems were designed for different scale points.</p>
+<p><strong>What they’d do differently</strong>: Earlier investment in understanding true throughput requirements. The team spent time trying to adapt existing systems before accepting they needed something new.</p>
+<h4 id="2-open-source-accelerates-adoption"><a href="#2-open-source-accelerates-adoption">2. Open Source Accelerates Adoption</a></h4>
+<p><strong>The insight</strong>: Open-sourcing Kafka in January 2011—before it was fully production-ready—created a community that accelerated development far beyond what LinkedIn could achieve alone.</p>
+<p><strong>The trade-off</strong>: Open source created external pressure to stabilize APIs and maintain backward compatibility, which sometimes conflicted with internal refactoring needs.</p>
+<h3 id="organizational-lessons"><a href="#organizational-lessons">Organizational Lessons</a></h3>
+<h4 id="1-infrastructure-as-a-product"><a href="#1-infrastructure-as-a-product">1. Infrastructure as a Product</a></h4>
+<p><strong>The insight</strong>: Treating Kafka as an internal product with clear APIs, documentation, and support enabled broad adoption within LinkedIn. Teams could self-serve rather than requiring infrastructure team involvement for each integration.</p>
+<p><strong>How this applies</strong>: Internal platforms should have the same product discipline as external products: clear value proposition, documentation, migration guides, and deprecation policies.</p>
+<h2 id="applying-this-to-your-system"><a href="#applying-this-to-your-system">Applying This to Your System</a></h2>
+<h3 id="when-this-pattern-applies"><a href="#when-this-pattern-applies">When This Pattern Applies</a></h3>
+<p>You might face similar challenges if:</p>
+<ul>
+<li>You have multiple data sources (databases, applications, logs) and multiple data consumers (analytics, search, real-time)</li>
+<li>Adding a new data source requires integrating with multiple downstream systems</li>
+<li>Adding a new consumer requires integrating with multiple upstream systems</li>
+<li>Batch data loading is measured in hours or days</li>
+<li>Different consumers need the same data at different speeds</li>
+</ul>
+<h3 id="checklist-for-evaluation"><a href="#checklist-for-evaluation">Checklist for Evaluation</a></h3>
+<ul class="contains-task-list">
+<li class="task-list-item"><input type="checkbox" disabled aria-label="Pending: How many point-to-point data integrations do you maintain?"> How many point-to-point data integrations do you maintain?</li>
+<li class="task-list-item"><input type="checkbox" disabled aria-label="Pending: What’s the latency from data generation to availability in analytics?"> What’s the latency from data generation to availability in analytics?</li>
+<li class="task-list-item"><input type="checkbox" disabled aria-label="Pending: Can you replay historical data to a new consumer?"> Can you replay historical data to a new consumer?</li>
+<li class="task-list-item"><input type="checkbox" disabled aria-label="Pending: Can consumers fall behind without affecting producers?"> Can consumers fall behind without affecting producers?</li>
+<li class="task-list-item"><input type="checkbox" disabled aria-label="Pending: What’s your integration effort for adding a new data source?"> What’s your integration effort for adding a new data source?</li>
+</ul>
+<h3 id="starting-points"><a href="#starting-points">Starting Points</a></h3>
+<p>If you want to explore this approach:</p>
+<ol>
+<li><strong>Identify your highest-volume data flows</strong>: What data moves between systems most frequently?</li>
+<li><strong>Measure your current latency</strong>: From data generation to availability in each consumer</li>
+<li><strong>List your integration points</strong>: Draw the graph of data sources and consumers</li>
+<li><strong>Evaluate managed options</strong>: Amazon MSK, Confluent Cloud, Azure Event Hubs, Google Pub/Sub</li>
+<li><strong>Start with one use case</strong>: Pick a high-value, low-risk data flow to migrate first</li>
+</ol>
+<h2 id="conclusion"><a href="#conclusion">Conclusion</a></h2>
+<p>LinkedIn’s creation of Kafka solved a fundamental problem in data-intensive systems: the O(N²) integration complexity that emerges when multiple data sources must feed multiple data consumers. The key insight wasn’t technical—it was architectural. By introducing a durable, ordered log as an intermediary, Kafka decoupled producers from consumers, transforming N×M point-to-point connections into N+M connections through a central hub.</p>
+<p>The specific technical decisions—log-based storage, pull-based consumers, partitioned topics, stateless brokers, leader-follower replication—follow logically from the requirements: high throughput, multiple consumer speeds, horizontal scalability, and fault tolerance. Each decision involved trade-offs that were acceptable for LinkedIn’s use case but might not be for others.</p>
+<p>Kafka’s impact extends beyond LinkedIn. The log abstraction became foundational for stream processing (Samza, Flink, Spark Streaming), change data capture (Debezium), and event-driven architectures broadly. The insight that a simple append-only log can unify messaging, storage, and stream processing has influenced systems design for a decade.</p>
+<p>The lesson for system designers: before building complex point-to-point integrations, consider whether a shared log could simplify the architecture. The upfront investment in a unified data infrastructure often pays dividends as system count grows.</p>
+<h2 id="appendix"><a href="#appendix">Appendix</a></h2>
+<h3 id="prerequisites"><a href="#prerequisites">Prerequisites</a></h3>
+<ul>
+<li>Understanding of messaging systems (queues, pub/sub)</li>
+<li>Basic knowledge of distributed systems concepts (partitioning, replication)</li>
+<li>Familiarity with data pipeline architectures (ETL, CDC)</li>
+</ul>
+<h3 id="terminology"><a href="#terminology">Terminology</a></h3>
+<ul>
+<li><strong>Commit log</strong>: An append-only, ordered sequence of records; the fundamental storage abstraction in Kafka</li>
+<li><strong>Topic</strong>: A named log that producers write to and consumers read from</li>
+<li><strong>Partition</strong>: A subdivision of a topic; each partition is an independent log on a single broker</li>
+<li><strong>Offset</strong>: A message’s position within a partition; monotonically increasing integer</li>
+<li><strong>Consumer group</strong>: A set of consumers that collectively read a topic; each partition is assigned to exactly one consumer in the group</li>
+<li><strong>ISR (In-Sync Replica)</strong>: The set of replicas that are fully caught up with the leader</li>
+<li><strong>CDC (Change Data Capture)</strong>: Capturing row-level changes from a database as a stream of events</li>
+<li><strong>At-least-once delivery</strong>: Messages may be delivered more than once; consumer must be idempotent</li>
+<li><strong>Exactly-once delivery</strong>: Messages delivered exactly once; requires coordination between producer, broker, and consumer</li>
+</ul>
+<h3 id="summary"><a href="#summary">Summary</a></h3>
+<ul>
+<li><strong>The problem</strong>: LinkedIn’s point-to-point data integration created O(N²) complexity; only 14% of data reached analytics systems</li>
+<li><strong>Why existing solutions failed</strong>: Traditional messaging couldn’t handle throughput; log aggregation couldn’t support real-time consumers</li>
+<li><strong>The solution</strong>: A distributed commit log (Kafka) as a universal data bus</li>
+<li><strong>Key design decisions</strong>: Log-based storage (sequential I/O), pull-based consumers (heterogeneous speeds), partitioned topics (horizontal scaling), stateless brokers (simple failover), leader-follower replication (datacenter reliability)</li>
+<li><strong>Outcome</strong>: 7,000× scale growth (1B to 7T messages/day); foundation for modern stream processing</li>
+<li><strong>Core insight</strong>: The log is a unifying abstraction for messaging, storage, and stream processing</li>
+</ul>
+<h3 id="references"><a href="#references">References</a></h3>
+<p><strong>Primary Sources (LinkedIn Engineering)</strong></p>
+<ul>
+<li><a href="https://www.linkedin.com/blog/member/archive/open-source-linkedin-kafka" rel="noopener noreferrer" target="_blank">Open-sourcing Kafka, LinkedIn’s distributed message queue</a> - Jun Rao, January 2011. Original announcement</li>
+<li><a href="https://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying" rel="noopener noreferrer" target="_blank">The Log: What every software engineer should know about real-time data’s unifying abstraction</a> - Jay Kreps, December 2013. Foundational post on log abstraction</li>
+<li><a href="https://engineering.linkedin.com/kafka/benchmarking-apache-kafka-2-million-writes-second-three-cheap-machines" rel="noopener noreferrer" target="_blank">Benchmarking Apache Kafka: 2 Million Writes Per Second</a> - Jay Kreps, April 2014. Performance characteristics</li>
+<li><a href="https://engineering.linkedin.com/kafka/intra-cluster-replication-apache-kafka" rel="noopener noreferrer" target="_blank">Intra-cluster Replication in Apache Kafka</a> - LinkedIn Engineering, February 2013. Replication design rationale</li>
+<li><a href="https://engineering.linkedin.com/apache-kafka/how-we_re-improving-and-advancing-kafka-linkedin" rel="noopener noreferrer" target="_blank">How We’re Improving and Advancing Kafka at LinkedIn</a> - LinkedIn Engineering, 2015. Scale numbers</li>
+</ul>
+<p><strong>Academic Papers</strong></p>
+<ul>
+<li><a href="https://cwiki.apache.org/confluence/download/attachments/27822226/Kafka-netdb-06-2011.pdf" rel="noopener noreferrer" target="_blank">Kafka: a Distributed Messaging System for Log Processing</a> - Kreps, Narkhede, Rao. NetDB Workshop 2011. Original paper</li>
+<li><a href="http://sites.computer.org/debull/a12june/pipeline.pdf" rel="noopener noreferrer" target="_blank">Building LinkedIn’s Real-time Activity Data Pipeline</a> - Goodhope et al. IEEE Data Engineering Bulletin, June 2012. Production deployment details</li>
+</ul>
+<p><strong>Books</strong></p>
+<ul>
+<li><a href="https://www.oreilly.com/library/view/i-heart-logs/9781491909379/" rel="noopener noreferrer" target="_blank">I Heart Logs: Event Data, Stream Processing, and Data Integration</a> - Jay Kreps. O’Reilly, 2014. Extended treatment of log abstraction</li>
+</ul>
+<p><strong>Apache Kafka Documentation</strong></p>
+<ul>
+<li><a href="https://cwiki.apache.org/confluence/display/KAFKA/Kafka+papers+and+presentations" rel="noopener noreferrer" target="_blank">Kafka Papers and Presentations</a> - Apache Wiki. Comprehensive list of talks and papers</li>
+<li><a href="https://docs.confluent.io/kafka/design/consumer-design.html" rel="noopener noreferrer" target="_blank">Consumer Design</a> - Confluent. Pull-based consumer rationale</li>
+</ul>
+<p><strong>Interviews and Podcasts</strong></p>
+<ul>
+<li><a href="https://se-radio.net/2015/02/episode-219-apache-kafka-with-jun-rao/" rel="noopener noreferrer" target="_blank">Software Engineering Radio Episode 219: Apache Kafka with Jun Rao</a> - February 2015. Design decisions discussion</li>
+</ul></div></article></main><footer class="doc-footer"><div class="doc-page-meta"><a href="https://github.com/sujeet-pro/v5.sujeet.pro/blob/main/content/articles/linkedin-kafka-origin/README.md" class="doc-edit-link" target="_blank" rel="noopener noreferrer">Edit this page</a><span class="doc-last-updated">Last updated: <time datetime="Tue Apr 21 2026 05:30:00 GMT+0530 (India Standard Time)">April 21, 2026</time></span></div><nav class="doc-article-nav" aria-label="Page navigation"><a href="/legacy-personal-site/v5/articles/slack-distributed-architecture" class="doc-article-link doc-article-prev"><span class="doc-article-label">Previous</span><span class="doc-article-title">Slack Architecture</span></a><a href="/legacy-personal-site/v5/articles/dropbox-magic-pocket" class="doc-article-link doc-article-next"><span class="doc-article-label">Next</span><span class="doc-article-title">Dropbox Magic Pocket</span></a></nav><nav class="doc-footer-links doc-footer-links-grouped" aria-label="Footer links" style="--doc-footer-columns:2;--doc-footer-columns-compact:2"><div class="doc-footer-link-group"><p class="doc-footer-link-group-header">Content</p><div class="doc-footer-link-group-links"><a class="doc-footer-group-link" href="/legacy-personal-site/v5/articles"><span class="doc-footer-link-label">Articles</span></a><a class="doc-footer-group-link" href="/legacy-personal-site/v5/blogs"><span class="doc-footer-link-label">Blogs</span></a></div></div><div class="doc-footer-link-group"><p class="doc-footer-link-group-header">Profiles</p><div class="doc-footer-link-group-links"><a class="doc-footer-group-link" href="https://github.com/sujeet-pro" target="_blank" rel="noopener noreferrer"><span class="doc-footer-link-label">GitHub</span></a><a class="doc-footer-group-link" href="https://www.linkedin.com/in/sujeetkrjaiswal/" target="_blank" rel="noopener noreferrer"><span class="doc-footer-link-label">LinkedIn</span></a><a class="doc-footer-group-link" href="https://twitter.com/sujeetpro" target="_blank" rel="noopener noreferrer"><span class="doc-footer-link-label">Twitter</span></a></div></div></nav><div class="doc-footer-theme no-js-hidden" data-footer-theme=""><div class="doc-footer-theme-group"><span class="doc-footer-theme-label">Appearance</span><div class="doc-footer-theme-options" data-footer-scheme="" data-ps-footer-scheme=""><button type="button" data-scheme="auto" class="active" aria-pressed="true">Auto</button><button type="button" data-scheme="light" aria-pressed="false">Light</button><button type="button" data-scheme="dark" aria-pressed="false">Dark</button></div></div><div class="doc-footer-theme-group"><span class="doc-footer-theme-label">Theme</span><div class="doc-footer-theme-options" data-footer-theme-type="" data-ps-footer-theme=""><button type="button" data-theme="paper" class="active" aria-pressed="true">Paper</button><button type="button" data-theme="high-contrast" aria-pressed="false">High Contrast</button></div></div><div class="doc-footer-theme-group"><span class="doc-footer-theme-label">Text Size</span><div class="doc-footer-theme-options" data-footer-text-size="" data-ps-footer-text-size=""><button type="button" data-size="small" aria-pressed="false" aria-label="Small text"><span class="doc-text-size-label" data-size="small" aria-hidden="true">A</span></button><button type="button" data-size="base" class="active" aria-pressed="true" aria-label="Default text"><span class="doc-text-size-label" data-size="base" aria-hidden="true">A</span></button><button type="button" data-size="large" aria-pressed="false" aria-label="Large text"><span class="doc-text-size-label" data-size="large" aria-hidden="true">A</span></button></div></div></div><div class="doc-footer-legal"><p class="doc-footer-copyright">© <span class="doc-footer-year-range" data-current-year-range=""><span class="doc-footer-year-start">2024</span><span class="doc-footer-year-separator" aria-hidden="true">–</span><span id="pagesmith-footer-year-end" data-start-year="2024" data-rendered-year="2026" data-auto-update="true">2026</span></span> Sujeet Jaiswal</p><p class="doc-footer-signoff"><span class="doc-footer-legal-separator" aria-hidden="true">|</span>Made with <span aria-hidden="true">❤</span> using <a href="https://projects.sujeet.pro/pagesmith/" target="_blank" rel="noopener noreferrer">Pagesmith</a><span> and is maintained by <a href="https://sujeet.pro" target="_blank" rel="noopener noreferrer">Sujeet Jaiswal</a></span></p></div></footer></div><aside class="doc-aside"><nav class="doc-toc" aria-label="Table of contents" data-ps-toc=""><p class="doc-toc-title">On this page</p><ul class="doc-toc-list"><li class="doc-toc-item depth-2"><a href="#abstract">Abstract</a></li><li class="doc-toc-item depth-2"><a href="#context">Context</a></li><li class="doc-toc-item depth-3"><a href="#the-system">The System</a></li><li class="doc-toc-item depth-3"><a href="#the-trigger">The Trigger</a></li><li class="doc-toc-item depth-3"><a href="#constraints">Constraints</a></li><li class="doc-toc-item depth-2"><a href="#the-problem">The Problem</a></li><li class="doc-toc-item depth-3"><a href="#symptoms">Symptoms</a></li><li class="doc-toc-item depth-3"><a href="#root-cause-analysis">Root Cause Analysis</a></li><li class="doc-toc-item depth-2"><a href="#options-considered">Options Considered</a></li><li class="doc-toc-item depth-3"><a href="#option-1-improve-existing-pipelines">Option 1: Improve Existing Pipelines</a></li><li class="doc-toc-item depth-3"><a href="#option-2-centralized-database">Option 2: Centralized Database</a></li><li class="doc-toc-item depth-3"><a href="#option-3-adopt-open-source-messaging">Option 3: Adopt Open Source Messaging</a></li><li class="doc-toc-item depth-3"><a href="#option-4-build-a-distributed-commit-log-chosen">Option 4: Build a Distributed Commit Log (Chosen)</a></li><li class="doc-toc-item depth-3"><a href="#decision-factors">Decision Factors</a></li><li class="doc-toc-item depth-2"><a href="#implementation">Implementation</a></li><li class="doc-toc-item depth-3"><a href="#architecture-overview">Architecture Overview</a></li><li class="doc-toc-item depth-3"><a href="#core-design-decisions">Core Design Decisions</a></li><li class="doc-toc-item depth-3"><a href="#api-design">API Design</a></li><li class="doc-toc-item depth-3"><a href="#migration-strategy">Migration Strategy</a></li><li class="doc-toc-item depth-2"><a href="#outcome">Outcome</a></li><li class="doc-toc-item depth-3"><a href="#metrics-comparison">Metrics Comparison</a></li><li class="doc-toc-item depth-3"><a href="#timeline">Timeline</a></li><li class="doc-toc-item depth-3"><a href="#unexpected-benefits">Unexpected Benefits</a></li><li class="doc-toc-item depth-3"><a href="#remaining-limitations-as-of-initial-release">Remaining Limitations (as of initial release)</a></li><li class="doc-toc-item depth-2"><a href="#what-changed-since">What Changed Since</a></li><li class="doc-toc-item depth-3"><a href="#coordination-zookeeper--kraft">Coordination: ZooKeeper → KRaft</a></li><li class="doc-toc-item depth-3"><a href="#delivery-at-least-once--exactly-once">Delivery: at-least-once → exactly-once</a></li><li class="doc-toc-item depth-3"><a href="#storage-local-disks--tiered">Storage: local disks → tiered</a></li><li class="doc-toc-item depth-3"><a href="#linkedins-broader-data-integration-story-databus-and-brooklin">LinkedIn’s broader data-integration story: Databus and Brooklin</a></li><li class="doc-toc-item depth-3"><a href="#the-stream-processing-ecosystem-grew-on-top">The stream-processing ecosystem grew on top</a></li><li class="doc-toc-item depth-2"><a href="#lessons-learned">Lessons Learned</a></li><li class="doc-toc-item depth-3"><a href="#technical-lessons">Technical Lessons</a></li><li class="doc-toc-item depth-3"><a href="#process-lessons">Process Lessons</a></li><li class="doc-toc-item depth-3"><a href="#organizational-lessons">Organizational Lessons</a></li><li class="doc-toc-item depth-2"><a href="#applying-this-to-your-system">Applying This to Your System</a></li><li class="doc-toc-item depth-3"><a href="#when-this-pattern-applies">When This Pattern Applies</a></li><li class="doc-toc-item depth-3"><a href="#checklist-for-evaluation">Checklist for Evaluation</a></li><li class="doc-toc-item depth-3"><a href="#starting-points">Starting Points</a></li><li class="doc-toc-item depth-2"><a href="#conclusion">Conclusion</a></li><li class="doc-toc-item depth-2"><a href="#appendix">Appendix</a></li><li class="doc-toc-item depth-3"><a href="#prerequisites">Prerequisites</a></li><li class="doc-toc-item depth-3"><a href="#terminology">Terminology</a></li><li class="doc-toc-item depth-3"><a href="#summary">Summary</a></li><li class="doc-toc-item depth-3"><a href="#references">References</a></li></ul></nav></aside></div><dialog class="doc-sidebar-modal" id="sidebar-modal" data-sidebar-modal=""><div class="doc-sidebar-modal-backdrop" data-sidebar-close=""></div><div class="doc-sidebar-modal-panel"><button type="button" class="doc-sidebar-modal-close" data-sidebar-close="" aria-label="Close navigation"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m5 5 10 10M15 5 5 15"/></svg></button><nav class="doc-sidebar-nav" aria-label="Navigation"><div class="doc-sidebar-section"><p class="doc-sidebar-heading">Navigation</p><ul class="doc-sidebar-list "><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles" class="doc-sidebar-link">Articles</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/blogs" class="doc-sidebar-link">Blogs</a></li></ul></div><div class="doc-sidebar-section"><p class="doc-sidebar-heading">Series</p><ul class="doc-sidebar-list "><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-rendering-pipeline-overview" class="doc-sidebar-link">Critical Rendering Path</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-rendering-pipeline-overview" class="doc-sidebar-link">CRP: Pipeline Overview</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-dom-construction" class="doc-sidebar-link">CRP: DOM Construction</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-cssom-construction" class="doc-sidebar-link">CRP: CSSOM Construction</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-style-recalculation" class="doc-sidebar-link">CRP: Style Recalc</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-layout" class="doc-sidebar-link">CRP: Layout</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-prepaint" class="doc-sidebar-link">CRP: Prepaint</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-paint" class="doc-sidebar-link">CRP: Paint</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-commit" class="doc-sidebar-link">CRP: Commit</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-layerize" class="doc-sidebar-link">CRP: Layerize</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-raster" class="doc-sidebar-link">CRP: Raster</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-composit" class="doc-sidebar-link">CRP: Composite</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-draw" class="doc-sidebar-link">CRP: Draw</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/v8-engine-architecture" class="doc-sidebar-link">JavaScript Runtime Internals</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/v8-engine-architecture" class="doc-sidebar-link">V8 Engine</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/browser-internals" class="doc-sidebar-link">Browser Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/browser-event-loop" class="doc-sidebar-link">Browser Event Loop</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/nodejs-runtime-architecture" class="doc-sidebar-link">Node.js Runtime</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/libuv-event-loop-internals" class="doc-sidebar-link">libuv Internals</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/nodejs-event-loop" class="doc-sidebar-link">Node.js Event Loop</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/js-event-loop" class="doc-sidebar-link">JS Event Loop</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/auth-foundations-sessions-tokens" class="doc-sidebar-link">Web Security &amp; Authentication</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/auth-foundations-sessions-tokens" class="doc-sidebar-link">Auth Foundations</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-app-security-architecture" class="doc-sidebar-link">Web App Security</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/csrf-and-cors-defense" class="doc-sidebar-link">CSRF &amp; CORS</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/oauth-oidc-flow-guide" class="doc-sidebar-link">OAuth &amp; OIDC</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/csp-violation-reporting-pipeline" class="doc-sidebar-link">CSP Reporting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/owasp-top-10-guide" class="doc-sidebar-link">OWASP Top 10</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-resolution-path" class="doc-sidebar-link">Networking Protocols</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-resolution-path" class="doc-sidebar-link">DNS: Resolution Path</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-records-ttl-and-caching" class="doc-sidebar-link">DNS: Records &amp; TTL</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-security-doh-dot-dnssec" class="doc-sidebar-link">DNS: Security</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-troubleshooting-playbook" class="doc-sidebar-link">DNS: Troubleshooting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/tls-1-3-handshake-and-https" class="doc-sidebar-link">TLS 1.3 &amp; HTTPS</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/http1-1-to-http2-evolution" class="doc-sidebar-link">HTTP/1.1 → HTTP/2</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/http3-quic-and-tls" class="doc-sidebar-link">HTTP/3 &amp; QUIC</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dom-api-essentials" class="doc-sidebar-link">Browser APIs &amp; Accessibility</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dom-api-essentials" class="doc-sidebar-link">DOM API Essentials</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-components" class="doc-sidebar-link">Web Components</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/intersection-observer" class="doc-sidebar-link">Intersection Observer</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-workers-and-worklets" class="doc-sidebar-link">Web Workers &amp; Worklets</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/fetch-and-streaming-apis" class="doc-sidebar-link">Fetch &amp; Streams</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/storage-apis-local-indexeddb" class="doc-sidebar-link">Browser Storage APIs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/service-workers-and-cache-api" class="doc-sidebar-link">Service Workers</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/accessibility-testing-tooling" class="doc-sidebar-link">A11y Testing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/wcag-2-2-practical-guide" class="doc-sidebar-link">WCAG 2.2</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/frontend-architecture-at-scale" class="doc-sidebar-link">Frontend Architecture Patterns</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/frontend-architecture-at-scale" class="doc-sidebar-link">Frontend Arch at Scale</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/micro-frontends-architecture" class="doc-sidebar-link">Micro-Frontends</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rendering-strategies-csr-ssr-ssg-isr" class="doc-sidebar-link">CSR / SSR / SSG / ISR</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/state-management-patterns" class="doc-sidebar-link">State Management</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/data-fetching-patterns" class="doc-sidebar-link">Data Fetching</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/css-architecture-strategies" class="doc-sidebar-link">CSS Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/component-architecture-blueprint" class="doc-sidebar-link">Component Architecture</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-infrastructure-stack" class="doc-sidebar-link">Web Performance Optimization</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-infrastructure-stack" class="doc-sidebar-link">Perf: Infrastructure</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-javascript-optimization" class="doc-sidebar-link">Perf: JavaScript</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-css-typography" class="doc-sidebar-link">Perf: CSS &amp; Typography</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-image-optimization" class="doc-sidebar-link">Perf: Images</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/core-web-vitals-measurement" class="doc-sidebar-link">Core Web Vitals</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-overview" class="doc-sidebar-link">Perf: Overview</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-system-adoption-foundations" class="doc-sidebar-link">Design Systems &amp; React</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-system-adoption-foundations" class="doc-sidebar-link">DS: Adoption</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-tokens-and-theming" class="doc-sidebar-link">Design Tokens</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/component-library-architecture-and-governance" class="doc-sidebar-link">Component Library</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-system-implementation-scaling" class="doc-sidebar-link">DS: Implementation</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-hooks-fundamentals" class="doc-sidebar-link">React Hooks</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-rendering-architecture" class="doc-sidebar-link">React Rendering</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-hooks-advanced-patterns" class="doc-sidebar-link">React Hooks: Advanced</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-performance-patterns" class="doc-sidebar-link">React Performance</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rendering-strategies" class="doc-sidebar-link">Frontend System Design</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rendering-strategies" class="doc-sidebar-link">Modern Rendering</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/image-loading-optimization" class="doc-sidebar-link">Image Loading</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/bundle-splitting-strategies" class="doc-sidebar-link">Bundle Splitting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/virtualization-and-windowing" class="doc-sidebar-link">Virtualization</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/performance-monitoring-client" class="doc-sidebar-link">Client Perf Monitoring</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/client-state-management" class="doc-sidebar-link">Client State</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/real-time-sync-client" class="doc-sidebar-link">Real-Time Sync</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/offline-first-architecture" class="doc-sidebar-link">Offline-First</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/widget-framework" class="doc-sidebar-link">Widget Framework</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-rich-text-editor" class="doc-sidebar-link">Rich Text Editor</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-infinite-feed" class="doc-sidebar-link">Infinite Feed</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-drag-drop-system" class="doc-sidebar-link">Drag &amp; Drop</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-form-builder" class="doc-sidebar-link">Form Builder</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-data-grid" class="doc-sidebar-link">Data Grid</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-file-uploader" class="doc-sidebar-link">File Uploader</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/consistency-and-cap-theorem" class="doc-sidebar-link">Distributed Systems Core</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/consistency-and-cap-theorem" class="doc-sidebar-link">CAP Theorem</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-consensus" class="doc-sidebar-link">Distributed Consensus</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/time-and-ordering" class="doc-sidebar-link">Time &amp; Ordering</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/failure-modes-and-resilience" class="doc-sidebar-link">Failure Modes</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rate-limiting-strategies" class="doc-sidebar-link">Rate Limiting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/circuit-breaker-patterns" class="doc-sidebar-link">Circuit Breakers</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/capacity-planning-and-estimation" class="doc-sidebar-link">Capacity Planning</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/storage-choices-sql-vs-nosql" class="doc-sidebar-link">Data Storage &amp; Indexing</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/storage-choices-sql-vs-nosql" class="doc-sidebar-link">SQL vs NoSQL</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/sharding-and-replication" class="doc-sidebar-link">Sharding &amp; Replication</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/indexing-and-query-optimization" class="doc-sidebar-link">Indexing &amp; Queries</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/transactions-and-acid" class="doc-sidebar-link">Transactions &amp; ACID</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/caching-fundamentals-and-strategies" class="doc-sidebar-link">Caching Fundamentals</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/load-balancers-architecture" class="doc-sidebar-link">Infrastructure Components</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/load-balancers-architecture" class="doc-sidebar-link">Load Balancers</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/cdn-architecture-and-caching" class="doc-sidebar-link">CDN Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/api-gateway-patterns" class="doc-sidebar-link">API Gateway</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/service-discovery-and-registry" class="doc-sidebar-link">Service Discovery</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-deep-dive" class="doc-sidebar-link">DNS: Deep Dive</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/queues-and-pubsub" class="doc-sidebar-link">Queues &amp; Pub/Sub</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/event-driven-architecture" class="doc-sidebar-link">Event-Driven Arch</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rpc-and-api-design" class="doc-sidebar-link">RPC &amp; API Design</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crdt-for-collaborative-systems" class="doc-sidebar-link">Core Distributed Patterns</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crdt-for-collaborative-systems" class="doc-sidebar-link">CRDTs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/operational-transformation" class="doc-sidebar-link">OT</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-locking" class="doc-sidebar-link">Distributed Locking</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/exactly-once-delivery" class="doc-sidebar-link">Exactly-Once</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/event-sourcing-deep-dive" class="doc-sidebar-link">Event Sourcing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/change-data-capture" class="doc-sidebar-link">CDC</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/database-migrations-at-scale" class="doc-sidebar-link">DB Migrations</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/multi-region-architecture" class="doc-sidebar-link">Multi-Region</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/lru-cache-design" class="doc-sidebar-link">System Design Building Blocks</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/lru-cache-design" class="doc-sidebar-link">LRU Cache</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/unique-id-generation" class="doc-sidebar-link">Unique IDs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-cache-design" class="doc-sidebar-link">Distributed Cache</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/blob-storage-design" class="doc-sidebar-link">Blob Storage</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-search-engine" class="doc-sidebar-link">Search Engine</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-logging-system" class="doc-sidebar-link">Logging System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-monitoring" class="doc-sidebar-link">Monitoring</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/task-scheduler-design" class="doc-sidebar-link">Task Scheduler</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/sharded-counters" class="doc-sidebar-link">Sharded Counters</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/leaderboard-design" class="doc-sidebar-link">Leaderboard</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-key-value-store" class="doc-sidebar-link">System Design Scenarios</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-key-value-store" class="doc-sidebar-link">Key-Value Store</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-distributed-file-system" class="doc-sidebar-link">Distributed File System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-time-series-database" class="doc-sidebar-link">Time-Series DB</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-youtube-video-platform" class="doc-sidebar-link">YouTube</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-netflix-streaming" class="doc-sidebar-link">Netflix</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-instagram-photo-sharing" class="doc-sidebar-link">Instagram</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-spotify-music-streaming" class="doc-sidebar-link">Spotify</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-real-time-chat-messaging" class="doc-sidebar-link">Chat &amp; Messaging</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-social-feed" class="doc-sidebar-link">Social Feed</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-notification-system" class="doc-sidebar-link">Notifications</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-email-system" class="doc-sidebar-link">Email System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-uber-ride-hailing" class="doc-sidebar-link">Uber</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-maps" class="doc-sidebar-link">Google Maps</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-yelp-proximity-service" class="doc-sidebar-link">Yelp / Proximity</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-search-autocomplete" class="doc-sidebar-link">Search Autocomplete</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-web-crawler" class="doc-sidebar-link">Web Crawler</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-search" class="doc-sidebar-link">Google Search</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-docs-collaboration" class="doc-sidebar-link">Google Docs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-dropbox-file-sync" class="doc-sidebar-link">Dropbox Sync</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-calendar" class="doc-sidebar-link">Google Calendar</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-issue-tracker" class="doc-sidebar-link">Issue Tracker</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-payment-system" class="doc-sidebar-link">Payment System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-flash-sale-system" class="doc-sidebar-link">Flash Sale</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-amazon-shopping-cart" class="doc-sidebar-link">Shopping Cart</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/url-shortener-design" class="doc-sidebar-link">URL Shortener</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-pastebin" class="doc-sidebar-link">Pastebin</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-api-rate-limiter" class="doc-sidebar-link">API Rate Limiter</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-cookie-consent-service" class="doc-sidebar-link">Cookie Consent</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/facebook-2021-outage-analysis" class="doc-sidebar-link">Case Studies: Outages &amp; Reliability</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/facebook-2021-outage-analysis" class="doc-sidebar-link">Facebook 2021</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/aws-kinesis-2020-outage" class="doc-sidebar-link">AWS Kinesis 2020</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/stripe-idempotency-reliability" class="doc-sidebar-link">Stripe Idempotency</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/discord-rust-read-states" class="doc-sidebar-link">Discord: Go → Rust</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/graceful-degradation" class="doc-sidebar-link">Graceful Degradation</a></li></ul></li><li class="doc-sidebar-item  expanded"><a href="/legacy-personal-site/v5/articles/shopify-pod-architecture" class="doc-sidebar-link">Case Studies: Architecture</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/shopify-pod-architecture" class="doc-sidebar-link">Shopify Pods</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/netflix-microservices-evolution" class="doc-sidebar-link">Netflix Microservices</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/twitter-timeline-architecture" class="doc-sidebar-link">Twitter Timeline</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/facebook-tao-social-graph" class="doc-sidebar-link">Facebook TAO</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/uber-microservices-journey" class="doc-sidebar-link">Uber Microservices</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/uber-schemaless-datastore" class="doc-sidebar-link">Uber Schemaless</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/slack-distributed-architecture" class="doc-sidebar-link">Slack Architecture</a></li><li class="doc-sidebar-item active "><a href="/legacy-personal-site/v5/articles/linkedin-kafka-origin" class="doc-sidebar-link">LinkedIn → Kafka</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dropbox-magic-pocket" class="doc-sidebar-link">Case Studies: Data &amp; Migrations</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dropbox-magic-pocket" class="doc-sidebar-link">Dropbox Magic Pocket</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/instagram-cassandra-migration" class="doc-sidebar-link">Instagram → Cassandra</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/youtube-vitess-scaling" class="doc-sidebar-link">YouTube + Vitess</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/github-mysql-migration" class="doc-sidebar-link">GitHub MySQL</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/pinterest-mysql-sharding" class="doc-sidebar-link">Pinterest Sharding</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/discord-message-storage" class="doc-sidebar-link">Discord Messages</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/figma-multiplayer-infrastructure" class="doc-sidebar-link">Figma Multiplayer</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/whatsapp-erlang-scaling" class="doc-sidebar-link">WhatsApp + Erlang</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/edge-delivery-and-cache-invalidation" class="doc-sidebar-link">Platform Delivery &amp; Reliability</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/edge-delivery-and-cache-invalidation" class="doc-sidebar-link">Edge Delivery</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/deployment-strategies-blue-green-canary" class="doc-sidebar-link">Blue-Green &amp; Canary</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/ssg-performance-optimizations" class="doc-sidebar-link">SSG on CloudFront</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/build-pipelines-ci-cd" class="doc-sidebar-link">Build Pipelines</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/ecommerce-ssg-to-ssr-migration" class="doc-sidebar-link">SSG → SSR Migration</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/data-migration-strategies" class="doc-sidebar-link">Data Migrations</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/slos-slis-error-budgets" class="doc-sidebar-link">SLOs &amp; SLIs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/logging-metrics-tracing" class="doc-sidebar-link">Logs / Metrics / Traces</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/drm-basics-for-streaming" class="doc-sidebar-link">Media Systems &amp; Testing</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/drm-basics-for-streaming" class="doc-sidebar-link">DRM Basics</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/video-transcoding-pipeline" class="doc-sidebar-link">Video Transcoding</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-video-playback-architecture" class="doc-sidebar-link">Web Video Playback</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/image-processing-service-design" class="doc-sidebar-link">Image Processing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/load-testing-strategy-capacity-planning" class="doc-sidebar-link">Load Testing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/k6-load-testing-overview" class="doc-sidebar-link">k6 Load Testing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/statsig-experimentation-overview" class="doc-sidebar-link">Statsig</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/arrays-and-hash-maps" class="doc-sidebar-link">Data Structures &amp; Algorithms</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/arrays-and-hash-maps" class="doc-sidebar-link">Arrays &amp; Hash Maps</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/trees-and-graphs" class="doc-sidebar-link">Trees &amp; Graphs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/heaps-and-priority-queues" class="doc-sidebar-link">Heaps &amp; PQs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/sorting-algorithms-guide" class="doc-sidebar-link">Sorting Algorithms</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/search-algorithms-guide" class="doc-sidebar-link">Search Algorithms</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/k-crystal-balls-problem" class="doc-sidebar-link">K Crystal Balls</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/publish-subscribe-pattern" class="doc-sidebar-link">JavaScript Patterns</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/publish-subscribe-pattern" class="doc-sidebar-link">Pub/Sub</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/exponential-backoff-retry-strategy" class="doc-sidebar-link">Exponential Backoff</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/async-queue-pattern" class="doc-sidebar-link">Async Queue</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/javascript-error-handling-patterns" class="doc-sidebar-link">JS Error Handling</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/javascript-string-length" class="doc-sidebar-link">JS String Length</a></li></ul></li></ul></div></nav></div></dialog><pagefind-modal reset-on-close=""><pagefind-modal-header><pagefind-input></pagefind-input></pagefind-modal-header><pagefind-modal-body><pagefind-summary></pagefind-summary><pagefind-results></pagefind-results></pagefind-modal-body><pagefind-modal-footer><pagefind-keyboard-hints></pagefind-keyboard-hints></pagefind-modal-footer></pagefind-modal><script src="/legacy-personal-site/v5/assets/index-DWHO1FvG.ff92fc92.js" type="module"></script></body></html>

@@ -1,0 +1,721 @@
+<!DOCTYPE html><html lang="en"> <head><meta name="astro-view-transitions-enabled" content="true"><meta name="astro-view-transitions-fallback" content="animate"><script type="module" src="/legacy-personal-site/v4/_astro/ClientRouter.astro_astro_type_script_index_0_lang.HWuSm9BO.js"></script><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light"><script>
+  ;(function () {
+    var THEMES = ["auto", "light", "dark", "high-contrast-light", "high-contrast-dark", "paper"]
+    var STORAGE_KEY = "site-theme"
+    var THEME_LABELS = {
+      auto: "Auto (system)",
+      light: "Light",
+      dark: "Dark",
+      "high-contrast-light": "High contrast light",
+      "high-contrast-dark": "High contrast dark",
+      paper: "Paper",
+    }
+    var darkQuery = window.matchMedia("(prefers-color-scheme: dark)")
+
+    // Expose shared config for module scripts
+    window.__themeConfig = { THEMES: THEMES, STORAGE_KEY: STORAGE_KEY, THEME_LABELS: THEME_LABELS }
+
+    // BroadcastChannel for cross-tab sync
+    var channel = null
+    try {
+      channel = new BroadcastChannel("site-theme-sync")
+    } catch (e) {
+      // BroadcastChannel not supported
+    }
+
+    function getResolvedTheme(theme) {
+      if (theme === "auto") {
+        return darkQuery.matches ? "dark" : "light"
+      }
+      return theme
+    }
+
+    function getColorScheme(resolved) {
+      if (resolved === "dark" || resolved === "high-contrast-dark") return "dark"
+      return "light"
+    }
+
+    function applyTheme(theme, _fromBroadcast) {
+      if (!theme || THEMES.indexOf(theme) === -1) theme = "auto"
+
+      var resolved = getResolvedTheme(theme)
+      var root = document.documentElement
+      var scheme = getColorScheme(resolved)
+
+      // Remove all theme classes
+      for (var i = 0; i < THEMES.length; i++) {
+        root.classList.remove("theme-" + THEMES[i])
+      }
+
+      // Apply resolved theme class
+      root.classList.add("theme-" + resolved)
+
+      // Set color-scheme
+      root.style.setProperty("--color-scheme", scheme)
+
+      // Update meta tag
+      var meta = document.querySelector('meta[name="color-scheme"]')
+      if (meta) meta.setAttribute("content", scheme)
+
+      // Set color scheme data attribute for CSS/JS consumers
+      root.dataset.colorScheme = scheme
+
+      // Store the user's chosen theme (not the resolved one)
+      try {
+        localStorage.setItem(STORAGE_KEY, theme)
+      } catch (e) {
+        // localStorage may be unavailable
+      }
+
+      // Dispatch event for other scripts to react
+      root.dataset.theme = theme
+      root.dataset.resolvedTheme = resolved
+
+      // Broadcast to other tabs (but not if we received this from another tab)
+      if (!_fromBroadcast && channel) {
+        try {
+          channel.postMessage({ theme: theme })
+        } catch (e) {
+          // Channel may be closed
+        }
+      }
+    }
+
+    // Smart cycling: skip the theme that "auto" resolves to
+    function getNextTheme() {
+      var current = "auto"
+      try {
+        current = localStorage.getItem(STORAGE_KEY) || "auto"
+      } catch (e) {}
+      if (THEMES.indexOf(current) === -1) current = "auto"
+
+      var idx = THEMES.indexOf(current)
+      var next = THEMES[(idx + 1) % THEMES.length]
+
+      // If current is "auto", skip the theme auto resolves to
+      if (current === "auto") {
+        var autoResolved = getResolvedTheme("auto")
+        if (next === autoResolved) {
+          next = THEMES[(idx + 2) % THEMES.length]
+        }
+      }
+
+      return next
+    }
+
+    // Apply on load
+    var saved = "auto"
+    try {
+      saved = localStorage.getItem(STORAGE_KEY) || "auto"
+    } catch (e) {
+      // localStorage may be unavailable
+    }
+    applyTheme(saved)
+
+    // Listen for OS preference changes when in auto mode
+    darkQuery.addEventListener("change", function () {
+      var current = "auto"
+      try {
+        current = localStorage.getItem(STORAGE_KEY) || "auto"
+      } catch (e) {}
+      if (current === "auto") {
+        applyTheme("auto")
+      }
+    })
+
+    // Listen for cross-tab theme changes
+    if (channel) {
+      channel.onmessage = function (event) {
+        if (event.data && event.data.theme) {
+          applyTheme(event.data.theme, true)
+        }
+      }
+    }
+
+    // Expose for runtime use
+    window.applySiteTheme = applyTheme
+    window.getNextTheme = getNextTheme
+  })()
+</script><!-- Inline font-face declarations with base path --><style>
+      @font-face {
+        font-family: "Open Sans";
+        font-style: normal;
+        font-weight: 300 800;
+        font-display: swap;
+        src: url("/legacy-personal-site/v4/fonts/open-sans-latin-wght-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+          U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: "JetBrains Mono";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("/legacy-personal-site/v4/fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+          U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+    </style><!-- Preload local fonts --><link rel="preload" as="font" type="font/woff2" href="/legacy-personal-site/v4/fonts/open-sans-latin-wght-normal.woff2" crossorigin="anonymous"><link rel="preload" as="font" type="font/woff2" href="/legacy-personal-site/v4/fonts/jetbrains-mono-latin-400-normal.woff2" crossorigin="anonymous"><!-- Main favicon --><link rel="icon" type="image/x-icon" href="/legacy-personal-site/v4/favicons/favicon.ico"><!-- Apple Touch Icons --><link rel="apple-touch-icon" sizes="57x57" href="/legacy-personal-site/v4/favicons/apple-icon-57x57.png"><link rel="apple-touch-icon" sizes="60x60" href="/legacy-personal-site/v4/favicons/apple-icon-60x60.png"><link rel="apple-touch-icon" sizes="72x72" href="/legacy-personal-site/v4/favicons/apple-icon-72x72.png"><link rel="apple-touch-icon" sizes="76x76" href="/legacy-personal-site/v4/favicons/apple-icon-76x76.png"><link rel="apple-touch-icon" sizes="114x114" href="/legacy-personal-site/v4/favicons/apple-icon-114x114.png"><link rel="apple-touch-icon" sizes="120x120" href="/legacy-personal-site/v4/favicons/apple-icon-120x120.png"><link rel="apple-touch-icon" sizes="144x144" href="/legacy-personal-site/v4/favicons/apple-icon-144x144.png"><link rel="apple-touch-icon" sizes="152x152" href="/legacy-personal-site/v4/favicons/apple-icon-152x152.png"><link rel="apple-touch-icon" sizes="180x180" href="/legacy-personal-site/v4/favicons/apple-icon-180x180.png"><!-- Apple Touch Icon Precomposed (for older iOS versions) --><link rel="apple-touch-icon-precomposed" href="/legacy-personal-site/v4/favicons/apple-icon-precomposed.png"><!-- Standard Icons --><link rel="icon" type="image/png" sizes="192x192" href="/legacy-personal-site/v4/favicons/android-icon-192x192.png"><link rel="icon" type="image/png" sizes="144x144" href="/legacy-personal-site/v4/favicons/android-icon-144x144.png"><link rel="icon" type="image/png" sizes="96x96" href="/legacy-personal-site/v4/favicons/android-icon-96x96.png"><link rel="icon" type="image/png" sizes="72x72" href="/legacy-personal-site/v4/favicons/android-icon-72x72.png"><link rel="icon" type="image/png" sizes="48x48" href="/legacy-personal-site/v4/favicons/android-icon-48x48.png"><link rel="icon" type="image/png" sizes="36x36" href="/legacy-personal-site/v4/favicons/android-icon-36x36.png"><link rel="icon" type="image/png" sizes="32x32" href="/legacy-personal-site/v4/favicons/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/legacy-personal-site/v4/favicons/favicon-16x16.png"><!-- Web App Manifest --><link rel="manifest" href="/legacy-personal-site/v4/manifest.json"><!-- Microsoft Tiles --><meta name="msapplication-config" content="/legacy-personal-site/v4/browserconfig.xml"><meta name="msapplication-TileImage" content="/legacy-personal-site/v4/favicons/ms-icon-144x144.png"><meta name="msapplication-TileColor" content="#f8fafc"><!-- Theme Colors --><meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#020617" media="(prefers-color-scheme: dark)"><meta name="msapplication-TileColor" content="#f8fafc"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="docsearch:language" content="en"><!-- Canonical URL --><link rel="canonical" href="https://sujeet.pro/legacy-personal-site/v4/articles/system-design/real-world-case-studies/figma-multiplayer-infrastructure.html"><!-- Primary Meta Tags --><title>Figma: Building Multiplayer Infrastructure for Real-Time Design Collaboration - Sujeet Jaiswal</title><meta name="title" content="Figma: Building Multiplayer Infrastructure for Real-Time Design Collaboration - Sujeet Jaiswal"><meta name="description" content="How Figma built a real-time collaboration engine that supports 200 concurrent editors per document using a CRDT-inspired, server-authoritative protocol — rejecting both Operational Transformation and pure CRDTs in favor of property-level last-writer-wins with fractional indexing, backed by a Rust multiplayer server and a DynamoDB write-ahead journal processing over 2.2 billion changes per day."><!-- Open Graph / Facebook --><meta property="og:type" content="website"><meta property="og:url" content="https://sujeet.pro/legacy-personal-site/v4/articles/system-design/real-world-case-studies/figma-multiplayer-infrastructure.html"><meta property="og:title" content="Figma: Building Multiplayer Infrastructure for Real-Time Design Collaboration - Sujeet Jaiswal"><meta property="og:description" content="How Figma built a real-time collaboration engine that supports 200 concurrent editors per document using a CRDT-inspired, server-authoritative protocol — rejecting both Operational Transformation and pure CRDTs in favor of property-level last-writer-wins with fractional indexing, backed by a Rust multiplayer server and a DynamoDB write-ahead journal processing over 2.2 billion changes per day."><!-- Twitter / X --><meta name="twitter:site" content="@sujeetpro"><meta name="twitter:card" content="summary_large_image"><!-- DocSearch facets --><meta name="docsearch:category" content="System Design"><meta name="docsearch:topic" content="Real-World Case Studies"><link rel="alternate" type="application/rss+xml" href="/legacy-personal-site/v4/rss.xml"><link rel="sitemap" href="/legacy-personal-site/v4/sitemap-index.xml"><!-- LLM-friendly content --><link rel="alternate" type="text/plain" href="/legacy-personal-site/v4/llms.txt" title="LLM Index"><link rel="alternate" type="text/plain" href="/legacy-personal-site/v4/llms-full.txt" title="LLM Full Content"><link rel="stylesheet" href="/legacy-personal-site/v4/_astro/docsearch.CgGoh9IB.css">
+<style>/*! tailwindcss v4.2.1 | MIT License | https://tailwindcss.com */.sidebar-toc-list{gap:calc(var(--spacing,.25rem) * .5);flex-direction:column;display:flex}
+@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) and (not (color:rgb(from red r g b)))){*,:before,:after,::backdrop{--tw-border-style:solid;--tw-font-weight:initial;--tw-ordinal:initial;--tw-slashed-zero:initial;--tw-numeric-figure:initial;--tw-numeric-spacing:initial;--tw-numeric-fraction:initial}}}.article-nav-category{margin-bottom:calc(var(--spacing,.25rem) * 5)}.article-nav-category+.article-nav-category{border-top-style:var(--tw-border-style);padding-top:calc(var(--spacing,.25rem) * 2);border-top-width:1px;border-color:var(--color-border)}.article-nav-category-name{margin-bottom:calc(var(--spacing,.25rem) * 1.5);padding-inline:calc(var(--spacing,.25rem) * 1);font-family:var(--font-mono,ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);--tw-font-weight:var(--font-weight-semibold,600);font-weight:var(--font-weight-semibold,600);text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-muted);font-size:11px;display:block}.article-nav-category-name.is-current{color:var(--color-text)}.article-nav-topics{flex-direction:column;display:flex}.article-nav-topic{list-style:none}.article-nav-topic-toggle{cursor:pointer;border-radius:var(--radius-md,.375rem);width:100%;padding-inline:calc(var(--spacing,.25rem) * 2);padding-block:calc(var(--spacing,.25rem) * 1.5);color:var(--color-text-muted);transition:all var(--transition-fast);justify-content:space-between;align-items:center;font-size:13px;list-style:none;display:flex}.article-nav-topic-toggle::-webkit-details-marker{display:none}.article-nav-topic-toggle::marker{content:"";display:none}.article-nav-topic-toggle:hover{color:var(--color-text);background:var(--color-bg-alt)}.article-nav-topic-toggle.is-active{color:var(--color-text);font-weight:500}.article-nav-topic-name{min-width:calc(var(--spacing,.25rem) * 0);flex:1}.article-nav-topic-count{--tw-numeric-spacing:tabular-nums;font-variant-numeric:var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);color:var(--color-text-muted);opacity:.6;flex-shrink:0;font-size:11px}.article-nav-chevron{opacity:.4;width:12px;height:12px;transition:transform var(--transition-fast);flex-shrink:0;margin-left:.5rem}.article-nav-topic-toggle:hover .article-nav-chevron{opacity:.7}details[open]>.article-nav-topic-toggle .article-nav-chevron{transform:rotate(90deg)}.article-nav-articles{margin-left:calc(var(--spacing,.25rem) * 3);border-left-style:var(--tw-border-style);padding-left:calc(var(--spacing,.25rem) * 2);border-left-width:1px;border-color:var(--color-border)}.article-nav-article-link{border-radius:var(--radius-md,.375rem);padding-inline:calc(var(--spacing,.25rem) * 2);padding-block:calc(var(--spacing,.25rem) * 1);color:var(--color-text-muted);transition:all var(--transition-fast);font-size:13px;line-height:1.4;text-decoration-line:none;display:block}.article-nav-article-link:hover{color:var(--color-text);background:var(--color-bg-alt)}.article-nav-article-link.is-active{color:var(--color-text);background:var(--color-bg-alt);font-weight:500}@property --tw-border-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-font-weight{syntax:"*";inherits:false}@property --tw-ordinal{syntax:"*";inherits:false}@property --tw-slashed-zero{syntax:"*";inherits:false}@property --tw-numeric-figure{syntax:"*";inherits:false}@property --tw-numeric-spacing{syntax:"*";inherits:false}@property --tw-numeric-fraction{syntax:"*";inherits:false}/*! tailwindcss v4.2.1 | MIT License | https://tailwindcss.com */.article-frontmatter{margin-bottom:calc(var(--spacing,.25rem) * 8)}.article-navigation{margin-top:calc(var(--spacing,.25rem) * 16)}
+</style>
+<link rel="stylesheet" href="/legacy-personal-site/v4/_astro/_slug_.u3hNe2gV.css"><script type="module" src="/legacy-personal-site/v4/_astro/page.CLJIuoFF.js"></script></head> <body> <a href="#main" class="skip-link">Skip to main content</a> <header class="site-header"> <div class="header-container"> <nav class="header-nav"> <!-- Left side: sidebar toggle + logo --> <div class="header-left"> <button id="left-sidebar-toggle" class="sidebar-toggle-btn" aria-label="Toggle navigation sidebar" aria-expanded="true" title="Hide navigation sidebar" aria-hidden="false"> <svg width="1em" height="1em" class="icon-md" data-icon="carbon:side-panel-open">   <symbol id="ai:carbon:side-panel-open" viewBox="0 0 32 32"><path fill="currentColor" d="M28 4H4c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h24c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2M10 26H4V6h6zm18 0H12v-9h10.2l-3.6 3.6L20 22l6-6l-6-6l-1.4 1.4l3.6 3.6H12V6h16z"/></symbol><use href="#ai:carbon:side-panel-open"></use>  </svg> </button> <a href="/legacy-personal-site/v4/" class="header-logo">   <span class="header-logo-name">sujeet.pro</span>  </a> </div> <!-- Center: Nav links - hidden on mobile --> <div class="header-nav-links"> <a href="/legacy-personal-site/v4/articles" class="nav-link">  Articles </a><a href="/legacy-personal-site/v4/blogs" class="nav-link">  Blogs </a><a href="/legacy-personal-site/v4/projects" class="nav-link">  Projects </a> </div> <!-- Right side: search + sidebar toggle + hamburger --> <div class="header-actions"> <!-- DocSearch --> <div id="docsearch-container"></div> <!-- Theme Toggle --> <button id="theme-toggle-btn" class="sidebar-toggle-btn" aria-label="Toggle theme" title="Switch theme"> <!-- Auto (monitor) --> <svg data-theme-icon="auto" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M28 4H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h8v4H8v2h16v-2h-4v-4h8a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 18H4V6h24Z"></path> </svg> <!-- Light (sun) --> <svg data-theme-icon="light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 12.005a4 4 0 1 1-4 4 4.005 4.005 0 0 1 4-4m0-2a6 6 0 1 0 6 6 6 6 0 0 0-6-6ZM5.394 6.813 6.81 5.399l3.505 3.506L8.9 10.319ZM2 15.005h5v2H2ZM5.394 25.197l3.505-3.506 1.414 1.414-3.505 3.506ZM15 25.005h2v5h-2ZM21.687 23.106l1.414-1.414 3.506 3.505-1.414 1.414ZM25 15.005h5v2h-5ZM21.69 8.904l3.505-3.505 1.414 1.415-3.505 3.505ZM15 2.005h2v5h-2Z"></path> </svg> <!-- Dark (moon) --> <svg data-theme-icon="dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M13.502 5.414a15.075 15.075 0 0 0 11.594 18.194 11.113 11.113 0 0 1-7.975 3.39c-.138 0-.278.005-.418 0a11.094 11.094 0 0 1-3.2-21.584M14.98 3a1.002 1.002 0 0 0-.175.016 13.096 13.096 0 0 0 1.825 25.981c.164.006.328 0 .49 0a13.072 13.072 0 0 0 10.703-5.555 1.01 1.01 0 0 0-.783-1.565A13.08 13.08 0 0 1 15.89 4.38 1.015 1.015 0 0 0 14.98 3Z"></path> </svg> <!-- High contrast light --> <svg data-theme-icon="high-contrast-light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26V4a12 12 0 0 1 0 24Z"></path> </svg> <!-- High contrast dark --> <svg data-theme-icon="high-contrast-dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 2a12 12 0 0 1 0 24Z"></path> </svg> <!-- Paper (document) --> <svg data-theme-icon="paper" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M19 10h7v2h-7zM19 6h7v2h-7zM19 14h7v2h-7zM19 18h7v2h-7z"></path> <path d="M28 2H10a2.002 2.002 0 0 0-2 2v6H4a2.002 2.002 0 0 0-2 2v18a2 2 0 0 0 2 2h14a2.002 2.002 0 0 0 2-2v-6h8a2.002 2.002 0 0 0 2-2V4a2.002 2.002 0 0 0-2-2Zm-10 28H4V12h14Zm10-8H20V12a2.002 2.002 0 0 0-2-2h-8V4h18Z"></path> <path d="M6 16h10v2H6zM6 20h10v2H6zM6 24h7v2H6z"></path> </svg> </button> <button id="right-sidebar-toggle" class="sidebar-toggle-btn" aria-label="Toggle table of contents" aria-expanded="true" title="Hide table of contents" aria-hidden="false"> <svg width="1em" height="1em" class="icon-md" data-icon="carbon:side-panel-close">   <symbol id="ai:carbon:side-panel-close" viewBox="0 0 32 32"><path fill="currentColor" d="M28 4H4c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h24c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2M10 26H4V6h6zm18-11H17.8l3.6-3.6L20 10l-6 6l6 6l1.4-1.4l-3.6-3.6H28v9H12V6h16z"/></symbol><use href="#ai:carbon:side-panel-close"></use>  </svg> </button> <!-- Hamburger Menu - visible on mobile only --> <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu" title="Open menu"> <svg width="1em" height="1em" class="icon-lg" data-icon="carbon:menu">   <symbol id="ai:carbon:menu" viewBox="0 0 32 32"><path fill="currentColor" d="M4 6h24v2H4zm0 18h24v2H4zm0-12h24v2H4zm0 6h24v2H4z"/></symbol><use href="#ai:carbon:menu"></use>  </svg> </button> </div> </nav> </div> </header> <div id="mobile-menu-overlay" class="mobile-menu-overlay is-hidden"></div> <aside id="mobile-menu" class="mobile-menu" aria-hidden="true"> <div class="mobile-menu-header"> <a href="/legacy-personal-site/v4/" class="nav-link nav-logo">   sujeet.pro  </a> <button id="mobile-menu-close" class="mobile-menu-close" aria-label="Close menu"> <svg width="1em" height="1em" class="icon-lg" data-icon="carbon:close">   <symbol id="ai:carbon:close" viewBox="0 0 32 32"><path fill="currentColor" d="M17.414 16L24 9.414L22.586 8L16 14.586L9.414 8L8 9.414L14.586 16L8 22.586L9.414 24L16 17.414L22.586 24L24 22.586z"/></symbol><use href="#ai:carbon:close"></use>  </svg> </button> </div> <nav class="mobile-menu-nav"> <a href="/legacy-personal-site/v4/articles" class="mobile-menu-link">  Articles </a><a href="/legacy-personal-site/v4/blogs" class="mobile-menu-link">  Blogs </a><a href="/legacy-personal-site/v4/projects" class="mobile-menu-link">  Projects </a> </nav> </aside> <script type="module" src="/legacy-personal-site/v4/_astro/mobile-menu.astro_astro_type_script_index_0_lang.AuCdxukU.js"></script>  <div class="zen-layout"> <aside id="left-sidebar" class="zen-sidebar zen-sidebar-left" aria-label="Navigation sidebar"> <div class="zen-sidebar-header"> <span class="zen-sidebar-header-title">Navigation</span> <button class="zen-sidebar-close" data-sidebar-close="left" aria-label="Close navigation sidebar"> <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5"> <path d="M8 8l16 16M24 8L8 24"></path> </svg> </button> </div> <div class="zen-sidebar-content"> <nav aria-label="Article navigation" class="article-nav"> <div class="article-nav-category"> <span class="article-nav-category-name">Browser &amp; Runtime Internals</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Critical Rendering Path</span> <span class="article-nav-topic-count">(12)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-rendering-pipeline-overview" class="article-nav-article-link">  Critical Rendering Path: Rendering Pipeline Overview </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-dom-construction" class="article-nav-article-link">  Critical Rendering Path: DOM Construction </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-cssom-construction" class="article-nav-article-link">  Critical Rendering Path: CSSOM Construction </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-style-recalculation" class="article-nav-article-link">  Critical Rendering Path: Style Recalculation </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-layout" class="article-nav-article-link">  Critical Rendering Path: Layout Stage </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-prepaint" class="article-nav-article-link">  Critical Rendering Path: Prepaint </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-paint" class="article-nav-article-link">  Critical Rendering Path: Paint Stage </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-commit" class="article-nav-article-link">  Critical Rendering Path: Commit </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-layerize" class="article-nav-article-link">  Critical Rendering Path: Layerize </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-raster" class="article-nav-article-link">  Critical Rendering Path: Rasterization </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-composit" class="article-nav-article-link">  Critical Rendering Path: Compositing </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-draw" class="article-nav-article-link">  Critical Rendering Path: Draw </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">JavaScript Runtime Internals</span> <span class="article-nav-topic-count">(7)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/v8-engine-architecture" class="article-nav-article-link">  V8 Engine Architecture: Parsing, Optimization, and JIT </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/browser-internals" class="article-nav-article-link">  Browser Architecture: Processes, Caching, and Extensions </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/browser-event-loop" class="article-nav-article-link">  Browser Event Loop: Tasks, Microtasks, Rendering, and Idle Time </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/nodejs-runtime-architecture" class="article-nav-article-link">  Node.js Runtime Architecture: Event Loop, Streams, and APIs </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/libuv-event-loop-internals" class="article-nav-article-link">  libuv Internals: Event Loop and Async I/O </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/nodejs-event-loop" class="article-nav-article-link">  Node.js Event Loop: Phases, Queues, and Process Exit </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/js-event-loop" class="article-nav-article-link">  JS Event Loop: Tasks, Microtasks, and Rendering (For Browser &amp; Node.js) </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name is-current">System Design</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">System Design Fundamentals</span> <span class="article-nav-topic-count">(20)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/consistency-and-cap-theorem" class="article-nav-article-link">  Consistency Models and the CAP Theorem </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/distributed-consensus" class="article-nav-article-link">  Distributed Consensus </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/time-and-ordering" class="article-nav-article-link">  Time and Ordering in Distributed Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/failure-modes-and-resilience" class="article-nav-article-link">  Failure Modes and Resilience Patterns </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/storage-choices-sql-vs-nosql" class="article-nav-article-link">  Storage Choices: SQL vs NoSQL </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/sharding-and-replication" class="article-nav-article-link">  Sharding and Replication </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/indexing-and-query-optimization" class="article-nav-article-link">  Indexing and Query Optimization </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/transactions-and-acid" class="article-nav-article-link">  Transactions and ACID Properties </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/load-balancers-architecture" class="article-nav-article-link">  Load Balancer Architecture: L4 vs L7 and Routing </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/cdn-architecture-and-caching" class="article-nav-article-link">  CDN Architecture and Edge Caching </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/caching-fundamentals-and-strategies" class="article-nav-article-link">  Caching Fundamentals and Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/api-gateway-patterns" class="article-nav-article-link">  API Gateway Patterns: Routing, Auth, and Policies </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/service-discovery-and-registry" class="article-nav-article-link">  Service Discovery and Registry Patterns </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/dns-deep-dive" class="article-nav-article-link">  DNS Deep Dive </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/queues-and-pubsub" class="article-nav-article-link">  Queues and Pub/Sub: Decoupling and Backpressure </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/event-driven-architecture" class="article-nav-article-link">  Event-Driven Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/rpc-and-api-design" class="article-nav-article-link">  RPC and API Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/rate-limiting-strategies" class="article-nav-article-link">  Rate Limiting Strategies: Token Bucket, Leaky Bucket, and Sliding Window </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/circuit-breaker-patterns" class="article-nav-article-link">  Circuit Breaker Patterns for Resilient Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/capacity-planning-and-estimation" class="article-nav-article-link">  Capacity Planning and Back-of-the-Envelope Estimates </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">System Design Building Blocks</span> <span class="article-nav-topic-count">(10)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/lru-cache-design" class="article-nav-article-link">  LRU Cache Design: Eviction Strategies and Trade-offs </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/unique-id-generation" class="article-nav-article-link">  Unique ID Generation in Distributed Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-cache-design" class="article-nav-article-link">  Distributed Cache Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/blob-storage-design" class="article-nav-article-link">  Blob Storage Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-search-engine" class="article-nav-article-link">  Distributed Search Engine </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-logging-system" class="article-nav-article-link">  Distributed Logging System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-monitoring" class="article-nav-article-link">  Distributed Monitoring Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/task-scheduler-design" class="article-nav-article-link">  Task Scheduler Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/sharded-counters" class="article-nav-article-link">  Sharded Counters </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/leaderboard-design" class="article-nav-article-link">  Leaderboard Design </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">System Design Problems</span> <span class="article-nav-topic-count">(28)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-key-value-store" class="article-nav-article-link">  Design a Distributed Key-Value Store </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-distributed-file-system" class="article-nav-article-link">  Design a Distributed File System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-time-series-database" class="article-nav-article-link">  Design a Time Series Database </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-youtube-video-platform" class="article-nav-article-link">  Design a YouTube-Style Video Platform </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-netflix-streaming" class="article-nav-article-link">  Design Netflix Video Streaming </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-instagram-photo-sharing" class="article-nav-article-link">  Design Instagram: Photo Sharing at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-spotify-music-streaming" class="article-nav-article-link">  Design Spotify Music Streaming </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-real-time-chat-messaging" class="article-nav-article-link">  Design Real-Time Chat and Messaging </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-social-feed" class="article-nav-article-link">  Design a Social Feed (Facebook/Instagram) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-notification-system" class="article-nav-article-link">  Design a Notification System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-email-system" class="article-nav-article-link">  Design an Email System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-uber-ride-hailing" class="article-nav-article-link">  Design Uber-Style Ride Hailing </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-maps" class="article-nav-article-link">  Design Google Maps </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-yelp-proximity-service" class="article-nav-article-link">  Design Yelp: Location-Based Business Discovery Platform </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-search-autocomplete" class="article-nav-article-link">  Design Search Autocomplete: Prefix Matching at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-web-crawler" class="article-nav-article-link">  Design a Web Crawler </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-search" class="article-nav-article-link">  Design Google Search </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-docs-collaboration" class="article-nav-article-link">  Design Collaborative Document Editing (Google Docs) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-dropbox-file-sync" class="article-nav-article-link">  Design Dropbox File Sync </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-calendar" class="article-nav-article-link">  Design Google Calendar </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-issue-tracker" class="article-nav-article-link">  Design an Issue Tracker (Jira/Linear) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-payment-system" class="article-nav-article-link">  Design a Payment System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-flash-sale-system" class="article-nav-article-link">  Design a Flash Sale System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-amazon-shopping-cart" class="article-nav-article-link">  Design Amazon Shopping Cart </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/url-shortener-design" class="article-nav-article-link">  Design a URL Shortener: IDs, Storage, and Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-pastebin" class="article-nav-article-link">  Design Pastebin: Text Sharing, Expiration, and Abuse Prevention </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-api-rate-limiter" class="article-nav-article-link">  Design an API Rate Limiter: Distributed Throttling, Multi-Tenant Quotas, and Graceful Degradation </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-cookie-consent-service" class="article-nav-article-link">  Design a Cookie Consent Service </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Core Distributed Patterns</span> <span class="article-nav-topic-count">(9)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/crdt-for-collaborative-systems" class="article-nav-article-link">  CRDTs for Collaborative Systems </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/operational-transformation" class="article-nav-article-link">  Operational Transformation </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/distributed-locking" class="article-nav-article-link">  Distributed Locking </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/exactly-once-delivery" class="article-nav-article-link">  Exactly-Once Delivery </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/event-sourcing-deep-dive" class="article-nav-article-link">  Event Sourcing </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/change-data-capture" class="article-nav-article-link">  Change Data Capture </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/database-migrations-at-scale" class="article-nav-article-link">  Database Migrations at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/multi-region-architecture" class="article-nav-article-link">  Multi-Region Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/graceful-degradation" class="article-nav-article-link">  Graceful Degradation </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Frontend System Design</span> <span class="article-nav-topic-count">(15)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/virtualization-and-windowing" class="article-nav-article-link">  Virtualization and Windowing </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/offline-first-architecture" class="article-nav-article-link">  Offline-First Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/client-state-management" class="article-nav-article-link">  Client State Management </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/real-time-sync-client" class="article-nav-article-link">  Real-Time Sync Client </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/widget-framework" class="article-nav-article-link">  Multi-Tenant Pluggable Widget Framework </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/bundle-splitting-strategies" class="article-nav-article-link">  Bundle Splitting Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/rendering-strategies" class="article-nav-article-link">  Rendering Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/image-loading-optimization" class="article-nav-article-link">  Image Loading Optimization </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/performance-monitoring-client" class="article-nav-article-link">  Client Performance Monitoring </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-rich-text-editor" class="article-nav-article-link">  Design a Rich Text Editor </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-infinite-feed" class="article-nav-article-link">  Design an Infinite Feed </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-drag-drop-system" class="article-nav-article-link">  Design a Drag and Drop System </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-form-builder" class="article-nav-article-link">  Design a Form Builder </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-data-grid" class="article-nav-article-link">  Design a Data Grid </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-file-uploader" class="article-nav-article-link">  Design a File Uploader </a> </div> </details><details class="article-nav-topic" open> <summary class="article-nav-topic-toggle is-active"> <span class="article-nav-topic-name">Real-World Case Studies</span> <span class="article-nav-topic-count">(20)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/facebook-2021-outage-analysis" class="article-nav-article-link">  Facebook 2021 Outage: BGP Withdrawal, DNS Collapse, and the Backbone That Disappeared </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/aws-kinesis-2020-outage" class="article-nav-article-link">  AWS Kinesis 2020 Outage: Thread Limits, Thundering Herds, and Hidden Dependencies </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/shopify-pod-architecture" class="article-nav-article-link">  Shopify: Pod Architecture for Multi-Tenant Isolation at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/netflix-microservices-evolution" class="article-nav-article-link">  Netflix: From Monolith to Microservices — A 7-Year Architecture Evolution </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/twitter-timeline-architecture" class="article-nav-article-link">  Twitter/X: Timeline Architecture and the Recommendation Algorithm </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/facebook-tao-social-graph" class="article-nav-article-link">  Facebook TAO: The Social Graph’s Distributed Cache </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/uber-microservices-journey" class="article-nav-article-link">  Uber: From Monolith to Domain-Oriented Microservices </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/uber-schemaless-datastore" class="article-nav-article-link">  Uber Schemaless: Building a Scalable Datastore on MySQL </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/slack-distributed-architecture" class="article-nav-article-link">  Slack: Scaling a Real-Time Messaging Platform from Monolith to Distributed Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/linkedin-kafka-origin" class="article-nav-article-link">  LinkedIn and the Birth of Apache Kafka: Solving the O(N²) Data Integration Problem </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/dropbox-magic-pocket" class="article-nav-article-link">  Dropbox Magic Pocket: Building Exabyte-Scale Blob Storage </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/instagram-cassandra-migration" class="article-nav-article-link">  Instagram: From Redis to Cassandra and the Rocksandra Storage Engine </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/youtube-vitess-scaling" class="article-nav-article-link">  YouTube: Scaling MySQL to Serve Billions with Vitess </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/github-mysql-migration" class="article-nav-article-link">  GitHub: Scaling MySQL from One Database to 1,200+ Hosts </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/pinterest-mysql-sharding" class="article-nav-article-link">  Pinterest: MySQL Sharding from Zero to Billions of Objects </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/stripe-idempotency-reliability" class="article-nav-article-link">  Stripe: Idempotency for Payment Reliability </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/discord-rust-read-states" class="article-nav-article-link">  Discord: Rewriting Read States from Go to Rust </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/discord-message-storage" class="article-nav-article-link">  Discord: From Billions to Trillions of Messages — A Three-Database Journey </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/figma-multiplayer-infrastructure" class="article-nav-article-link is-active">  Figma: Building Multiplayer Infrastructure for Real-Time Design Collaboration </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/whatsapp-erlang-scaling" class="article-nav-article-link">  WhatsApp: 2 Million Connections Per Server with Erlang </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Platform Engineering</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Media Systems</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/drm-basics-for-streaming" class="article-nav-article-link">  DRM Fundamentals for Streaming Media </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/video-transcoding-pipeline" class="article-nav-article-link">  Video Transcoding Pipeline Design </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/web-video-playback-architecture" class="article-nav-article-link">  Web Video Playback Architecture: HLS, DASH, and Low Latency </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/image-processing-service-design" class="article-nav-article-link">  Image Processing Service Design: CDN, Transforms, and APIs </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Observability &amp; Reliability</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/slos-slis-error-budgets" class="article-nav-article-link">  SLOs, SLIs, and Error Budgets </a><a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/csp-violation-reporting-pipeline" class="article-nav-article-link">  CSP Violation Reporting Pipeline at Scale </a><a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/logging-metrics-tracing" class="article-nav-article-link">  Logging, Metrics, and Tracing Fundamentals </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Infrastructure &amp; Delivery</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/edge-delivery-and-cache-invalidation" class="article-nav-article-link">  Edge Delivery and Cache Invalidation </a><a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/deployment-strategies-blue-green-canary" class="article-nav-article-link">  Deployment Strategies: Blue-Green, Canary, and Rolling </a><a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/ssg-performance-optimizations" class="article-nav-article-link">  SSG Performance Optimizations: Build, Cache, and Delivery </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Experimentation &amp; Testing</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/experimentation-testing/k6-load-testing-overview" class="article-nav-article-link">  k6 Load Testing Overview: Smoke, Spike, Soak, Stress </a><a href="/legacy-personal-site/v4/articles/platform-engineering/experimentation-testing/statsig-experimentation-overview" class="article-nav-article-link">  Statsig Experimentation Platform: Architecture and Rollouts </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Platform Migrations</span> <span class="article-nav-topic-count">(1)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/platform-migrations/ecommerce-ssg-to-ssr-migration" class="article-nav-article-link">  E-commerce SSG to SSR Migration: Strategy and Pitfalls </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Frontend Engineering</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Frontend Architecture &amp; Patterns</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/micro-frontends-architecture" class="article-nav-article-link">  Micro-Frontends Architecture: Composition, Isolation, and Delivery </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/rendering-strategies-csr-ssr-ssg-isr" class="article-nav-article-link">  Rendering Strategies: CSR, SSR, SSG, and ISR </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/data-fetching-patterns" class="article-nav-article-link">  Frontend Data Fetching Patterns and Caching </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/css-architecture-strategies" class="article-nav-article-link">  CSS Architecture Strategies: BEM, Utility-First, and CSS-in-JS </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/component-architecture-blueprint" class="article-nav-article-link">  Component Architecture Blueprint for Scalable UI </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Web Performance Optimization</span> <span class="article-nav-topic-count">(6)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-infrastructure-stack" class="article-nav-article-link">  Web Performance Infrastructure: DNS, CDN, Caching, and Edge </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-javascript-optimization" class="article-nav-article-link">  JavaScript Performance Optimization for the Web </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-css-typography" class="article-nav-article-link">  CSS and Typography Performance Optimization </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-image-optimization" class="article-nav-article-link">  Image Performance Optimization for the Web </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/core-web-vitals-measurement" class="article-nav-article-link">  Core Web Vitals Measurement: Lab vs Field Data </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-overview" class="article-nav-article-link">  Web Performance Optimization: Overview and Playbook </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Design Systems</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-system-implementation-scaling" class="article-nav-article-link">  Design System Implementation and Scaling </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/component-library-architecture-and-governance" class="article-nav-article-link">  Component Library Architecture and Governance </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-tokens-and-theming" class="article-nav-article-link">  Design Tokens and Theming Architecture </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-system-adoption-foundations" class="article-nav-article-link">  Design System Adoption: Foundations and Governance </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">React Architecture</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-performance-patterns" class="article-nav-article-link">  React Performance Patterns: Rendering, Memoization, and Scheduling </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-hooks-advanced-patterns" class="article-nav-article-link">  React Hooks Advanced Patterns: Specialized Hooks and Composition </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-rendering-architecture" class="article-nav-article-link">  React Rendering Architecture: Fiber, SSR, and RSC </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-hooks-fundamentals" class="article-nav-article-link">  React Hooks Fundamentals: Rules, Core Hooks, and Custom Hooks </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Web Foundations</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Security &amp; Auth</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/csrf-and-cors-defense" class="article-nav-article-link">  CSRF and CORS Defense for Modern Web Applications </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/oauth-oidc-flow-guide" class="article-nav-article-link">  OAuth 2.0 and OIDC Flows: Authorization Code to PKCE </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/web-app-security-architecture" class="article-nav-article-link">  Web Application Security Architecture </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/auth-foundations-sessions-tokens" class="article-nav-article-link">  Authentication Foundations: Sessions, Tokens, and Trust </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/owasp-top-10-guide" class="article-nav-article-link">  OWASP Top 10: Web Application Security Risks </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Networking &amp; Protocols</span> <span class="article-nav-topic-count">(7)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/http3-quic-and-tls" class="article-nav-article-link">  HTTP/3 and QUIC: Transport Layer Revolution </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/http1-1-to-http2-evolution" class="article-nav-article-link">  HTTP/1.1 to HTTP/2: Bottlenecks and Multiplexing </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/tls-1-3-handshake-and-https" class="article-nav-article-link">  TLS 1.3 Handshake and HTTPS Hardening </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-security-doh-dot-dnssec" class="article-nav-article-link">  DNS Security and Privacy: DNSSEC, DoH, and DoT </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-troubleshooting-playbook" class="article-nav-article-link">  DNS Troubleshooting Playbook </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-records-ttl-and-caching" class="article-nav-article-link">  DNS Records, TTL Strategy, and Cache Behavior </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-resolution-path" class="article-nav-article-link">  DNS Resolution Path: Stub to Recursive to Authoritative </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Browser APIs</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/web-workers-and-worklets" class="article-nav-article-link">  Web Workers and Worklets for Off-Main-Thread Work </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/service-workers-and-cache-api" class="article-nav-article-link">  Service Workers and Cache API </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/fetch-and-streaming-apis" class="article-nav-article-link">  Fetch, Streams, and AbortController </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/storage-apis-local-indexeddb" class="article-nav-article-link">  Browser Storage APIs: localStorage, IndexedDB, and Beyond </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/dom-api-essentials" class="article-nav-article-link">  DOM API Essentials: Structure, Traversal, and Mutation </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Accessibility Standards</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/accessibility-standards/accessibility-testing-tooling" class="article-nav-article-link">  Accessibility Testing and Tooling Workflow </a><a href="/legacy-personal-site/v4/articles/web-foundations/accessibility-standards/wcag-2-2-practical-guide" class="article-nav-article-link">  WCAG 2.2: Practical Accessibility Guide </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Programming &amp; Patterns</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Data Structures</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/heaps-and-priority-queues" class="article-nav-article-link">  Heaps and Priority Queues: Internals, Trade-offs, and When Theory Breaks Down </a><a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/trees-and-graphs" class="article-nav-article-link">  Trees and Graphs: Traversals and Applications </a><a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/arrays-and-hash-maps" class="article-nav-article-link">  Arrays and Hash Maps: Engine Internals and Performance Reality </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Algorithms Foundations</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/k-crystal-balls-problem" class="article-nav-article-link">  K-Crystal Balls Problem: Jump Search Pattern </a><a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/sorting-algorithms-guide" class="article-nav-article-link">  Sorting Algorithms: Complexity, Stability, and Use Cases </a><a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/search-algorithms-guide" class="article-nav-article-link">  Search Algorithms: Linear, Binary, and Graph Traversal </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">JavaScript Patterns</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/publish-subscribe-pattern" class="article-nav-article-link">  Publish-Subscribe Pattern in JavaScript </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/exponential-backoff-retry-strategy" class="article-nav-article-link">  Exponential Backoff and Retry Strategy </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/async-queue-pattern" class="article-nav-article-link">  Async Queue Pattern in JavaScript </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/javascript-error-handling-patterns" class="article-nav-article-link">  JavaScript Error Handling Patterns </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/javascript-string-length" class="article-nav-article-link">  JavaScript String Length: Graphemes, UTF-16, and Unicode </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Developer Experience</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Productivity &amp; Workflows</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/developer-experience/productivity-workflows/chrome-developer-setup" class="article-nav-article-link">  Chrome Developer Setup: Extensions, Profiles, and Shortcuts </a><a href="/legacy-personal-site/v4/articles/developer-experience/productivity-workflows/editor-terminal-setup" class="article-nav-article-link">  macOS Developer Environment Setup </a> </div> </details> </div> </div> </nav> <script type="module">function e(){document.querySelector("#left-sidebar .article-nav-article-link.is-active")?.scrollIntoView({block:"nearest",behavior:"instant"})}e();document.addEventListener("astro:page-load",e);</script>  </div> </aside> <main id="main" class="zen-main"> <div class="page-content"> <nav class="breadcrumb" aria-label="Breadcrumb"><a title="Home" aria-label="Home" href="/legacy-personal-site/v4/" class="nav-link">  <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:home">   <symbol id="ai:carbon:home" viewBox="0 0 32 32"><path fill="currentColor" d="M16.612 2.214a1.01 1.01 0 0 0-1.242 0L1 13.419l1.243 1.572L4 13.621V26a2.004 2.004 0 0 0 2 2h20a2.004 2.004 0 0 0 2-2V13.63L29.757 15L31 13.428ZM18 26h-4v-8h4Zm2 0v-8a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v8H6V12.062l10-7.79l10 7.8V26Z"/></symbol><use href="#ai:carbon:home"></use>  </svg> </a><svg width="1em" height="1em" viewBox="0 0 32 32" class="breadcrumb-separator icon-sm" data-icon="carbon:chevron-right">   <use href="#ai:carbon:chevron-right"></use>  </svg><a href="/legacy-personal-site/v4/articles/system-design" class="nav-link">  System Design </a><svg width="1em" height="1em" class="breadcrumb-separator icon-sm" data-icon="carbon:chevron-right">   <symbol id="ai:carbon:chevron-right" viewBox="0 0 32 32"><path fill="currentColor" d="M22 16L12 26l-1.4-1.4l8.6-8.6l-8.6-8.6L12 6z"/></symbol><use href="#ai:carbon:chevron-right"></use>  </svg><a title="Real-World Case Studies" href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies" class="nav-link">  Real-World Case Studies </a></nav>    <div id="reading-progress" class="reading-progress" style="width: 0%"></div> <script type="module">function l(){const e=document.getElementById("reading-progress");if(!e)return;const t=document.querySelector("article")||document.querySelector(".prose");if(!t){e.style.display="none";return}function r(){if(!t||!e)return;const i=t.getBoundingClientRect(),s=i.top+window.scrollY,u=i.height,c=window.innerHeight,g=window.scrollY,o=s-c/2,w=s+u-c/2,d=g;let a=0;d>o&&(a=Math.min(100,(d-o)/(w-o)*100)),e.style.width=`${Math.max(0,a)}%`}let n=!1;window.addEventListener("scroll",()=>{n||(requestAnimationFrame(()=>{r(),n=!1}),n=!0)}),r()}document.addEventListener("DOMContentLoaded",l);document.addEventListener("astro:page-load",l);</script>  <div class="frontmatter article-frontmatter">    <span class="frontmatter-item"> <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:time">   <symbol id="ai:carbon:time" viewBox="0 0 32 32"><path fill="currentColor" d="M16 30a14 14 0 1 1 14-14a14 14 0 0 1-14 14m0-26a12 12 0 1 0 12 12A12 12 0 0 0 16 4"/><path fill="currentColor" d="M20.59 22L15 16.41V7h2v8.58l5 5.01z"/></symbol><use href="#ai:carbon:time"></use>  </svg> 23 min read </span> <span class="frontmatter-item"> <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:calendar">   <symbol id="ai:carbon:calendar" viewBox="0 0 32 32"><path fill="currentColor" d="M26 4h-4V2h-2v2h-8V2h-2v2H6c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2m0 22H6V12h20zm0-16H6V6h4v2h2V6h8v2h2V6h4z"/></symbol><use href="#ai:carbon:calendar"></use>  </svg>
+Last updated on Feb 9, 2026 </span> </div>  <article id="article-content" class="article-prose-content DocSearch-content"> <h1 id="figma-building-multiplayer-infrastructure-for-real-time-design-collaboration" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#figma-building-multiplayer-infrastructure-for-real-time-design-collaboration">Figma: Building Multiplayer Infrastructure for Real-Time Design Collaboration</a></h1>
+<p>How Figma built a real-time collaboration engine that supports 200 concurrent editors per document using a CRDT-inspired, server-authoritative protocol — rejecting both Operational Transformation and pure CRDTs in favor of property-level last-writer-wins with fractional indexing, backed by a Rust multiplayer server and a DynamoDB write-ahead journal processing over 2.2 billion changes per day.</p>
+<figure>
+<p><img alt="Figma&amp;#x27;s real-time infrastructure: browser clients sync document edits through a per-document Rust process over WebSockets, while LiveGraph handles non-document data subscriptions backed by PostgreSQL." loading="lazy" decoding="async" fetchpriority="auto" width="1453" height="852" src="/legacy-personal-site/v4/_astro/figma-s-real-time-infrastructure-browser-clients-sync-document-edits-through-a-p.BPHAmj84_15p6YO.svg" ></p>
+<figcaption>Figma's real-time infrastructure: browser clients sync document edits through a per-document Rust process over WebSockets, while LiveGraph handles non-document data subscriptions backed by PostgreSQL.</figcaption>
+</figure>
+<h2 id="abstract" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#abstract">Abstract</a></h2>
+<p>Figma’s multiplayer system is a case study in choosing the simplest conflict resolution model that actually works for the domain. The mental model:</p>
+<ul>
+<li><strong>Document model</strong>: Every Figma file is a tree of objects represented as <code>Map&#x3C;ObjectID, Map&#x3C;Property, Value>></code> — similar to the HTML DOM. Conflict resolution operates at the individual property level, not the document or object level.</li>
+<li><strong>Not OT, not pure CRDT</strong>: Figma rejected Operational Transformation (OT) for its combinatorial complexity and pure Conflict-free Replicated Data Types (CRDTs) for their decentralization overhead. Instead, they built a server-authoritative system inspired by CRDT last-writer-wins registers — the server defines operation ordering, eliminating the need for vector clocks or tombstone garbage collection.</li>
+<li><strong>Fractional indexing for ordering</strong>: Child ordering uses arbitrary-precision fractions (base-95 encoded strings) instead of OT sequences. Inserting between two siblings averages their indices. The server resolves collisions when concurrent inserts target the same position.</li>
+<li><strong>Rust for parallelism</strong>: The multiplayer server was rewritten from TypeScript to Rust in 2018, achieving 10x faster serialization and enabling per-document process isolation that the Node.js memory overhead made impractical.</li>
+<li><strong>Journal for durability</strong>: A DynamoDB-backed write-ahead log (WAL) persists 95% of changes within 600ms, reducing worst-case data loss from 60 seconds (checkpoint-only) to under 1 second.</li>
+<li><strong>Two sync systems</strong>: The multiplayer server handles document state (the design file). LiveGraph — a separate Go-based system reading the PostgreSQL WAL — handles everything else (files, teams, comments, permissions) via real-time subscriptions.</li>
+</ul>
+<p><strong>The transferable insight</strong>: When your problem domain has a natural conflict granularity (properties on objects in a design tool), you can build a far simpler real-time system than general-purpose CRDTs or OT require. The key is matching the conflict resolution model to the domain’s actual collaboration patterns — most concurrent edits in design tools touch different objects or different properties, making last-writer-wins at the property level both correct and simple.</p>
+<h2 id="context" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#context">Context</a></h2>
+<h3 id="the-system" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-system">The System</a></h3>
+<p>Figma is a browser-based design tool where multiple users edit the same document simultaneously. Unlike Google Docs (sequential text) or Miro (spatial canvas with independent objects), Figma edits affect a deeply nested tree structure — frames contain groups, groups contain shapes, shapes have hundreds of properties (position, rotation, fill, stroke, constraints, auto-layout rules). This tree structure makes real-time collaboration fundamentally harder than text editing.</p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody><tr><td>Max concurrent editors per file</td><td>200</td></tr><tr><td>Max total participants per file (editors + viewers)</td><td>500</td></tr><tr><td>Max visible multiplayer cursors</td><td>200</td></tr><tr><td>Client update frequency</td><td>~33ms (30 FPS)</td></tr><tr><td>Journal changes received per day</td><td>>2.2 billion</td></tr><tr><td>Change persistence (p95)</td><td>~600ms</td></tr><tr><td>Data loss target on crash</td><td>&#x3C;1 second</td></tr><tr><td>Client rendering engine</td><td>C++ compiled to WebAssembly</td></tr><tr><td>Multiplayer server language</td><td>Rust (rewritten from TypeScript in 2018)</td></tr></tbody></table></div>
+<h3 id="the-access-pattern" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-access-pattern">The Access Pattern</a></h3>
+<p>Figma’s collaboration pattern has three properties that shaped every architectural decision:</p>
+<ol>
+<li>
+<p><strong>Spatial locality of edits</strong>: In a design tool, users typically work on different parts of the canvas. Two designers rarely edit the same text field simultaneously. This makes property-level last-writer-wins viable — conflicts are infrequent in practice.</p>
+</li>
+<li>
+<p><strong>High-frequency, small mutations</strong>: Moving a shape generates a stream of position updates at 30 FPS. The system must handle thousands of property changes per second per document without introducing visible latency.</p>
+</li>
+<li>
+<p><strong>Tree mutations are the hard case</strong>: Reparenting a group of elements (dragging layers between frames) changes parent-child relationships, child ordering, and can create cycles if concurrent reparenting operations conflict. This is where naive approaches break down.</p>
+</li>
+</ol>
+<h3 id="the-trigger" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-trigger">The Trigger</a></h3>
+<p>When Figma shipped multiplayer editing in September 2016, the team had to decide how concurrent edits would be resolved. This is the foundational problem of collaborative editing — Google Docs had solved it for text using Operational Transformation (OT) in 2006, and academic research had produced CRDTs as a decentralized alternative. Figma chose neither.</p>
+<h3 id="constraints" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#constraints">Constraints</a></h3>
+<ul>
+<li><strong>Startup velocity</strong>: Figma had a small team and needed to ship features rapidly. Complex algorithms like OT would slow development.</li>
+<li><strong>Design tool semantics</strong>: Figma documents are trees of objects with hundreds of properties each — not linear text sequences. OT’s character-level transforms were mismatched.</li>
+<li><strong>Browser-only client</strong>: The entire editing engine runs in the browser (C++ compiled to WebAssembly), requiring efficient wire protocols and client-side state management.</li>
+<li><strong>Centralized architecture</strong>: Figma had a server infrastructure. There was no requirement for peer-to-peer collaboration, which eliminated the primary motivation for pure CRDTs.</li>
+</ul>
+<h2 id="the-design-decision-why-not-ot-why-not-crdts" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-design-decision-why-not-ot-why-not-crdts">The Design Decision: Why Not OT, Why Not CRDTs</a></h2>
+<h3 id="why-operational-transformation-was-rejected" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#why-operational-transformation-was-rejected">Why Operational Transformation Was Rejected</a></h3>
+<p>Evan Wallace, Figma’s co-founder and CTO, explained the reasoning in 2019: OT causes a combinatorial explosion of transform functions. Every new operation type must define how it transforms against every other operation type. For a design tool with dozens of operation types (move, resize, reparent, change fill, change stroke, modify text, adjust constraints, update auto-layout parameters), the number of transform pairs grows quadratically.</p>
+<p>OT was designed for text editing — insert and delete on a linear sequence — where the transform functions are well-understood. Adapting it to tree-structured documents with rich property sets would have been an enormous engineering investment for a startup.</p>
+<p>Additionally, OT requires that all operations be serialized through a central server in a specific order, and the server must apply transform functions correctly for every pair. A bug in any transform function can cause permanent document divergence across clients — a class of bug that is notoriously difficult to detect and debug.</p>
+<h3 id="why-pure-crdts-were-rejected" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#why-pure-crdts-were-rejected">Why Pure CRDTs Were Rejected</a></h3>
+<p>CRDTs are designed for fully decentralized systems where there is no central authority. This design constraint forces CRDTs to carry additional metadata:</p>
+<ul>
+<li><strong>Vector clocks or Lamport timestamps</strong> for causal ordering without a central server</li>
+<li><strong>Tombstones</strong> for tracking deletions (since any replica might not have seen the delete yet), requiring garbage collection coordination</li>
+<li><strong>Rich merge functions</strong> that must produce identical results regardless of the order operations are received</li>
+</ul>
+<p>Since Figma has a central server that all clients connect to, this decentralization overhead was unnecessary complexity. The server can define the canonical ordering of events simply by processing them in arrival order — no timestamps, no vector clocks, no tombstone GC.</p>
+<h3 id="the-chosen-approach-server-authoritative-last-writer-wins" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-chosen-approach-server-authoritative-last-writer-wins">The Chosen Approach: Server-Authoritative Last-Writer-Wins</a></h3>
+<p>Figma built a system inspired by the <strong>last-writer-wins register</strong> from CRDT literature, but simplified by the presence of a central server:</p>
+<ol>
+<li>The server maintains the authoritative document state as <code>Map&#x3C;ObjectID, Map&#x3C;Property, Value>></code></li>
+<li>Clients send property-change deltas to the server over WebSockets</li>
+<li>The server applies changes in arrival order and broadcasts them to all connected clients</li>
+<li>When two clients change the same property on the same object, the value that arrives at the server last wins</li>
+</ol>
+<p>This approach resolves conflicts at the <strong>finest possible granularity</strong> — individual properties on individual objects. Two clients changing different properties on the same object (one edits color, another edits position) do not conflict at all. The result contains both changes.</p>
+<h3 id="decision-factors" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#decision-factors">Decision Factors</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Factor</th><th>OT</th><th>Pure CRDT</th><th>Figma’s Approach</th></tr></thead><tbody><tr><td>Implementation complexity</td><td>High (quadratic transform pairs)</td><td>High (metadata, tombstones, GC)</td><td>Low (property-level LWW)</td></tr><tr><td>Server requirement</td><td>Yes (serialization point)</td><td>No (peer-to-peer capable)</td><td>Yes (authoritative ordering)</td></tr><tr><td>Conflict granularity</td><td>Character/operation level</td><td>Varies by CRDT type</td><td>Property level on objects</td></tr><tr><td>Metadata overhead</td><td>Low</td><td>High (vector clocks, tombstones)</td><td>Minimal (server assigns order)</td></tr><tr><td>Undo/redo complexity</td><td>Well-studied</td><td>Extremely complex</td><td>Complex but tractable</td></tr><tr><td>Design tool fit</td><td>Poor (text-optimized)</td><td>Usable but over-engineered</td><td>Purpose-built</td></tr><tr><td>Debugging difficulty</td><td>High (divergence bugs)</td><td>High (convergence proofs)</td><td>Low (single source of truth)</td></tr></tbody></table></div>
+<p>The core insight: when you have a central server and your domain has a natural property-level conflict granularity, you can build something far simpler than either OT or general-purpose CRDTs.</p>
+<h2 id="implementation" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#implementation">Implementation</a></h2>
+<h3 id="document-model" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#document-model">Document Model</a></h3>
+<p>Every Figma document is a tree of objects. Conceptually, the data structure is:</p>
+<div class="expressive-code"><link rel="stylesheet" href="/legacy-personal-site/v4/_astro/ec.g38ze.css"><script type="module" src="/legacy-personal-site/v4/_astro/ec.0vx5m.js"></script><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Map&#x3C;ObjectID, Map&#x3C;Property, Value>></span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="Map<ObjectID, Map<Property, Value>>"><div></div></button></div></figure></div>
+<p>There is a single root object representing the document. Under it are page objects, and under those are the nested hierarchy of frames, groups, shapes, and other design elements. Each object has a unique ID and a set of typed properties (position, size, fill, stroke, opacity, constraints, etc.).</p>
+<p>This is analogous to the HTML DOM — a tree where each node has an identity and a set of attributes. The key difference from text-based collaboration tools: the unit of conflict is a property on an object, not a character position in a string.</p>
+<h3 id="client-server-protocol" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#client-server-protocol">Client-Server Protocol</a></h3>
+<h4 id="connection-flow" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#connection-flow">Connection Flow</a></h4>
+<ol>
+<li>Client opens a Figma file and connects to the multiplayer server via WebSocket</li>
+<li>The server assigns the document to a <strong>dedicated Rust process</strong> (one process per active document)</li>
+<li>Client downloads the <strong>full document state</strong></li>
+<li>From this point, only <strong>incremental deltas</strong> flow in both directions</li>
+</ol>
+<h4 id="delta-format" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#delta-format">Delta Format</a></h4>
+<p>Each delta is a property change: “set property P on object O to value V.” Clients batch changes and send them approximately every 33ms (matching the 30 FPS rendering loop). The server applies each delta to the authoritative state and broadcasts it to all other connected clients.</p>
+<h4 id="optimistic-local-updates" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#optimistic-local-updates">Optimistic Local Updates</a></h4>
+<p>Clients apply their own changes immediately — before server acknowledgment — for zero-latency local editing. When the server broadcasts changes from other clients, the local client follows a critical rule: <strong>discard incoming server changes that conflict with unacknowledged local property changes</strong>. This prevents flickering where an older acknowledged value would temporarily overwrite a newer local change.</p>
+<p>Once the server acknowledges a client’s change (by broadcasting it back), the client removes it from its unacknowledged set. If the server rejects a change (e.g., a reparent that would create a cycle), the client reverts the local state.</p>
+<h3 id="tree-operations-the-hard-part" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#tree-operations-the-hard-part">Tree Operations: The Hard Part</a></h3>
+<h4 id="parent-child-relationships" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#parent-child-relationships">Parent-Child Relationships</a></h4>
+<p>Rather than storing a children array on parent objects, Figma stores a <strong>link to the parent as a property on the child</strong>. This is critical: when reparenting an element, the object retains its identity. If reparenting instead deleted the object and recreated it with a new ID, any concurrent edits by other users to that object would be silently lost.</p>
+<h4 id="fractional-indexing-for-child-ordering" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#fractional-indexing-for-child-ordering">Fractional Indexing for Child Ordering</a></h4>
+<p>An object’s position among its parent’s children is represented as a <strong>fraction strictly between 0 and 1</strong> (exclusive). To insert object C between siblings A (at 0.3) and B (at 0.7):</p>
+<ol>
+<li>Calculate the midpoint: <code>(0.3 + 0.7) / 2 = 0.5</code></li>
+<li>Assign C the position 0.5</li>
+</ol>
+<p>To prevent precision loss after many insertions (repeated averaging can produce numbers with many decimal places), Figma uses <strong>arbitrary-precision fractions</strong> rather than 64-bit floating-point numbers. These fractions are encoded as strings using <strong>base-95</strong> (the entire printable ASCII range) for compact representation. String averaging is performed via string manipulation to maintain full precision.</p>
+<p><strong>Why base-95?</strong> Standard base-10 encoding wastes entropy. With base-95, each character carries ~6.6 bits of information versus ~3.3 bits for base-10. This halves the string length for equivalent precision.</p>
+<h4 id="atomic-parent--position-updates" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#atomic-parent--position-updates">Atomic Parent + Position Updates</a></h4>
+<p>The parent link and fractional position are stored as a <strong>single composite property</strong> so they update atomically. Without this, reparenting could briefly place an element at the wrong position in the new parent’s child list — a transient but visible glitch.</p>
+<h4 id="cycle-prevention" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#cycle-prevention">Cycle Prevention</a></h4>
+<p>Concurrent reparenting operations can create cycles. If User A parents node X under node Y while User B simultaneously parents node Y under node X, the result is a cycle (X -> Y -> X) that breaks the tree.</p>
+<p>Figma’s solution: the <strong>server rejects parent updates that would cause a cycle</strong>. On the client side, if a reparent is rejected, the affected objects temporarily disappear from the visible tree until the server resolves the conflict. This is a simple solution to a rare, transient problem — far simpler than the CRDT-based cycle prevention algorithms that exist in the literature.</p>
+<h4 id="concurrent-insert-collisions" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#concurrent-insert-collisions">Concurrent Insert Collisions</a></h4>
+<p>When two clients simultaneously insert between the same two siblings, they generate identical fractional indices. The server detects this and <strong>generates a unique position for the second insert</strong>, preventing duplicate ordering keys.</p>
+<p><strong>Trade-off — interleaving</strong>: Fractional indexing can cause interleaving with concurrent bulk insertions. If Client A inserts elements “a, b, c” while Client B simultaneously inserts “x, y, z” at the same position, the result might be “a, x, b, y, c, z” rather than “a, b, c, x, y, z.” Figma accepts this trade-off: in a design tool, overlapping bulk insertions at the exact same position are rare, and users can manually reorder afterward.</p>
+<h3 id="undoredo-in-multiplayer-context" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#undoredo-in-multiplayer-context">Undo/Redo in Multiplayer Context</a></h3>
+<p>Multiplayer undo is one of the most nuanced aspects of the system. The guiding invariant: if you undo several times, copy something, then redo back to the present, the document should not change. This is a common design workflow and must be preserved.</p>
+<p><strong>The problem</strong>: In single-player mode, undo history is a simple linear stack. In multiplayer, other users may have edited the same objects between your actions. Should undo revert your change and silently overwrite their subsequent edits?</p>
+<p><strong>Figma’s approach</strong>: An undo operation <strong>modifies the redo history</strong> at the time of the undo, and a redo <strong>modifies the undo history</strong> at the time of the redo. The undo/redo stacks are actively rewritten to account for concurrent changes, preventing undo from silently overwriting other users’ work.</p>
+<p><strong>Deleted object recovery</strong>: When objects are deleted, their property data is stored in the <strong>client’s local undo buffer</strong> — not on the server. This avoids the unbounded server-side storage that CRDT tombstones require. Individual clients can still recover deleted objects through their local undo stack, but other clients cannot recover objects deleted by someone else.</p>
+<h3 id="the-rust-rewrite-2018" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-rust-rewrite-2018">The Rust Rewrite (2018)</a></h3>
+<h4 id="why-typescript-hit-its-limits" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#why-typescript-hit-its-limits">Why TypeScript Hit Its Limits</a></h4>
+<p>The original multiplayer server was written in TypeScript running on Node.js. By 2018, two years after launching multiplayer, three problems were unsustainable:</p>
+<ol>
+<li><strong>Single-threaded blocking</strong>: Node.js processes operations sequentially. A single slow operation (encoding a large document) locked up the entire worker, blocking syncing for all documents on that worker.</li>
+<li><strong>Garbage collection pauses</strong>: The V8 garbage collector introduced unpredictable latency spikes during document serialization — exactly when latency matters most.</li>
+<li><strong>Memory overhead</strong>: The JavaScript VM’s per-process memory overhead made it impractical to run a separate process for each active document. The team resorted to manual routing of problematic large documents to dedicated “heavy” worker pools.</li>
+</ol>
+<h4 id="the-hybrid-architecture" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-hybrid-architecture">The Hybrid Architecture</a></h4>
+<p>Rather than rewriting the entire server, Figma moved only the <strong>performance-sensitive document operations</strong> into Rust:</p>
+<ul>
+<li>The <strong>Node.js process</strong> continues to handle network I/O (WebSocket connections, HTTP requests)</li>
+<li>A <strong>separate Rust child process</strong> is spawned for each active document</li>
+<li>Communication between Node.js and Rust uses <strong>stdin/stdout</strong> with a message-based protocol</li>
+</ul>
+<p>This hybrid approach was pragmatic: Rust’s async I/O ecosystem was not mature enough in 2018 for a full network stack rewrite, but Rust’s zero-cost abstractions and lack of garbage collection were exactly what the serialization path needed.</p>
+<h4 id="performance-results" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#performance-results">Performance Results</a></h4>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Metric</th><th>TypeScript</th><th>Rust</th><th>Improvement</th></tr></thead><tbody><tr><td>Worst-case serialization</td><td>Unpredictable (GC pauses)</td><td>Deterministic</td><td>>10x faster</td></tr><tr><td>Per-document process isolation</td><td>Impractical (VM memory overhead)</td><td>Feasible (minimal memory footprint)</td><td>Enabled new architecture</td></tr><tr><td>Latency spikes from GC</td><td>Frequent, unpredictable</td><td>None</td><td>Eliminated</td></tr></tbody></table></div>
+<p>The Rust rewrite enabled per-document parallelism — the single most important architectural improvement. Previously, a hot document on a worker could degrade all other documents on that worker. With per-document Rust processes, each document is fully isolated.</p>
+<h4 id="continued-rust-optimizations-2024" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#continued-rust-optimizations-2024">Continued Rust Optimizations (2024)</a></h4>
+<p>Figma continued optimizing the Rust multiplayer server six years after the initial rewrite:</p>
+<ul>
+<li><strong>Data structure change</strong>: Switched from <code>BTreeMap</code> to a <strong>flat sorted vector</strong> for representing object property maps. The average Figma object has ~60 properties out of a constrained key space of fewer than 200 fields — small enough that linear search over a sorted vector outperforms tree traversal due to cache locality.</li>
+<li><strong>File deserialization improvement</strong>: 20% faster at p99</li>
+<li><strong>Memory savings</strong>: ~5% reduction in RSS across the entire multiplayer fleet</li>
+<li><strong>Pointer stuffing</strong>: Used the top 16 bits of 64-bit pointers (only 48 bits are used for virtual addressing on x86-64) to store field IDs, packing both a field identifier and a pointer into a single 64-bit value</li>
+</ul>
+<h3 id="persistence-from-checkpoints-to-journal" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#persistence-from-checkpoints-to-journal">Persistence: From Checkpoints to Journal</a></h3>
+<h4 id="the-checkpoint-only-era" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-checkpoint-only-era">The Checkpoint-Only Era</a></h4>
+<p>Initially, the multiplayer server persisted documents by periodically encoding the entire file into a binary format (using Figma’s custom Kiwi schema), compressing it, and uploading to <strong>Amazon S3</strong> as a checkpoint. Checkpoints were created approximately every 30-60 seconds.</p>
+<p><strong>The durability gap</strong>: If the multiplayer server crashed, up to 60 seconds of work could be lost. For the worst 5% of files (large, complex documents), checkpoint creation itself took over 4 seconds, during which the server could not process new edits — creating a latency spike proportional to file size.</p>
+<h4 id="the-journal-system-wal" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-journal-system-wal">The Journal System (WAL)</a></h4>
+<p>Figma introduced a <strong>write-ahead log (journal)</strong> backed by <strong>Amazon DynamoDB</strong> to complement checkpoints:</p>
+<ul>
+<li><strong>Journal entries</strong> are incremental changes (the same deltas clients send), which are orders of magnitude smaller than full file snapshots</li>
+<li>The journal writes approximately every <strong>0.5 seconds</strong> — 120x more frequently than checkpoints</li>
+<li>Each change receives an incrementing <strong>sequence number</strong> tied to the file</li>
+<li>On crash recovery: load the latest checkpoint from S3, then replay journal entries with sequence numbers higher than the checkpoint</li>
+</ul>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Metric</th><th>Checkpoint-Only</th><th>Checkpoint + Journal</th></tr></thead><tbody><tr><td>Worst-case data loss</td><td>~60 seconds</td><td>&#x3C;1 second</td></tr><tr><td>Write frequency</td><td>30-60 seconds</td><td>~0.5 seconds</td></tr><tr><td>Change persistence (p95)</td><td>Tens of seconds</td><td>~600ms</td></tr><tr><td>Recovery mechanism</td><td>Load last checkpoint</td><td>Checkpoint + journal replay</td></tr><tr><td>Backing store</td><td>Amazon S3</td><td>DynamoDB (journal) + S3 (checkpoints)</td></tr></tbody></table></div>
+<p><strong>File locking</strong>: To prevent split-brain scenarios where two server processes believe they own the same document, Figma implements file locking via a DynamoDB table. The multiplayer process writes a <code>(lock UUID, file key)</code> entry; all subsequent updates are conditional on the lock UUID matching. If a stale process attempts a write with an old lock UUID, the write fails.</p>
+<p><strong>Deployment safety</strong>: During deployments, the system closes all WebSocket connections and waits for unsaved changes to be persisted to the journal. At p99, this drain takes less than 1 second.</p>
+<h3 id="livegraph-the-other-sync-system" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#livegraph-the-other-sync-system">LiveGraph: The Other Sync System</a></h3>
+<p>Figma has <strong>two</strong> real-time sync systems, often conflated:</p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Aspect</th><th>Multiplayer Server</th><th>LiveGraph</th></tr></thead><tbody><tr><td><strong>Data</strong></td><td>Document content (shapes, properties, layers)</td><td>Product data (files, teams, comments, permissions)</td></tr><tr><td><strong>Source of truth</strong></td><td>In-memory server state</td><td>PostgreSQL</td></tr><tr><td><strong>Sync model</strong></td><td>Read-write (clients send edits)</td><td>Read-only (clients subscribe to queries)</td></tr><tr><td><strong>Protocol</strong></td><td>Custom delta protocol over WebSocket</td><td>GraphQL-like subscriptions</td></tr><tr><td><strong>Language</strong></td><td>Rust (compute) + Node.js (network)</td><td>Go</td></tr></tbody></table></div>
+<h4 id="livegraph-v1" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#livegraph-v1">LiveGraph v1</a></h4>
+<p>The original LiveGraph was built as a <strong>data-fetching layer on top of PostgreSQL</strong> using the database’s WAL (Write-Ahead Log) replication stream. Frontend code subscribes to GraphQL-like queries, and LiveGraph detects relevant changes by reading row-level mutations from the WAL.</p>
+<p>Before LiveGraph, Figma’s product engineers manually crafted event messages and broadcast them to clients whenever they wrote to the database. This worked with a small product surface but became unsustainable as the product grew.</p>
+<h4 id="livegraph-100x-redesign-2024" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#livegraph-100x-redesign-2024">LiveGraph 100x Redesign (2024)</a></h4>
+<p>As Figma’s user base tripled and page views grew 5x, LiveGraph required a complete rearchitecture. The redesigned system, written in Go, consists of three independently scalable services:</p>
+<ol>
+<li><strong>Edge</strong>: Receives client view requests, expands them into database queries, reconstructs results, and subscribes to the cache for invalidation signals</li>
+<li><strong>Read-through cache</strong>: Stores database query results, sharded by query hash</li>
+<li><strong>Invalidator</strong>: Reads database mutation logs (distributed via Kafka), determines which cache entries are affected, and marks them invalid</li>
+</ol>
+<p><strong>The key architectural shift</strong>: Moving from <strong>Incremental View Maintenance (IVM)</strong> — where the system tried to incrementally update cached query results as the database changed — to an <strong>invalidation-and-refetch</strong> model. The insight was that most database writes don’t affect most cached queries, so invalidation signals are sparse, and refetching on invalidation is cheap relative to maintaining incremental update logic.</p>
+<h2 id="outcome" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#outcome">Outcome</a></h2>
+<h3 id="what-the-architecture-enables" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#what-the-architecture-enables">What the Architecture Enables</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Capability</th><th>How It’s Achieved</th></tr></thead><tbody><tr><td>200 concurrent editors per document</td><td>Per-document Rust process isolation; property-level conflict resolution</td></tr><tr><td>Sub-frame latency for local edits</td><td>Optimistic local updates; server acknowledgment is async</td></tr><tr><td>&#x3C;1 second worst-case data loss</td><td>DynamoDB journal with ~0.5s write frequency</td></tr><tr><td>Full document recovery after crash</td><td>Checkpoint (S3) + journal replay (DynamoDB)</td></tr><tr><td>Real-time cursors for all participants</td><td>Cursor position broadcast via the same WebSocket connection</td></tr><tr><td>Offline editing with reconnection</td><td>Client redownloads full state on reconnect, reapplies local changes</td></tr></tbody></table></div>
+<h3 id="scale-metrics-2024" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#scale-metrics-2024">Scale Metrics (2024)</a></h3>
+<ul>
+<li><strong>Journal throughput</strong>: >2.2 billion changes per day</li>
+<li><strong>Database growth</strong>: ~100x since 2020 (driving PostgreSQL horizontal sharding)</li>
+<li><strong>Users</strong>: Over 20 million total; nearly 95% of Fortune 500 companies</li>
+<li><strong>Revenue</strong>: $749 million in 2024 (48% increase from 2023)</li>
+</ul>
+<h3 id="remaining-limitations" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#remaining-limitations">Remaining Limitations</a></h3>
+<ul>
+<li><strong>Single datacenter</strong>: As of 2024, Figma’s infrastructure runs primarily in AWS Oregon, with over 80% of users outside the US experiencing latency proportional to their round-trip time to that region</li>
+<li><strong>WebAssembly constraints</strong>: WASM supports only 32-bit addressing (4 GB max memory), and memory is grow-only — growing at runtime is unreliable on mobile devices</li>
+<li><strong>Text collaboration limits</strong>: Property-level last-writer-wins does not support character-level merging for text fields. Two users editing the same text layer simultaneously will see one user’s entire text change overwrite the other’s</li>
+<li><strong>Interleaving on concurrent inserts</strong>: Fractional indexing can produce interleaved ordering when users simultaneously insert elements at the same position</li>
+</ul>
+<h3 id="evolution-eg-walker-for-code-layers-2025" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#evolution-eg-walker-for-code-layers-2025">Evolution: Eg-walker for Code Layers (2025)</a></h3>
+<p>When Figma introduced code layers for Figma Sites — which require actual text/code editing where property-level last-writer-wins is insufficient — they adopted the <strong>Eg-walker (Event Graph Walker)</strong> algorithm by Joseph Gentle and Martin Kleppmann. Eg-walker represents edits as a directed acyclic event graph (analogous to git history) and merges concurrent edits via an algorithm analogous to git rebase. It temporarily builds a CRDT structure during merge, then discards it afterward, combining the memory efficiency of OT with the correctness guarantees of CRDTs. This demonstrates that Figma’s approach was always domain-specific — when the domain changed (text editing), they adopted a different algorithm.</p>
+<h2 id="lessons-learned" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#lessons-learned">Lessons Learned</a></h2>
+<h3 id="technical-lessons" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#technical-lessons">Technical Lessons</a></h3>
+<h4 id="1-match-conflict-resolution-to-domain-semantics" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#1-match-conflict-resolution-to-domain-semantics">1. Match Conflict Resolution to Domain Semantics</a></h4>
+<p><strong>The insight</strong>: The “right” real-time collaboration algorithm depends entirely on what users are editing. Figma’s property-level last-writer-wins would be disastrous for a text editor (losing entire sentences), but it’s nearly perfect for a design tool where conflicts on the same property of the same object are rare.</p>
+<p><strong>How it applies elsewhere</strong>:</p>
+<ul>
+<li>Spreadsheet tools might use cell-level last-writer-wins (similar to Figma’s property-level approach)</li>
+<li>Diagramming tools with rich objects can adopt the same model</li>
+<li>Text-heavy collaborative tools need character-level resolution (OT or sequence CRDTs)</li>
+</ul>
+<p><strong>Warning signs to watch for</strong>:</p>
+<ul>
+<li>If users frequently report “my changes disappeared,” your conflict granularity may be too coarse</li>
+<li>If your collaboration protocol is consuming significant engineering time, you may be over-engineering for your domain</li>
+</ul>
+<h4 id="2-a-central-server-simplifies-everything" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#2-a-central-server-simplifies-everything">2. A Central Server Simplifies Everything</a></h4>
+<p><strong>The insight</strong>: CRDTs solve the hard problem of decentralized consensus. If you have a server, you don’t need to solve that problem. Figma’s server defines operation order by arrival time — no vector clocks, no causal ordering metadata, no tombstone garbage collection.</p>
+<p><strong>How it applies elsewhere</strong>:</p>
+<ul>
+<li>If your application has a server anyway (most SaaS products), pure CRDTs may be adding unnecessary complexity</li>
+<li>Server-authoritative models trade offline capability for simplicity — Figma handles offline by redownloading the full document on reconnect rather than merging divergent offline edits</li>
+</ul>
+<p><strong>When this does NOT apply</strong>:</p>
+<ul>
+<li>Local-first applications where users expect full offline functionality with automatic merge</li>
+<li>Peer-to-peer systems without a central server</li>
+<li>Applications where network partitions must be handled gracefully without data loss</li>
+</ul>
+<h4 id="3-separate-the-persistence-layer-from-the-sync-layer" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#3-separate-the-persistence-layer-from-the-sync-layer">3. Separate the Persistence Layer from the Sync Layer</a></h4>
+<p><strong>The insight</strong>: Figma’s move from checkpoint-only persistence to checkpoint + journal reduced data loss from 60 seconds to under 1 second. The sync layer (WebSocket deltas) and the persistence layer (DynamoDB journal) serve different purposes with different latency requirements.</p>
+<p><strong>How it applies elsewhere</strong>:</p>
+<ul>
+<li>Any system with in-memory authoritative state should have a WAL independent of full snapshots</li>
+<li>The journal also serves as an audit log and debugging tool for production incidents</li>
+</ul>
+<h4 id="4-rewrite-the-hot-path-not-the-whole-system" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#4-rewrite-the-hot-path-not-the-whole-system">4. Rewrite the Hot Path, Not the Whole System</a></h4>
+<p><strong>The insight</strong>: Figma’s Rust rewrite targeted only the performance-sensitive document operations, leaving network I/O in Node.js. This hybrid approach shipped faster and carried lower risk than a full rewrite while capturing the majority of the performance benefit.</p>
+<p><strong>How it applies elsewhere</strong>:</p>
+<ul>
+<li>Profile before rewriting — identify the actual bottleneck (for Figma: serialization and GC, not network I/O)</li>
+<li>A hybrid architecture with IPC between languages is viable when the boundary is clean (document operations vs. network handling)</li>
+<li>Per-document process isolation became feasible only because Rust’s memory footprint was small enough — the language choice enabled the architecture</li>
+</ul>
+<h3 id="process-lessons" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#process-lessons">Process Lessons</a></h3>
+<h4 id="1-design-for-migration-from-day-one" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#1-design-for-migration-from-day-one">1. Design for Migration from Day One</a></h4>
+<p>Figma’s file format was overhauled when multiplayer launched because the original format was not efficient enough for small delta messages. This early investment in the right abstraction — <code>Map&#x3C;ObjectID, Map&#x3C;Property, Value>></code> — has sustained the system for nearly a decade.</p>
+<p><strong>What they’d do differently</strong>: The original checkpoint-only persistence design underestimated crash frequency at scale. The journal system should have been built earlier.</p>
+<h3 id="organizational-lessons" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#organizational-lessons">Organizational Lessons</a></h3>
+<h4 id="1-two-sync-systems-not-one" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#1-two-sync-systems-not-one">1. Two Sync Systems, Not One</a></h4>
+<p>Figma intentionally separated document sync (multiplayer server) from product data sync (LiveGraph). The multiplayer server optimizes for low-latency read-write collaboration with in-memory state. LiveGraph optimizes for correct read-only subscriptions backed by a durable database. Attempting to force both workloads through a single system would have compromised both.</p>
+<h2 id="conclusion" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#conclusion">Conclusion</a></h2>
+<p>Figma’s multiplayer infrastructure demonstrates that the simplest correct solution often outperforms the theoretically elegant one. By recognizing that a design tool’s collaboration patterns — spatial locality of edits, high-frequency property changes on distinct objects, rare same-property conflicts — match the semantics of property-level last-writer-wins perfectly, Figma avoided the complexity of both OT and pure CRDTs.</p>
+<p>The architecture has sustained nearly a decade of scaling: from the initial TypeScript prototype through the Rust rewrite, from checkpoint-only persistence through the DynamoDB journal, and from a single PostgreSQL instance through horizontal sharding. Each evolution addressed a specific bottleneck without requiring a redesign of the core collaboration model.</p>
+<p>The proof that this approach works is in its longevity. The 2016 conflict resolution protocol — property-level last-writer-wins with server-authoritative ordering — remains the foundation of Figma’s multiplayer system in 2025. When the domain changed (text editing for code layers), Figma adopted a different algorithm (Eg-walker) rather than generalizing the existing one. That discipline — matching the algorithm to the domain rather than building a universal solution — is the most transferable lesson.</p>
+<h2 id="appendix" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#appendix">Appendix</a></h2>
+<h3 id="prerequisites" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#prerequisites">Prerequisites</a></h3>
+<ul>
+<li>Familiarity with real-time collaboration concepts (conflict resolution, eventual consistency)</li>
+<li>Understanding of CRDTs and Operational Transformation at a conceptual level</li>
+<li>Basic knowledge of WebSocket-based client-server communication</li>
+<li>Understanding of write-ahead logs and database persistence patterns</li>
+</ul>
+<h3 id="terminology" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#terminology">Terminology</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Term</th><th>Definition</th></tr></thead><tbody><tr><td><strong>OT (Operational Transformation)</strong></td><td>A conflict resolution approach where concurrent operations are transformed against each other to maintain consistency. Popularized by Google Docs.</td></tr><tr><td><strong>CRDT (Conflict-free Replicated Data Type)</strong></td><td>A data structure that can be replicated across multiple nodes and merged without coordination, guaranteeing eventual consistency.</td></tr><tr><td><strong>Last-Writer-Wins (LWW)</strong></td><td>A conflict resolution strategy where the most recent write to a value takes precedence. Figma applies this at the property level.</td></tr><tr><td><strong>Fractional Indexing</strong></td><td>A technique for ordering elements where each element’s position is a fraction between 0 and 1, enabling insertions without reindexing siblings.</td></tr><tr><td><strong>WAL (Write-Ahead Log)</strong></td><td>A persistence pattern where changes are written to a sequential log before being applied to the main data store, enabling crash recovery.</td></tr><tr><td><strong>LiveGraph</strong></td><td>Figma’s real-time data subscription system for non-document data (files, teams, comments), backed by PostgreSQL.</td></tr><tr><td><strong>Kiwi</strong></td><td>Figma’s custom schema-based binary serialization format, inspired by Protocol Buffers, used for the .fig file format.</td></tr><tr><td><strong>Eg-walker</strong></td><td>Event Graph Walker — an algorithm by Gentle and Kleppmann that merges concurrent text edits using a temporary CRDT structure. Adopted by Figma for code layers in 2025.</td></tr></tbody></table></div>
+<h3 id="summary" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#summary">Summary</a></h3>
+<ul>
+<li>Figma rejected both OT (combinatorial complexity for a design tool) and pure CRDTs (unnecessary decentralization overhead) in favor of property-level last-writer-wins with server-authoritative ordering</li>
+<li>The document model (<code>Map&#x3C;ObjectID, Map&#x3C;Property, Value>></code>) enables fine-grained conflict resolution where most concurrent edits do not conflict at all</li>
+<li>Fractional indexing (arbitrary-precision, base-95 encoded) handles child ordering without OT’s sequence transforms, with the server resolving concurrent insert collisions</li>
+<li>The 2018 Rust rewrite of the multiplayer server eliminated GC pauses and enabled per-document process isolation, with >10x faster serialization</li>
+<li>A DynamoDB-backed journal (WAL) reduced worst-case data loss from 60 seconds to under 1 second, processing >2.2 billion changes daily</li>
+<li>LiveGraph (Go, PostgreSQL WAL) handles non-document real-time data separately from the multiplayer server, with an invalidation-and-refetch architecture after the 100x redesign</li>
+</ul>
+<h3 id="references" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#references">References</a></h3>
+<ul>
+<li><a href="https://www.figma.com/blog/how-figmas-multiplayer-technology-works/">How Figma’s multiplayer technology works</a> — Evan Wallace, October 2019</li>
+<li><a href="https://www.figma.com/blog/multiplayer-editing-in-figma/">Multiplayer Editing in Figma</a> — Evan Wallace, September 2016</li>
+<li><a href="https://www.figma.com/blog/realtime-editing-of-ordered-sequences/">Realtime Editing of Ordered Sequences</a> — Evan Wallace, March 2017</li>
+<li><a href="https://www.figma.com/blog/rust-in-production-at-figma/">Rust in Production at Figma</a> — Evan Wallace, May 2018</li>
+<li><a href="https://www.figma.com/blog/making-multiplayer-more-reliable/">Making multiplayer more reliable</a> — Figma Engineering, April 2024</li>
+<li><a href="https://www.figma.com/blog/supporting-faster-file-load-times-with-memory-optimizations-in-rust/">Supporting Faster File Load Times with Memory Optimizations in Rust</a> — Figma Engineering, 2024</li>
+<li><a href="https://www.figma.com/blog/livegraph-real-time-data-fetching-at-figma/">LiveGraph: real-time data fetching at Figma</a> — Rudi Chen and Slava Kim, 2021</li>
+<li><a href="https://www.figma.com/blog/livegraph-real-time-data-at-scale/">Keeping It 100(x) With Real-time Data At Scale</a> — Figma Engineering, May 2024</li>
+<li><a href="https://www.figma.com/blog/how-figmas-databases-team-lived-to-tell-the-scale/">How Figma’s Databases Team Lived to Tell the Scale</a> — Figma Engineering, 2024</li>
+<li><a href="https://www.figma.com/blog/how-figma-scaled-to-multiple-databases/">The growing pains of database architecture</a> — Figma Engineering, 2022</li>
+<li><a href="https://www.figma.com/blog/under-the-hood-of-figmas-infrastructure/">Under the hood of Figma’s infrastructure</a> — Figma Engineering, April 2024</li>
+<li><a href="https://www.figma.com/blog/webassembly-cut-figmas-load-time-by-3x/">WebAssembly cut Figma’s load time by 3x</a> — Evan Wallace, June 2017</li>
+<li><a href="https://www.figma.com/blog/building-figmas-code-layers/">Canvas, Meet Code: Building Figma’s Code Layers</a> — Alex Kern, June 2025</li>
+<li><a href="https://arxiv.org/abs/2409.14252">Collaborative Text Editing with Eg-walker</a> — Joseph Gentle and Martin Kleppmann, EuroSys 2025</li>
+<li><a href="https://expertofobsolescence.substack.com/p/the-hard-things-about-sync">The Hard Things About Sync</a> — Joy Gao (ex-Figma), April 2025</li>
+<li><a href="https://andrewkchan.dev/posts/figma2.html">Notes From Figma II: Engineering Learnings</a> — Andrew K. Chan (ex-Figma)</li>
+<li><a href="https://madebyevan.com/figma/">Evan Wallace’s Figma technical writing archive</a> — Evan Wallace</li>
+</ul> </article>  <section class="article-navigation"> <div class="section-divider"> <span class="section-divider-text">Continue Reading</span> </div> <ul class="article-list"> <li class="article-card"> <p class="article-card-label">Previous</p> <h3 class="article-card-title"> <a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/discord-message-storage" class="article-card-link">  Discord: From Billions to Trillions of Messages — A Three-Database Journey </a> </h3> <div class="frontmatter article-card-frontmatter">   <span class="frontmatter-item"> <a title="Category - System Design" href="/legacy-personal-site/v4/articles/system-design" class="frontmatter-link">  System Design </a>  <span class="text-muted">/</span> <a title="Topic - Real-World Case Studies" href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies" class="frontmatter-link">  Real-World Case Studies </a>  </span> <span class="frontmatter-item"> <svg width="1em" height="1em" viewBox="0 0 32 32" class="icon-sm" data-icon="carbon:time">   <use href="#ai:carbon:time"></use>  </svg> 22 min read </span>  </div> <p class="article-card-excerpt"> How Discord evolved its message storage from a single MongoDB replica set to Cassandra to ScyllaDB over 8 years, building Rust-based data services and a custom “super-disk” storage architecture along the way — reducing cluster size from 177 to 72 nodes while dropping p99 read latency from 125ms to 15ms. </p> </li> <li class="article-card"> <p class="article-card-label">Next</p> <h3 class="article-card-title"> <a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/whatsapp-erlang-scaling" class="article-card-link">  WhatsApp: 2 Million Connections Per Server with Erlang </a> </h3> <div class="frontmatter article-card-frontmatter">   <span class="frontmatter-item"> <a title="Category - System Design" href="/legacy-personal-site/v4/articles/system-design" class="frontmatter-link">  System Design </a>  <span class="text-muted">/</span> <a title="Topic - Real-World Case Studies" href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies" class="frontmatter-link">  Real-World Case Studies </a>  </span> <span class="frontmatter-item"> <svg width="1em" height="1em" viewBox="0 0 32 32" class="icon-sm" data-icon="carbon:time">   <use href="#ai:carbon:time"></use>  </svg> 26 min read </span>  </div> <p class="article-card-excerpt"> How WhatsApp scaled from zero to 1 billion users on Erlang/BEAM and FreeBSD — with fewer than 50 engineers, ~800 servers, and a custom protocol that compressed messages to 20 bytes — by pushing per-server density to limits most teams never attempt. </p> </li> </ul> </section> </div> <footer class="site-footer"> <div class="site-footer-inner">  <nav class="site-footer-categories"> <a title="Browser &#38; Runtime Internals" href="/legacy-personal-site/v4/articles/browser-runtime-internals" class="nav-link">  Browser &amp; Runtime Internals </a><a title="System Design" href="/legacy-personal-site/v4/articles/system-design" class="nav-link">  System Design </a><a title="Platform Engineering" href="/legacy-personal-site/v4/articles/platform-engineering" class="nav-link">  Platform Engineering </a><a title="Frontend Engineering" href="/legacy-personal-site/v4/articles/frontend-engineering" class="nav-link">  Frontend Engineering </a><a title="Web Foundations" href="/legacy-personal-site/v4/articles/web-foundations" class="nav-link">  Web Foundations </a><a title="Programming &#38; Patterns" href="/legacy-personal-site/v4/articles/programming-patterns" class="nav-link">  Programming &amp; Patterns </a><a title="Developer Experience" href="/legacy-personal-site/v4/articles/developer-experience" class="nav-link">  Developer Experience </a> </nav>  <div class="site-footer-bar"> <div class="site-footer-links"> <a href="https://docs.google.com/document/d/1pazXBfzuL9O1wCjPdKb7IS-7nXz_ZzI7EvNL1r_KKRc/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="nav-link">  Resume </a><a href="/legacy-personal-site/v4/tags" class="nav-link">  Tags </a><a href="/legacy-personal-site/v4/articles/drafts" class="nav-link">  Drafts </a> </div> <div class="site-footer-controls">  <div class="site-footer-theme"> <svg width="1em" height="1em" class="site-footer-theme-icon" data-icon="carbon:paint-brush">   <symbol id="ai:carbon:paint-brush" viewBox="0 0 32 32"><path fill="currentColor" d="M28.83 23.17L23 17.33V13a1 1 0 0 0-.29-.71l-10-10a1 1 0 0 0-1.42 0l-9 9a1 1 0 0 0 0 1.42l10 10A1 1 0 0 0 13 23h4.34l5.83 5.84a4 4 0 0 0 5.66-5.66ZM6 10.41l2.29 2.3l1.42-1.42L7.41 9L9 7.41l4.29 4.3l1.42-1.42L10.41 6L12 4.41L18.59 11L11 18.59L4.41 12Zm21.41 17a2 2 0 0 1-2.82 0l-6.13-6.12a1.8 1.8 0 0 0-.71-.29h-4.34l-1-1L20 12.41l1 1v4.34a1 1 0 0 0 .29.7l6.12 6.14a2 2 0 0 1 0 2.82"/></symbol><use href="#ai:carbon:paint-brush"></use>  </svg> <select id="theme-select" class="site-footer-theme-select" aria-label="Select theme"> <option value="auto">Auto</option> <option value="light">Light</option> <option value="dark">Dark</option> <option value="high-contrast-light">High contrast light</option> <option value="high-contrast-dark">High contrast dark</option> <option value="paper">Paper</option> </select> </div>  <div class="site-footer-social"> <a aria-label="GitHub" title="GitHub" href="https://github.com/sujeet-pro" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-github">   <symbol id="ai:carbon:logo-github" viewBox="0 0 32 32"><path fill="currentColor" fill-rule="evenodd" d="M16 2a14 14 0 0 0-4.43 27.28c.7.13 1-.3 1-.67v-2.38c-3.89.84-4.71-1.88-4.71-1.88a3.7 3.7 0 0 0-1.62-2.05c-1.27-.86.1-.85.1-.85a2.94 2.94 0 0 1 2.14 1.45a3 3 0 0 0 4.08 1.16a2.93 2.93 0 0 1 .88-1.87c-3.1-.36-6.37-1.56-6.37-6.92a5.4 5.4 0 0 1 1.44-3.76a5 5 0 0 1 .14-3.7s1.17-.38 3.85 1.43a13.3 13.3 0 0 1 7 0c2.67-1.81 3.84-1.43 3.84-1.43a5 5 0 0 1 .14 3.7a5.4 5.4 0 0 1 1.44 3.76c0 5.38-3.27 6.56-6.39 6.91a3.33 3.33 0 0 1 .95 2.59v3.84c0 .46.25.81 1 .67A14 14 0 0 0 16 2"/></symbol><use href="#ai:carbon:logo-github"></use>  </svg>  </a> <a aria-label="LinkedIn" title="LinkedIn" href="https://www.linkedin.com/in/sujeetkrjaiswal/" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-linkedin">   <symbol id="ai:carbon:logo-linkedin" viewBox="0 0 32 32"><path fill="currentColor" d="M26.2 4H5.8C4.8 4 4 4.8 4 5.7v20.5c0 .9.8 1.7 1.8 1.7h20.4c1 0 1.8-.8 1.8-1.7V5.7c0-.9-.8-1.7-1.8-1.7M11.1 24.4H7.6V13h3.5zm-1.7-13c-1.1 0-2.1-.9-2.1-2.1s.9-2.1 2.1-2.1c1.1 0 2.1.9 2.1 2.1s-1 2.1-2.1 2.1m15.1 12.9H21v-5.6c0-1.3 0-3.1-1.9-3.1S17 17.1 17 18.5v5.7h-3.5V13h3.3v1.5h.1c.5-.9 1.7-1.9 3.4-1.9c3.6 0 4.3 2.4 4.3 5.5v6.2z"/></symbol><use href="#ai:carbon:logo-linkedin"></use>  </svg>  </a> <a aria-label="Twitter" title="Twitter" href="https://twitter.com/sujeetpro" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-twitter">   <symbol id="ai:carbon:logo-twitter" viewBox="0 0 32 32"><path fill="currentColor" d="M11.548 25.752c9.056 0 14.01-7.503 14.01-14.01c0-.213 0-.425-.015-.636A10 10 0 0 0 28 8.556a9.8 9.8 0 0 1-2.828.776a4.94 4.94 0 0 0 2.164-2.724a9.9 9.9 0 0 1-3.126 1.195a4.929 4.929 0 0 0-8.392 4.491A13.98 13.98 0 0 1 5.67 7.15a4.93 4.93 0 0 0 1.525 6.573a4.9 4.9 0 0 1-2.235-.617v.063a4.926 4.926 0 0 0 3.95 4.827a4.9 4.9 0 0 1-2.223.084a4.93 4.93 0 0 0 4.6 3.42A9.88 9.88 0 0 1 4 23.54a13.94 13.94 0 0 0 7.547 2.209"/></symbol><use href="#ai:carbon:logo-twitter"></use>  </svg>  </a> </div> </div> </div>  <p class="site-footer-copyright">
+&copy; 2024-2026 Sujeet Jaiswal </p> </div> </footer> </main> <aside id="right-sidebar" class="zen-sidebar zen-sidebar-right" aria-label="Table of contents"> <div class="zen-sidebar-header"> <span class="zen-sidebar-header-title">On This Page</span> <button class="zen-sidebar-close" data-sidebar-close="right" aria-label="Close table of contents"> <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5"> <path d="M8 8l16 16M24 8L8 24"></path> </svg> </button> </div> <div class="zen-sidebar-content"> <nav aria-label="Table of contents"><h2 class="sidebar-nav-title">On this page</h2><ul class="sidebar-toc-list"><li><a href="#abstract" class="sidebar-toc-item">Abstract</a></li><li><a href="#context" class="sidebar-toc-item">Context</a></li><li><a href="#the-system" class="sidebar-toc-item sidebar-toc-item--h3">The System</a></li><li><a href="#the-access-pattern" class="sidebar-toc-item sidebar-toc-item--h3">The Access Pattern</a></li><li><a href="#the-trigger" class="sidebar-toc-item sidebar-toc-item--h3">The Trigger</a></li><li><a href="#constraints" class="sidebar-toc-item sidebar-toc-item--h3">Constraints</a></li><li><a href="#the-design-decision-why-not-ot-why-not-crdts" class="sidebar-toc-item">The Design Decision: Why Not OT, Why Not CRDTs</a></li><li><a href="#why-operational-transformation-was-rejected" class="sidebar-toc-item sidebar-toc-item--h3">Why Operational Transformation Was Rejected</a></li><li><a href="#why-pure-crdts-were-rejected" class="sidebar-toc-item sidebar-toc-item--h3">Why Pure CRDTs Were Rejected</a></li><li><a href="#the-chosen-approach-server-authoritative-last-writer-wins" class="sidebar-toc-item sidebar-toc-item--h3">The Chosen Approach: Server-Authoritative Last-Writer-Wins</a></li><li><a href="#decision-factors" class="sidebar-toc-item sidebar-toc-item--h3">Decision Factors</a></li><li><a href="#implementation" class="sidebar-toc-item">Implementation</a></li><li><a href="#document-model" class="sidebar-toc-item sidebar-toc-item--h3">Document Model</a></li><li><a href="#client-server-protocol" class="sidebar-toc-item sidebar-toc-item--h3">Client-Server Protocol</a></li><li><a href="#tree-operations-the-hard-part" class="sidebar-toc-item sidebar-toc-item--h3">Tree Operations: The Hard Part</a></li><li><a href="#undoredo-in-multiplayer-context" class="sidebar-toc-item sidebar-toc-item--h3">Undo/Redo in Multiplayer Context</a></li><li><a href="#the-rust-rewrite-2018" class="sidebar-toc-item sidebar-toc-item--h3">The Rust Rewrite (2018)</a></li><li><a href="#persistence-from-checkpoints-to-journal" class="sidebar-toc-item sidebar-toc-item--h3">Persistence: From Checkpoints to Journal</a></li><li><a href="#livegraph-the-other-sync-system" class="sidebar-toc-item sidebar-toc-item--h3">LiveGraph: The Other Sync System</a></li><li><a href="#outcome" class="sidebar-toc-item">Outcome</a></li><li><a href="#what-the-architecture-enables" class="sidebar-toc-item sidebar-toc-item--h3">What the Architecture Enables</a></li><li><a href="#scale-metrics-2024" class="sidebar-toc-item sidebar-toc-item--h3">Scale Metrics (2024)</a></li><li><a href="#remaining-limitations" class="sidebar-toc-item sidebar-toc-item--h3">Remaining Limitations</a></li><li><a href="#evolution-eg-walker-for-code-layers-2025" class="sidebar-toc-item sidebar-toc-item--h3">Evolution: Eg-walker for Code Layers (2025)</a></li><li><a href="#lessons-learned" class="sidebar-toc-item">Lessons Learned</a></li><li><a href="#technical-lessons" class="sidebar-toc-item sidebar-toc-item--h3">Technical Lessons</a></li><li><a href="#process-lessons" class="sidebar-toc-item sidebar-toc-item--h3">Process Lessons</a></li><li><a href="#organizational-lessons" class="sidebar-toc-item sidebar-toc-item--h3">Organizational Lessons</a></li><li><a href="#conclusion" class="sidebar-toc-item">Conclusion</a></li><li><a href="#appendix" class="sidebar-toc-item">Appendix</a></li><li><a href="#prerequisites" class="sidebar-toc-item sidebar-toc-item--h3">Prerequisites</a></li><li><a href="#terminology" class="sidebar-toc-item sidebar-toc-item--h3">Terminology</a></li><li><a href="#summary" class="sidebar-toc-item sidebar-toc-item--h3">Summary</a></li><li><a href="#references" class="sidebar-toc-item sidebar-toc-item--h3">References</a></li></ul></nav> </div> </aside> </div>  <div id="sidebar-backdrop" class="zen-sidebar-backdrop"></div>  <!-- Image Modal --><div id="image-modal" class="image-modal" role="dialog" aria-modal="true" aria-label="Image viewer"> <div class="image-modal-backdrop"></div> <div class="image-modal-content"> <div class="image-modal-header"> <div class="image-modal-controls"> <button type="button" id="image-zoom-out" class="image-modal-btn" aria-label="Zoom out" title="Zoom out"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <circle cx="11" cy="11" r="8"></circle> <line x1="21" y1="21" x2="16.65" y2="16.65"></line> <line x1="8" y1="11" x2="14" y2="11"></line> </svg> </button> <span id="image-zoom-level" class="image-zoom-level">1.0X</span> <button type="button" id="image-zoom-in" class="image-modal-btn" aria-label="Zoom in" title="Zoom in"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <circle cx="11" cy="11" r="8"></circle> <line x1="21" y1="21" x2="16.65" y2="16.65"></line> <line x1="11" y1="8" x2="11" y2="14"></line> <line x1="8" y1="11" x2="14" y2="11"></line> </svg> </button> <button type="button" id="image-zoom-reset" class="image-modal-btn" aria-label="Reset zoom" title="Reset zoom"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path> <path d="M3 3v5h5"></path> </svg> </button> </div> <button type="button" id="image-modal-close" class="image-modal-btn image-modal-close" aria-label="Close image viewer"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <line x1="18" y1="6" x2="6" y2="18"></line> <line x1="6" y1="6" x2="18" y2="18"></line> </svg> </button> </div> <div class="image-modal-body" id="image-modal-body"> <!-- Cloned image will be inserted here --> </div> </div> </div> <script type="module" src="/legacy-personal-site/v4/_astro/image-modal.astro_astro_type_script_index_0_lang.DaIybCtt.js"></script>  <!-- Google Analytics 4 --><script async src="https://www.googletagmanager.com/gtag/js?id=G-1Z2TP5LG65"></script> <script>(function(){const GA_MEASUREMENT_ID = "G-1Z2TP5LG65";
+
+  window.dataLayer = window.dataLayer || []
+  function gtag() {
+    dataLayer.push(arguments)
+  }
+  gtag("js", new Date())
+  gtag("config", GA_MEASUREMENT_ID)
+})();</script> <script type="module" src="/legacy-personal-site/v4/_astro/sidebar-toggle.astro_astro_type_script_index_0_lang.BjmuyXEJ.js"></script> <script type="module">function l(){const s=document.getElementById("main");if(!s)return;const n=Array.from(s.querySelectorAll("h2[id], h3[id]"));if(n.length===0)return;const o=document.querySelectorAll("#right-sidebar .sidebar-toc-item");if(o.length===0)return;const c=new Map;o.forEach(t=>{const e=t.getAttribute("href");e?.startsWith("#")&&c.set(e.slice(1),t)});let r=null;const i=new Set;function f(t){const e=c.get(t);!e||e===r||(r?.classList.remove("is-active"),e.classList.add("is-active"),r=e,e.scrollIntoView({block:"nearest",behavior:"smooth"}))}const a=new IntersectionObserver(t=>{if(t.forEach(e=>{const d=e.target.id;e.isIntersecting?i.add(d):i.delete(d)}),i.size>0){for(const e of n)if(i.has(e.id)){f(e.id);break}}},{rootMargin:"-80px 0px -75% 0px"});n.forEach(t=>a.observe(t)),document.addEventListener("astro:before-swap",()=>{a.disconnect()},{once:!0})}l();document.addEventListener("astro:page-load",l);</script> <script type="module">function c(e,t){const n=window.__themeConfig.THEME_LABELS,o=window.getNextTheme();e.setAttribute("aria-label",`Theme: ${n[t]}. Click to cycle.`),e.title=`Switch to ${n[o]}`,e.dataset.theme=t,e.querySelectorAll("[data-theme-icon]").forEach(a=>{a.style.display=a.dataset.themeIcon===t?"block":"none"})}function s(e,t){e.value!==t&&(e.value=t)}function m(e){e.dataset.themeInit||(e.dataset.themeInit="true",e.addEventListener("click",()=>{const t=window.getNextTheme();window.applySiteTheme(t)}))}function r(e){e.dataset.themeInit||(e.dataset.themeInit="true",e.addEventListener("change",()=>{const t=e.value;window.__themeConfig.THEMES.includes(t)&&window.applySiteTheme(t)}))}function u(){const e=document.documentElement;if(e.dataset.themeObserverInit)return;e.dataset.themeObserverInit="true",new MutationObserver(()=>{const n=e.dataset.theme||"auto",o=document.getElementById("theme-toggle-btn");o&&c(o,n);const i=document.getElementById("theme-select");i&&s(i,n)}).observe(e,{attributes:!0,attributeFilter:["data-theme"]})}function d(){const e=document.documentElement.dataset.theme||"auto",t=document.getElementById("theme-toggle-btn");t&&(c(t,e),m(t));const n=document.getElementById("theme-select");n&&(s(n,e),r(n)),u()}d();document.addEventListener("astro:page-load",d);</script> <script type="module" src="/legacy-personal-site/v4/_astro/docsearch.astro_astro_type_script_index_0_lang.B0uJCub6.js"></script> <script type="module">function a(){function r(){const n=document.documentElement.dataset.colorScheme==="dark";document.querySelectorAll(".mermaid-diagram").forEach(e=>{const t=n?e.dataset.srcDark:e.dataset.srcLight;t&&e.src!==new URL(t,location.origin).href&&(e.src=t)})}r(),new MutationObserver(()=>r()).observe(document.documentElement,{attributes:!0,attributeFilter:["data-color-scheme"]})}document.addEventListener("DOMContentLoaded",a);document.addEventListener("astro:page-load",a);</script> </body> </html> 

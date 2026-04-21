@@ -1,0 +1,749 @@
+<!DOCTYPE html><html lang="en"> <head><meta name="astro-view-transitions-enabled" content="true"><meta name="astro-view-transitions-fallback" content="animate"><script type="module" src="/legacy-personal-site/v4/_astro/ClientRouter.astro_astro_type_script_index_0_lang.HWuSm9BO.js"></script><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light"><script>
+  ;(function () {
+    var THEMES = ["auto", "light", "dark", "high-contrast-light", "high-contrast-dark", "paper"]
+    var STORAGE_KEY = "site-theme"
+    var THEME_LABELS = {
+      auto: "Auto (system)",
+      light: "Light",
+      dark: "Dark",
+      "high-contrast-light": "High contrast light",
+      "high-contrast-dark": "High contrast dark",
+      paper: "Paper",
+    }
+    var darkQuery = window.matchMedia("(prefers-color-scheme: dark)")
+
+    // Expose shared config for module scripts
+    window.__themeConfig = { THEMES: THEMES, STORAGE_KEY: STORAGE_KEY, THEME_LABELS: THEME_LABELS }
+
+    // BroadcastChannel for cross-tab sync
+    var channel = null
+    try {
+      channel = new BroadcastChannel("site-theme-sync")
+    } catch (e) {
+      // BroadcastChannel not supported
+    }
+
+    function getResolvedTheme(theme) {
+      if (theme === "auto") {
+        return darkQuery.matches ? "dark" : "light"
+      }
+      return theme
+    }
+
+    function getColorScheme(resolved) {
+      if (resolved === "dark" || resolved === "high-contrast-dark") return "dark"
+      return "light"
+    }
+
+    function applyTheme(theme, _fromBroadcast) {
+      if (!theme || THEMES.indexOf(theme) === -1) theme = "auto"
+
+      var resolved = getResolvedTheme(theme)
+      var root = document.documentElement
+      var scheme = getColorScheme(resolved)
+
+      // Remove all theme classes
+      for (var i = 0; i < THEMES.length; i++) {
+        root.classList.remove("theme-" + THEMES[i])
+      }
+
+      // Apply resolved theme class
+      root.classList.add("theme-" + resolved)
+
+      // Set color-scheme
+      root.style.setProperty("--color-scheme", scheme)
+
+      // Update meta tag
+      var meta = document.querySelector('meta[name="color-scheme"]')
+      if (meta) meta.setAttribute("content", scheme)
+
+      // Set color scheme data attribute for CSS/JS consumers
+      root.dataset.colorScheme = scheme
+
+      // Store the user's chosen theme (not the resolved one)
+      try {
+        localStorage.setItem(STORAGE_KEY, theme)
+      } catch (e) {
+        // localStorage may be unavailable
+      }
+
+      // Dispatch event for other scripts to react
+      root.dataset.theme = theme
+      root.dataset.resolvedTheme = resolved
+
+      // Broadcast to other tabs (but not if we received this from another tab)
+      if (!_fromBroadcast && channel) {
+        try {
+          channel.postMessage({ theme: theme })
+        } catch (e) {
+          // Channel may be closed
+        }
+      }
+    }
+
+    // Smart cycling: skip the theme that "auto" resolves to
+    function getNextTheme() {
+      var current = "auto"
+      try {
+        current = localStorage.getItem(STORAGE_KEY) || "auto"
+      } catch (e) {}
+      if (THEMES.indexOf(current) === -1) current = "auto"
+
+      var idx = THEMES.indexOf(current)
+      var next = THEMES[(idx + 1) % THEMES.length]
+
+      // If current is "auto", skip the theme auto resolves to
+      if (current === "auto") {
+        var autoResolved = getResolvedTheme("auto")
+        if (next === autoResolved) {
+          next = THEMES[(idx + 2) % THEMES.length]
+        }
+      }
+
+      return next
+    }
+
+    // Apply on load
+    var saved = "auto"
+    try {
+      saved = localStorage.getItem(STORAGE_KEY) || "auto"
+    } catch (e) {
+      // localStorage may be unavailable
+    }
+    applyTheme(saved)
+
+    // Listen for OS preference changes when in auto mode
+    darkQuery.addEventListener("change", function () {
+      var current = "auto"
+      try {
+        current = localStorage.getItem(STORAGE_KEY) || "auto"
+      } catch (e) {}
+      if (current === "auto") {
+        applyTheme("auto")
+      }
+    })
+
+    // Listen for cross-tab theme changes
+    if (channel) {
+      channel.onmessage = function (event) {
+        if (event.data && event.data.theme) {
+          applyTheme(event.data.theme, true)
+        }
+      }
+    }
+
+    // Expose for runtime use
+    window.applySiteTheme = applyTheme
+    window.getNextTheme = getNextTheme
+  })()
+</script><!-- Inline font-face declarations with base path --><style>
+      @font-face {
+        font-family: "Open Sans";
+        font-style: normal;
+        font-weight: 300 800;
+        font-display: swap;
+        src: url("/legacy-personal-site/v4/fonts/open-sans-latin-wght-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+          U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: "JetBrains Mono";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("/legacy-personal-site/v4/fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+          U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+    </style><!-- Preload local fonts --><link rel="preload" as="font" type="font/woff2" href="/legacy-personal-site/v4/fonts/open-sans-latin-wght-normal.woff2" crossorigin="anonymous"><link rel="preload" as="font" type="font/woff2" href="/legacy-personal-site/v4/fonts/jetbrains-mono-latin-400-normal.woff2" crossorigin="anonymous"><!-- Main favicon --><link rel="icon" type="image/x-icon" href="/legacy-personal-site/v4/favicons/favicon.ico"><!-- Apple Touch Icons --><link rel="apple-touch-icon" sizes="57x57" href="/legacy-personal-site/v4/favicons/apple-icon-57x57.png"><link rel="apple-touch-icon" sizes="60x60" href="/legacy-personal-site/v4/favicons/apple-icon-60x60.png"><link rel="apple-touch-icon" sizes="72x72" href="/legacy-personal-site/v4/favicons/apple-icon-72x72.png"><link rel="apple-touch-icon" sizes="76x76" href="/legacy-personal-site/v4/favicons/apple-icon-76x76.png"><link rel="apple-touch-icon" sizes="114x114" href="/legacy-personal-site/v4/favicons/apple-icon-114x114.png"><link rel="apple-touch-icon" sizes="120x120" href="/legacy-personal-site/v4/favicons/apple-icon-120x120.png"><link rel="apple-touch-icon" sizes="144x144" href="/legacy-personal-site/v4/favicons/apple-icon-144x144.png"><link rel="apple-touch-icon" sizes="152x152" href="/legacy-personal-site/v4/favicons/apple-icon-152x152.png"><link rel="apple-touch-icon" sizes="180x180" href="/legacy-personal-site/v4/favicons/apple-icon-180x180.png"><!-- Apple Touch Icon Precomposed (for older iOS versions) --><link rel="apple-touch-icon-precomposed" href="/legacy-personal-site/v4/favicons/apple-icon-precomposed.png"><!-- Standard Icons --><link rel="icon" type="image/png" sizes="192x192" href="/legacy-personal-site/v4/favicons/android-icon-192x192.png"><link rel="icon" type="image/png" sizes="144x144" href="/legacy-personal-site/v4/favicons/android-icon-144x144.png"><link rel="icon" type="image/png" sizes="96x96" href="/legacy-personal-site/v4/favicons/android-icon-96x96.png"><link rel="icon" type="image/png" sizes="72x72" href="/legacy-personal-site/v4/favicons/android-icon-72x72.png"><link rel="icon" type="image/png" sizes="48x48" href="/legacy-personal-site/v4/favicons/android-icon-48x48.png"><link rel="icon" type="image/png" sizes="36x36" href="/legacy-personal-site/v4/favicons/android-icon-36x36.png"><link rel="icon" type="image/png" sizes="32x32" href="/legacy-personal-site/v4/favicons/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/legacy-personal-site/v4/favicons/favicon-16x16.png"><!-- Web App Manifest --><link rel="manifest" href="/legacy-personal-site/v4/manifest.json"><!-- Microsoft Tiles --><meta name="msapplication-config" content="/legacy-personal-site/v4/browserconfig.xml"><meta name="msapplication-TileImage" content="/legacy-personal-site/v4/favicons/ms-icon-144x144.png"><meta name="msapplication-TileColor" content="#f8fafc"><!-- Theme Colors --><meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#020617" media="(prefers-color-scheme: dark)"><meta name="msapplication-TileColor" content="#f8fafc"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="docsearch:language" content="en"><!-- Canonical URL --><link rel="canonical" href="https://sujeet.pro/legacy-personal-site/v4/articles/system-design/real-world-case-studies/github-mysql-migration.html"><!-- Primary Meta Tags --><title>GitHub: Scaling MySQL from One Database to 1,200+ Hosts - Sujeet Jaiswal</title><meta name="title" content="GitHub: Scaling MySQL from One Database to 1,200+ Hosts - Sujeet Jaiswal"><meta name="description" content="How GitHub evolved its MySQL infrastructure from a single monolithic database to a fleet of 1,200+ hosts across 50+ clusters serving 5.5 million queries per second (QPS)—through vertical partitioning, custom tooling (gh-ost, orchestrator, freno), Vitess adoption, and a major version upgrade—while keeping github.com available throughout."><!-- Open Graph / Facebook --><meta property="og:type" content="website"><meta property="og:url" content="https://sujeet.pro/legacy-personal-site/v4/articles/system-design/real-world-case-studies/github-mysql-migration.html"><meta property="og:title" content="GitHub: Scaling MySQL from One Database to 1,200+ Hosts - Sujeet Jaiswal"><meta property="og:description" content="How GitHub evolved its MySQL infrastructure from a single monolithic database to a fleet of 1,200+ hosts across 50+ clusters serving 5.5 million queries per second (QPS)—through vertical partitioning, custom tooling (gh-ost, orchestrator, freno), Vitess adoption, and a major version upgrade—while keeping github.com available throughout."><!-- Twitter / X --><meta name="twitter:site" content="@sujeetpro"><meta name="twitter:card" content="summary_large_image"><!-- DocSearch facets --><meta name="docsearch:category" content="System Design"><meta name="docsearch:topic" content="Real-World Case Studies"><link rel="alternate" type="application/rss+xml" href="/legacy-personal-site/v4/rss.xml"><link rel="sitemap" href="/legacy-personal-site/v4/sitemap-index.xml"><!-- LLM-friendly content --><link rel="alternate" type="text/plain" href="/legacy-personal-site/v4/llms.txt" title="LLM Index"><link rel="alternate" type="text/plain" href="/legacy-personal-site/v4/llms-full.txt" title="LLM Full Content"><link rel="stylesheet" href="/legacy-personal-site/v4/_astro/docsearch.CgGoh9IB.css">
+<style>/*! tailwindcss v4.2.1 | MIT License | https://tailwindcss.com */.sidebar-toc-list{gap:calc(var(--spacing,.25rem) * .5);flex-direction:column;display:flex}
+@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) and (not (color:rgb(from red r g b)))){*,:before,:after,::backdrop{--tw-border-style:solid;--tw-font-weight:initial;--tw-ordinal:initial;--tw-slashed-zero:initial;--tw-numeric-figure:initial;--tw-numeric-spacing:initial;--tw-numeric-fraction:initial}}}.article-nav-category{margin-bottom:calc(var(--spacing,.25rem) * 5)}.article-nav-category+.article-nav-category{border-top-style:var(--tw-border-style);padding-top:calc(var(--spacing,.25rem) * 2);border-top-width:1px;border-color:var(--color-border)}.article-nav-category-name{margin-bottom:calc(var(--spacing,.25rem) * 1.5);padding-inline:calc(var(--spacing,.25rem) * 1);font-family:var(--font-mono,ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);--tw-font-weight:var(--font-weight-semibold,600);font-weight:var(--font-weight-semibold,600);text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-muted);font-size:11px;display:block}.article-nav-category-name.is-current{color:var(--color-text)}.article-nav-topics{flex-direction:column;display:flex}.article-nav-topic{list-style:none}.article-nav-topic-toggle{cursor:pointer;border-radius:var(--radius-md,.375rem);width:100%;padding-inline:calc(var(--spacing,.25rem) * 2);padding-block:calc(var(--spacing,.25rem) * 1.5);color:var(--color-text-muted);transition:all var(--transition-fast);justify-content:space-between;align-items:center;font-size:13px;list-style:none;display:flex}.article-nav-topic-toggle::-webkit-details-marker{display:none}.article-nav-topic-toggle::marker{content:"";display:none}.article-nav-topic-toggle:hover{color:var(--color-text);background:var(--color-bg-alt)}.article-nav-topic-toggle.is-active{color:var(--color-text);font-weight:500}.article-nav-topic-name{min-width:calc(var(--spacing,.25rem) * 0);flex:1}.article-nav-topic-count{--tw-numeric-spacing:tabular-nums;font-variant-numeric:var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);color:var(--color-text-muted);opacity:.6;flex-shrink:0;font-size:11px}.article-nav-chevron{opacity:.4;width:12px;height:12px;transition:transform var(--transition-fast);flex-shrink:0;margin-left:.5rem}.article-nav-topic-toggle:hover .article-nav-chevron{opacity:.7}details[open]>.article-nav-topic-toggle .article-nav-chevron{transform:rotate(90deg)}.article-nav-articles{margin-left:calc(var(--spacing,.25rem) * 3);border-left-style:var(--tw-border-style);padding-left:calc(var(--spacing,.25rem) * 2);border-left-width:1px;border-color:var(--color-border)}.article-nav-article-link{border-radius:var(--radius-md,.375rem);padding-inline:calc(var(--spacing,.25rem) * 2);padding-block:calc(var(--spacing,.25rem) * 1);color:var(--color-text-muted);transition:all var(--transition-fast);font-size:13px;line-height:1.4;text-decoration-line:none;display:block}.article-nav-article-link:hover{color:var(--color-text);background:var(--color-bg-alt)}.article-nav-article-link.is-active{color:var(--color-text);background:var(--color-bg-alt);font-weight:500}@property --tw-border-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-font-weight{syntax:"*";inherits:false}@property --tw-ordinal{syntax:"*";inherits:false}@property --tw-slashed-zero{syntax:"*";inherits:false}@property --tw-numeric-figure{syntax:"*";inherits:false}@property --tw-numeric-spacing{syntax:"*";inherits:false}@property --tw-numeric-fraction{syntax:"*";inherits:false}/*! tailwindcss v4.2.1 | MIT License | https://tailwindcss.com */.article-frontmatter{margin-bottom:calc(var(--spacing,.25rem) * 8)}.article-navigation{margin-top:calc(var(--spacing,.25rem) * 16)}
+</style>
+<link rel="stylesheet" href="/legacy-personal-site/v4/_astro/_slug_.u3hNe2gV.css"><script type="module" src="/legacy-personal-site/v4/_astro/page.CLJIuoFF.js"></script></head> <body> <a href="#main" class="skip-link">Skip to main content</a> <header class="site-header"> <div class="header-container"> <nav class="header-nav"> <!-- Left side: sidebar toggle + logo --> <div class="header-left"> <button id="left-sidebar-toggle" class="sidebar-toggle-btn" aria-label="Toggle navigation sidebar" aria-expanded="true" title="Hide navigation sidebar" aria-hidden="false"> <svg width="1em" height="1em" class="icon-md" data-icon="carbon:side-panel-open">   <symbol id="ai:carbon:side-panel-open" viewBox="0 0 32 32"><path fill="currentColor" d="M28 4H4c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h24c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2M10 26H4V6h6zm18 0H12v-9h10.2l-3.6 3.6L20 22l6-6l-6-6l-1.4 1.4l3.6 3.6H12V6h16z"/></symbol><use href="#ai:carbon:side-panel-open"></use>  </svg> </button> <a href="/legacy-personal-site/v4/" class="header-logo">   <span class="header-logo-name">sujeet.pro</span>  </a> </div> <!-- Center: Nav links - hidden on mobile --> <div class="header-nav-links"> <a href="/legacy-personal-site/v4/articles" class="nav-link">  Articles </a><a href="/legacy-personal-site/v4/blogs" class="nav-link">  Blogs </a><a href="/legacy-personal-site/v4/projects" class="nav-link">  Projects </a> </div> <!-- Right side: search + sidebar toggle + hamburger --> <div class="header-actions"> <!-- DocSearch --> <div id="docsearch-container"></div> <!-- Theme Toggle --> <button id="theme-toggle-btn" class="sidebar-toggle-btn" aria-label="Toggle theme" title="Switch theme"> <!-- Auto (monitor) --> <svg data-theme-icon="auto" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M28 4H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h8v4H8v2h16v-2h-4v-4h8a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 18H4V6h24Z"></path> </svg> <!-- Light (sun) --> <svg data-theme-icon="light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 12.005a4 4 0 1 1-4 4 4.005 4.005 0 0 1 4-4m0-2a6 6 0 1 0 6 6 6 6 0 0 0-6-6ZM5.394 6.813 6.81 5.399l3.505 3.506L8.9 10.319ZM2 15.005h5v2H2ZM5.394 25.197l3.505-3.506 1.414 1.414-3.505 3.506ZM15 25.005h2v5h-2ZM21.687 23.106l1.414-1.414 3.506 3.505-1.414 1.414ZM25 15.005h5v2h-5ZM21.69 8.904l3.505-3.505 1.414 1.415-3.505 3.505ZM15 2.005h2v5h-2Z"></path> </svg> <!-- Dark (moon) --> <svg data-theme-icon="dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M13.502 5.414a15.075 15.075 0 0 0 11.594 18.194 11.113 11.113 0 0 1-7.975 3.39c-.138 0-.278.005-.418 0a11.094 11.094 0 0 1-3.2-21.584M14.98 3a1.002 1.002 0 0 0-.175.016 13.096 13.096 0 0 0 1.825 25.981c.164.006.328 0 .49 0a13.072 13.072 0 0 0 10.703-5.555 1.01 1.01 0 0 0-.783-1.565A13.08 13.08 0 0 1 15.89 4.38 1.015 1.015 0 0 0 14.98 3Z"></path> </svg> <!-- High contrast light --> <svg data-theme-icon="high-contrast-light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26V4a12 12 0 0 1 0 24Z"></path> </svg> <!-- High contrast dark --> <svg data-theme-icon="high-contrast-dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 2a12 12 0 0 1 0 24Z"></path> </svg> <!-- Paper (document) --> <svg data-theme-icon="paper" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M19 10h7v2h-7zM19 6h7v2h-7zM19 14h7v2h-7zM19 18h7v2h-7z"></path> <path d="M28 2H10a2.002 2.002 0 0 0-2 2v6H4a2.002 2.002 0 0 0-2 2v18a2 2 0 0 0 2 2h14a2.002 2.002 0 0 0 2-2v-6h8a2.002 2.002 0 0 0 2-2V4a2.002 2.002 0 0 0-2-2Zm-10 28H4V12h14Zm10-8H20V12a2.002 2.002 0 0 0-2-2h-8V4h18Z"></path> <path d="M6 16h10v2H6zM6 20h10v2H6zM6 24h7v2H6z"></path> </svg> </button> <button id="right-sidebar-toggle" class="sidebar-toggle-btn" aria-label="Toggle table of contents" aria-expanded="true" title="Hide table of contents" aria-hidden="false"> <svg width="1em" height="1em" class="icon-md" data-icon="carbon:side-panel-close">   <symbol id="ai:carbon:side-panel-close" viewBox="0 0 32 32"><path fill="currentColor" d="M28 4H4c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h24c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2M10 26H4V6h6zm18-11H17.8l3.6-3.6L20 10l-6 6l6 6l1.4-1.4l-3.6-3.6H28v9H12V6h16z"/></symbol><use href="#ai:carbon:side-panel-close"></use>  </svg> </button> <!-- Hamburger Menu - visible on mobile only --> <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu" title="Open menu"> <svg width="1em" height="1em" class="icon-lg" data-icon="carbon:menu">   <symbol id="ai:carbon:menu" viewBox="0 0 32 32"><path fill="currentColor" d="M4 6h24v2H4zm0 18h24v2H4zm0-12h24v2H4zm0 6h24v2H4z"/></symbol><use href="#ai:carbon:menu"></use>  </svg> </button> </div> </nav> </div> </header> <div id="mobile-menu-overlay" class="mobile-menu-overlay is-hidden"></div> <aside id="mobile-menu" class="mobile-menu" aria-hidden="true"> <div class="mobile-menu-header"> <a href="/legacy-personal-site/v4/" class="nav-link nav-logo">   sujeet.pro  </a> <button id="mobile-menu-close" class="mobile-menu-close" aria-label="Close menu"> <svg width="1em" height="1em" class="icon-lg" data-icon="carbon:close">   <symbol id="ai:carbon:close" viewBox="0 0 32 32"><path fill="currentColor" d="M17.414 16L24 9.414L22.586 8L16 14.586L9.414 8L8 9.414L14.586 16L8 22.586L9.414 24L16 17.414L22.586 24L24 22.586z"/></symbol><use href="#ai:carbon:close"></use>  </svg> </button> </div> <nav class="mobile-menu-nav"> <a href="/legacy-personal-site/v4/articles" class="mobile-menu-link">  Articles </a><a href="/legacy-personal-site/v4/blogs" class="mobile-menu-link">  Blogs </a><a href="/legacy-personal-site/v4/projects" class="mobile-menu-link">  Projects </a> </nav> </aside> <script type="module" src="/legacy-personal-site/v4/_astro/mobile-menu.astro_astro_type_script_index_0_lang.AuCdxukU.js"></script>  <div class="zen-layout"> <aside id="left-sidebar" class="zen-sidebar zen-sidebar-left" aria-label="Navigation sidebar"> <div class="zen-sidebar-header"> <span class="zen-sidebar-header-title">Navigation</span> <button class="zen-sidebar-close" data-sidebar-close="left" aria-label="Close navigation sidebar"> <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5"> <path d="M8 8l16 16M24 8L8 24"></path> </svg> </button> </div> <div class="zen-sidebar-content"> <nav aria-label="Article navigation" class="article-nav"> <div class="article-nav-category"> <span class="article-nav-category-name">Browser &amp; Runtime Internals</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Critical Rendering Path</span> <span class="article-nav-topic-count">(12)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-rendering-pipeline-overview" class="article-nav-article-link">  Critical Rendering Path: Rendering Pipeline Overview </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-dom-construction" class="article-nav-article-link">  Critical Rendering Path: DOM Construction </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-cssom-construction" class="article-nav-article-link">  Critical Rendering Path: CSSOM Construction </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-style-recalculation" class="article-nav-article-link">  Critical Rendering Path: Style Recalculation </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-layout" class="article-nav-article-link">  Critical Rendering Path: Layout Stage </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-prepaint" class="article-nav-article-link">  Critical Rendering Path: Prepaint </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-paint" class="article-nav-article-link">  Critical Rendering Path: Paint Stage </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-commit" class="article-nav-article-link">  Critical Rendering Path: Commit </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-layerize" class="article-nav-article-link">  Critical Rendering Path: Layerize </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-raster" class="article-nav-article-link">  Critical Rendering Path: Rasterization </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-composit" class="article-nav-article-link">  Critical Rendering Path: Compositing </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-draw" class="article-nav-article-link">  Critical Rendering Path: Draw </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">JavaScript Runtime Internals</span> <span class="article-nav-topic-count">(7)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/v8-engine-architecture" class="article-nav-article-link">  V8 Engine Architecture: Parsing, Optimization, and JIT </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/browser-internals" class="article-nav-article-link">  Browser Architecture: Processes, Caching, and Extensions </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/browser-event-loop" class="article-nav-article-link">  Browser Event Loop: Tasks, Microtasks, Rendering, and Idle Time </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/nodejs-runtime-architecture" class="article-nav-article-link">  Node.js Runtime Architecture: Event Loop, Streams, and APIs </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/libuv-event-loop-internals" class="article-nav-article-link">  libuv Internals: Event Loop and Async I/O </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/nodejs-event-loop" class="article-nav-article-link">  Node.js Event Loop: Phases, Queues, and Process Exit </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/js-event-loop" class="article-nav-article-link">  JS Event Loop: Tasks, Microtasks, and Rendering (For Browser &amp; Node.js) </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name is-current">System Design</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">System Design Fundamentals</span> <span class="article-nav-topic-count">(20)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/consistency-and-cap-theorem" class="article-nav-article-link">  Consistency Models and the CAP Theorem </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/distributed-consensus" class="article-nav-article-link">  Distributed Consensus </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/time-and-ordering" class="article-nav-article-link">  Time and Ordering in Distributed Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/failure-modes-and-resilience" class="article-nav-article-link">  Failure Modes and Resilience Patterns </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/storage-choices-sql-vs-nosql" class="article-nav-article-link">  Storage Choices: SQL vs NoSQL </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/sharding-and-replication" class="article-nav-article-link">  Sharding and Replication </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/indexing-and-query-optimization" class="article-nav-article-link">  Indexing and Query Optimization </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/transactions-and-acid" class="article-nav-article-link">  Transactions and ACID Properties </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/load-balancers-architecture" class="article-nav-article-link">  Load Balancer Architecture: L4 vs L7 and Routing </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/cdn-architecture-and-caching" class="article-nav-article-link">  CDN Architecture and Edge Caching </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/caching-fundamentals-and-strategies" class="article-nav-article-link">  Caching Fundamentals and Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/api-gateway-patterns" class="article-nav-article-link">  API Gateway Patterns: Routing, Auth, and Policies </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/service-discovery-and-registry" class="article-nav-article-link">  Service Discovery and Registry Patterns </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/dns-deep-dive" class="article-nav-article-link">  DNS Deep Dive </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/queues-and-pubsub" class="article-nav-article-link">  Queues and Pub/Sub: Decoupling and Backpressure </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/event-driven-architecture" class="article-nav-article-link">  Event-Driven Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/rpc-and-api-design" class="article-nav-article-link">  RPC and API Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/rate-limiting-strategies" class="article-nav-article-link">  Rate Limiting Strategies: Token Bucket, Leaky Bucket, and Sliding Window </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/circuit-breaker-patterns" class="article-nav-article-link">  Circuit Breaker Patterns for Resilient Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/capacity-planning-and-estimation" class="article-nav-article-link">  Capacity Planning and Back-of-the-Envelope Estimates </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">System Design Building Blocks</span> <span class="article-nav-topic-count">(10)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/lru-cache-design" class="article-nav-article-link">  LRU Cache Design: Eviction Strategies and Trade-offs </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/unique-id-generation" class="article-nav-article-link">  Unique ID Generation in Distributed Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-cache-design" class="article-nav-article-link">  Distributed Cache Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/blob-storage-design" class="article-nav-article-link">  Blob Storage Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-search-engine" class="article-nav-article-link">  Distributed Search Engine </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-logging-system" class="article-nav-article-link">  Distributed Logging System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-monitoring" class="article-nav-article-link">  Distributed Monitoring Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/task-scheduler-design" class="article-nav-article-link">  Task Scheduler Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/sharded-counters" class="article-nav-article-link">  Sharded Counters </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/leaderboard-design" class="article-nav-article-link">  Leaderboard Design </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">System Design Problems</span> <span class="article-nav-topic-count">(28)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-key-value-store" class="article-nav-article-link">  Design a Distributed Key-Value Store </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-distributed-file-system" class="article-nav-article-link">  Design a Distributed File System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-time-series-database" class="article-nav-article-link">  Design a Time Series Database </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-youtube-video-platform" class="article-nav-article-link">  Design a YouTube-Style Video Platform </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-netflix-streaming" class="article-nav-article-link">  Design Netflix Video Streaming </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-instagram-photo-sharing" class="article-nav-article-link">  Design Instagram: Photo Sharing at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-spotify-music-streaming" class="article-nav-article-link">  Design Spotify Music Streaming </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-real-time-chat-messaging" class="article-nav-article-link">  Design Real-Time Chat and Messaging </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-social-feed" class="article-nav-article-link">  Design a Social Feed (Facebook/Instagram) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-notification-system" class="article-nav-article-link">  Design a Notification System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-email-system" class="article-nav-article-link">  Design an Email System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-uber-ride-hailing" class="article-nav-article-link">  Design Uber-Style Ride Hailing </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-maps" class="article-nav-article-link">  Design Google Maps </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-yelp-proximity-service" class="article-nav-article-link">  Design Yelp: Location-Based Business Discovery Platform </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-search-autocomplete" class="article-nav-article-link">  Design Search Autocomplete: Prefix Matching at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-web-crawler" class="article-nav-article-link">  Design a Web Crawler </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-search" class="article-nav-article-link">  Design Google Search </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-docs-collaboration" class="article-nav-article-link">  Design Collaborative Document Editing (Google Docs) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-dropbox-file-sync" class="article-nav-article-link">  Design Dropbox File Sync </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-calendar" class="article-nav-article-link">  Design Google Calendar </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-issue-tracker" class="article-nav-article-link">  Design an Issue Tracker (Jira/Linear) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-payment-system" class="article-nav-article-link">  Design a Payment System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-flash-sale-system" class="article-nav-article-link">  Design a Flash Sale System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-amazon-shopping-cart" class="article-nav-article-link">  Design Amazon Shopping Cart </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/url-shortener-design" class="article-nav-article-link">  Design a URL Shortener: IDs, Storage, and Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-pastebin" class="article-nav-article-link">  Design Pastebin: Text Sharing, Expiration, and Abuse Prevention </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-api-rate-limiter" class="article-nav-article-link">  Design an API Rate Limiter: Distributed Throttling, Multi-Tenant Quotas, and Graceful Degradation </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-cookie-consent-service" class="article-nav-article-link">  Design a Cookie Consent Service </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Core Distributed Patterns</span> <span class="article-nav-topic-count">(9)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/crdt-for-collaborative-systems" class="article-nav-article-link">  CRDTs for Collaborative Systems </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/operational-transformation" class="article-nav-article-link">  Operational Transformation </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/distributed-locking" class="article-nav-article-link">  Distributed Locking </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/exactly-once-delivery" class="article-nav-article-link">  Exactly-Once Delivery </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/event-sourcing-deep-dive" class="article-nav-article-link">  Event Sourcing </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/change-data-capture" class="article-nav-article-link">  Change Data Capture </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/database-migrations-at-scale" class="article-nav-article-link">  Database Migrations at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/multi-region-architecture" class="article-nav-article-link">  Multi-Region Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/graceful-degradation" class="article-nav-article-link">  Graceful Degradation </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Frontend System Design</span> <span class="article-nav-topic-count">(15)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/virtualization-and-windowing" class="article-nav-article-link">  Virtualization and Windowing </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/offline-first-architecture" class="article-nav-article-link">  Offline-First Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/client-state-management" class="article-nav-article-link">  Client State Management </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/real-time-sync-client" class="article-nav-article-link">  Real-Time Sync Client </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/widget-framework" class="article-nav-article-link">  Multi-Tenant Pluggable Widget Framework </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/bundle-splitting-strategies" class="article-nav-article-link">  Bundle Splitting Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/rendering-strategies" class="article-nav-article-link">  Rendering Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/image-loading-optimization" class="article-nav-article-link">  Image Loading Optimization </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/performance-monitoring-client" class="article-nav-article-link">  Client Performance Monitoring </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-rich-text-editor" class="article-nav-article-link">  Design a Rich Text Editor </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-infinite-feed" class="article-nav-article-link">  Design an Infinite Feed </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-drag-drop-system" class="article-nav-article-link">  Design a Drag and Drop System </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-form-builder" class="article-nav-article-link">  Design a Form Builder </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-data-grid" class="article-nav-article-link">  Design a Data Grid </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-file-uploader" class="article-nav-article-link">  Design a File Uploader </a> </div> </details><details class="article-nav-topic" open> <summary class="article-nav-topic-toggle is-active"> <span class="article-nav-topic-name">Real-World Case Studies</span> <span class="article-nav-topic-count">(20)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/facebook-2021-outage-analysis" class="article-nav-article-link">  Facebook 2021 Outage: BGP Withdrawal, DNS Collapse, and the Backbone That Disappeared </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/aws-kinesis-2020-outage" class="article-nav-article-link">  AWS Kinesis 2020 Outage: Thread Limits, Thundering Herds, and Hidden Dependencies </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/shopify-pod-architecture" class="article-nav-article-link">  Shopify: Pod Architecture for Multi-Tenant Isolation at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/netflix-microservices-evolution" class="article-nav-article-link">  Netflix: From Monolith to Microservices — A 7-Year Architecture Evolution </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/twitter-timeline-architecture" class="article-nav-article-link">  Twitter/X: Timeline Architecture and the Recommendation Algorithm </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/facebook-tao-social-graph" class="article-nav-article-link">  Facebook TAO: The Social Graph’s Distributed Cache </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/uber-microservices-journey" class="article-nav-article-link">  Uber: From Monolith to Domain-Oriented Microservices </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/uber-schemaless-datastore" class="article-nav-article-link">  Uber Schemaless: Building a Scalable Datastore on MySQL </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/slack-distributed-architecture" class="article-nav-article-link">  Slack: Scaling a Real-Time Messaging Platform from Monolith to Distributed Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/linkedin-kafka-origin" class="article-nav-article-link">  LinkedIn and the Birth of Apache Kafka: Solving the O(N²) Data Integration Problem </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/dropbox-magic-pocket" class="article-nav-article-link">  Dropbox Magic Pocket: Building Exabyte-Scale Blob Storage </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/instagram-cassandra-migration" class="article-nav-article-link">  Instagram: From Redis to Cassandra and the Rocksandra Storage Engine </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/youtube-vitess-scaling" class="article-nav-article-link">  YouTube: Scaling MySQL to Serve Billions with Vitess </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/github-mysql-migration" class="article-nav-article-link is-active">  GitHub: Scaling MySQL from One Database to 1,200+ Hosts </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/pinterest-mysql-sharding" class="article-nav-article-link">  Pinterest: MySQL Sharding from Zero to Billions of Objects </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/stripe-idempotency-reliability" class="article-nav-article-link">  Stripe: Idempotency for Payment Reliability </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/discord-rust-read-states" class="article-nav-article-link">  Discord: Rewriting Read States from Go to Rust </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/discord-message-storage" class="article-nav-article-link">  Discord: From Billions to Trillions of Messages — A Three-Database Journey </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/figma-multiplayer-infrastructure" class="article-nav-article-link">  Figma: Building Multiplayer Infrastructure for Real-Time Design Collaboration </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/whatsapp-erlang-scaling" class="article-nav-article-link">  WhatsApp: 2 Million Connections Per Server with Erlang </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Platform Engineering</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Media Systems</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/drm-basics-for-streaming" class="article-nav-article-link">  DRM Fundamentals for Streaming Media </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/video-transcoding-pipeline" class="article-nav-article-link">  Video Transcoding Pipeline Design </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/web-video-playback-architecture" class="article-nav-article-link">  Web Video Playback Architecture: HLS, DASH, and Low Latency </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/image-processing-service-design" class="article-nav-article-link">  Image Processing Service Design: CDN, Transforms, and APIs </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Observability &amp; Reliability</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/slos-slis-error-budgets" class="article-nav-article-link">  SLOs, SLIs, and Error Budgets </a><a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/csp-violation-reporting-pipeline" class="article-nav-article-link">  CSP Violation Reporting Pipeline at Scale </a><a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/logging-metrics-tracing" class="article-nav-article-link">  Logging, Metrics, and Tracing Fundamentals </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Infrastructure &amp; Delivery</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/edge-delivery-and-cache-invalidation" class="article-nav-article-link">  Edge Delivery and Cache Invalidation </a><a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/deployment-strategies-blue-green-canary" class="article-nav-article-link">  Deployment Strategies: Blue-Green, Canary, and Rolling </a><a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/ssg-performance-optimizations" class="article-nav-article-link">  SSG Performance Optimizations: Build, Cache, and Delivery </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Experimentation &amp; Testing</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/experimentation-testing/k6-load-testing-overview" class="article-nav-article-link">  k6 Load Testing Overview: Smoke, Spike, Soak, Stress </a><a href="/legacy-personal-site/v4/articles/platform-engineering/experimentation-testing/statsig-experimentation-overview" class="article-nav-article-link">  Statsig Experimentation Platform: Architecture and Rollouts </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Platform Migrations</span> <span class="article-nav-topic-count">(1)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/platform-migrations/ecommerce-ssg-to-ssr-migration" class="article-nav-article-link">  E-commerce SSG to SSR Migration: Strategy and Pitfalls </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Frontend Engineering</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Frontend Architecture &amp; Patterns</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/micro-frontends-architecture" class="article-nav-article-link">  Micro-Frontends Architecture: Composition, Isolation, and Delivery </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/rendering-strategies-csr-ssr-ssg-isr" class="article-nav-article-link">  Rendering Strategies: CSR, SSR, SSG, and ISR </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/data-fetching-patterns" class="article-nav-article-link">  Frontend Data Fetching Patterns and Caching </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/css-architecture-strategies" class="article-nav-article-link">  CSS Architecture Strategies: BEM, Utility-First, and CSS-in-JS </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/component-architecture-blueprint" class="article-nav-article-link">  Component Architecture Blueprint for Scalable UI </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Web Performance Optimization</span> <span class="article-nav-topic-count">(6)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-infrastructure-stack" class="article-nav-article-link">  Web Performance Infrastructure: DNS, CDN, Caching, and Edge </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-javascript-optimization" class="article-nav-article-link">  JavaScript Performance Optimization for the Web </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-css-typography" class="article-nav-article-link">  CSS and Typography Performance Optimization </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-image-optimization" class="article-nav-article-link">  Image Performance Optimization for the Web </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/core-web-vitals-measurement" class="article-nav-article-link">  Core Web Vitals Measurement: Lab vs Field Data </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-overview" class="article-nav-article-link">  Web Performance Optimization: Overview and Playbook </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Design Systems</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-system-implementation-scaling" class="article-nav-article-link">  Design System Implementation and Scaling </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/component-library-architecture-and-governance" class="article-nav-article-link">  Component Library Architecture and Governance </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-tokens-and-theming" class="article-nav-article-link">  Design Tokens and Theming Architecture </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-system-adoption-foundations" class="article-nav-article-link">  Design System Adoption: Foundations and Governance </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">React Architecture</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-performance-patterns" class="article-nav-article-link">  React Performance Patterns: Rendering, Memoization, and Scheduling </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-hooks-advanced-patterns" class="article-nav-article-link">  React Hooks Advanced Patterns: Specialized Hooks and Composition </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-rendering-architecture" class="article-nav-article-link">  React Rendering Architecture: Fiber, SSR, and RSC </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-hooks-fundamentals" class="article-nav-article-link">  React Hooks Fundamentals: Rules, Core Hooks, and Custom Hooks </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Web Foundations</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Security &amp; Auth</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/csrf-and-cors-defense" class="article-nav-article-link">  CSRF and CORS Defense for Modern Web Applications </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/oauth-oidc-flow-guide" class="article-nav-article-link">  OAuth 2.0 and OIDC Flows: Authorization Code to PKCE </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/web-app-security-architecture" class="article-nav-article-link">  Web Application Security Architecture </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/auth-foundations-sessions-tokens" class="article-nav-article-link">  Authentication Foundations: Sessions, Tokens, and Trust </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/owasp-top-10-guide" class="article-nav-article-link">  OWASP Top 10: Web Application Security Risks </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Networking &amp; Protocols</span> <span class="article-nav-topic-count">(7)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/http3-quic-and-tls" class="article-nav-article-link">  HTTP/3 and QUIC: Transport Layer Revolution </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/http1-1-to-http2-evolution" class="article-nav-article-link">  HTTP/1.1 to HTTP/2: Bottlenecks and Multiplexing </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/tls-1-3-handshake-and-https" class="article-nav-article-link">  TLS 1.3 Handshake and HTTPS Hardening </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-security-doh-dot-dnssec" class="article-nav-article-link">  DNS Security and Privacy: DNSSEC, DoH, and DoT </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-troubleshooting-playbook" class="article-nav-article-link">  DNS Troubleshooting Playbook </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-records-ttl-and-caching" class="article-nav-article-link">  DNS Records, TTL Strategy, and Cache Behavior </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-resolution-path" class="article-nav-article-link">  DNS Resolution Path: Stub to Recursive to Authoritative </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Browser APIs</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/web-workers-and-worklets" class="article-nav-article-link">  Web Workers and Worklets for Off-Main-Thread Work </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/service-workers-and-cache-api" class="article-nav-article-link">  Service Workers and Cache API </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/fetch-and-streaming-apis" class="article-nav-article-link">  Fetch, Streams, and AbortController </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/storage-apis-local-indexeddb" class="article-nav-article-link">  Browser Storage APIs: localStorage, IndexedDB, and Beyond </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/dom-api-essentials" class="article-nav-article-link">  DOM API Essentials: Structure, Traversal, and Mutation </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Accessibility Standards</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/accessibility-standards/accessibility-testing-tooling" class="article-nav-article-link">  Accessibility Testing and Tooling Workflow </a><a href="/legacy-personal-site/v4/articles/web-foundations/accessibility-standards/wcag-2-2-practical-guide" class="article-nav-article-link">  WCAG 2.2: Practical Accessibility Guide </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Programming &amp; Patterns</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Data Structures</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/heaps-and-priority-queues" class="article-nav-article-link">  Heaps and Priority Queues: Internals, Trade-offs, and When Theory Breaks Down </a><a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/trees-and-graphs" class="article-nav-article-link">  Trees and Graphs: Traversals and Applications </a><a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/arrays-and-hash-maps" class="article-nav-article-link">  Arrays and Hash Maps: Engine Internals and Performance Reality </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Algorithms Foundations</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/k-crystal-balls-problem" class="article-nav-article-link">  K-Crystal Balls Problem: Jump Search Pattern </a><a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/sorting-algorithms-guide" class="article-nav-article-link">  Sorting Algorithms: Complexity, Stability, and Use Cases </a><a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/search-algorithms-guide" class="article-nav-article-link">  Search Algorithms: Linear, Binary, and Graph Traversal </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">JavaScript Patterns</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/publish-subscribe-pattern" class="article-nav-article-link">  Publish-Subscribe Pattern in JavaScript </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/exponential-backoff-retry-strategy" class="article-nav-article-link">  Exponential Backoff and Retry Strategy </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/async-queue-pattern" class="article-nav-article-link">  Async Queue Pattern in JavaScript </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/javascript-error-handling-patterns" class="article-nav-article-link">  JavaScript Error Handling Patterns </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/javascript-string-length" class="article-nav-article-link">  JavaScript String Length: Graphemes, UTF-16, and Unicode </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Developer Experience</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Productivity &amp; Workflows</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/developer-experience/productivity-workflows/chrome-developer-setup" class="article-nav-article-link">  Chrome Developer Setup: Extensions, Profiles, and Shortcuts </a><a href="/legacy-personal-site/v4/articles/developer-experience/productivity-workflows/editor-terminal-setup" class="article-nav-article-link">  macOS Developer Environment Setup </a> </div> </details> </div> </div> </nav> <script type="module">function e(){document.querySelector("#left-sidebar .article-nav-article-link.is-active")?.scrollIntoView({block:"nearest",behavior:"instant"})}e();document.addEventListener("astro:page-load",e);</script>  </div> </aside> <main id="main" class="zen-main"> <div class="page-content"> <nav class="breadcrumb" aria-label="Breadcrumb"><a title="Home" aria-label="Home" href="/legacy-personal-site/v4/" class="nav-link">  <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:home">   <symbol id="ai:carbon:home" viewBox="0 0 32 32"><path fill="currentColor" d="M16.612 2.214a1.01 1.01 0 0 0-1.242 0L1 13.419l1.243 1.572L4 13.621V26a2.004 2.004 0 0 0 2 2h20a2.004 2.004 0 0 0 2-2V13.63L29.757 15L31 13.428ZM18 26h-4v-8h4Zm2 0v-8a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v8H6V12.062l10-7.79l10 7.8V26Z"/></symbol><use href="#ai:carbon:home"></use>  </svg> </a><svg width="1em" height="1em" viewBox="0 0 32 32" class="breadcrumb-separator icon-sm" data-icon="carbon:chevron-right">   <use href="#ai:carbon:chevron-right"></use>  </svg><a href="/legacy-personal-site/v4/articles/system-design" class="nav-link">  System Design </a><svg width="1em" height="1em" class="breadcrumb-separator icon-sm" data-icon="carbon:chevron-right">   <symbol id="ai:carbon:chevron-right" viewBox="0 0 32 32"><path fill="currentColor" d="M22 16L12 26l-1.4-1.4l8.6-8.6l-8.6-8.6L12 6z"/></symbol><use href="#ai:carbon:chevron-right"></use>  </svg><a title="Real-World Case Studies" href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies" class="nav-link">  Real-World Case Studies </a></nav>    <div id="reading-progress" class="reading-progress" style="width: 0%"></div> <script type="module">function l(){const e=document.getElementById("reading-progress");if(!e)return;const t=document.querySelector("article")||document.querySelector(".prose");if(!t){e.style.display="none";return}function r(){if(!t||!e)return;const i=t.getBoundingClientRect(),s=i.top+window.scrollY,u=i.height,c=window.innerHeight,g=window.scrollY,o=s-c/2,w=s+u-c/2,d=g;let a=0;d>o&&(a=Math.min(100,(d-o)/(w-o)*100)),e.style.width=`${Math.max(0,a)}%`}let n=!1;window.addEventListener("scroll",()=>{n||(requestAnimationFrame(()=>{r(),n=!1}),n=!0)}),r()}document.addEventListener("DOMContentLoaded",l);document.addEventListener("astro:page-load",l);</script>  <div class="frontmatter article-frontmatter">    <span class="frontmatter-item"> <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:time">   <symbol id="ai:carbon:time" viewBox="0 0 32 32"><path fill="currentColor" d="M16 30a14 14 0 1 1 14-14a14 14 0 0 1-14 14m0-26a12 12 0 1 0 12 12A12 12 0 0 0 16 4"/><path fill="currentColor" d="M20.59 22L15 16.41V7h2v8.58l5 5.01z"/></symbol><use href="#ai:carbon:time"></use>  </svg> 19 min read </span> <span class="frontmatter-item"> <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:calendar">   <symbol id="ai:carbon:calendar" viewBox="0 0 32 32"><path fill="currentColor" d="M26 4h-4V2h-2v2h-8V2h-2v2H6c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2m0 22H6V12h20zm0-16H6V6h4v2h2V6h8v2h2V6h4z"/></symbol><use href="#ai:carbon:calendar"></use>  </svg>
+Last updated on Feb 8, 2026 </span> </div>  <article id="article-content" class="article-prose-content DocSearch-content"> <h1 id="github-scaling-mysql-from-one-database-to-1200-hosts" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#github-scaling-mysql-from-one-database-to-1200-hosts">GitHub: Scaling MySQL from One Database to 1,200+ Hosts</a></h1>
+<p>How GitHub evolved its MySQL infrastructure from a single monolithic database to a fleet of 1,200+ hosts across 50+ clusters serving 5.5 million queries per second (QPS)—through vertical partitioning, custom tooling (gh-ost, orchestrator, freno), Vitess adoption, and a major version upgrade—while keeping github.com available throughout.</p>
+<figure>
+<p><img alt="GitHub&amp;#x27;s MySQL infrastructure evolution across four phases, from a single database to a distributed fleet of 1,200+ hosts." loading="lazy" decoding="async" fetchpriority="auto" width="505" height="1590" src="/legacy-personal-site/v4/_astro/github-s-mysql-infrastructure-evolution-across-four-phases-from-a-single-databas.-C_xZRfw_1YF07j.svg" ></p>
+<figcaption>GitHub's MySQL infrastructure evolution across four phases, from a single database to a distributed fleet of 1,200+ hosts.</figcaption>
+</figure>
+<h2 id="abstract" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#abstract">Abstract</a></h2>
+<p>GitHub’s database story is a masterclass in scaling a relational database without abandoning it. The mental model:</p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Phase</th><th>Problem</th><th>Solution</th><th>Key Insight</th></tr></thead><tbody><tr><td><strong>Monolith</strong> (~2008–2014)</td><td>Single MySQL primary = single point of failure; schema changes = production risk</td><td>Datacenter migration, functional partitioning, read replicas</td><td>You can defer architectural rework if you optimize hardware and config aggressively</td></tr><tr><td><strong>Tooling &#x26; HA</strong> (2014–2019)</td><td>Trigger-based migrations lock tables; failovers take minutes; replication lag blindsides apps</td><td>gh-ost (triggerless), orchestrator/raft (10–13s failover), freno (cooperative throttling)</td><td>Build the operational tooling first—it makes every subsequent migration safer</td></tr><tr><td><strong>Partitioning</strong> (2019–2021)</td><td><code>mysql1</code> at 950K QPS; any incident affects all features</td><td>Schema domains, vertical partitioning, Vitess for horizontal sharding</td><td>Partition by logical domain, not by load—the boundaries are already in your code</td></tr><tr><td><strong>Fleet scale</strong> (2022–2024)</td><td>50+ clusters on MySQL 5.7 approaching EOL; fleet too large for manual ops</td><td>Rolling MySQL 8.0 upgrade with backward replication; automation investment</td><td>Prior partitioning turned one massive upgrade into 50+ smaller, independent ones</td></tr></tbody></table></div>
+<p><strong>The transferable insight</strong>: GitHub never did a “big rewrite.” Each phase built operational capability (tooling, partitioning, automation) that made the next phase lower-risk. The tools they built along the way—gh-ost, orchestrator, freno—became industry standards adopted far beyond GitHub.</p>
+<h2 id="context" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#context">Context</a></h2>
+<h3 id="the-system" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-system">The System</a></h3>
+<p>GitHub.com is a Ruby on Rails monolith backed by MySQL. Every non-Git operation—user authentication, repository metadata, issues, pull requests, notifications, actions—reads from or writes to MySQL.</p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Metric</th><th>2018</th><th>2021</th><th>2023</th></tr></thead><tbody><tr><td>MySQL hosts</td><td>~150</td><td>~500+</td><td>1,200+</td></tr><tr><td>Database clusters</td><td>~15</td><td>~50+</td><td>50+</td></tr><tr><td>Data stored</td><td>~15 TB</td><td>~100+ TB</td><td>300+ TB</td></tr><tr><td>Queries per second</td><td>Not published</td><td>1.2M</td><td>5.5M</td></tr><tr><td>Host type</td><td>Bare metal</td><td>Bare metal</td><td>Azure VMs + bare metal</td></tr></tbody></table></div>
+<h3 id="the-architecture" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-architecture">The Architecture</a></h3>
+<p>Each MySQL cluster follows a primary-replica topology: a single primary node accepts writes while replica nodes asynchronously replay changes and serve read traffic. ProxySQL pools connections from the Rails monolith, and GLB (GitHub Load Balancer) / HAProxy routes traffic to the correct primary.</p>
+<h3 id="why-mysql" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#why-mysql">Why MySQL?</a></h3>
+<p>GitHub started on MySQL in 2008 and never left. Instead of migrating to a different database, they invested in making MySQL work at scale—building custom tooling where the ecosystem fell short. This “invest in what you know” strategy avoided the risk and engineering cost of a database migration while still achieving the operational characteristics they needed.</p>
+<h2 id="phase-1-the-monolith-20082014" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#phase-1-the-monolith-20082014">Phase 1: The Monolith (~2008–2014)</a></h2>
+<h3 id="the-single-database" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-single-database">The Single Database</a></h3>
+<p>GitHub.com began as a Ruby on Rails application with a single MySQL database, known internally as <code>mysql1</code>. This cluster housed the data for nearly every feature: user profiles, repositories, issues, pull requests, stars, and notifications.</p>
+<p>The early architecture was straightforward:</p>
+<ul>
+<li><strong>Single primary</strong> accepting all writes</li>
+<li><strong>Read replicas</strong> spreading read load across multiple machines</li>
+<li><strong>No connection pooling</strong> initially—the Rails app opened connections directly to MySQL</li>
+</ul>
+<h3 id="where-it-broke" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#where-it-broke">Where It Broke</a></h3>
+<p>By 2014, the single-cluster architecture had hit concrete limits:</p>
+<ul>
+<li><strong>Single point of failure</strong>: Any incident affecting <code>mysql1</code>—a failed migration, a lock contention spiral, a hardware fault—impacted every feature on github.com simultaneously</li>
+<li><strong>Schema migration risk</strong>: Altering a table schema on a multi-hundred-gigabyte table was a multi-hour operation that could cause lock contention and degrade the entire site</li>
+<li><strong>Vertical scaling limits</strong>: Even with the best available hardware, a single primary could not absorb the growing write load indefinitely</li>
+</ul>
+<h3 id="the-2014-datacenter-migration" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-2014-datacenter-migration">The 2014 Datacenter Migration</a></h3>
+<p>In August 2014, GitHub’s infrastructure team (led by Sam Lambert) executed a major datacenter migration:</p>
+<ul>
+<li>Migrated the bulk of GitHub.com’s MySQL infrastructure to a new datacenter with upgraded hardware and networking</li>
+<li>Used <code>tcpdump</code> to extract production <code>SELECT</code> queries and replay them against the new cluster for workload validation</li>
+<li>Tuned InnoDB parameters (<code>innodb_buffer_pool_size</code>, <code>innodb_thread_concurrency</code>, <code>innodb_io_capacity</code>, <code>innodb_buffer_pool_instances</code>) through iterative 12-hour test cycles, changing one variable at a time</li>
+<li>Introduced <strong>functional partitioning</strong>: moved large historical data tables to isolated clusters to free buffer pool resources for hot data</li>
+</ul>
+<p><strong>Results:</strong></p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Metric</th><th>Before</th><th>After</th></tr></thead><tbody><tr><td>Average page load time</td><td>Baseline</td><td><strong>50% reduction</strong></td></tr><tr><td>P99 response time</td><td>Baseline</td><td><strong>66% reduction</strong></td></tr><tr><td>Migration downtime</td><td>—</td><td>13 minutes (Saturday 5am PT)</td></tr></tbody></table></div>
+<p>The migration bought time, but the fundamental architecture—a single primary for most data—remained. The next phase addressed the operational tooling needed to safely evolve the schema and topology at scale.</p>
+<h2 id="phase-2-tooling-and-high-availability-20142019" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#phase-2-tooling-and-high-availability-20142019">Phase 2: Tooling and High Availability (2014–2019)</a></h2>
+<p>GitHub’s database team recognized that before partitioning the database, they needed tooling that made schema changes, failovers, and replication management safe and automated. Between 2014 and 2019, they built (or adopted and heavily contributed to) four critical tools.</p>
+<h3 id="gh-ost-triggerless-online-schema-migration" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#gh-ost-triggerless-online-schema-migration">gh-ost: Triggerless Online Schema Migration</a></h3>
+<p><strong>Problem</strong>: GitHub runs multiple schema migrations daily—adding columns, modifying indexes, changing constraints. The industry-standard tool, <code>pt-online-schema-change</code> from Percona, uses MySQL triggers to propagate changes. At GitHub’s scale, triggers caused critical issues:</p>
+<ol>
+<li><strong>Lock contention</strong>: Triggers execute within the transaction space of every affected query, competing independently for locks on the shadow table. GitHub experienced near-complete table lockdowns during peak traffic</li>
+<li><strong>No true pause</strong>: You cannot remove triggers mid-migration without losing data, so throttling only slows the row-copy—triggers keep firing on every write</li>
+<li><strong>No concurrent migrations</strong>: The trigger overhead makes running multiple migrations on different tables simultaneously impractical</li>
+<li><strong>Opaque testing</strong>: Trigger-based migrations simulate poorly on replicas because Statement-Based Replication (SBR) runs single-threaded, which does not represent the primary’s concurrent workload</li>
+</ol>
+<p><strong>Solution</strong>: In August 2016, GitHub open-sourced <strong>gh-ost</strong> (GitHub’s Online Schema Transmogrifier), a triggerless migration tool. Instead of triggers, gh-ost connects to a MySQL replica and tails the binary log in Row-Based Replication (RBR) format. It creates a shadow (“ghost”) table with the desired schema, copies rows incrementally, and applies ongoing changes from the binary log asynchronously. When the ghost table is synchronized, it performs an atomic table swap.</p>
+<p>The key insight: gh-ost presents as a single sequential connection writing to the ghost table—comparable to an Extract, Transform, Load (ETL) process rather than an invasive trigger chain operating inside every production transaction.</p>
+<p><strong>Key operational features:</strong></p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Feature</th><th>How It Works</th><th>Why It Matters</th></tr></thead><tbody><tr><td><strong>True pause</strong></td><td>Suspending gh-ost stops all writes to the primary</td><td>Safe throttling under load</td></tr><tr><td><strong>Dynamic control</strong></td><td>Reconfigure <code>chunk-size</code>, <code>max-lag-millis</code> at runtime via Unix socket/TCP</td><td>No restart needed during multi-hour migrations</td></tr><tr><td><strong>Postponed cutover</strong></td><td>Flag file prevents final swap; ghost table stays in sync</td><td>Ops can defer cutover to business hours</td></tr><tr><td><strong>Production testing</strong></td><td><code>--test-on-replica</code> runs the full migration on a replica, swaps tables, then reverses and checksums</td><td>Validates correctness without touching the primary</td></tr></tbody></table></div>
+<p>GitHub runs continuous migration tests on all production tables (including tables of hundreds of GB) using dedicated test replicas. Each test executes a trivial <code>ENGINE=InnoDB</code> migration, checksums both tables, and reports any inconsistency. By 2020, almost all of GitHub’s MySQL data had been recreated by gh-ost—most of it multiple times.</p>
+<h3 id="orchestrator-automated-failover-with-raft-consensus" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#orchestrator-automated-failover-with-raft-consensus">orchestrator: Automated Failover with Raft Consensus</a></h3>
+<p><strong>Problem</strong>: The previous failover mechanism used DNS and VIPs (Virtual IP Addresses), which suffered from DNS TTL (Time to Live) propagation delays, split-brain scenarios, and required the dead primary to cooperate in the failover process.</p>
+<p><strong>Solution</strong>: GitHub adopted and became the primary upstream maintainer of <strong>orchestrator</strong>, a MySQL replication topology management and high-availability tool. The architecture:</p>
+<ol>
+<li><strong>orchestrator/raft</strong>: Multiple orchestrator nodes across data centers communicate via Raft consensus. No single data center constitutes a majority, preventing isolated-DC split-brain</li>
+<li><strong>Consul</strong>: Per-datacenter key-value store maintaining primary node identities (Fully Qualified Domain Name, port, IP addresses)</li>
+<li><strong>GLB/HAProxy</strong>: Anycast load balancer with writer pools containing exactly one backend (the primary) per cluster. consul-template watches for Consul KV changes and reloads HAProxy automatically</li>
+<li><strong>Holistic failure detection</strong>: orchestrator monitors both the primary AND all replicas. Failover only proceeds when replicas corroborate that the primary is unreachable—preventing false positives</li>
+</ol>
+<figure>
+<p><img alt="GitHub&amp;#x27;s MySQL failover sequence: orchestrator detects failure, promotes a replica, updates Consul, and HAProxy reroutes traffic—typically within 10–13 seconds." loading="lazy" decoding="async" fetchpriority="auto" width="997" height="578" src="/legacy-personal-site/v4/_astro/github-s-mysql-failover-sequence-orchestrator-detects-failure-promotes-a-replica.ByWGcExi_Kgbw3.svg" ></p>
+<figcaption>GitHub's MySQL failover sequence: orchestrator detects failure, promotes a replica, updates Consul, and HAProxy reroutes traffic—typically within 10–13 seconds.</figcaption>
+</figure>
+<p><strong>Failover performance:</strong></p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Scenario</th><th>Total Outage</th></tr></thead><tbody><tr><td>Typical</td><td>10–13 seconds</td></tr><tr><td>Extended</td><td>Up to 20 seconds</td></tr><tr><td>Extreme</td><td>Up to 25 seconds</td></tr></tbody></table></div>
+<p><strong>Replication configuration</strong>: Semi-synchronous replication with a 500ms timeout ensures the primary waits for at least one local replica acknowledgment before confirming commits. This provides lossless failover for local datacenter failures while falling back to asynchronous mode if the timeout is exceeded.</p>
+<h3 id="freno-cooperative-throttling" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#freno-cooperative-throttling">freno: Cooperative Throttling</a></h3>
+<p><strong>Problem</strong>: Large bulk operations—schema migrations, data archiving, Elasticsearch indexing—walk through millions of rows and cause MySQL replication lag. When replicas fall behind, users see stale data. The original Rails-side throttler polled replicas synchronously and sequentially, creating stale connections and adding load to the primary.</p>
+<p><strong>Solution</strong>: <strong>freno</strong> is a standalone, highly available service (using Raft consensus) that continuously polls replica lag and exposes a simple HTTP API:</p>
+<ul>
+<li>Applications send an HTTP <code>HEAD</code> request before proceeding with bulk writes</li>
+<li>freno returns <code>HTTP 200</code> (proceed) or a throttle response based on the current maximum replication lag across all monitored replicas</li>
+<li>Lag measurement uses pt-heartbeat timestamps injected every 100 milliseconds</li>
+</ul>
+<p><strong>Impact:</strong></p>
+<ul>
+<li>Memcached caching (20ms TTL) reduced freno query load from ~800 requests/second to ~50 requests/second</li>
+<li>Roughly 30% of read traffic was rerouted from the primary to replicas</li>
+<li>Elasticsearch indexing achieved consistent reads under 600ms at p95</li>
+</ul>
+<h3 id="trilogy-a-purpose-built-mysql-client" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#trilogy-a-purpose-built-mysql-client">Trilogy: A Purpose-Built MySQL Client</a></h3>
+<p>In parallel, GitHub developed <strong>Trilogy</strong>, a MySQL client library written in C with Ruby bindings. In production since 2015 (open-sourced August 2022), Trilogy replaced the <code>mysql2</code> gem:</p>
+<ul>
+<li>Eliminates dependency on <code>libmariadb</code>/<code>libmysqlclient</code> (no version mismatch issues)</li>
+<li>Minimizes memory copies when building and parsing network packets</li>
+<li>Designed for embedding in the Ruby VM (handles blocking syscalls correctly)</li>
+</ul>
+<p>During the MySQL 8.0 upgrade, Trilogy’s consistent behavior gave the team confidence that the Rails monolith’s connections would not break backward replication—a critical property for safe rollback. Multi-client clusters using other frameworks saw backward replication break within hours.</p>
+<h3 id="automated-schema-migration-pipeline" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#automated-schema-migration-pipeline">Automated Schema Migration Pipeline</a></h3>
+<p>By 2020, GitHub had assembled these tools into a fully automated migration pipeline:</p>
+<ol>
+<li><strong>Developer</strong> opens a PR with schema changes</li>
+<li><strong>GitHub Action</strong> runs <code>skeema diff</code>, posts the generated SQL to the PR</li>
+<li><strong>skeefree</strong> (internal service) analyzes the change, maps it to the correct production cluster, and determines the strategy: direct SQL for <code>CREATE</code>/<code>DROP</code>, gh-ost for <code>ALTER TABLE</code></li>
+<li><strong>Database infrastructure team</strong> reviews and approves via GitHub PR review</li>
+<li><strong>skeefree</strong> queues the migration (one <code>ALTER</code> per cluster at a time), invokes gh-ost, and posts progress updates to the PR</li>
+<li><code>DROP TABLE</code> operations are converted to <code>RENAME</code> with a timestamp suffix, providing a multi-day rollback window before garbage collection</li>
+</ol>
+<p><strong>Scale</strong>: ~2 schema migrations run daily on production, with peaks of up to 6 per day. Some larger tables require hours or days to migrate. This entire flow previously required hours of manual work daily from a database infrastructure engineer.</p>
+<h2 id="phase-3-partitioning-20192021" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#phase-3-partitioning-20192021">Phase 3: Partitioning (2019–2021)</a></h2>
+<p>With reliable tooling in place, GitHub could address the fundamental architecture problem: the <code>mysql1</code> cluster was still handling 950,000 queries per second and remained a single point of failure for core features.</p>
+<h3 id="the-approach-schema-domains" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-approach-schema-domains">The Approach: Schema Domains</a></h3>
+<p>Rather than sharding by hash or range (which fragments the application’s data model), GitHub introduced <strong>schema domains</strong>—logical groupings of related tables that are frequently joined or transacted together:</p>
+<div class="expressive-code"><link rel="stylesheet" href="/legacy-personal-site/v4/_astro/ec.g38ze.css"><script type="module" src="/legacy-personal-site/v4/_astro/ec.0vx5m.js"></script><figure class="frame has-title"><figcaption class="header"><span class="title">db/schema-domains.yml</span></figcaption><pre data-language="yaml"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#1E7734;--1:#85E89D">gists</span><span style="--0:#24292E;--1:#E1E4E8">:</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">  </span></span><span style="--0:#24292E;--1:#E1E4E8">- </span><span style="--0:#032F62;--1:#9ECBFF">gist_comments</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">  </span></span><span style="--0:#24292E;--1:#E1E4E8">- </span><span style="--0:#032F62;--1:#9ECBFF">gists</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">  </span></span><span style="--0:#24292E;--1:#E1E4E8">- </span><span style="--0:#032F62;--1:#9ECBFF">starred_gists</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span style="--0:#1E7734;--1:#85E89D">repositories</span><span style="--0:#24292E;--1:#E1E4E8">:</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">7</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">  </span></span><span style="--0:#24292E;--1:#E1E4E8">- </span><span style="--0:#032F62;--1:#9ECBFF">issues</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">8</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">  </span></span><span style="--0:#24292E;--1:#E1E4E8">- </span><span style="--0:#032F62;--1:#9ECBFF">pull_requests</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">9</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">  </span></span><span style="--0:#24292E;--1:#E1E4E8">- </span><span style="--0:#032F62;--1:#9ECBFF">repositories</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">10</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">11</div></div><div class="code"><span style="--0:#1E7734;--1:#85E89D">users</span><span style="--0:#24292E;--1:#E1E4E8">:</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">12</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">  </span></span><span style="--0:#24292E;--1:#E1E4E8">- </span><span style="--0:#032F62;--1:#9ECBFF">avatars</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">13</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">  </span></span><span style="--0:#24292E;--1:#E1E4E8">- </span><span style="--0:#032F62;--1:#9ECBFF">gpg_keys</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">14</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">  </span></span><span style="--0:#24292E;--1:#E1E4E8">- </span><span style="--0:#032F62;--1:#9ECBFF">public_keys</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">15</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">  </span></span><span style="--0:#24292E;--1:#E1E4E8">- </span><span style="--0:#032F62;--1:#9ECBFF">users</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="gists:  - gist_comments  - gists  - starred_gistsrepositories:  - issues  - pull_requests  - repositoriesusers:  - avatars  - gpg_keys  - public_keys  - users"><div></div></button></div></figure></div>
+<p>This approach partitions along the boundaries that already exist in the application code. Tables within a domain stay together; tables in different domains can be moved to separate clusters independently.</p>
+<h3 id="enforcement-sql-linters" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#enforcement-sql-linters">Enforcement: SQL Linters</a></h3>
+<p>Before physically moving tables, GitHub deployed two linters to identify and eliminate cross-domain dependencies:</p>
+<p><strong>Query linter</strong>: Verified that only tables from the same schema domain appear in a single query. Cross-domain joins were flagged and required rewriting—typically replacing <code>includes</code> with <code>preload</code> in ActiveRecord, which executes separate queries instead of joins.</p>
+<p><strong>Transaction linter</strong>: Ran in production with heavy sampling to identify transactions that span domain boundaries—operations that would lose ACID (Atomicity, Consistency, Isolation, Durability) guarantees after partitioning.</p>
+<p>Developers could annotate known violations during remediation:</p>
+<div class="expressive-code"><figure class="frame has-title"><figcaption class="header"><span class="title">cross-domain-annotation.rb</span></figcaption><pre data-language="ruby"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#005CC5;--1:#79B8FF">Repository</span><span style="--0:#24292E;--1:#E1E4E8">.</span><span style="--0:#6F42C1;--1:#B392F0">joins</span><span style="--0:#24292E;--1:#E1E4E8">(</span><span style="--0:#005CC5;--1:#79B8FF">:owner</span><span style="--0:#24292E;--1:#E1E4E8">).</span><span style="--0:#6F42C1;--1:#B392F0">annotate</span><span style="--0:#24292E;--1:#E1E4E8">(</span><span style="--0:#032F62;--1:#9ECBFF">"cross-schema-domain-query-exempted"</span><span style="--0:#24292E;--1:#E1E4E8">)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="Repository.joins(:owner).annotate(&#x22;cross-schema-domain-query-exempted&#x22;)"><div></div></button></div></figure></div>
+<p>Once a domain had zero violations, it was “virtually partitioned” and ready for physical migration.</p>
+<h3 id="two-migration-methods" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#two-migration-methods">Two Migration Methods</a></h3>
+<p>GitHub used two complementary approaches to move tables between clusters without downtime:</p>
+<p><strong>Vitess vertical sharding</strong>: Deployed Vitess’s VTGate in Kubernetes clusters as the MySQL protocol endpoint. VReplication (Vitess’s replication engine) streamed table data to the destination cluster while applications connected through VTGate, which handled routing transparently.</p>
+<p><strong>Custom write-cutover</strong>: A lighter-weight alternative using standard MySQL replication. The destination cluster replicates from the source, with ProxySQL initially routing all traffic back to the source primary. At cutover time, six steps execute in <strong>tens of milliseconds</strong>:</p>
+<ol>
+<li>Enable read-only on source primary</li>
+<li>Read final GTID (Global Transaction Identifier) from source</li>
+<li>Poll destination primary until GTID arrives</li>
+<li>Stop replication from source</li>
+<li>Update ProxySQL routing to destination</li>
+<li>Disable read-only on both primaries</li>
+</ol>
+<p>The custom approach served as risk mitigation—a simpler alternative when Vitess’s overhead was not justified for a particular table set.</p>
+<h3 id="results" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#results">Results</a></h3>
+<p>GitHub migrated approximately 130 of the busiest tables—repositories, issues, pull requests—off <code>mysql1</code> and distributed them across multiple new clusters.</p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Metric</th><th>2019 (Before)</th><th>2021 (After)</th><th>Change</th></tr></thead><tbody><tr><td>Total queries/second</td><td>950,000</td><td>1,200,000</td><td>+26%</td></tr><tr><td>Replica queries/second</td><td>900,000</td><td>1,125,000</td><td>+25%</td></tr><tr><td>Primary queries/second</td><td>50,000</td><td>75,000</td><td>+50%</td></tr><tr><td>Per-host load</td><td>Baseline</td><td>—</td><td><strong>50% reduction</strong></td></tr><tr><td>Database clusters</td><td>~5</td><td>50+</td><td>10x growth</td></tr></tbody></table></div>
+<p>The load reduction contributed directly to fewer database-related incidents and improved github.com reliability. Critically, the 10x growth in cluster count—from ~5 clusters to 50+—meant that incidents were now scoped to individual feature domains rather than affecting the entire platform.</p>
+<h3 id="vitess-for-horizontal-sharding" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#vitess-for-horizontal-sharding">Vitess for Horizontal Sharding</a></h3>
+<p>For domains that outgrew even a single-primary cluster (Notifications, Actions, and eventually Issues and Pull Requests), GitHub adopted Vitess’s horizontal sharding:</p>
+<ul>
+<li><strong>VTGate</strong> deployed in Kubernetes as the application-facing MySQL endpoint</li>
+<li><strong>VTTablet</strong> manages communication between VTGate and individual MySQL instances</li>
+<li>Applications connect to VTGate endpoints instead of directly to MySQL</li>
+<li>GitHub maintains a fork (<code>github/vitess-gh</code>) with customizations for their environment</li>
+</ul>
+<p>As of 2023, Vitess manages approximately 150 TB of GitHub’s data and handles 750,000 QPS of their total database workload.</p>
+<h2 id="phase-4-fleet-scale-and-mysql-80-20222024" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#phase-4-fleet-scale-and-mysql-80-20222024">Phase 4: Fleet Scale and MySQL 8.0 (2022–2024)</a></h2>
+<h3 id="the-upgrade-challenge" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-upgrade-challenge">The Upgrade Challenge</a></h3>
+<p>By mid-2022, GitHub’s fleet had grown to 1,200+ MySQL hosts across 50+ clusters—all running MySQL 5.7, which was approaching end of life. The last time GitHub upgraded MySQL versions, they had approximately 5 clusters. Now they had 10x more, each with different workload characteristics and application dependencies.</p>
+<h3 id="the-five-step-rolling-upgrade" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-five-step-rolling-upgrade">The Five-Step Rolling Upgrade</a></h3>
+<p>The team designed a per-cluster upgrade process that preserved rollback capability at every step:</p>
+<p><strong>Step 1 — Rolling replica upgrades</strong>: Deploy MySQL 8.0 replicas alongside existing 5.7 replicas. Gradually shift read traffic to 8.0 servers while monitoring for query plan regressions.</p>
+<p><strong>Step 2 — Topology reconfiguration</strong>: Create dual replication chains—one serving 8.0 traffic, another maintaining offline 5.7 replicas specifically for rollback.</p>
+<p><strong>Step 3 — Primary promotion</strong>: Use orchestrator to perform a graceful failover, promoting an 8.0 replica to primary. Blacklist 5.7 hosts from failover candidate selection.</p>
+<p><strong>Step 4 — Ancillary upgrades</strong>: Upgrade backup servers and non-production instances.</p>
+<p><strong>Step 5 — Cleanup</strong>: Remove 5.7 servers after a minimum 24-hour production traffic cycle confirms stability.</p>
+<h3 id="challenges-encountered" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#challenges-encountered">Challenges Encountered</a></h3>
+<p><strong>Character set incompatibility</strong>: MySQL 8.0 defaults to <code>utf8mb4_0900_ai_ci</code> collation, which MySQL 5.7 does not support. Backward replication from 8.0 to 5.7 (needed for rollback) broke immediately. The fix: configure 8.0 servers with <code>utf8</code> / <code>utf8_unicode_ci</code> defaults—sacrificing 8.0’s improved collation until all clusters were upgraded and rollback was no longer needed.</p>
+<p><strong>Replication bug</strong>: MySQL 8.0.28 patched an issue where the <code>replica_preserve_commit_order</code> variable caused replication applier hangs under write-intensive load. GitHub’s GTID-based replication met all triggering criteria, requiring version 8.0.28 as the minimum deployment target.</p>
+<p><strong>Query plan regressions</strong>: Queries passing CI against controlled test data failed in production against real-world data distributions. Most notably, queries with large <code>WHERE IN</code> clauses (tens of thousands of values) crashed MySQL outright. The team relied on SolarWinds DPM (Database Performance Monitor) for query sampling to detect these regressions before they caused outages.</p>
+<p><strong>Vitess version advertisement</strong>: VTGate advertises a MySQL version to clients. Java clients disabled query caching for 5.7 servers but generated blocking errors after upgrade because MySQL 8.0 removed the query cache entirely. VTGate settings required manual updates per keyspace during the shard-by-shard upgrade.</p>
+<h3 id="why-prior-partitioning-made-this-possible" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#why-prior-partitioning-made-this-possible">Why Prior Partitioning Made This Possible</a></h3>
+<p>The partitioning work from Phase 3 turned what would have been a single high-risk upgrade into 50+ independent, smaller upgrades. Each cluster could be upgraded on its own timeline, and a regression in one cluster only affected that domain’s features—not the entire platform.</p>
+<h3 id="outcome" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#outcome">Outcome</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody><tr><td>Fleet size</td><td>1,200+ hosts (Azure VMs + bare metal)</td></tr><tr><td>Data managed</td><td>300+ TB</td></tr><tr><td>Query throughput</td><td>5.5 million QPS</td></tr><tr><td>Database clusters</td><td>50+</td></tr><tr><td>Upgrade duration</td><td>Over 1 year (July 2022 – late 2023)</td></tr><tr><td>MySQL version</td><td>8.0 across entire fleet</td></tr></tbody></table></div>
+<h2 id="options-considered-across-phases" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#options-considered-across-phases">Options Considered (Across Phases)</a></h2>
+<p>GitHub’s approach was notably conservative compared to industry peers. At various points, they evaluated alternatives:</p>
+<h3 id="option-1-migrate-away-from-mysql" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#option-1-migrate-away-from-mysql">Option 1: Migrate Away from MySQL</a></h3>
+<p><strong>Approach</strong>: Move to PostgreSQL, CockroachDB, or a purpose-built distributed database.</p>
+<p><strong>Why not chosen</strong>: The Rails monolith had deep MySQL dependencies—query patterns, schema conventions, ActiveRecord behaviors. A database migration would have been a multi-year effort with high risk and uncertain benefit. Instead, GitHub chose to build tooling that made MySQL work at their scale.</p>
+<h3 id="option-2-adopt-vitess-fully-replace-all-clusters" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#option-2-adopt-vitess-fully-replace-all-clusters">Option 2: Adopt Vitess Fully (Replace All Clusters)</a></h3>
+<p><strong>Approach</strong>: Deploy Vitess across the entire fleet rather than only for horizontally sharded domains.</p>
+<p><strong>Why not chosen</strong>: Vitess adds operational complexity (VTGate, VTTablet, topology management). For clusters that don’t need horizontal sharding, standard MySQL with orchestrator/Consul provides the same availability guarantees with less overhead. GitHub uses Vitess selectively—where the sharding capability justifies the complexity.</p>
+<h3 id="option-3-shard-by-hashrange" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#option-3-shard-by-hashrange">Option 3: Shard by Hash/Range</a></h3>
+<p><strong>Approach</strong>: Traditional horizontal sharding based on a shard key (e.g., <code>user_id % N</code>).</p>
+<p><strong>Why not chosen</strong>: Hash-based sharding fragments the data model and requires application-level routing for every query. Schema domains partition along natural boundaries in the code, preserving the ability to join within a domain and transact atomically. Vitess handles the cases where true horizontal sharding is needed.</p>
+<h3 id="decision-factors" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#decision-factors">Decision Factors</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Factor</th><th>Migrate DB</th><th>Full Vitess</th><th>Hash Sharding</th><th>Schema Domains</th></tr></thead><tbody><tr><td>Risk</td><td>Very high</td><td>Medium</td><td>Medium</td><td>Low</td></tr><tr><td>Application changes</td><td>Massive</td><td>Moderate</td><td>Significant</td><td>Targeted</td></tr><tr><td>Timeline</td><td>Multi-year</td><td>1–2 years</td><td>1–2 years</td><td>Incremental</td></tr><tr><td>Preserves MySQL expertise</td><td>No</td><td>Partially</td><td>Yes</td><td>Yes</td></tr><tr><td>Tooling reuse</td><td>None</td><td>Partial</td><td>Full</td><td>Full</td></tr></tbody></table></div>
+<h2 id="lessons-learned" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#lessons-learned">Lessons Learned</a></h2>
+<h3 id="technical-lessons" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#technical-lessons">Technical Lessons</a></h3>
+<h4 id="1-build-the-tooling-before-the-migration" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#1-build-the-tooling-before-the-migration">1. Build the Tooling Before the Migration</a></h4>
+<p><strong>The insight</strong>: GitHub invested 5 years (2014–2019) building gh-ost, orchestrator, freno, and the automated migration pipeline before attempting the database partitioning in 2019. Each tool reduced the risk of the next step.</p>
+<p><strong>How it applies elsewhere</strong>: If your team plans a major database migration, first ask: Can we safely perform schema changes? Can we fail over in under 30 seconds? Can we throttle bulk operations without operator intervention? If the answer to any is “no,” build that capability first.</p>
+<p><strong>Warning signs you need this</strong>:</p>
+<ul>
+<li>Schema migrations require maintenance windows</li>
+<li>Failovers take minutes and require manual intervention</li>
+<li>Replication lag is discovered by users, not by tooling</li>
+</ul>
+<h4 id="2-partition-by-domain-not-by-load" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#2-partition-by-domain-not-by-load">2. Partition by Domain, Not by Load</a></h4>
+<p><strong>The insight</strong>: GitHub partitioned along schema domain boundaries—logical groupings of tables used together—rather than by load or row count. This preserved transactional consistency within domains and aligned with how engineers already thought about the data.</p>
+<p><strong>How it applies elsewhere</strong>: Look at your application’s <code>JOIN</code> and transaction patterns. The natural partition boundaries are already in your code. SQL linters can identify cross-domain dependencies automatically.</p>
+<p><strong>Warning signs you need this</strong>:</p>
+<ul>
+<li>A single database cluster is a blast radius for all features</li>
+<li>Schema changes on one feature’s tables risk impacting unrelated features</li>
+<li>Your largest cluster handles queries for functionally independent workloads</li>
+</ul>
+<h4 id="3-triggers-are-a-liability-at-scale" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#3-triggers-are-a-liability-at-scale">3. Triggers Are a Liability at Scale</a></h4>
+<p><strong>The insight</strong>: MySQL triggers execute within the transaction of the triggering query, competing for locks and adding interpreter overhead to every affected row. At GitHub’s write rates, this caused near-complete table lockdowns during migrations.</p>
+<p><strong>How it applies elsewhere</strong>: If your schema migration tool uses triggers (pt-online-schema-change, LHM, oak-online-alter-table), evaluate gh-ost. The binary log approach decouples migration overhead from production write traffic.</p>
+<h3 id="process-lessons" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#process-lessons">Process Lessons</a></h3>
+<h4 id="1-automate-the-migration-pipeline-end-to-end" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#1-automate-the-migration-pipeline-end-to-end">1. Automate the Migration Pipeline End-to-End</a></h4>
+<p><strong>What they learned</strong>: Before skeefree and the GitHub Actions integration, each migration required hours of manual coordination per day by a database infrastructure engineer. Automating the pipeline through PR-based workflows let engineers request migrations without understanding the underlying tooling.</p>
+<p><strong>What they’d do differently</strong>: GitHub acknowledged that the MySQL 8.0 upgrade still required excessive manual intervention. Future work focuses on self-healing automation and reduced per-cluster manual steps.</p>
+<h4 id="2-maintain-backward-replication-for-rollback" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#2-maintain-backward-replication-for-rollback">2. Maintain Backward Replication for Rollback</a></h4>
+<p><strong>What they learned</strong>: During the MySQL 8.0 upgrade, backward replication from 8.0 to 5.7 was the only viable rollback mechanism. Clusters using the consistent Trilogy client maintained backward replication indefinitely. Multi-client clusters using different MySQL drivers broke backward replication within hours, compressing the rollback window.</p>
+<p><strong>The implication</strong>: Standardizing the database client across all applications (not just the monolith) directly affects your ability to safely roll back infrastructure changes.</p>
+<h3 id="organizational-lessons" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#organizational-lessons">Organizational Lessons</a></h3>
+<h4 id="1-small-specialized-teams-punching-above-their-weight" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#1-small-specialized-teams-punching-above-their-weight">1. Small, Specialized Teams Punching Above Their Weight</a></h4>
+<p>GitHub’s database infrastructure team authored and maintained gh-ost, orchestrator, freno, Trilogy, and the migration automation pipeline. Key individuals—Shlomi Noach (gh-ost, orchestrator, freno), Tom Krouper (testing automation), Hailey Somerville and Brian Lopez (Trilogy)—built tools that became industry standards. The team’s deep MySQL expertise, combined with building open-source tooling rather than proprietary solutions, created a virtuous cycle: external adoption improved the tools, which improved GitHub’s own operations.</p>
+<h2 id="conclusion" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#conclusion">Conclusion</a></h2>
+<p>GitHub’s MySQL story spans 15+ years and demonstrates that a monolithic relational database can scale to 5.5 million QPS across 1,200+ hosts—without abandoning MySQL. The strategy was not a single migration but a sequence of investments: custom tooling (2014–2019), logical then physical partitioning (2019–2021), selective Vitess adoption for horizontal sharding, and a fleet-wide version upgrade (2022–2024).</p>
+<p>The approach is reproducible. The core tools—gh-ost, orchestrator, freno—are open source and battle-tested at GitHub’s scale. The schema domain concept requires only a YAML config and SQL linters to enforce. The partitioning strategy works incrementally: one domain at a time, validating each step before proceeding.</p>
+<p>The deeper lesson is about sequencing. GitHub built operational safety (tooling and automation) before attempting structural changes (partitioning and sharding). This meant that when they finally partitioned <code>mysql1</code>, they had years of production data validating their migration tools, years of automated failover proving their HA architecture, and an established pipeline for schema changes that made the application-layer refactoring predictable. Each phase reduced the risk of the next.</p>
+<h2 id="appendix" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#appendix">Appendix</a></h2>
+<h3 id="prerequisites" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#prerequisites">Prerequisites</a></h3>
+<ul>
+<li>Familiarity with MySQL replication (primary-replica topology, binary logs, GTIDs)</li>
+<li>Understanding of database sharding concepts (vertical vs. horizontal partitioning)</li>
+<li>Basic knowledge of service discovery patterns (Consul, DNS-based routing)</li>
+</ul>
+<h3 id="terminology" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#terminology">Terminology</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Term</th><th>Definition</th></tr></thead><tbody><tr><td><strong>gh-ost</strong></td><td>GitHub’s Online Schema Transmogrifier—a triggerless online schema migration tool for MySQL</td></tr><tr><td><strong>orchestrator</strong></td><td>MySQL replication topology management and high-availability tool using Raft consensus</td></tr><tr><td><strong>freno</strong></td><td>Cooperative throttling service that rate-limits bulk operations based on MySQL replication lag</td></tr><tr><td><strong>Trilogy</strong></td><td>MySQL client library written in C with Ruby bindings, built by GitHub as a replacement for the mysql2 gem</td></tr><tr><td><strong>skeefree</strong></td><td>GitHub’s internal schema migration orchestration service</td></tr><tr><td><strong>VTGate</strong></td><td>Vitess’s proxy component that applications connect to instead of MySQL directly</td></tr><tr><td><strong>VReplication</strong></td><td>Vitess’s replication engine for moving table data between clusters</td></tr><tr><td><strong>Schema domain</strong></td><td>A logical grouping of related tables that are frequently joined or transacted together</td></tr><tr><td><strong>GTID</strong></td><td>Global Transaction Identifier—a unique identifier for each transaction in MySQL replication</td></tr><tr><td><strong>GLB</strong></td><td>GitHub Load Balancer—their custom anycast load balancer built on HAProxy</td></tr></tbody></table></div>
+<h3 id="summary" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#summary">Summary</a></h3>
+<ul>
+<li>GitHub scaled MySQL from a single database to 1,200+ hosts across 50+ clusters serving 5.5 million QPS—without migrating away from MySQL</li>
+<li>Custom tooling (gh-ost, orchestrator, freno) was built before partitioning, reducing the risk of every subsequent migration</li>
+<li>Schema domains—logical groupings enforced by SQL linters—defined partition boundaries along natural application boundaries, not arbitrary shard keys</li>
+<li>Vitess was adopted selectively for horizontal sharding of domains that outgrew single-primary clusters (Notifications, Actions, Issues, Pull Requests)</li>
+<li>The MySQL 5.7 to 8.0 upgrade was made tractable by prior partitioning: 50+ independent cluster upgrades instead of one monolithic operation</li>
+<li>Key lesson: build operational safety first, then use it to de-risk structural changes</li>
+</ul>
+<h3 id="references" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#references">References</a></h3>
+<ul>
+<li><a href="https://github.blog/engineering/infrastructure/partitioning-githubs-relational-databases-scale/">Partitioning GitHub’s relational databases to handle scale</a> — Thomas Maurer, GitHub Blog, September 2021</li>
+<li><a href="https://github.blog/engineering/infrastructure/upgrading-github-com-to-mysql-8-0/">Upgrading GitHub.com to MySQL 8.0</a> — Jiaqi Liu, Daniel Rogart, Xin Wu, GitHub Blog, December 2023</li>
+<li><a href="https://github.blog/engineering/infrastructure/mysql-high-availability-at-github/">MySQL High Availability at GitHub</a> — Shlomi Noach, GitHub Blog, June 2018</li>
+<li><a href="https://github.blog/news-insights/company-news/gh-ost-github-s-online-migration-tool-for-mysql/">gh-ost: GitHub’s online schema migration tool for MySQL</a> — Shlomi Noach, GitHub Blog, August 2016</li>
+<li><a href="https://github.blog/enterprise-software/automation/automating-mysql-schema-migrations-with-github-actions-and-more/">Automating MySQL schema migrations with GitHub Actions and more</a> — Shlomi Noach, GitHub Blog, February 2020</li>
+<li><a href="https://github.blog/engineering/infrastructure/mysql-testing-automation-at-github/">MySQL infrastructure testing automation at GitHub</a> — Tom Krouper and Shlomi Noach, GitHub Blog, July 2017</li>
+<li><a href="https://github.blog/engineering/infrastructure/mitigating-replication-lag-and-reducing-read-load-with-freno/">Mitigating replication lag and reducing read load with freno</a> — GitHub Blog, March 2019</li>
+<li><a href="https://github.blog/2014-09-02-making-mysql-better-at-github/">Making MySQL Better at GitHub</a> — Sam Lambert, GitHub Blog, September 2014</li>
+<li><a href="https://github.blog/2022-08-25-introducing-trilogy-a-new-database-adapter-for-ruby-on-rails/">Introducing Trilogy: a new database adapter for Ruby on Rails</a> — GitHub Blog, August 2022</li>
+<li><a href="https://github.blog/engineering/infrastructure/orchestrator-github/">Orchestrator at GitHub</a> — Shlomi Noach, GitHub Blog, December 2016</li>
+<li><a href="https://kccnceu2023.sched.com/event/1Hzda/">Introduction to Vitess and Real-World Usage</a> — Arthur Schreiber (GitHub) and Florent Poinsard (PlanetScale), KubeCon EU 2023</li>
+<li><a href="https://www.infoq.com/news/2024/02/github-mysql-upgrade-v8/">GitHub Upgrades its MySQL Infrastructure from v5.7 to 8.0</a> — InfoQ, February 2024</li>
+<li><a href="https://github.com/github/gh-ost">github/gh-ost</a> — GitHub repository (MIT License, 13,000+ stars)</li>
+<li><a href="https://github.com/openark/orchestrator">openark/orchestrator</a> — GitHub repository</li>
+<li><a href="https://github.com/github/freno">github/freno</a> — GitHub repository (MIT License)</li>
+<li><a href="https://github.com/trilogy-libraries/trilogy">trilogy-libraries/trilogy</a> — GitHub repository (MIT License)</li>
+</ul> </article>  <section class="article-navigation"> <div class="section-divider"> <span class="section-divider-text">Continue Reading</span> </div> <ul class="article-list"> <li class="article-card"> <p class="article-card-label">Previous</p> <h3 class="article-card-title"> <a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/youtube-vitess-scaling" class="article-card-link">  YouTube: Scaling MySQL to Serve Billions with Vitess </a> </h3> <div class="frontmatter article-card-frontmatter">   <span class="frontmatter-item"> <a title="Category - System Design" href="/legacy-personal-site/v4/articles/system-design" class="frontmatter-link">  System Design </a>  <span class="text-muted">/</span> <a title="Topic - Real-World Case Studies" href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies" class="frontmatter-link">  Real-World Case Studies </a>  </span> <span class="frontmatter-item"> <svg width="1em" height="1em" viewBox="0 0 32 32" class="icon-sm" data-icon="carbon:time">   <use href="#ai:carbon:time"></use>  </svg> 22 min read </span>  </div> <p class="article-card-excerpt"> How YouTube built Vitess to horizontally scale MySQL from 4 shards to 256 across tens of thousands of nodes, serving millions of queries per second without abandoning the relational model—and why they eventually migrated to Spanner anyway. </p> </li> <li class="article-card"> <p class="article-card-label">Next</p> <h3 class="article-card-title"> <a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/pinterest-mysql-sharding" class="article-card-link">  Pinterest: MySQL Sharding from Zero to Billions of Objects </a> </h3> <div class="frontmatter article-card-frontmatter">   <span class="frontmatter-item"> <a title="Category - System Design" href="/legacy-personal-site/v4/articles/system-design" class="frontmatter-link">  System Design </a>  <span class="text-muted">/</span> <a title="Topic - Real-World Case Studies" href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies" class="frontmatter-link">  Real-World Case Studies </a>  </span> <span class="frontmatter-item"> <svg width="1em" height="1em" viewBox="0 0 32 32" class="icon-sm" data-icon="carbon:time">   <use href="#ai:carbon:time"></use>  </svg> 25 min read </span>  </div> <p class="article-card-excerpt"> In 2012, Pinterest had 3.2 million users doubling every 45 days, 3 engineers, and five different database technologies all breaking simultaneously. Their fix: abandon every NoSQL database, shard MySQL with a 64-bit ID scheme that embeds shard location directly in every object ID, and never move data between shards. This case study examines how Pinterest’s “boring technology” philosophy produced one of the most enduring database architectures in Silicon Valley---still running in production over a decade later---and the specific design decisions that made it work at 150+ billion objects. </p> </li> </ul> </section> </div> <footer class="site-footer"> <div class="site-footer-inner">  <nav class="site-footer-categories"> <a title="Browser &#38; Runtime Internals" href="/legacy-personal-site/v4/articles/browser-runtime-internals" class="nav-link">  Browser &amp; Runtime Internals </a><a title="System Design" href="/legacy-personal-site/v4/articles/system-design" class="nav-link">  System Design </a><a title="Platform Engineering" href="/legacy-personal-site/v4/articles/platform-engineering" class="nav-link">  Platform Engineering </a><a title="Frontend Engineering" href="/legacy-personal-site/v4/articles/frontend-engineering" class="nav-link">  Frontend Engineering </a><a title="Web Foundations" href="/legacy-personal-site/v4/articles/web-foundations" class="nav-link">  Web Foundations </a><a title="Programming &#38; Patterns" href="/legacy-personal-site/v4/articles/programming-patterns" class="nav-link">  Programming &amp; Patterns </a><a title="Developer Experience" href="/legacy-personal-site/v4/articles/developer-experience" class="nav-link">  Developer Experience </a> </nav>  <div class="site-footer-bar"> <div class="site-footer-links"> <a href="https://docs.google.com/document/d/1pazXBfzuL9O1wCjPdKb7IS-7nXz_ZzI7EvNL1r_KKRc/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="nav-link">  Resume </a><a href="/legacy-personal-site/v4/tags" class="nav-link">  Tags </a><a href="/legacy-personal-site/v4/articles/drafts" class="nav-link">  Drafts </a> </div> <div class="site-footer-controls">  <div class="site-footer-theme"> <svg width="1em" height="1em" class="site-footer-theme-icon" data-icon="carbon:paint-brush">   <symbol id="ai:carbon:paint-brush" viewBox="0 0 32 32"><path fill="currentColor" d="M28.83 23.17L23 17.33V13a1 1 0 0 0-.29-.71l-10-10a1 1 0 0 0-1.42 0l-9 9a1 1 0 0 0 0 1.42l10 10A1 1 0 0 0 13 23h4.34l5.83 5.84a4 4 0 0 0 5.66-5.66ZM6 10.41l2.29 2.3l1.42-1.42L7.41 9L9 7.41l4.29 4.3l1.42-1.42L10.41 6L12 4.41L18.59 11L11 18.59L4.41 12Zm21.41 17a2 2 0 0 1-2.82 0l-6.13-6.12a1.8 1.8 0 0 0-.71-.29h-4.34l-1-1L20 12.41l1 1v4.34a1 1 0 0 0 .29.7l6.12 6.14a2 2 0 0 1 0 2.82"/></symbol><use href="#ai:carbon:paint-brush"></use>  </svg> <select id="theme-select" class="site-footer-theme-select" aria-label="Select theme"> <option value="auto">Auto</option> <option value="light">Light</option> <option value="dark">Dark</option> <option value="high-contrast-light">High contrast light</option> <option value="high-contrast-dark">High contrast dark</option> <option value="paper">Paper</option> </select> </div>  <div class="site-footer-social"> <a aria-label="GitHub" title="GitHub" href="https://github.com/sujeet-pro" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-github">   <symbol id="ai:carbon:logo-github" viewBox="0 0 32 32"><path fill="currentColor" fill-rule="evenodd" d="M16 2a14 14 0 0 0-4.43 27.28c.7.13 1-.3 1-.67v-2.38c-3.89.84-4.71-1.88-4.71-1.88a3.7 3.7 0 0 0-1.62-2.05c-1.27-.86.1-.85.1-.85a2.94 2.94 0 0 1 2.14 1.45a3 3 0 0 0 4.08 1.16a2.93 2.93 0 0 1 .88-1.87c-3.1-.36-6.37-1.56-6.37-6.92a5.4 5.4 0 0 1 1.44-3.76a5 5 0 0 1 .14-3.7s1.17-.38 3.85 1.43a13.3 13.3 0 0 1 7 0c2.67-1.81 3.84-1.43 3.84-1.43a5 5 0 0 1 .14 3.7a5.4 5.4 0 0 1 1.44 3.76c0 5.38-3.27 6.56-6.39 6.91a3.33 3.33 0 0 1 .95 2.59v3.84c0 .46.25.81 1 .67A14 14 0 0 0 16 2"/></symbol><use href="#ai:carbon:logo-github"></use>  </svg>  </a> <a aria-label="LinkedIn" title="LinkedIn" href="https://www.linkedin.com/in/sujeetkrjaiswal/" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-linkedin">   <symbol id="ai:carbon:logo-linkedin" viewBox="0 0 32 32"><path fill="currentColor" d="M26.2 4H5.8C4.8 4 4 4.8 4 5.7v20.5c0 .9.8 1.7 1.8 1.7h20.4c1 0 1.8-.8 1.8-1.7V5.7c0-.9-.8-1.7-1.8-1.7M11.1 24.4H7.6V13h3.5zm-1.7-13c-1.1 0-2.1-.9-2.1-2.1s.9-2.1 2.1-2.1c1.1 0 2.1.9 2.1 2.1s-1 2.1-2.1 2.1m15.1 12.9H21v-5.6c0-1.3 0-3.1-1.9-3.1S17 17.1 17 18.5v5.7h-3.5V13h3.3v1.5h.1c.5-.9 1.7-1.9 3.4-1.9c3.6 0 4.3 2.4 4.3 5.5v6.2z"/></symbol><use href="#ai:carbon:logo-linkedin"></use>  </svg>  </a> <a aria-label="Twitter" title="Twitter" href="https://twitter.com/sujeetpro" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-twitter">   <symbol id="ai:carbon:logo-twitter" viewBox="0 0 32 32"><path fill="currentColor" d="M11.548 25.752c9.056 0 14.01-7.503 14.01-14.01c0-.213 0-.425-.015-.636A10 10 0 0 0 28 8.556a9.8 9.8 0 0 1-2.828.776a4.94 4.94 0 0 0 2.164-2.724a9.9 9.9 0 0 1-3.126 1.195a4.929 4.929 0 0 0-8.392 4.491A13.98 13.98 0 0 1 5.67 7.15a4.93 4.93 0 0 0 1.525 6.573a4.9 4.9 0 0 1-2.235-.617v.063a4.926 4.926 0 0 0 3.95 4.827a4.9 4.9 0 0 1-2.223.084a4.93 4.93 0 0 0 4.6 3.42A9.88 9.88 0 0 1 4 23.54a13.94 13.94 0 0 0 7.547 2.209"/></symbol><use href="#ai:carbon:logo-twitter"></use>  </svg>  </a> </div> </div> </div>  <p class="site-footer-copyright">
+&copy; 2024-2026 Sujeet Jaiswal </p> </div> </footer> </main> <aside id="right-sidebar" class="zen-sidebar zen-sidebar-right" aria-label="Table of contents"> <div class="zen-sidebar-header"> <span class="zen-sidebar-header-title">On This Page</span> <button class="zen-sidebar-close" data-sidebar-close="right" aria-label="Close table of contents"> <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5"> <path d="M8 8l16 16M24 8L8 24"></path> </svg> </button> </div> <div class="zen-sidebar-content"> <nav aria-label="Table of contents"><h2 class="sidebar-nav-title">On this page</h2><ul class="sidebar-toc-list"><li><a href="#abstract" class="sidebar-toc-item">Abstract</a></li><li><a href="#context" class="sidebar-toc-item">Context</a></li><li><a href="#the-system" class="sidebar-toc-item sidebar-toc-item--h3">The System</a></li><li><a href="#the-architecture" class="sidebar-toc-item sidebar-toc-item--h3">The Architecture</a></li><li><a href="#why-mysql" class="sidebar-toc-item sidebar-toc-item--h3">Why MySQL?</a></li><li><a href="#phase-1-the-monolith-20082014" class="sidebar-toc-item">Phase 1: The Monolith (~2008–2014)</a></li><li><a href="#the-single-database" class="sidebar-toc-item sidebar-toc-item--h3">The Single Database</a></li><li><a href="#where-it-broke" class="sidebar-toc-item sidebar-toc-item--h3">Where It Broke</a></li><li><a href="#the-2014-datacenter-migration" class="sidebar-toc-item sidebar-toc-item--h3">The 2014 Datacenter Migration</a></li><li><a href="#phase-2-tooling-and-high-availability-20142019" class="sidebar-toc-item">Phase 2: Tooling and High Availability (2014–2019)</a></li><li><a href="#gh-ost-triggerless-online-schema-migration" class="sidebar-toc-item sidebar-toc-item--h3">gh-ost: Triggerless Online Schema Migration</a></li><li><a href="#orchestrator-automated-failover-with-raft-consensus" class="sidebar-toc-item sidebar-toc-item--h3">orchestrator: Automated Failover with Raft Consensus</a></li><li><a href="#freno-cooperative-throttling" class="sidebar-toc-item sidebar-toc-item--h3">freno: Cooperative Throttling</a></li><li><a href="#trilogy-a-purpose-built-mysql-client" class="sidebar-toc-item sidebar-toc-item--h3">Trilogy: A Purpose-Built MySQL Client</a></li><li><a href="#automated-schema-migration-pipeline" class="sidebar-toc-item sidebar-toc-item--h3">Automated Schema Migration Pipeline</a></li><li><a href="#phase-3-partitioning-20192021" class="sidebar-toc-item">Phase 3: Partitioning (2019–2021)</a></li><li><a href="#the-approach-schema-domains" class="sidebar-toc-item sidebar-toc-item--h3">The Approach: Schema Domains</a></li><li><a href="#enforcement-sql-linters" class="sidebar-toc-item sidebar-toc-item--h3">Enforcement: SQL Linters</a></li><li><a href="#two-migration-methods" class="sidebar-toc-item sidebar-toc-item--h3">Two Migration Methods</a></li><li><a href="#results" class="sidebar-toc-item sidebar-toc-item--h3">Results</a></li><li><a href="#vitess-for-horizontal-sharding" class="sidebar-toc-item sidebar-toc-item--h3">Vitess for Horizontal Sharding</a></li><li><a href="#phase-4-fleet-scale-and-mysql-80-20222024" class="sidebar-toc-item">Phase 4: Fleet Scale and MySQL 8.0 (2022–2024)</a></li><li><a href="#the-upgrade-challenge" class="sidebar-toc-item sidebar-toc-item--h3">The Upgrade Challenge</a></li><li><a href="#the-five-step-rolling-upgrade" class="sidebar-toc-item sidebar-toc-item--h3">The Five-Step Rolling Upgrade</a></li><li><a href="#challenges-encountered" class="sidebar-toc-item sidebar-toc-item--h3">Challenges Encountered</a></li><li><a href="#why-prior-partitioning-made-this-possible" class="sidebar-toc-item sidebar-toc-item--h3">Why Prior Partitioning Made This Possible</a></li><li><a href="#outcome" class="sidebar-toc-item sidebar-toc-item--h3">Outcome</a></li><li><a href="#options-considered-across-phases" class="sidebar-toc-item">Options Considered (Across Phases)</a></li><li><a href="#option-1-migrate-away-from-mysql" class="sidebar-toc-item sidebar-toc-item--h3">Option 1: Migrate Away from MySQL</a></li><li><a href="#option-2-adopt-vitess-fully-replace-all-clusters" class="sidebar-toc-item sidebar-toc-item--h3">Option 2: Adopt Vitess Fully (Replace All Clusters)</a></li><li><a href="#option-3-shard-by-hashrange" class="sidebar-toc-item sidebar-toc-item--h3">Option 3: Shard by Hash/Range</a></li><li><a href="#decision-factors" class="sidebar-toc-item sidebar-toc-item--h3">Decision Factors</a></li><li><a href="#lessons-learned" class="sidebar-toc-item">Lessons Learned</a></li><li><a href="#technical-lessons" class="sidebar-toc-item sidebar-toc-item--h3">Technical Lessons</a></li><li><a href="#process-lessons" class="sidebar-toc-item sidebar-toc-item--h3">Process Lessons</a></li><li><a href="#organizational-lessons" class="sidebar-toc-item sidebar-toc-item--h3">Organizational Lessons</a></li><li><a href="#conclusion" class="sidebar-toc-item">Conclusion</a></li><li><a href="#appendix" class="sidebar-toc-item">Appendix</a></li><li><a href="#prerequisites" class="sidebar-toc-item sidebar-toc-item--h3">Prerequisites</a></li><li><a href="#terminology" class="sidebar-toc-item sidebar-toc-item--h3">Terminology</a></li><li><a href="#summary" class="sidebar-toc-item sidebar-toc-item--h3">Summary</a></li><li><a href="#references" class="sidebar-toc-item sidebar-toc-item--h3">References</a></li></ul></nav> </div> </aside> </div>  <div id="sidebar-backdrop" class="zen-sidebar-backdrop"></div>  <!-- Image Modal --><div id="image-modal" class="image-modal" role="dialog" aria-modal="true" aria-label="Image viewer"> <div class="image-modal-backdrop"></div> <div class="image-modal-content"> <div class="image-modal-header"> <div class="image-modal-controls"> <button type="button" id="image-zoom-out" class="image-modal-btn" aria-label="Zoom out" title="Zoom out"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <circle cx="11" cy="11" r="8"></circle> <line x1="21" y1="21" x2="16.65" y2="16.65"></line> <line x1="8" y1="11" x2="14" y2="11"></line> </svg> </button> <span id="image-zoom-level" class="image-zoom-level">1.0X</span> <button type="button" id="image-zoom-in" class="image-modal-btn" aria-label="Zoom in" title="Zoom in"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <circle cx="11" cy="11" r="8"></circle> <line x1="21" y1="21" x2="16.65" y2="16.65"></line> <line x1="11" y1="8" x2="11" y2="14"></line> <line x1="8" y1="11" x2="14" y2="11"></line> </svg> </button> <button type="button" id="image-zoom-reset" class="image-modal-btn" aria-label="Reset zoom" title="Reset zoom"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path> <path d="M3 3v5h5"></path> </svg> </button> </div> <button type="button" id="image-modal-close" class="image-modal-btn image-modal-close" aria-label="Close image viewer"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <line x1="18" y1="6" x2="6" y2="18"></line> <line x1="6" y1="6" x2="18" y2="18"></line> </svg> </button> </div> <div class="image-modal-body" id="image-modal-body"> <!-- Cloned image will be inserted here --> </div> </div> </div> <script type="module" src="/legacy-personal-site/v4/_astro/image-modal.astro_astro_type_script_index_0_lang.DaIybCtt.js"></script>  <!-- Google Analytics 4 --><script async src="https://www.googletagmanager.com/gtag/js?id=G-1Z2TP5LG65"></script> <script>(function(){const GA_MEASUREMENT_ID = "G-1Z2TP5LG65";
+
+  window.dataLayer = window.dataLayer || []
+  function gtag() {
+    dataLayer.push(arguments)
+  }
+  gtag("js", new Date())
+  gtag("config", GA_MEASUREMENT_ID)
+})();</script> <script type="module" src="/legacy-personal-site/v4/_astro/sidebar-toggle.astro_astro_type_script_index_0_lang.BjmuyXEJ.js"></script> <script type="module">function l(){const s=document.getElementById("main");if(!s)return;const n=Array.from(s.querySelectorAll("h2[id], h3[id]"));if(n.length===0)return;const o=document.querySelectorAll("#right-sidebar .sidebar-toc-item");if(o.length===0)return;const c=new Map;o.forEach(t=>{const e=t.getAttribute("href");e?.startsWith("#")&&c.set(e.slice(1),t)});let r=null;const i=new Set;function f(t){const e=c.get(t);!e||e===r||(r?.classList.remove("is-active"),e.classList.add("is-active"),r=e,e.scrollIntoView({block:"nearest",behavior:"smooth"}))}const a=new IntersectionObserver(t=>{if(t.forEach(e=>{const d=e.target.id;e.isIntersecting?i.add(d):i.delete(d)}),i.size>0){for(const e of n)if(i.has(e.id)){f(e.id);break}}},{rootMargin:"-80px 0px -75% 0px"});n.forEach(t=>a.observe(t)),document.addEventListener("astro:before-swap",()=>{a.disconnect()},{once:!0})}l();document.addEventListener("astro:page-load",l);</script> <script type="module">function c(e,t){const n=window.__themeConfig.THEME_LABELS,o=window.getNextTheme();e.setAttribute("aria-label",`Theme: ${n[t]}. Click to cycle.`),e.title=`Switch to ${n[o]}`,e.dataset.theme=t,e.querySelectorAll("[data-theme-icon]").forEach(a=>{a.style.display=a.dataset.themeIcon===t?"block":"none"})}function s(e,t){e.value!==t&&(e.value=t)}function m(e){e.dataset.themeInit||(e.dataset.themeInit="true",e.addEventListener("click",()=>{const t=window.getNextTheme();window.applySiteTheme(t)}))}function r(e){e.dataset.themeInit||(e.dataset.themeInit="true",e.addEventListener("change",()=>{const t=e.value;window.__themeConfig.THEMES.includes(t)&&window.applySiteTheme(t)}))}function u(){const e=document.documentElement;if(e.dataset.themeObserverInit)return;e.dataset.themeObserverInit="true",new MutationObserver(()=>{const n=e.dataset.theme||"auto",o=document.getElementById("theme-toggle-btn");o&&c(o,n);const i=document.getElementById("theme-select");i&&s(i,n)}).observe(e,{attributes:!0,attributeFilter:["data-theme"]})}function d(){const e=document.documentElement.dataset.theme||"auto",t=document.getElementById("theme-toggle-btn");t&&(c(t,e),m(t));const n=document.getElementById("theme-select");n&&(s(n,e),r(n)),u()}d();document.addEventListener("astro:page-load",d);</script> <script type="module" src="/legacy-personal-site/v4/_astro/docsearch.astro_astro_type_script_index_0_lang.B0uJCub6.js"></script> <script type="module">function a(){function r(){const n=document.documentElement.dataset.colorScheme==="dark";document.querySelectorAll(".mermaid-diagram").forEach(e=>{const t=n?e.dataset.srcDark:e.dataset.srcLight;t&&e.src!==new URL(t,location.origin).href&&(e.src=t)})}r(),new MutationObserver(()=>r()).observe(document.documentElement,{attributes:!0,attributeFilter:["data-color-scheme"]})}document.addEventListener("DOMContentLoaded",a);document.addEventListener("astro:page-load",a);</script> </body> </html> 

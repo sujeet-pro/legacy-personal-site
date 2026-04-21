@@ -1,0 +1,861 @@
+<!DOCTYPE html><html lang="en"> <head><meta name="astro-view-transitions-enabled" content="true"><meta name="astro-view-transitions-fallback" content="animate"><script type="module" src="/legacy-personal-site/v4/_astro/ClientRouter.astro_astro_type_script_index_0_lang.HWuSm9BO.js"></script><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light"><script>
+  ;(function () {
+    var THEMES = ["auto", "light", "dark", "high-contrast-light", "high-contrast-dark", "paper"]
+    var STORAGE_KEY = "site-theme"
+    var THEME_LABELS = {
+      auto: "Auto (system)",
+      light: "Light",
+      dark: "Dark",
+      "high-contrast-light": "High contrast light",
+      "high-contrast-dark": "High contrast dark",
+      paper: "Paper",
+    }
+    var darkQuery = window.matchMedia("(prefers-color-scheme: dark)")
+
+    // Expose shared config for module scripts
+    window.__themeConfig = { THEMES: THEMES, STORAGE_KEY: STORAGE_KEY, THEME_LABELS: THEME_LABELS }
+
+    // BroadcastChannel for cross-tab sync
+    var channel = null
+    try {
+      channel = new BroadcastChannel("site-theme-sync")
+    } catch (e) {
+      // BroadcastChannel not supported
+    }
+
+    function getResolvedTheme(theme) {
+      if (theme === "auto") {
+        return darkQuery.matches ? "dark" : "light"
+      }
+      return theme
+    }
+
+    function getColorScheme(resolved) {
+      if (resolved === "dark" || resolved === "high-contrast-dark") return "dark"
+      return "light"
+    }
+
+    function applyTheme(theme, _fromBroadcast) {
+      if (!theme || THEMES.indexOf(theme) === -1) theme = "auto"
+
+      var resolved = getResolvedTheme(theme)
+      var root = document.documentElement
+      var scheme = getColorScheme(resolved)
+
+      // Remove all theme classes
+      for (var i = 0; i < THEMES.length; i++) {
+        root.classList.remove("theme-" + THEMES[i])
+      }
+
+      // Apply resolved theme class
+      root.classList.add("theme-" + resolved)
+
+      // Set color-scheme
+      root.style.setProperty("--color-scheme", scheme)
+
+      // Update meta tag
+      var meta = document.querySelector('meta[name="color-scheme"]')
+      if (meta) meta.setAttribute("content", scheme)
+
+      // Set color scheme data attribute for CSS/JS consumers
+      root.dataset.colorScheme = scheme
+
+      // Store the user's chosen theme (not the resolved one)
+      try {
+        localStorage.setItem(STORAGE_KEY, theme)
+      } catch (e) {
+        // localStorage may be unavailable
+      }
+
+      // Dispatch event for other scripts to react
+      root.dataset.theme = theme
+      root.dataset.resolvedTheme = resolved
+
+      // Broadcast to other tabs (but not if we received this from another tab)
+      if (!_fromBroadcast && channel) {
+        try {
+          channel.postMessage({ theme: theme })
+        } catch (e) {
+          // Channel may be closed
+        }
+      }
+    }
+
+    // Smart cycling: skip the theme that "auto" resolves to
+    function getNextTheme() {
+      var current = "auto"
+      try {
+        current = localStorage.getItem(STORAGE_KEY) || "auto"
+      } catch (e) {}
+      if (THEMES.indexOf(current) === -1) current = "auto"
+
+      var idx = THEMES.indexOf(current)
+      var next = THEMES[(idx + 1) % THEMES.length]
+
+      // If current is "auto", skip the theme auto resolves to
+      if (current === "auto") {
+        var autoResolved = getResolvedTheme("auto")
+        if (next === autoResolved) {
+          next = THEMES[(idx + 2) % THEMES.length]
+        }
+      }
+
+      return next
+    }
+
+    // Apply on load
+    var saved = "auto"
+    try {
+      saved = localStorage.getItem(STORAGE_KEY) || "auto"
+    } catch (e) {
+      // localStorage may be unavailable
+    }
+    applyTheme(saved)
+
+    // Listen for OS preference changes when in auto mode
+    darkQuery.addEventListener("change", function () {
+      var current = "auto"
+      try {
+        current = localStorage.getItem(STORAGE_KEY) || "auto"
+      } catch (e) {}
+      if (current === "auto") {
+        applyTheme("auto")
+      }
+    })
+
+    // Listen for cross-tab theme changes
+    if (channel) {
+      channel.onmessage = function (event) {
+        if (event.data && event.data.theme) {
+          applyTheme(event.data.theme, true)
+        }
+      }
+    }
+
+    // Expose for runtime use
+    window.applySiteTheme = applyTheme
+    window.getNextTheme = getNextTheme
+  })()
+</script><!-- Inline font-face declarations with base path --><style>
+      @font-face {
+        font-family: "Open Sans";
+        font-style: normal;
+        font-weight: 300 800;
+        font-display: swap;
+        src: url("/legacy-personal-site/v4/fonts/open-sans-latin-wght-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+          U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: "JetBrains Mono";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("/legacy-personal-site/v4/fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+          U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+    </style><!-- Preload local fonts --><link rel="preload" as="font" type="font/woff2" href="/legacy-personal-site/v4/fonts/open-sans-latin-wght-normal.woff2" crossorigin="anonymous"><link rel="preload" as="font" type="font/woff2" href="/legacy-personal-site/v4/fonts/jetbrains-mono-latin-400-normal.woff2" crossorigin="anonymous"><!-- Main favicon --><link rel="icon" type="image/x-icon" href="/legacy-personal-site/v4/favicons/favicon.ico"><!-- Apple Touch Icons --><link rel="apple-touch-icon" sizes="57x57" href="/legacy-personal-site/v4/favicons/apple-icon-57x57.png"><link rel="apple-touch-icon" sizes="60x60" href="/legacy-personal-site/v4/favicons/apple-icon-60x60.png"><link rel="apple-touch-icon" sizes="72x72" href="/legacy-personal-site/v4/favicons/apple-icon-72x72.png"><link rel="apple-touch-icon" sizes="76x76" href="/legacy-personal-site/v4/favicons/apple-icon-76x76.png"><link rel="apple-touch-icon" sizes="114x114" href="/legacy-personal-site/v4/favicons/apple-icon-114x114.png"><link rel="apple-touch-icon" sizes="120x120" href="/legacy-personal-site/v4/favicons/apple-icon-120x120.png"><link rel="apple-touch-icon" sizes="144x144" href="/legacy-personal-site/v4/favicons/apple-icon-144x144.png"><link rel="apple-touch-icon" sizes="152x152" href="/legacy-personal-site/v4/favicons/apple-icon-152x152.png"><link rel="apple-touch-icon" sizes="180x180" href="/legacy-personal-site/v4/favicons/apple-icon-180x180.png"><!-- Apple Touch Icon Precomposed (for older iOS versions) --><link rel="apple-touch-icon-precomposed" href="/legacy-personal-site/v4/favicons/apple-icon-precomposed.png"><!-- Standard Icons --><link rel="icon" type="image/png" sizes="192x192" href="/legacy-personal-site/v4/favicons/android-icon-192x192.png"><link rel="icon" type="image/png" sizes="144x144" href="/legacy-personal-site/v4/favicons/android-icon-144x144.png"><link rel="icon" type="image/png" sizes="96x96" href="/legacy-personal-site/v4/favicons/android-icon-96x96.png"><link rel="icon" type="image/png" sizes="72x72" href="/legacy-personal-site/v4/favicons/android-icon-72x72.png"><link rel="icon" type="image/png" sizes="48x48" href="/legacy-personal-site/v4/favicons/android-icon-48x48.png"><link rel="icon" type="image/png" sizes="36x36" href="/legacy-personal-site/v4/favicons/android-icon-36x36.png"><link rel="icon" type="image/png" sizes="32x32" href="/legacy-personal-site/v4/favicons/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/legacy-personal-site/v4/favicons/favicon-16x16.png"><!-- Web App Manifest --><link rel="manifest" href="/legacy-personal-site/v4/manifest.json"><!-- Microsoft Tiles --><meta name="msapplication-config" content="/legacy-personal-site/v4/browserconfig.xml"><meta name="msapplication-TileImage" content="/legacy-personal-site/v4/favicons/ms-icon-144x144.png"><meta name="msapplication-TileColor" content="#f8fafc"><!-- Theme Colors --><meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#020617" media="(prefers-color-scheme: dark)"><meta name="msapplication-TileColor" content="#f8fafc"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="docsearch:language" content="en"><!-- Canonical URL --><link rel="canonical" href="https://sujeet.pro/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-monitoring.html"><!-- Primary Meta Tags --><title>Distributed Monitoring Systems - Sujeet Jaiswal</title><meta name="title" content="Distributed Monitoring Systems - Sujeet Jaiswal"><meta name="description" content="Designing observability infrastructure for metrics, logs, and traces: understanding time-series databases, collection architectures, sampling strategies, and alerting systems that scale to billions of data points."><!-- Open Graph / Facebook --><meta property="og:type" content="website"><meta property="og:url" content="https://sujeet.pro/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-monitoring.html"><meta property="og:title" content="Distributed Monitoring Systems - Sujeet Jaiswal"><meta property="og:description" content="Designing observability infrastructure for metrics, logs, and traces: understanding time-series databases, collection architectures, sampling strategies, and alerting systems that scale to billions of data points."><!-- Twitter / X --><meta name="twitter:site" content="@sujeetpro"><meta name="twitter:card" content="summary_large_image"><!-- DocSearch facets --><meta name="docsearch:category" content="System Design"><meta name="docsearch:topic" content="System Design Building Blocks"><link rel="alternate" type="application/rss+xml" href="/legacy-personal-site/v4/rss.xml"><link rel="sitemap" href="/legacy-personal-site/v4/sitemap-index.xml"><!-- LLM-friendly content --><link rel="alternate" type="text/plain" href="/legacy-personal-site/v4/llms.txt" title="LLM Index"><link rel="alternate" type="text/plain" href="/legacy-personal-site/v4/llms-full.txt" title="LLM Full Content"><link rel="stylesheet" href="/legacy-personal-site/v4/_astro/docsearch.CgGoh9IB.css">
+<style>/*! tailwindcss v4.2.1 | MIT License | https://tailwindcss.com */.sidebar-toc-list{gap:calc(var(--spacing,.25rem) * .5);flex-direction:column;display:flex}
+@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) and (not (color:rgb(from red r g b)))){*,:before,:after,::backdrop{--tw-border-style:solid;--tw-font-weight:initial;--tw-ordinal:initial;--tw-slashed-zero:initial;--tw-numeric-figure:initial;--tw-numeric-spacing:initial;--tw-numeric-fraction:initial}}}.article-nav-category{margin-bottom:calc(var(--spacing,.25rem) * 5)}.article-nav-category+.article-nav-category{border-top-style:var(--tw-border-style);padding-top:calc(var(--spacing,.25rem) * 2);border-top-width:1px;border-color:var(--color-border)}.article-nav-category-name{margin-bottom:calc(var(--spacing,.25rem) * 1.5);padding-inline:calc(var(--spacing,.25rem) * 1);font-family:var(--font-mono,ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);--tw-font-weight:var(--font-weight-semibold,600);font-weight:var(--font-weight-semibold,600);text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-muted);font-size:11px;display:block}.article-nav-category-name.is-current{color:var(--color-text)}.article-nav-topics{flex-direction:column;display:flex}.article-nav-topic{list-style:none}.article-nav-topic-toggle{cursor:pointer;border-radius:var(--radius-md,.375rem);width:100%;padding-inline:calc(var(--spacing,.25rem) * 2);padding-block:calc(var(--spacing,.25rem) * 1.5);color:var(--color-text-muted);transition:all var(--transition-fast);justify-content:space-between;align-items:center;font-size:13px;list-style:none;display:flex}.article-nav-topic-toggle::-webkit-details-marker{display:none}.article-nav-topic-toggle::marker{content:"";display:none}.article-nav-topic-toggle:hover{color:var(--color-text);background:var(--color-bg-alt)}.article-nav-topic-toggle.is-active{color:var(--color-text);font-weight:500}.article-nav-topic-name{min-width:calc(var(--spacing,.25rem) * 0);flex:1}.article-nav-topic-count{--tw-numeric-spacing:tabular-nums;font-variant-numeric:var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);color:var(--color-text-muted);opacity:.6;flex-shrink:0;font-size:11px}.article-nav-chevron{opacity:.4;width:12px;height:12px;transition:transform var(--transition-fast);flex-shrink:0;margin-left:.5rem}.article-nav-topic-toggle:hover .article-nav-chevron{opacity:.7}details[open]>.article-nav-topic-toggle .article-nav-chevron{transform:rotate(90deg)}.article-nav-articles{margin-left:calc(var(--spacing,.25rem) * 3);border-left-style:var(--tw-border-style);padding-left:calc(var(--spacing,.25rem) * 2);border-left-width:1px;border-color:var(--color-border)}.article-nav-article-link{border-radius:var(--radius-md,.375rem);padding-inline:calc(var(--spacing,.25rem) * 2);padding-block:calc(var(--spacing,.25rem) * 1);color:var(--color-text-muted);transition:all var(--transition-fast);font-size:13px;line-height:1.4;text-decoration-line:none;display:block}.article-nav-article-link:hover{color:var(--color-text);background:var(--color-bg-alt)}.article-nav-article-link.is-active{color:var(--color-text);background:var(--color-bg-alt);font-weight:500}@property --tw-border-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-font-weight{syntax:"*";inherits:false}@property --tw-ordinal{syntax:"*";inherits:false}@property --tw-slashed-zero{syntax:"*";inherits:false}@property --tw-numeric-figure{syntax:"*";inherits:false}@property --tw-numeric-spacing{syntax:"*";inherits:false}@property --tw-numeric-fraction{syntax:"*";inherits:false}/*! tailwindcss v4.2.1 | MIT License | https://tailwindcss.com */.article-frontmatter{margin-bottom:calc(var(--spacing,.25rem) * 8)}.article-navigation{margin-top:calc(var(--spacing,.25rem) * 16)}
+</style>
+<link rel="stylesheet" href="/legacy-personal-site/v4/_astro/_slug_.u3hNe2gV.css"><script type="module" src="/legacy-personal-site/v4/_astro/page.CLJIuoFF.js"></script></head> <body> <a href="#main" class="skip-link">Skip to main content</a> <header class="site-header"> <div class="header-container"> <nav class="header-nav"> <!-- Left side: sidebar toggle + logo --> <div class="header-left"> <button id="left-sidebar-toggle" class="sidebar-toggle-btn" aria-label="Toggle navigation sidebar" aria-expanded="true" title="Hide navigation sidebar" aria-hidden="false"> <svg width="1em" height="1em" class="icon-md" data-icon="carbon:side-panel-open">   <symbol id="ai:carbon:side-panel-open" viewBox="0 0 32 32"><path fill="currentColor" d="M28 4H4c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h24c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2M10 26H4V6h6zm18 0H12v-9h10.2l-3.6 3.6L20 22l6-6l-6-6l-1.4 1.4l3.6 3.6H12V6h16z"/></symbol><use href="#ai:carbon:side-panel-open"></use>  </svg> </button> <a href="/legacy-personal-site/v4/" class="header-logo">   <span class="header-logo-name">sujeet.pro</span>  </a> </div> <!-- Center: Nav links - hidden on mobile --> <div class="header-nav-links"> <a href="/legacy-personal-site/v4/articles" class="nav-link">  Articles </a><a href="/legacy-personal-site/v4/blogs" class="nav-link">  Blogs </a><a href="/legacy-personal-site/v4/projects" class="nav-link">  Projects </a> </div> <!-- Right side: search + sidebar toggle + hamburger --> <div class="header-actions"> <!-- DocSearch --> <div id="docsearch-container"></div> <!-- Theme Toggle --> <button id="theme-toggle-btn" class="sidebar-toggle-btn" aria-label="Toggle theme" title="Switch theme"> <!-- Auto (monitor) --> <svg data-theme-icon="auto" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M28 4H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h8v4H8v2h16v-2h-4v-4h8a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 18H4V6h24Z"></path> </svg> <!-- Light (sun) --> <svg data-theme-icon="light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 12.005a4 4 0 1 1-4 4 4.005 4.005 0 0 1 4-4m0-2a6 6 0 1 0 6 6 6 6 0 0 0-6-6ZM5.394 6.813 6.81 5.399l3.505 3.506L8.9 10.319ZM2 15.005h5v2H2ZM5.394 25.197l3.505-3.506 1.414 1.414-3.505 3.506ZM15 25.005h2v5h-2ZM21.687 23.106l1.414-1.414 3.506 3.505-1.414 1.414ZM25 15.005h5v2h-5ZM21.69 8.904l3.505-3.505 1.414 1.415-3.505 3.505ZM15 2.005h2v5h-2Z"></path> </svg> <!-- Dark (moon) --> <svg data-theme-icon="dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M13.502 5.414a15.075 15.075 0 0 0 11.594 18.194 11.113 11.113 0 0 1-7.975 3.39c-.138 0-.278.005-.418 0a11.094 11.094 0 0 1-3.2-21.584M14.98 3a1.002 1.002 0 0 0-.175.016 13.096 13.096 0 0 0 1.825 25.981c.164.006.328 0 .49 0a13.072 13.072 0 0 0 10.703-5.555 1.01 1.01 0 0 0-.783-1.565A13.08 13.08 0 0 1 15.89 4.38 1.015 1.015 0 0 0 14.98 3Z"></path> </svg> <!-- High contrast light --> <svg data-theme-icon="high-contrast-light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26V4a12 12 0 0 1 0 24Z"></path> </svg> <!-- High contrast dark --> <svg data-theme-icon="high-contrast-dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 2a12 12 0 0 1 0 24Z"></path> </svg> <!-- Paper (document) --> <svg data-theme-icon="paper" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M19 10h7v2h-7zM19 6h7v2h-7zM19 14h7v2h-7zM19 18h7v2h-7z"></path> <path d="M28 2H10a2.002 2.002 0 0 0-2 2v6H4a2.002 2.002 0 0 0-2 2v18a2 2 0 0 0 2 2h14a2.002 2.002 0 0 0 2-2v-6h8a2.002 2.002 0 0 0 2-2V4a2.002 2.002 0 0 0-2-2Zm-10 28H4V12h14Zm10-8H20V12a2.002 2.002 0 0 0-2-2h-8V4h18Z"></path> <path d="M6 16h10v2H6zM6 20h10v2H6zM6 24h7v2H6z"></path> </svg> </button> <button id="right-sidebar-toggle" class="sidebar-toggle-btn" aria-label="Toggle table of contents" aria-expanded="true" title="Hide table of contents" aria-hidden="false"> <svg width="1em" height="1em" class="icon-md" data-icon="carbon:side-panel-close">   <symbol id="ai:carbon:side-panel-close" viewBox="0 0 32 32"><path fill="currentColor" d="M28 4H4c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h24c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2M10 26H4V6h6zm18-11H17.8l3.6-3.6L20 10l-6 6l6 6l1.4-1.4l-3.6-3.6H28v9H12V6h16z"/></symbol><use href="#ai:carbon:side-panel-close"></use>  </svg> </button> <!-- Hamburger Menu - visible on mobile only --> <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu" title="Open menu"> <svg width="1em" height="1em" class="icon-lg" data-icon="carbon:menu">   <symbol id="ai:carbon:menu" viewBox="0 0 32 32"><path fill="currentColor" d="M4 6h24v2H4zm0 18h24v2H4zm0-12h24v2H4zm0 6h24v2H4z"/></symbol><use href="#ai:carbon:menu"></use>  </svg> </button> </div> </nav> </div> </header> <div id="mobile-menu-overlay" class="mobile-menu-overlay is-hidden"></div> <aside id="mobile-menu" class="mobile-menu" aria-hidden="true"> <div class="mobile-menu-header"> <a href="/legacy-personal-site/v4/" class="nav-link nav-logo">   sujeet.pro  </a> <button id="mobile-menu-close" class="mobile-menu-close" aria-label="Close menu"> <svg width="1em" height="1em" class="icon-lg" data-icon="carbon:close">   <symbol id="ai:carbon:close" viewBox="0 0 32 32"><path fill="currentColor" d="M17.414 16L24 9.414L22.586 8L16 14.586L9.414 8L8 9.414L14.586 16L8 22.586L9.414 24L16 17.414L22.586 24L24 22.586z"/></symbol><use href="#ai:carbon:close"></use>  </svg> </button> </div> <nav class="mobile-menu-nav"> <a href="/legacy-personal-site/v4/articles" class="mobile-menu-link">  Articles </a><a href="/legacy-personal-site/v4/blogs" class="mobile-menu-link">  Blogs </a><a href="/legacy-personal-site/v4/projects" class="mobile-menu-link">  Projects </a> </nav> </aside> <script type="module" src="/legacy-personal-site/v4/_astro/mobile-menu.astro_astro_type_script_index_0_lang.AuCdxukU.js"></script>  <div class="zen-layout"> <aside id="left-sidebar" class="zen-sidebar zen-sidebar-left" aria-label="Navigation sidebar"> <div class="zen-sidebar-header"> <span class="zen-sidebar-header-title">Navigation</span> <button class="zen-sidebar-close" data-sidebar-close="left" aria-label="Close navigation sidebar"> <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5"> <path d="M8 8l16 16M24 8L8 24"></path> </svg> </button> </div> <div class="zen-sidebar-content"> <nav aria-label="Article navigation" class="article-nav"> <div class="article-nav-category"> <span class="article-nav-category-name">Browser &amp; Runtime Internals</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Critical Rendering Path</span> <span class="article-nav-topic-count">(12)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-rendering-pipeline-overview" class="article-nav-article-link">  Critical Rendering Path: Rendering Pipeline Overview </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-dom-construction" class="article-nav-article-link">  Critical Rendering Path: DOM Construction </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-cssom-construction" class="article-nav-article-link">  Critical Rendering Path: CSSOM Construction </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-style-recalculation" class="article-nav-article-link">  Critical Rendering Path: Style Recalculation </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-layout" class="article-nav-article-link">  Critical Rendering Path: Layout Stage </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-prepaint" class="article-nav-article-link">  Critical Rendering Path: Prepaint </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-paint" class="article-nav-article-link">  Critical Rendering Path: Paint Stage </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-commit" class="article-nav-article-link">  Critical Rendering Path: Commit </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-layerize" class="article-nav-article-link">  Critical Rendering Path: Layerize </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-raster" class="article-nav-article-link">  Critical Rendering Path: Rasterization </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-composit" class="article-nav-article-link">  Critical Rendering Path: Compositing </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-draw" class="article-nav-article-link">  Critical Rendering Path: Draw </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">JavaScript Runtime Internals</span> <span class="article-nav-topic-count">(7)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/v8-engine-architecture" class="article-nav-article-link">  V8 Engine Architecture: Parsing, Optimization, and JIT </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/browser-internals" class="article-nav-article-link">  Browser Architecture: Processes, Caching, and Extensions </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/browser-event-loop" class="article-nav-article-link">  Browser Event Loop: Tasks, Microtasks, Rendering, and Idle Time </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/nodejs-runtime-architecture" class="article-nav-article-link">  Node.js Runtime Architecture: Event Loop, Streams, and APIs </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/libuv-event-loop-internals" class="article-nav-article-link">  libuv Internals: Event Loop and Async I/O </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/nodejs-event-loop" class="article-nav-article-link">  Node.js Event Loop: Phases, Queues, and Process Exit </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/js-event-loop" class="article-nav-article-link">  JS Event Loop: Tasks, Microtasks, and Rendering (For Browser &amp; Node.js) </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name is-current">System Design</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">System Design Fundamentals</span> <span class="article-nav-topic-count">(20)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/consistency-and-cap-theorem" class="article-nav-article-link">  Consistency Models and the CAP Theorem </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/distributed-consensus" class="article-nav-article-link">  Distributed Consensus </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/time-and-ordering" class="article-nav-article-link">  Time and Ordering in Distributed Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/failure-modes-and-resilience" class="article-nav-article-link">  Failure Modes and Resilience Patterns </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/storage-choices-sql-vs-nosql" class="article-nav-article-link">  Storage Choices: SQL vs NoSQL </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/sharding-and-replication" class="article-nav-article-link">  Sharding and Replication </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/indexing-and-query-optimization" class="article-nav-article-link">  Indexing and Query Optimization </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/transactions-and-acid" class="article-nav-article-link">  Transactions and ACID Properties </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/load-balancers-architecture" class="article-nav-article-link">  Load Balancer Architecture: L4 vs L7 and Routing </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/cdn-architecture-and-caching" class="article-nav-article-link">  CDN Architecture and Edge Caching </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/caching-fundamentals-and-strategies" class="article-nav-article-link">  Caching Fundamentals and Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/api-gateway-patterns" class="article-nav-article-link">  API Gateway Patterns: Routing, Auth, and Policies </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/service-discovery-and-registry" class="article-nav-article-link">  Service Discovery and Registry Patterns </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/dns-deep-dive" class="article-nav-article-link">  DNS Deep Dive </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/queues-and-pubsub" class="article-nav-article-link">  Queues and Pub/Sub: Decoupling and Backpressure </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/event-driven-architecture" class="article-nav-article-link">  Event-Driven Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/rpc-and-api-design" class="article-nav-article-link">  RPC and API Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/rate-limiting-strategies" class="article-nav-article-link">  Rate Limiting Strategies: Token Bucket, Leaky Bucket, and Sliding Window </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/circuit-breaker-patterns" class="article-nav-article-link">  Circuit Breaker Patterns for Resilient Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/capacity-planning-and-estimation" class="article-nav-article-link">  Capacity Planning and Back-of-the-Envelope Estimates </a> </div> </details><details class="article-nav-topic" open> <summary class="article-nav-topic-toggle is-active"> <span class="article-nav-topic-name">System Design Building Blocks</span> <span class="article-nav-topic-count">(10)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/lru-cache-design" class="article-nav-article-link">  LRU Cache Design: Eviction Strategies and Trade-offs </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/unique-id-generation" class="article-nav-article-link">  Unique ID Generation in Distributed Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-cache-design" class="article-nav-article-link">  Distributed Cache Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/blob-storage-design" class="article-nav-article-link">  Blob Storage Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-search-engine" class="article-nav-article-link">  Distributed Search Engine </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-logging-system" class="article-nav-article-link">  Distributed Logging System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-monitoring" class="article-nav-article-link is-active">  Distributed Monitoring Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/task-scheduler-design" class="article-nav-article-link">  Task Scheduler Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/sharded-counters" class="article-nav-article-link">  Sharded Counters </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/leaderboard-design" class="article-nav-article-link">  Leaderboard Design </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">System Design Problems</span> <span class="article-nav-topic-count">(28)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-key-value-store" class="article-nav-article-link">  Design a Distributed Key-Value Store </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-distributed-file-system" class="article-nav-article-link">  Design a Distributed File System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-time-series-database" class="article-nav-article-link">  Design a Time Series Database </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-youtube-video-platform" class="article-nav-article-link">  Design a YouTube-Style Video Platform </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-netflix-streaming" class="article-nav-article-link">  Design Netflix Video Streaming </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-instagram-photo-sharing" class="article-nav-article-link">  Design Instagram: Photo Sharing at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-spotify-music-streaming" class="article-nav-article-link">  Design Spotify Music Streaming </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-real-time-chat-messaging" class="article-nav-article-link">  Design Real-Time Chat and Messaging </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-social-feed" class="article-nav-article-link">  Design a Social Feed (Facebook/Instagram) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-notification-system" class="article-nav-article-link">  Design a Notification System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-email-system" class="article-nav-article-link">  Design an Email System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-uber-ride-hailing" class="article-nav-article-link">  Design Uber-Style Ride Hailing </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-maps" class="article-nav-article-link">  Design Google Maps </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-yelp-proximity-service" class="article-nav-article-link">  Design Yelp: Location-Based Business Discovery Platform </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-search-autocomplete" class="article-nav-article-link">  Design Search Autocomplete: Prefix Matching at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-web-crawler" class="article-nav-article-link">  Design a Web Crawler </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-search" class="article-nav-article-link">  Design Google Search </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-docs-collaboration" class="article-nav-article-link">  Design Collaborative Document Editing (Google Docs) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-dropbox-file-sync" class="article-nav-article-link">  Design Dropbox File Sync </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-calendar" class="article-nav-article-link">  Design Google Calendar </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-issue-tracker" class="article-nav-article-link">  Design an Issue Tracker (Jira/Linear) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-payment-system" class="article-nav-article-link">  Design a Payment System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-flash-sale-system" class="article-nav-article-link">  Design a Flash Sale System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-amazon-shopping-cart" class="article-nav-article-link">  Design Amazon Shopping Cart </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/url-shortener-design" class="article-nav-article-link">  Design a URL Shortener: IDs, Storage, and Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-pastebin" class="article-nav-article-link">  Design Pastebin: Text Sharing, Expiration, and Abuse Prevention </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-api-rate-limiter" class="article-nav-article-link">  Design an API Rate Limiter: Distributed Throttling, Multi-Tenant Quotas, and Graceful Degradation </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-cookie-consent-service" class="article-nav-article-link">  Design a Cookie Consent Service </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Core Distributed Patterns</span> <span class="article-nav-topic-count">(9)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/crdt-for-collaborative-systems" class="article-nav-article-link">  CRDTs for Collaborative Systems </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/operational-transformation" class="article-nav-article-link">  Operational Transformation </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/distributed-locking" class="article-nav-article-link">  Distributed Locking </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/exactly-once-delivery" class="article-nav-article-link">  Exactly-Once Delivery </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/event-sourcing-deep-dive" class="article-nav-article-link">  Event Sourcing </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/change-data-capture" class="article-nav-article-link">  Change Data Capture </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/database-migrations-at-scale" class="article-nav-article-link">  Database Migrations at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/multi-region-architecture" class="article-nav-article-link">  Multi-Region Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/graceful-degradation" class="article-nav-article-link">  Graceful Degradation </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Frontend System Design</span> <span class="article-nav-topic-count">(15)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/virtualization-and-windowing" class="article-nav-article-link">  Virtualization and Windowing </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/offline-first-architecture" class="article-nav-article-link">  Offline-First Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/client-state-management" class="article-nav-article-link">  Client State Management </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/real-time-sync-client" class="article-nav-article-link">  Real-Time Sync Client </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/widget-framework" class="article-nav-article-link">  Multi-Tenant Pluggable Widget Framework </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/bundle-splitting-strategies" class="article-nav-article-link">  Bundle Splitting Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/rendering-strategies" class="article-nav-article-link">  Rendering Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/image-loading-optimization" class="article-nav-article-link">  Image Loading Optimization </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/performance-monitoring-client" class="article-nav-article-link">  Client Performance Monitoring </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-rich-text-editor" class="article-nav-article-link">  Design a Rich Text Editor </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-infinite-feed" class="article-nav-article-link">  Design an Infinite Feed </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-drag-drop-system" class="article-nav-article-link">  Design a Drag and Drop System </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-form-builder" class="article-nav-article-link">  Design a Form Builder </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-data-grid" class="article-nav-article-link">  Design a Data Grid </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-file-uploader" class="article-nav-article-link">  Design a File Uploader </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Real-World Case Studies</span> <span class="article-nav-topic-count">(20)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/facebook-2021-outage-analysis" class="article-nav-article-link">  Facebook 2021 Outage: BGP Withdrawal, DNS Collapse, and the Backbone That Disappeared </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/aws-kinesis-2020-outage" class="article-nav-article-link">  AWS Kinesis 2020 Outage: Thread Limits, Thundering Herds, and Hidden Dependencies </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/shopify-pod-architecture" class="article-nav-article-link">  Shopify: Pod Architecture for Multi-Tenant Isolation at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/netflix-microservices-evolution" class="article-nav-article-link">  Netflix: From Monolith to Microservices — A 7-Year Architecture Evolution </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/twitter-timeline-architecture" class="article-nav-article-link">  Twitter/X: Timeline Architecture and the Recommendation Algorithm </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/facebook-tao-social-graph" class="article-nav-article-link">  Facebook TAO: The Social Graph’s Distributed Cache </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/uber-microservices-journey" class="article-nav-article-link">  Uber: From Monolith to Domain-Oriented Microservices </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/uber-schemaless-datastore" class="article-nav-article-link">  Uber Schemaless: Building a Scalable Datastore on MySQL </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/slack-distributed-architecture" class="article-nav-article-link">  Slack: Scaling a Real-Time Messaging Platform from Monolith to Distributed Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/linkedin-kafka-origin" class="article-nav-article-link">  LinkedIn and the Birth of Apache Kafka: Solving the O(N²) Data Integration Problem </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/dropbox-magic-pocket" class="article-nav-article-link">  Dropbox Magic Pocket: Building Exabyte-Scale Blob Storage </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/instagram-cassandra-migration" class="article-nav-article-link">  Instagram: From Redis to Cassandra and the Rocksandra Storage Engine </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/youtube-vitess-scaling" class="article-nav-article-link">  YouTube: Scaling MySQL to Serve Billions with Vitess </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/github-mysql-migration" class="article-nav-article-link">  GitHub: Scaling MySQL from One Database to 1,200+ Hosts </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/pinterest-mysql-sharding" class="article-nav-article-link">  Pinterest: MySQL Sharding from Zero to Billions of Objects </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/stripe-idempotency-reliability" class="article-nav-article-link">  Stripe: Idempotency for Payment Reliability </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/discord-rust-read-states" class="article-nav-article-link">  Discord: Rewriting Read States from Go to Rust </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/discord-message-storage" class="article-nav-article-link">  Discord: From Billions to Trillions of Messages — A Three-Database Journey </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/figma-multiplayer-infrastructure" class="article-nav-article-link">  Figma: Building Multiplayer Infrastructure for Real-Time Design Collaboration </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/whatsapp-erlang-scaling" class="article-nav-article-link">  WhatsApp: 2 Million Connections Per Server with Erlang </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Platform Engineering</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Media Systems</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/drm-basics-for-streaming" class="article-nav-article-link">  DRM Fundamentals for Streaming Media </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/video-transcoding-pipeline" class="article-nav-article-link">  Video Transcoding Pipeline Design </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/web-video-playback-architecture" class="article-nav-article-link">  Web Video Playback Architecture: HLS, DASH, and Low Latency </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/image-processing-service-design" class="article-nav-article-link">  Image Processing Service Design: CDN, Transforms, and APIs </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Observability &amp; Reliability</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/slos-slis-error-budgets" class="article-nav-article-link">  SLOs, SLIs, and Error Budgets </a><a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/csp-violation-reporting-pipeline" class="article-nav-article-link">  CSP Violation Reporting Pipeline at Scale </a><a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/logging-metrics-tracing" class="article-nav-article-link">  Logging, Metrics, and Tracing Fundamentals </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Infrastructure &amp; Delivery</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/edge-delivery-and-cache-invalidation" class="article-nav-article-link">  Edge Delivery and Cache Invalidation </a><a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/deployment-strategies-blue-green-canary" class="article-nav-article-link">  Deployment Strategies: Blue-Green, Canary, and Rolling </a><a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/ssg-performance-optimizations" class="article-nav-article-link">  SSG Performance Optimizations: Build, Cache, and Delivery </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Experimentation &amp; Testing</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/experimentation-testing/k6-load-testing-overview" class="article-nav-article-link">  k6 Load Testing Overview: Smoke, Spike, Soak, Stress </a><a href="/legacy-personal-site/v4/articles/platform-engineering/experimentation-testing/statsig-experimentation-overview" class="article-nav-article-link">  Statsig Experimentation Platform: Architecture and Rollouts </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Platform Migrations</span> <span class="article-nav-topic-count">(1)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/platform-migrations/ecommerce-ssg-to-ssr-migration" class="article-nav-article-link">  E-commerce SSG to SSR Migration: Strategy and Pitfalls </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Frontend Engineering</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Frontend Architecture &amp; Patterns</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/micro-frontends-architecture" class="article-nav-article-link">  Micro-Frontends Architecture: Composition, Isolation, and Delivery </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/rendering-strategies-csr-ssr-ssg-isr" class="article-nav-article-link">  Rendering Strategies: CSR, SSR, SSG, and ISR </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/data-fetching-patterns" class="article-nav-article-link">  Frontend Data Fetching Patterns and Caching </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/css-architecture-strategies" class="article-nav-article-link">  CSS Architecture Strategies: BEM, Utility-First, and CSS-in-JS </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/component-architecture-blueprint" class="article-nav-article-link">  Component Architecture Blueprint for Scalable UI </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Web Performance Optimization</span> <span class="article-nav-topic-count">(6)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-infrastructure-stack" class="article-nav-article-link">  Web Performance Infrastructure: DNS, CDN, Caching, and Edge </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-javascript-optimization" class="article-nav-article-link">  JavaScript Performance Optimization for the Web </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-css-typography" class="article-nav-article-link">  CSS and Typography Performance Optimization </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-image-optimization" class="article-nav-article-link">  Image Performance Optimization for the Web </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/core-web-vitals-measurement" class="article-nav-article-link">  Core Web Vitals Measurement: Lab vs Field Data </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-overview" class="article-nav-article-link">  Web Performance Optimization: Overview and Playbook </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Design Systems</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-system-implementation-scaling" class="article-nav-article-link">  Design System Implementation and Scaling </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/component-library-architecture-and-governance" class="article-nav-article-link">  Component Library Architecture and Governance </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-tokens-and-theming" class="article-nav-article-link">  Design Tokens and Theming Architecture </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-system-adoption-foundations" class="article-nav-article-link">  Design System Adoption: Foundations and Governance </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">React Architecture</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-performance-patterns" class="article-nav-article-link">  React Performance Patterns: Rendering, Memoization, and Scheduling </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-hooks-advanced-patterns" class="article-nav-article-link">  React Hooks Advanced Patterns: Specialized Hooks and Composition </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-rendering-architecture" class="article-nav-article-link">  React Rendering Architecture: Fiber, SSR, and RSC </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-hooks-fundamentals" class="article-nav-article-link">  React Hooks Fundamentals: Rules, Core Hooks, and Custom Hooks </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Web Foundations</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Security &amp; Auth</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/csrf-and-cors-defense" class="article-nav-article-link">  CSRF and CORS Defense for Modern Web Applications </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/oauth-oidc-flow-guide" class="article-nav-article-link">  OAuth 2.0 and OIDC Flows: Authorization Code to PKCE </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/web-app-security-architecture" class="article-nav-article-link">  Web Application Security Architecture </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/auth-foundations-sessions-tokens" class="article-nav-article-link">  Authentication Foundations: Sessions, Tokens, and Trust </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/owasp-top-10-guide" class="article-nav-article-link">  OWASP Top 10: Web Application Security Risks </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Networking &amp; Protocols</span> <span class="article-nav-topic-count">(7)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/http3-quic-and-tls" class="article-nav-article-link">  HTTP/3 and QUIC: Transport Layer Revolution </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/http1-1-to-http2-evolution" class="article-nav-article-link">  HTTP/1.1 to HTTP/2: Bottlenecks and Multiplexing </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/tls-1-3-handshake-and-https" class="article-nav-article-link">  TLS 1.3 Handshake and HTTPS Hardening </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-security-doh-dot-dnssec" class="article-nav-article-link">  DNS Security and Privacy: DNSSEC, DoH, and DoT </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-troubleshooting-playbook" class="article-nav-article-link">  DNS Troubleshooting Playbook </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-records-ttl-and-caching" class="article-nav-article-link">  DNS Records, TTL Strategy, and Cache Behavior </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-resolution-path" class="article-nav-article-link">  DNS Resolution Path: Stub to Recursive to Authoritative </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Browser APIs</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/web-workers-and-worklets" class="article-nav-article-link">  Web Workers and Worklets for Off-Main-Thread Work </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/service-workers-and-cache-api" class="article-nav-article-link">  Service Workers and Cache API </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/fetch-and-streaming-apis" class="article-nav-article-link">  Fetch, Streams, and AbortController </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/storage-apis-local-indexeddb" class="article-nav-article-link">  Browser Storage APIs: localStorage, IndexedDB, and Beyond </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/dom-api-essentials" class="article-nav-article-link">  DOM API Essentials: Structure, Traversal, and Mutation </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Accessibility Standards</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/accessibility-standards/accessibility-testing-tooling" class="article-nav-article-link">  Accessibility Testing and Tooling Workflow </a><a href="/legacy-personal-site/v4/articles/web-foundations/accessibility-standards/wcag-2-2-practical-guide" class="article-nav-article-link">  WCAG 2.2: Practical Accessibility Guide </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Programming &amp; Patterns</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Data Structures</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/heaps-and-priority-queues" class="article-nav-article-link">  Heaps and Priority Queues: Internals, Trade-offs, and When Theory Breaks Down </a><a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/trees-and-graphs" class="article-nav-article-link">  Trees and Graphs: Traversals and Applications </a><a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/arrays-and-hash-maps" class="article-nav-article-link">  Arrays and Hash Maps: Engine Internals and Performance Reality </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Algorithms Foundations</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/k-crystal-balls-problem" class="article-nav-article-link">  K-Crystal Balls Problem: Jump Search Pattern </a><a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/sorting-algorithms-guide" class="article-nav-article-link">  Sorting Algorithms: Complexity, Stability, and Use Cases </a><a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/search-algorithms-guide" class="article-nav-article-link">  Search Algorithms: Linear, Binary, and Graph Traversal </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">JavaScript Patterns</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/publish-subscribe-pattern" class="article-nav-article-link">  Publish-Subscribe Pattern in JavaScript </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/exponential-backoff-retry-strategy" class="article-nav-article-link">  Exponential Backoff and Retry Strategy </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/async-queue-pattern" class="article-nav-article-link">  Async Queue Pattern in JavaScript </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/javascript-error-handling-patterns" class="article-nav-article-link">  JavaScript Error Handling Patterns </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/javascript-string-length" class="article-nav-article-link">  JavaScript String Length: Graphemes, UTF-16, and Unicode </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Developer Experience</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Productivity &amp; Workflows</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/developer-experience/productivity-workflows/chrome-developer-setup" class="article-nav-article-link">  Chrome Developer Setup: Extensions, Profiles, and Shortcuts </a><a href="/legacy-personal-site/v4/articles/developer-experience/productivity-workflows/editor-terminal-setup" class="article-nav-article-link">  macOS Developer Environment Setup </a> </div> </details> </div> </div> </nav> <script type="module">function e(){document.querySelector("#left-sidebar .article-nav-article-link.is-active")?.scrollIntoView({block:"nearest",behavior:"instant"})}e();document.addEventListener("astro:page-load",e);</script>  </div> </aside> <main id="main" class="zen-main"> <div class="page-content"> <nav class="breadcrumb" aria-label="Breadcrumb"><a title="Home" aria-label="Home" href="/legacy-personal-site/v4/" class="nav-link">  <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:home">   <symbol id="ai:carbon:home" viewBox="0 0 32 32"><path fill="currentColor" d="M16.612 2.214a1.01 1.01 0 0 0-1.242 0L1 13.419l1.243 1.572L4 13.621V26a2.004 2.004 0 0 0 2 2h20a2.004 2.004 0 0 0 2-2V13.63L29.757 15L31 13.428ZM18 26h-4v-8h4Zm2 0v-8a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v8H6V12.062l10-7.79l10 7.8V26Z"/></symbol><use href="#ai:carbon:home"></use>  </svg> </a><svg width="1em" height="1em" viewBox="0 0 32 32" class="breadcrumb-separator icon-sm" data-icon="carbon:chevron-right">   <use href="#ai:carbon:chevron-right"></use>  </svg><a href="/legacy-personal-site/v4/articles/system-design" class="nav-link">  System Design </a><svg width="1em" height="1em" class="breadcrumb-separator icon-sm" data-icon="carbon:chevron-right">   <symbol id="ai:carbon:chevron-right" viewBox="0 0 32 32"><path fill="currentColor" d="M22 16L12 26l-1.4-1.4l8.6-8.6l-8.6-8.6L12 6z"/></symbol><use href="#ai:carbon:chevron-right"></use>  </svg><a title="System Design Building Blocks" href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks" class="nav-link">  System Design Building Blocks </a></nav>    <div id="reading-progress" class="reading-progress" style="width: 0%"></div> <script type="module">function l(){const e=document.getElementById("reading-progress");if(!e)return;const t=document.querySelector("article")||document.querySelector(".prose");if(!t){e.style.display="none";return}function r(){if(!t||!e)return;const i=t.getBoundingClientRect(),s=i.top+window.scrollY,u=i.height,c=window.innerHeight,g=window.scrollY,o=s-c/2,w=s+u-c/2,d=g;let a=0;d>o&&(a=Math.min(100,(d-o)/(w-o)*100)),e.style.width=`${Math.max(0,a)}%`}let n=!1;window.addEventListener("scroll",()=>{n||(requestAnimationFrame(()=>{r(),n=!1}),n=!0)}),r()}document.addEventListener("DOMContentLoaded",l);document.addEventListener("astro:page-load",l);</script>  <div class="frontmatter article-frontmatter">    <span class="frontmatter-item"> <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:time">   <symbol id="ai:carbon:time" viewBox="0 0 32 32"><path fill="currentColor" d="M16 30a14 14 0 1 1 14-14a14 14 0 0 1-14 14m0-26a12 12 0 1 0 12 12A12 12 0 0 0 16 4"/><path fill="currentColor" d="M20.59 22L15 16.41V7h2v8.58l5 5.01z"/></symbol><use href="#ai:carbon:time"></use>  </svg> 16 min read </span> <span class="frontmatter-item"> <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:calendar">   <symbol id="ai:carbon:calendar" viewBox="0 0 32 32"><path fill="currentColor" d="M26 4h-4V2h-2v2h-8V2h-2v2H6c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2m0 22H6V12h20zm0-16H6V6h4v2h2V6h8v2h2V6h4z"/></symbol><use href="#ai:carbon:calendar"></use>  </svg>
+Last updated on Feb 3, 2026 </span> </div>  <article id="article-content" class="article-prose-content DocSearch-content"> <h1 id="distributed-monitoring-systems" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#distributed-monitoring-systems">Distributed Monitoring Systems</a></h1>
+<p>Designing observability infrastructure for metrics, logs, and traces: understanding time-series databases, collection architectures, sampling strategies, and alerting systems that scale to billions of data points.</p>
+<figure>
+<p><img alt="Overview of distributed monitoring architecture showing collection methods, telemetry types, and storage backends" loading="lazy" decoding="async" fetchpriority="auto" width="1204" height="620" src="/legacy-personal-site/v4/_astro/overview-of-distributed-monitoring-architecture-showing-collection-methods-telem.DedCX-NQ_ZnAXkm.svg" ></p>
+<figcaption>Overview of distributed monitoring architecture showing collection methods, telemetry types, and storage backends</figcaption>
+</figure>
+<h2 id="abstract" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#abstract">Abstract</a></h2>
+<p>Distributed monitoring is fundamentally about <strong>trade-offs between resolution, cost, and queryability</strong>. The core tensions:</p>
+<ul>
+<li><strong>Cardinality vs. cost</strong>: Every unique label combination creates a time series. A single metric with user_id labels across 1M users generates 1M series—each consuming memory and storage.</li>
+<li><strong>Sampling vs. completeness</strong>: At Google’s scale, Dapper samples 1 in 1,024 traces. You’ll miss rare issues but avoid drowning in data.</li>
+<li><strong>Aggregation vs. detail</strong>: Metrics provide fast, cheap aggregates but lose individual request context. Traces preserve full context but cost 100-1000× more per request.</li>
+</ul>
+<p>The key mental model:</p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Signal</th><th>Cardinality</th><th>Cost/Event</th><th>Query Speed</th><th>Best For</th></tr></thead><tbody><tr><td><strong>Metrics</strong></td><td>Must be low (&#x3C;10K series/metric)</td><td>~0.001¢</td><td>Milliseconds</td><td>Dashboards, alerts, SLOs</td></tr><tr><td><strong>Logs</strong></td><td>Unlimited</td><td>~0.1¢</td><td>Seconds</td><td>Debugging, audit trails</td></tr><tr><td><strong>Traces</strong></td><td>Unlimited (but sample)</td><td>~1¢</td><td>Seconds</td><td>Request flow analysis</td></tr></tbody></table></div>
+<p>Modern observability links these signals: <strong>exemplars</strong> connect metric spikes to specific traces; <strong>trace IDs</strong> in logs enable correlation. The goal is starting from a metric alert, drilling into relevant traces, and finding the specific log line—without pre-aggregating everything.</p>
+<h2 id="metrics-types-and-data-models" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#metrics-types-and-data-models">Metrics: Types and Data Models</a></h2>
+<h3 id="counter" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#counter">Counter</a></h3>
+<p>A <strong>counter</strong> is a monotonically increasing value that resets to zero on restart. Use for: request counts, bytes transferred, errors.</p>
+<p><strong>Critical behavior</strong>: Counters must be queried with <code>rate()</code> or <code>increase()</code>, not raw values. A counter showing <code>1,000,000</code> tells you nothing—<code>rate(requests_total[5m])</code> showing <code>500/sec</code> is actionable.</p>
+<p><strong>Why monotonic?</strong> If counters could decrease, detecting resets would be ambiguous. The monotonic constraint means any decrease signals a restart, allowing monitoring systems to handle resets correctly.</p>
+<div class="expressive-code"><link rel="stylesheet" href="/legacy-personal-site/v4/_astro/ec.g38ze.css"><script type="module" src="/legacy-personal-site/v4/_astro/ec.0vx5m.js"></script><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8"># Bad: querying raw counter</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">requests_total{service="api"} # Returns 847293847</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8"># Good: rate over time</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">rate(requests_total{service="api"}[5m]) # Returns 127.3/sec</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="# Bad: querying raw counterrequests_total{service=&#x22;api&#x22;} # Returns 847293847# Good: rate over timerate(requests_total{service=&#x22;api&#x22;}[5m]) # Returns 127.3/sec"><div></div></button></div></figure></div>
+<h3 id="gauge" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#gauge">Gauge</a></h3>
+<p>A <strong>gauge</strong> is a value that can increase or decrease. Use for: temperature, queue depth, active connections, memory usage.</p>
+<p><strong>Common mistake</strong>: Using gauges for values that should be counters. If you’re tracking “requests since startup” as a gauge, you lose the ability to detect resets and calculate rates correctly.</p>
+<h3 id="histogram" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#histogram">Histogram</a></h3>
+<p>A <strong>histogram</strong> samples observations and counts them in configurable buckets. Use for: request latency, response sizes.</p>
+<p><strong>Prometheus histogram</strong>:</p>
+<ul>
+<li>Cumulative buckets: <code>le="0.1"</code> includes all requests ≤100ms</li>
+<li>Enables percentile calculation via <code>histogram_quantile()</code></li>
+<li>Trade-off: Bucket boundaries are static; wrong boundaries lose precision</li>
+</ul>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8"># Request latency histogram with buckets at 10ms, 50ms, 100ms, 500ms, 1s</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">http_request_duration_seconds_bucket{le="0.01"} 2451</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">http_request_duration_seconds_bucket{le="0.05"} 8924</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">http_request_duration_seconds_bucket{le="0.1"} 12847</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">http_request_duration_seconds_bucket{le="0.5"} 15234</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">http_request_duration_seconds_bucket{le="1"} 15401</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">7</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">http_request_duration_seconds_bucket{le="+Inf"} 15523</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">8</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">http_request_duration_seconds_sum 892.47</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">9</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">http_request_duration_seconds_count 15523</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="# Request latency histogram with buckets at 10ms, 50ms, 100ms, 500ms, 1shttp_request_duration_seconds_bucket{le=&#x22;0.01&#x22;} 2451http_request_duration_seconds_bucket{le=&#x22;0.05&#x22;} 8924http_request_duration_seconds_bucket{le=&#x22;0.1&#x22;} 12847http_request_duration_seconds_bucket{le=&#x22;0.5&#x22;} 15234http_request_duration_seconds_bucket{le=&#x22;1&#x22;} 15401http_request_duration_seconds_bucket{le=&#x22;+Inf&#x22;} 15523http_request_duration_seconds_sum 892.47http_request_duration_seconds_count 15523"><div></div></button></div></figure></div>
+<p><strong>OpenTelemetry exponential histogram</strong>: Uses base-2 exponential bucket boundaries computed from a scale factor. At scale 0, boundaries are powers of 2: (0.25, 0.5], (0.5, 1], (1, 2], (2, 4]. The default 160 buckets cover 1ms to 100s with &#x3C;5% relative error.</p>
+<p><strong>Why exponential?</strong> Explicit histograms require N-1 boundary values (8 bytes each). Exponential histograms need only scale + offset (2 values), reducing storage while maintaining precision across wide ranges.</p>
+<h3 id="summary" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#summary">Summary</a></h3>
+<p>A <strong>summary</strong> calculates streaming quantiles client-side. Use when: exact percentiles are critical and aggregation across instances is not needed.</p>
+<p><strong>Critical limitation</strong>: Summaries cannot be aggregated. The p99 of three services’ p99s is mathematically meaningless. For multi-instance services, use histograms.</p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Feature</th><th>Histogram</th><th>Summary</th></tr></thead><tbody><tr><td>Aggregation</td><td><span role="img" aria-label="white heavy check mark">✅</span> Can aggregate across instances</td><td><span role="img" aria-label="cross mark">❌</span> Cannot aggregate</td></tr><tr><td>Percentile accuracy</td><td>Approximate (bucket-dependent)</td><td>Exact (within time window)</td></tr><tr><td>Server cost</td><td>Low (just increment counters)</td><td>Higher (maintains streaming state)</td></tr><tr><td>Configuration</td><td>Bucket boundaries</td><td>Quantile targets, time window</td></tr></tbody></table></div>
+<h3 id="the-cardinality-problem" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-cardinality-problem">The Cardinality Problem</a></h3>
+<p><strong>Cardinality</strong> = unique combinations of metric name × label values. A metric with no labels = 1 series. Add labels:</p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">http_requests_total{method, status, endpoint, user_id}</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="http_requests_total{method, status, endpoint, user_id}"><div></div></button></div></figure></div>
+<p>With 5 methods × 50 statuses × 100 endpoints × 1M users = <strong>25 billion series</strong>. This will crash any time-series database.</p>
+<p><strong>Design rules</strong>:</p>
+<ol>
+<li><strong>Never use unbounded labels</strong>: user_id, request_id, trace_id, email, IP address</li>
+<li><strong>Target &#x3C;10 cardinality per label</strong>: If a label could grow to 100+ values, reconsider</li>
+<li><strong>Move high-cardinality data to logs/traces</strong>: They’re designed for it</li>
+</ol>
+<p><strong>Cardinality explosion symptoms</strong>:</p>
+<ul>
+<li>Prometheus OOM crashes during compaction</li>
+<li>Query timeouts on dashboards</li>
+<li>Scrape duration exceeding scrape interval</li>
+<li>Memory usage growing faster than data volume</li>
+</ul>
+<h2 id="collection-architecture-push-vs-pull" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#collection-architecture-push-vs-pull">Collection Architecture: Push vs. Pull</a></h2>
+<h3 id="pull-based-prometheus-model" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#pull-based-prometheus-model">Pull-Based (Prometheus Model)</a></h3>
+<p>Prometheus scrapes HTTP endpoints at configured intervals (default: 15s-60s). Targets expose metrics at <code>/metrics</code>.</p>
+<p><strong>Design rationale</strong> (Brian Brazil, Prometheus creator): “Pull is very slightly better… from an engineering standpoint, push vs pull largely doesn’t matter. But pull gives you target health visibility—you immediately know when a target is down.”</p>
+<p><strong>Advantages</strong>:</p>
+<ul>
+<li><strong>Target health for free</strong>: Failed scrapes surface immediately via <code>up</code> metric</li>
+<li><strong>Debuggable</strong>: curl the <code>/metrics</code> endpoint manually</li>
+<li><strong>Centralized control</strong>: Change scrape intervals without redeploying apps</li>
+<li><strong>Natural rate limiting</strong>: Prometheus controls load on targets</li>
+<li><strong>Graceful degradation</strong>: If Prometheus is down, apps are unaffected</li>
+</ul>
+<p><strong>Disadvantages</strong>:</p>
+<ul>
+<li><strong>Firewall challenges</strong>: Prometheus must reach targets (problematic for NAT, serverless)</li>
+<li><strong>Short-lived jobs</strong>: If a job dies before the next scrape, metrics are lost</li>
+<li><strong>Service discovery required</strong>: Must know all targets</li>
+</ul>
+<p><strong>Scale reference</strong>: A single Prometheus server handles ~800,000 samples/second with 10-second scrape intervals across 10,000+ machines.</p>
+<h3 id="push-based-influxdb-datadog-model" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#push-based-influxdb-datadog-model">Push-Based (InfluxDB, Datadog Model)</a></h3>
+<p>Applications push metrics to a central collector.</p>
+<p><strong>Advantages</strong>:</p>
+<ul>
+<li><strong>Works across firewalls</strong>: Outbound connections only</li>
+<li><strong>Supports ephemeral workloads</strong>: Serverless, batch jobs, short-lived containers</li>
+<li><strong>Event-driven metrics</strong>: Can push immediately on significant events</li>
+</ul>
+<p><strong>Disadvantages</strong>:</p>
+<ul>
+<li><strong>No automatic target health</strong>: Must implement health checks separately</li>
+<li><strong>Backpressure complexity</strong>: What happens when the collector is slow?</li>
+<li><strong>Thundering herd</strong>: All apps pushing simultaneously after restart</li>
+</ul>
+<h3 id="pushgateway-bridging-the-gap" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#pushgateway-bridging-the-gap">Pushgateway: Bridging the Gap</a></h3>
+<p>For batch jobs or serverless functions that can’t be scraped:</p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8"># Job pushes metrics before exiting</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">echo "batch_job_duration_seconds 47.3" | curl --data-binary @- \</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">  </span></span><span style="--0:#24292e;--1:#e1e4e8">http://pushgateway:9091/metrics/job/nightly_report</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="# Job pushes metrics before exitingecho &#x22;batch_job_duration_seconds 47.3&#x22; | curl --data-binary @- \  http://pushgateway:9091/metrics/job/nightly_report"><div></div></button></div></figure></div>
+<p><strong>Critical limitation</strong>: Pushgateway never forgets. Metrics persist until manually deleted. A job that ran once months ago still appears in queries.</p>
+<p><strong>When to use</strong>: Only for truly short-lived jobs (&#x3C;1 scrape interval). Not for long-running services that happen to be behind a firewall—use service mesh or federation instead.</p>
+<h3 id="opentelemetry-collector" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#opentelemetry-collector">OpenTelemetry Collector</a></h3>
+<p>A vendor-neutral pipeline for receiving, processing, and exporting telemetry.</p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">receivers:        # OTLP, Prometheus, Jaeger, etc.</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">  </span></span><span style="--0:#24292e;--1:#e1e4e8">↓</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">processors:       # Batching, sampling, filtering, enrichment</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">  </span></span><span style="--0:#24292e;--1:#e1e4e8">↓</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">exporters:        # Prometheus, Jaeger, vendor backends</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="receivers:        # OTLP, Prometheus, Jaeger, etc.  ↓processors:       # Batching, sampling, filtering, enrichment  ↓exporters:        # Prometheus, Jaeger, vendor backends"><div></div></button></div></figure></div>
+<p><strong>Deployment patterns</strong>:</p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Pattern</th><th>Use Case</th><th>Trade-off</th></tr></thead><tbody><tr><td><strong>Sidecar</strong></td><td>Per-pod in Kubernetes</td><td>Maximum isolation, highest resource overhead</td></tr><tr><td><strong>DaemonSet</strong></td><td>Per-node agent</td><td>Balanced resource use, node-level correlation</td></tr><tr><td><strong>Gateway</strong></td><td>Centralized cluster</td><td>Lowest overhead, single point of failure</td></tr></tbody></table></div>
+<p><strong>Tail sampling architecture</strong>: To make sampling decisions after trace completion, you need two collector tiers:</p>
+<ol>
+<li><strong>Load-balancing tier</strong>: Routes all spans with same trace_id to same collector</li>
+<li><strong>Sampling tier</strong>: Buffers complete traces, applies policies, samples</li>
+</ol>
+<p>This requires consistent hashing on trace_id—if spans scatter across collectors, you can’t make trace-level decisions.</p>
+<h2 id="time-series-database-internals" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#time-series-database-internals">Time-Series Database Internals</a></h2>
+<h3 id="gorilla-compression-facebook-2015" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#gorilla-compression-facebook-2015">Gorilla Compression (Facebook, 2015)</a></h3>
+<p>The Gorilla paper introduced compression achieving <strong>1.37 bytes per sample</strong> (down from 16 bytes for timestamp + float64).</p>
+<p><strong>Timestamp compression (delta-of-delta)</strong>:</p>
+<p>Most metrics arrive at fixed intervals. If scraping every 15 seconds:</p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Timestamps:  1000, 1015, 1030, 1045</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Deltas:           15,   15,   15</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Delta-of-delta:        0,    0</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="Timestamps:  1000, 1015, 1030, 1045Deltas:           15,   15,   15Delta-of-delta:        0,    0"><div></div></button></div></figure></div>
+<p>When delta-of-delta = 0, store a single bit. Result: <strong>96% of timestamps compress to 1 bit</strong>.</p>
+<p><strong>Value compression (XOR)</strong>:</p>
+<p>Consecutive metric values are often similar. XOR reveals only changed bits:</p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Value 1:   0x4059000000000000 (100.0)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Value 2:   0x4059100000000000 (100.25)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">XOR:       0x0000100000000000</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="Value 1:   0x4059000000000000 (100.0)Value 2:   0x4059100000000000 (100.25)XOR:       0x0000100000000000"><div></div></button></div></figure></div>
+<p>Store only the position and length of meaningful bits. <strong>51% of values compress to 1 bit</strong> (identical to previous).</p>
+<h3 id="prometheus-tsdb-architecture" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#prometheus-tsdb-architecture">Prometheus TSDB Architecture</a></h3>
+<p><strong>Write path</strong>:</p>
+<ol>
+<li><strong>Head block</strong> (in-memory): Last ~2 hours of data</li>
+<li><strong>WAL (Write-Ahead Log)</strong>: 128MB segments for crash recovery</li>
+<li><strong>Memory-mapped chunks</strong>: Full chunks flushed to disk, memory-mapped back (since v2.19)</li>
+<li><strong>Compaction</strong>: Head block → persistent block every 2 hours</li>
+</ol>
+<p><strong>Block structure</strong>:</p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">01BKGTZQ1WNWHNJNAC82 (block directory)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">├── meta.json           # Block metadata, time range</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">├── index               # Inverted index: labels → series IDs</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">├── chunks/             # Compressed time-series data</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">│   └── 000001</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">└── tombstones          # Deletion markers</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="01BKGTZQ1WNWHNJNAC82 (block directory)├── meta.json           # Block metadata, time range├── index               # Inverted index: labels → series IDs├── chunks/             # Compressed time-series data│   └── 000001└── tombstones          # Deletion markers"><div></div></button></div></figure></div>
+<p><strong>Index design</strong>: Inverted index using roaring bitmaps. Query <code>{job="api", status="500"}</code> intersects the bitmap for <code>job=api</code> with <code>status=500</code> to find matching series IDs.</p>
+<p><strong>Compaction trade-offs</strong>:</p>
+<ul>
+<li>Merges blocks for better compression and query performance</li>
+<li>Uses significant CPU/memory during compaction</li>
+<li>Can cause OOM on high-cardinality setups</li>
+</ul>
+<h3 id="victoriametrics-optimizations" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#victoriametrics-optimizations">VictoriaMetrics Optimizations</a></h3>
+<p>VictoriaMetrics achieves <strong>7× less storage than Prometheus</strong> for the same data through:</p>
+<ul>
+<li><strong>Better compression</strong>: Custom algorithms beyond Gorilla</li>
+<li><strong>Optimized inverted index</strong>: Handles high cardinality more gracefully</li>
+<li><strong>Memory efficiency</strong>: 10× less RAM than InfluxDB for millions of series</li>
+</ul>
+<p><strong>Cluster architecture</strong> (shared-nothing):</p>
+<ul>
+<li><strong>vminsert</strong>: Stateless, receives data, distributes via consistent hashing</li>
+<li><strong>vmstorage</strong>: Stateful, stores data, handles queries for its partition</li>
+<li><strong>vmselect</strong>: Stateless, queries all vmstorage nodes, merges results</li>
+</ul>
+<p>vmstorage nodes don’t communicate with each other—this simplifies operations but means queries must fan out to all nodes.</p>
+<h3 id="netflix-atlas-scale" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#netflix-atlas-scale">Netflix Atlas Scale</a></h3>
+<p>Netflix’s Atlas processes <strong>1 billion+ metrics per minute</strong> with:</p>
+<ul>
+<li>In-memory storage for the query hot path (last 2 weeks)</li>
+<li>Inverted index using roaring bitmaps (like Lucene)</li>
+<li>Streaming evaluation for alerts (20× more alert queries than polling could support)</li>
+</ul>
+<p><strong>Dimensional explosion example</strong>: One Netflix service with dimensions for device (~1,000 types) × country (~50) = 50,000 series per node × 100 nodes = 5 million series for one metric. This is normal at Netflix’s scale.</p>
+<h2 id="distributed-tracing" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#distributed-tracing">Distributed Tracing</a></h2>
+<h3 id="fundamentals-spans-and-traces" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#fundamentals-spans-and-traces">Fundamentals: Spans and Traces</a></h3>
+<p>A <strong>span</strong> represents a single operation: an HTTP request handler, a database query, a function call. Spans contain:</p>
+<ul>
+<li>Trace ID (shared across all spans in the trace)</li>
+<li>Span ID (unique to this span)</li>
+<li>Parent span ID (forms the tree structure)</li>
+<li>Start time, duration</li>
+<li>Tags/attributes (key-value metadata)</li>
+<li>Events/logs (timestamped annotations)</li>
+</ul>
+<p>A <strong>trace</strong> is the tree of spans representing a complete request flow across services.</p>
+<h3 id="w3c-trace-context-standard" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#w3c-trace-context-standard">W3C Trace Context (Standard)</a></h3>
+<p>The W3C Trace Context specification defines propagation headers:</p>
+<p><strong>traceparent</strong> (required):</p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">00-0af7651916cd43dd8448eb211c80319c-b9c7c989f97918e1-01</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">│   │                                │                 │</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">│   │                                │                 └─ Trace flags (sampled)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">│   │                                └─ Parent span ID (16 hex chars)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">│   └─ Trace ID (32 hex chars)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">└─ Version (always 00)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="00-0af7651916cd43dd8448eb211c80319c-b9c7c989f97918e1-01│   │                                │                 ││   │                                │                 └─ Trace flags (sampled)│   │                                └─ Parent span ID (16 hex chars)│   └─ Trace ID (32 hex chars)└─ Version (always 00)"><div></div></button></div></figure></div>
+<p><strong>tracestate</strong> (optional): Vendor-specific key-value pairs, max 32 entries:</p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">tracestate: congo=t61rcWkgMzE,rojo=00f067aa0ba902b7</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="tracestate: congo=t61rcWkgMzE,rojo=00f067aa0ba902b7"><div></div></button></div></figure></div>
+<p><strong>Design rationale</strong>: No hyphens in header names (<code>traceparent</code> not <code>trace-parent</code>) because trace context propagates beyond HTTP—through message queues, databases, etc.—where hyphenated names cause issues.</p>
+<h3 id="sampling-strategies" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#sampling-strategies">Sampling Strategies</a></h3>
+<p>At scale, tracing everything is impossible. Google’s Dapper samples <strong>1 in 1,024 traces</strong> by default.</p>
+<p><strong>Head-based sampling</strong>: Decision made at trace start.</p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Simple, stateless</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> No buffering required</li>
+<li><span role="img" aria-label="cross mark">❌</span> Might miss interesting traces (errors, slow requests)</li>
+</ul>
+<p><strong>Tail-based sampling</strong>: Decision made after trace completion.</p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Can keep all errors, slow traces, specific paths</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> More intelligent sampling policies</li>
+<li><span role="img" aria-label="cross mark">❌</span> Requires buffering complete traces</li>
+<li><span role="img" aria-label="cross mark">❌</span> Needs consistent routing (all spans to same collector)</li>
+</ul>
+<p><strong>Tail sampling policies</strong> (OpenTelemetry Collector supports 13+):</p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Policy</th><th>Keep When</th></tr></thead><tbody><tr><td><strong>Latency</strong></td><td>Trace duration > threshold</td></tr><tr><td><strong>Status code</strong></td><td>Any span has error status</td></tr><tr><td><strong>Rate limiting</strong></td><td>N traces per second</td></tr><tr><td><strong>Probabilistic</strong></td><td>Random % of traces</td></tr><tr><td><strong>String attribute</strong></td><td>Specific attribute values match</td></tr></tbody></table></div>
+<p><strong>Hybrid approach</strong>: For very high volume, use head-based sampling first (keep 10%), then tail-based sampling on that subset for intelligent filtering.</p>
+<h3 id="google-dapper-architecture" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#google-dapper-architecture">Google Dapper Architecture</a></h3>
+<p>Dapper’s design principles (from the 2010 paper):</p>
+<ol>
+<li><strong>Ubiquitous deployment</strong>: Instrument ~1,500 lines of C++ in the RPC library—no application changes</li>
+<li><strong>Low overhead</strong>: Sampling keeps CPU impact negligible</li>
+<li><strong>Application transparency</strong>: Developers don’t need to think about tracing</li>
+</ol>
+<p><strong>Data flow</strong>:</p>
+<ol>
+<li>Spans written to local log files</li>
+<li>Daemons collect logs, write to BigTable</li>
+<li>Each row = one trace, each column = one span</li>
+<li>Median latency: 15 seconds from span creation to queryable</li>
+</ol>
+<p><strong>Two-level sampling</strong>:</p>
+<ol>
+<li><strong>Trace sampling</strong> (in application): 1/1,024 traces instrumented</li>
+<li><strong>Collection sampling</strong> (in daemon): Additional filtering before BigTable</li>
+</ol>
+<p>“They leverage the fact that all spans for a given trace share a common trace id. For each span seen, they hash the trace id… either sample or discard entire traces rather than individual spans.”</p>
+<h2 id="alerting-systems" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#alerting-systems">Alerting Systems</a></h2>
+<h3 id="alertmanager-architecture" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#alertmanager-architecture">Alertmanager Architecture</a></h3>
+<p>Alertmanager processes alerts from Prometheus through:</p>
+<ol>
+<li><strong>Dispatcher</strong>: Routes alerts based on label matchers</li>
+<li><strong>Inhibition</strong>: Suppresses alerts when related alerts are firing</li>
+<li><strong>Silencing</strong>: Mutes alerts during maintenance windows</li>
+<li><strong>Grouping</strong>: Batches related alerts into single notifications</li>
+<li><strong>Notification</strong>: Sends to receivers (Slack, PagerDuty, email)</li>
+</ol>
+<p><strong>Grouping example</strong>: During an outage affecting 100 pods, you want one page “100 pods down in cluster-east” not 100 separate pages.</p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="yaml"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#1E7734;--1:#85E89D">route</span><span style="--0:#24292E;--1:#E1E4E8">:</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span class="indent">  </span><span style="--0:#1E7734;--1:#85E89D">group_by</span><span style="--0:#24292E;--1:#E1E4E8">: [</span><span style="--0:#032F62;--1:#9ECBFF">"alertname"</span><span style="--0:#24292E;--1:#E1E4E8">, </span><span style="--0:#032F62;--1:#9ECBFF">"cluster"</span><span style="--0:#24292E;--1:#E1E4E8">]</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span class="indent">  </span><span style="--0:#1E7734;--1:#85E89D">group_wait</span><span style="--0:#24292E;--1:#E1E4E8">: </span><span style="--0:#032F62;--1:#9ECBFF">30s</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#616972;--1:#99A0A6"># Wait for more alerts before sending</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span class="indent">  </span><span style="--0:#1E7734;--1:#85E89D">group_interval</span><span style="--0:#24292E;--1:#E1E4E8">: </span><span style="--0:#032F62;--1:#9ECBFF">5m</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#616972;--1:#99A0A6"># Time between grouped notifications</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span class="indent">  </span><span style="--0:#1E7734;--1:#85E89D">repeat_interval</span><span style="--0:#24292E;--1:#E1E4E8">: </span><span style="--0:#032F62;--1:#9ECBFF">4h</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#616972;--1:#99A0A6"># How often to re-send</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="route:  group_by: [&#x22;alertname&#x22;, &#x22;cluster&#x22;]  group_wait: 30s # Wait for more alerts before sending  group_interval: 5m # Time between grouped notifications  repeat_interval: 4h # How often to re-send"><div></div></button></div></figure></div>
+<p><strong>Inhibition example</strong>: If the entire cluster is unreachable, suppress all per-pod alerts:</p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="yaml"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#1E7734;--1:#85E89D">inhibit_rules</span><span style="--0:#24292E;--1:#E1E4E8">:</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">  </span></span><span style="--0:#24292E;--1:#E1E4E8">- </span><span style="--0:#1E7734;--1:#85E89D">source_matchers</span><span style="--0:#24292E;--1:#E1E4E8">: [</span><span style="--0:#032F62;--1:#9ECBFF">severity="critical"</span><span style="--0:#24292E;--1:#E1E4E8">, </span><span style="--0:#032F62;--1:#9ECBFF">alertname="ClusterDown"</span><span style="--0:#24292E;--1:#E1E4E8">]</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span class="indent">    </span><span style="--0:#1E7734;--1:#85E89D">target_matchers</span><span style="--0:#24292E;--1:#E1E4E8">: [</span><span style="--0:#032F62;--1:#9ECBFF">severity="warning"</span><span style="--0:#24292E;--1:#E1E4E8">]</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span class="indent">    </span><span style="--0:#1E7734;--1:#85E89D">equal</span><span style="--0:#24292E;--1:#E1E4E8">: [</span><span style="--0:#032F62;--1:#9ECBFF">"cluster"</span><span style="--0:#24292E;--1:#E1E4E8">]</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="inhibit_rules:  - source_matchers: [severity=&#x22;critical&#x22;, alertname=&#x22;ClusterDown&#x22;]    target_matchers: [severity=&#x22;warning&#x22;]    equal: [&#x22;cluster&#x22;]"><div></div></button></div></figure></div>
+<h3 id="threshold-based-vs-anomaly-detection" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#threshold-based-vs-anomaly-detection">Threshold-Based vs. Anomaly Detection</a></h3>
+<p><strong>Static thresholds</strong>: Alert when <code>error_rate > 1%</code></p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Predictable, easy to understand</li>
+<li><span role="img" aria-label="cross mark">❌</span> Doesn’t adapt to traffic patterns</li>
+<li><span role="img" aria-label="cross mark">❌</span> Requires manual tuning per service</li>
+</ul>
+<p><strong>Anomaly detection</strong>: Alert when value deviates from learned baseline</p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Adapts to patterns (daily cycles, growth)</li>
+<li><span role="img" aria-label="cross mark">❌</span> Black box—hard to explain why it alerted</li>
+<li><span role="img" aria-label="cross mark">❌</span> Cold start problem (needs historical data)</li>
+<li><span role="img" aria-label="cross mark">❌</span> High false positive rates in practice</li>
+</ul>
+<p><strong>Production reality</strong>: Most teams use static thresholds with percentile-based targets. Anomaly detection works for specific use cases (fraud detection, capacity planning) but not general alerting.</p>
+<h3 id="slo-based-alerting-google-sre-approach" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#slo-based-alerting-google-sre-approach">SLO-Based Alerting (Google SRE Approach)</a></h3>
+<p>Traditional alerting on symptoms (“error rate > 1%”) has problems:</p>
+<ul>
+<li>What’s the right threshold? 1%? 0.1%?</li>
+<li>A 1% error rate for 1 minute is different from 1% for 1 hour</li>
+</ul>
+<p><strong>Error budget</strong> = 1 - SLO. For 99.9% availability: 0.1% error budget per month (~43 minutes).</p>
+<p><strong>Burn rate</strong> = how fast you’re consuming error budget. Burn rate 1 = exactly on pace. Burn rate 10 = will exhaust budget in 3 days instead of 30.</p>
+<p><strong>Multi-window, multi-burn-rate alerts</strong> (Google’s recommendation):</p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Burn Rate</th><th>Long Window</th><th>Short Window</th><th>Severity</th><th>Budget Consumed</th></tr></thead><tbody><tr><td>14.4</td><td>1 hour</td><td>5 min</td><td>Page</td><td>2% in 1 hour</td></tr><tr><td>6</td><td>6 hours</td><td>30 min</td><td>Page</td><td>5% in 6 hours</td></tr><tr><td>1</td><td>3 days</td><td>6 hours</td><td>Ticket</td><td>10% in 3 days</td></tr></tbody></table></div>
+<p><strong>Why two windows?</strong> The long window catches sustained issues. The short window prevents alerting on issues that already recovered.</p>
+<p><strong>Low-traffic caveat</strong>: If a service gets 10 requests/hour, 1 failure = 10% error rate = 1,000× burn rate. For low-traffic services, use longer evaluation windows or count-based thresholds.</p>
+<h2 id="observability-correlation" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#observability-correlation">Observability Correlation</a></h2>
+<h3 id="exemplars-connecting-metrics-to-traces" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#exemplars-connecting-metrics-to-traces">Exemplars: Connecting Metrics to Traces</a></h3>
+<p>An <strong>exemplar</strong> is a trace ID attached to a specific metric sample. When investigating a latency spike, click through to see an actual slow trace.</p>
+<p><strong>How it works</strong>:</p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8"># Prometheus metric with exemplar</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">http_request_duration_seconds_bucket{le="0.5"} 24054 # {trace_id="abc123"} 0.47</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="# Prometheus metric with exemplarhttp_request_duration_seconds_bucket{le=&#x22;0.5&#x22;} 24054 # {trace_id=&#x22;abc123&#x22;} 0.47"><div></div></button></div></figure></div>
+<p>The metric records 24,054 requests ≤500ms. The exemplar says “here’s one specific request at 470ms with trace_id abc123.”</p>
+<p><strong>Requirements</strong>:</p>
+<ul>
+<li>Client library must support exemplars (OpenTelemetry does)</li>
+<li>TSDB must store exemplars (Prometheus 2.25+)</li>
+<li>Visualization must display and link them (Grafana)</li>
+</ul>
+<h3 id="trace-log-correlation" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#trace-log-correlation">Trace-Log Correlation</a></h3>
+<p>Include trace_id and span_id in structured logs:</p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="json"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292E;--1:#E1E4E8">{</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span class="indent">  </span><span style="--0:#005CC5;--1:#79B8FF">"timestamp"</span><span style="--0:#24292E;--1:#E1E4E8">: </span><span style="--0:#032F62;--1:#9ECBFF">"2024-01-15T10:23:45Z"</span><span style="--0:#24292E;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span class="indent">  </span><span style="--0:#005CC5;--1:#79B8FF">"level"</span><span style="--0:#24292E;--1:#E1E4E8">: </span><span style="--0:#032F62;--1:#9ECBFF">"error"</span><span style="--0:#24292E;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span class="indent">  </span><span style="--0:#005CC5;--1:#79B8FF">"message"</span><span style="--0:#24292E;--1:#E1E4E8">: </span><span style="--0:#032F62;--1:#9ECBFF">"Database connection timeout"</span><span style="--0:#24292E;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span class="indent">  </span><span style="--0:#005CC5;--1:#79B8FF">"trace_id"</span><span style="--0:#24292E;--1:#E1E4E8">: </span><span style="--0:#032F62;--1:#9ECBFF">"0af7651916cd43dd8448eb211c80319c"</span><span style="--0:#24292E;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span class="indent">  </span><span style="--0:#005CC5;--1:#79B8FF">"span_id"</span><span style="--0:#24292E;--1:#E1E4E8">: </span><span style="--0:#032F62;--1:#9ECBFF">"b9c7c989f97918e1"</span><span style="--0:#24292E;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">7</div></div><div class="code"><span class="indent">  </span><span style="--0:#005CC5;--1:#79B8FF">"service"</span><span style="--0:#24292E;--1:#E1E4E8">: </span><span style="--0:#032F62;--1:#9ECBFF">"order-service"</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">8</div></div><div class="code"><span style="--0:#24292E;--1:#E1E4E8">}</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="{  &#x22;timestamp&#x22;: &#x22;2024-01-15T10:23:45Z&#x22;,  &#x22;level&#x22;: &#x22;error&#x22;,  &#x22;message&#x22;: &#x22;Database connection timeout&#x22;,  &#x22;trace_id&#x22;: &#x22;0af7651916cd43dd8448eb211c80319c&#x22;,  &#x22;span_id&#x22;: &#x22;b9c7c989f97918e1&#x22;,  &#x22;service&#x22;: &#x22;order-service&#x22;}"><div></div></button></div></figure></div>
+<p>Now Grafana can show “all logs for this trace” with a single click from the trace view.</p>
+<h3 id="metrics-from-traces" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#metrics-from-traces">Metrics from Traces</a></h3>
+<p><strong>Service metrics</strong> (RED): Rate, Errors, Duration computed from spans</p>
+<p><strong>Benefits</strong>:</p>
+<ul>
+<li>No separate instrumentation—traces generate metrics automatically</li>
+<li>Consistent definitions across services</li>
+<li>Enables drill-down from metric to trace</li>
+</ul>
+<p><strong>Trade-off</strong>: Trace-derived metrics have higher latency (spans must be processed) and depend on sampling rates for accuracy.</p>
+<h2 id="design-choices-summary" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#design-choices-summary">Design Choices Summary</a></h2>
+<h3 id="collection-method" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#collection-method">Collection Method</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Factor</th><th>Pull (Prometheus)</th><th>Push (OTLP)</th><th>Hybrid (Collector)</th></tr></thead><tbody><tr><td>Target health visibility</td><td><span role="img" aria-label="white heavy check mark">✅</span> Built-in <code>up</code> metric</td><td><span role="img" aria-label="cross mark">❌</span> Requires separate checks</td><td><span role="img" aria-label="white heavy check mark">✅</span> Via receiver health</td></tr><tr><td>Works through firewalls</td><td><span role="img" aria-label="cross mark">❌</span> Needs network access</td><td><span role="img" aria-label="white heavy check mark">✅</span> Outbound only</td><td><span role="img" aria-label="white heavy check mark">✅</span> Configurable</td></tr><tr><td>Short-lived jobs</td><td><span role="img" aria-label="cross mark">❌</span> May miss</td><td><span role="img" aria-label="white heavy check mark">✅</span> Push before exit</td><td><span role="img" aria-label="white heavy check mark">✅</span> Via Pushgateway</td></tr><tr><td>Configuration location</td><td>Centralized</td><td>Per-application</td><td>Centralized</td></tr></tbody></table></div>
+<p><strong>Default recommendation</strong>: Pull for long-running services (simpler, health built-in). Push via OpenTelemetry Collector for serverless/ephemeral workloads.</p>
+<h3 id="time-series-database" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#time-series-database">Time-Series Database</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Factor</th><th>Prometheus</th><th>VictoriaMetrics</th><th>Managed (Datadog, etc.)</th></tr></thead><tbody><tr><td>Cost</td><td>Infrastructure only</td><td>Infrastructure only</td><td>Per-metric pricing</td></tr><tr><td>Operational burden</td><td>Moderate</td><td>Low-moderate</td><td>None</td></tr><tr><td>High availability</td><td>Federation/Thanos</td><td>Built-in clustering</td><td>Built-in</td></tr><tr><td>Cardinality limits</td><td>~10M series</td><td>~100M series</td><td>Soft limits + overage</td></tr></tbody></table></div>
+<p><strong>Scale thresholds</strong>:</p>
+<ul>
+<li>&#x3C;1M active series: Single Prometheus</li>
+<li>1-10M series: Prometheus + remote write to long-term storage</li>
+<li>10M+ series: VictoriaMetrics cluster or managed service</li>
+</ul>
+<h3 id="tracing-sampling" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#tracing-sampling">Tracing Sampling</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Approach</th><th>Overhead</th><th>Capture Rate</th><th>Complexity</th></tr></thead><tbody><tr><td>Head 100%</td><td>Highest</td><td>All traces</td><td>Simple</td></tr><tr><td>Head 1%</td><td>Low</td><td>1% random</td><td>Simple</td></tr><tr><td>Tail-based</td><td>Medium</td><td>All errors + sampled</td><td>High (requires routing)</td></tr><tr><td>Hybrid</td><td>Low</td><td>Best of both</td><td>Highest</td></tr></tbody></table></div>
+<p><strong>Default recommendation</strong>: Start with head-based 10-100% sampling. Move to tail-based when you need to capture all errors or have volume requiring &#x3C;1% sampling.</p>
+<h3 id="alerting-approach" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#alerting-approach">Alerting Approach</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Approach</th><th>False Positives</th><th>Actionability</th><th>Setup Effort</th></tr></thead><tbody><tr><td>Static thresholds</td><td>Medium</td><td>High (clear trigger)</td><td>Low</td></tr><tr><td>Anomaly detection</td><td>High</td><td>Medium (why alert?)</td><td>Medium</td></tr><tr><td>SLO burn rate</td><td>Low</td><td>High (budget impact clear)</td><td>High</td></tr></tbody></table></div>
+<p><strong>Default recommendation</strong>: SLO-based alerting with multi-window burn rates for critical services. Static thresholds for simpler cases where SLO definition is unclear.</p>
+<h2 id="common-pitfalls" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#common-pitfalls">Common Pitfalls</a></h2>
+<h3 id="pitfall-1-cardinality-explosion-from-dynamic-labels" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#pitfall-1-cardinality-explosion-from-dynamic-labels">Pitfall 1: Cardinality Explosion from Dynamic Labels</a></h3>
+<p><strong>The mistake</strong>: Adding request_id, user_id, or IP address as metric labels.</p>
+<p><strong>Why it happens</strong>: Developers want to query metrics by these dimensions. It works in development with 100 users.</p>
+<p><strong>The consequence</strong>: Production with 1M users creates 1M series per metric. Prometheus OOMs, queries timeout, alerts stop working.</p>
+<p><strong>The fix</strong>: High-cardinality dimensions belong in logs and traces, not metrics. If you need user-level metrics, use a logging pipeline with columnar storage (ClickHouse, BigQuery).</p>
+<h3 id="pitfall-2-alerting-on-raw-counter-values" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#pitfall-2-alerting-on-raw-counter-values">Pitfall 2: Alerting on Raw Counter Values</a></h3>
+<p><strong>The mistake</strong>: <code>alert: requests_total > 1000000</code></p>
+<p><strong>Why it happens</strong>: The counter is visible in Grafana, the number is big, seems like a problem.</p>
+<p><strong>The consequence</strong>: Alert fires based on how long the service has been running, not actual request rate. Restarts “fix” the alert.</p>
+<p><strong>The fix</strong>: Always use <code>rate()</code> or <code>increase()</code> with counters:</p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="promql"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8"># Alert on request rate, not total</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">alert: HighRequestRate</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">expr: rate(requests_total[5m]) > 1000</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="# Alert on request rate, not totalalert: HighRequestRateexpr: rate(requests_total[5m]) > 1000"><div></div></button></div></figure></div>
+<h3 id="pitfall-3-sampling-that-loses-error-traces" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#pitfall-3-sampling-that-loses-error-traces">Pitfall 3: Sampling That Loses Error Traces</a></h3>
+<p><strong>The mistake</strong>: Head-based 1% sampling drops 99% of errors.</p>
+<p><strong>Why it happens</strong>: Error rate is 0.1%. Of that 0.1%, you keep 1% = 0.001% of requests are error traces you can analyze.</p>
+<p><strong>The consequence</strong>: When debugging production issues, no error traces are available.</p>
+<p><strong>The fix</strong>: Tail-based sampling with error retention policy, or hybrid approach:</p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="yaml"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#616972;--1:#99A0A6"># OpenTelemetry Collector tail sampling</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#1E7734;--1:#85E89D">policies</span><span style="--0:#24292E;--1:#E1E4E8">:</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">  </span></span><span style="--0:#24292E;--1:#E1E4E8">- </span><span style="--0:#1E7734;--1:#85E89D">name</span><span style="--0:#24292E;--1:#E1E4E8">: </span><span style="--0:#032F62;--1:#9ECBFF">errors</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span class="indent">    </span><span style="--0:#1E7734;--1:#85E89D">type</span><span style="--0:#24292E;--1:#E1E4E8">: </span><span style="--0:#032F62;--1:#9ECBFF">status_code</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span class="indent">    </span><span style="--0:#1E7734;--1:#85E89D">status_code</span><span style="--0:#24292E;--1:#E1E4E8">: { </span><span style="--0:#1E7734;--1:#85E89D">status_codes</span><span style="--0:#24292E;--1:#E1E4E8">: [</span><span style="--0:#032F62;--1:#9ECBFF">ERROR</span><span style="--0:#24292E;--1:#E1E4E8">] }</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">  </span></span><span style="--0:#24292E;--1:#E1E4E8">- </span><span style="--0:#1E7734;--1:#85E89D">name</span><span style="--0:#24292E;--1:#E1E4E8">: </span><span style="--0:#032F62;--1:#9ECBFF">probabilistic</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">7</div></div><div class="code"><span class="indent">    </span><span style="--0:#1E7734;--1:#85E89D">type</span><span style="--0:#24292E;--1:#E1E4E8">: </span><span style="--0:#032F62;--1:#9ECBFF">probabilistic</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">8</div></div><div class="code"><span class="indent">    </span><span style="--0:#1E7734;--1:#85E89D">probabilistic</span><span style="--0:#24292E;--1:#E1E4E8">: { </span><span style="--0:#1E7734;--1:#85E89D">sampling_percentage</span><span style="--0:#24292E;--1:#E1E4E8">: </span><span style="--0:#005CC5;--1:#79B8FF">1</span><span style="--0:#24292E;--1:#E1E4E8"> }</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="# OpenTelemetry Collector tail samplingpolicies:  - name: errors    type: status_code    status_code: { status_codes: [ERROR] }  - name: probabilistic    type: probabilistic    probabilistic: { sampling_percentage: 1 }"><div></div></button></div></figure></div>
+<h3 id="pitfall-4-alert-fatigue-from-noisy-alerts" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#pitfall-4-alert-fatigue-from-noisy-alerts">Pitfall 4: Alert Fatigue from Noisy Alerts</a></h3>
+<p><strong>The mistake</strong>: Alerting on every metric deviation without proper thresholds or grouping.</p>
+<p><strong>Why it happens</strong>: Starting with “alert on everything” seems safe. Better to over-alert than miss issues.</p>
+<p><strong>The consequence</strong>: On-call ignores alerts. Real incidents get lost in noise. Team burns out.</p>
+<p><strong>The fix</strong>:</p>
+<ol>
+<li><strong>SLO-based alerts</strong>: Only page when error budget is burning</li>
+<li><strong>Aggressive grouping</strong>: One alert per incident, not per pod</li>
+<li><strong>Proper inhibition</strong>: Suppress symptoms when root cause is alerting</li>
+<li><strong>Track signal-to-noise ratio</strong>: Target >50% actionable alerts</li>
+</ol>
+<h2 id="conclusion" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#conclusion">Conclusion</a></h2>
+<p>Distributed monitoring is not about collecting more data—it’s about <strong>collecting the right data at the right resolution for the right cost</strong>.</p>
+<p><strong>Key principles</strong>:</p>
+<ol>
+<li><strong>Metrics for dashboards and alerts</strong> (low cardinality, high aggregation)</li>
+<li><strong>Logs for debugging</strong> (high cardinality, full detail)</li>
+<li><strong>Traces for request flow</strong> (sampled, correlated)</li>
+<li><strong>Correlation is the multiplier</strong>: Exemplars, trace IDs in logs, metrics from traces</li>
+</ol>
+<p><strong>Start simple</strong>:</p>
+<ul>
+<li>Pull-based metrics with Prometheus</li>
+<li>Head-based trace sampling at 10%</li>
+<li>SLO-defined alert thresholds</li>
+</ul>
+<p><strong>Scale when needed</strong>:</p>
+<ul>
+<li>Tail-based sampling when error capture matters</li>
+<li>VictoriaMetrics or managed service when cardinality exceeds 10M series</li>
+<li>OpenTelemetry Collector when multi-backend or complex processing required</li>
+</ul>
+<p>The 1.37 bytes/sample compression from Gorilla and the 1/1,024 sampling rate from Dapper aren’t arbitrary—they represent battle-tested trade-offs from systems handling billions of data points. Understand these trade-offs, and you can design monitoring that scales with your system.</p>
+<h2 id="appendix" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#appendix">Appendix</a></h2>
+<h3 id="prerequisites" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#prerequisites">Prerequisites</a></h3>
+<ul>
+<li>Understanding of distributed systems concepts (latency, throughput, consistency)</li>
+<li>Familiarity with basic statistics (percentiles, rates, distributions)</li>
+<li>Experience with at least one monitoring system (Prometheus, Datadog, etc.)</li>
+</ul>
+<h3 id="terminology" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#terminology">Terminology</a></h3>
+<ul>
+<li><strong>Cardinality</strong>: Number of unique time series (metric name × label value combinations)</li>
+<li><strong>Scrape</strong>: Prometheus pulling metrics from a target’s <code>/metrics</code> endpoint</li>
+<li><strong>Span</strong>: Single operation in a distributed trace (has trace_id, span_id, parent_id)</li>
+<li><strong>Exemplar</strong>: A trace ID attached to a metric sample for correlation</li>
+<li><strong>Burn rate</strong>: Speed of error budget consumption relative to SLO (burn rate 1 = on pace)</li>
+<li><strong>Head block</strong>: In-memory portion of Prometheus TSDB containing recent samples</li>
+<li><strong>WAL (Write-Ahead Log)</strong>: Durability mechanism that logs writes before applying them</li>
+<li><strong>OTLP (OpenTelemetry Protocol)</strong>: Standard protocol for transmitting telemetry data</li>
+</ul>
+<h3 id="summary-1" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#summary-1">Summary</a></h3>
+<ul>
+<li><strong>Cardinality is the primary scaling constraint</strong> for metrics—keep labels bounded (&#x3C;10 unique values per label)</li>
+<li><strong>Gorilla compression</strong> achieves 1.37 bytes/sample through delta-of-delta timestamps and XOR-encoded values</li>
+<li><strong>Pull-based collection</strong> provides target health visibility; push works better for ephemeral workloads</li>
+<li><strong>Tail-based sampling</strong> captures all errors but requires consistent routing and buffering</li>
+<li><strong>SLO burn-rate alerts</strong> with multi-window evaluation reduce false positives and false negatives</li>
+<li><strong>Exemplars and trace IDs</strong> connect metrics, logs, and traces for end-to-end debugging</li>
+</ul>
+<h3 id="references" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#references">References</a></h3>
+<h4 id="foundational-papers" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#foundational-papers">Foundational Papers</a></h4>
+<ul>
+<li><a href="https://www.vldb.org/pvldb/vol8/p1816-teller.pdf">Gorilla: A Fast, Scalable, In-Memory Time Series Database</a> - Facebook’s compression algorithms achieving 12× reduction in storage (VLDB 2015)</li>
+<li><a href="https://research.google.com/archive/papers/dapper-2010-1.pdf">Dapper, a Large-Scale Distributed Systems Tracing Infrastructure</a> - Google’s distributed tracing design, basis for Zipkin and Jaeger</li>
+</ul>
+<h4 id="specifications" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#specifications">Specifications</a></h4>
+<ul>
+<li><a href="https://www.w3.org/TR/trace-context/">W3C Trace Context</a> - Standard for distributed trace propagation headers</li>
+<li><a href="https://opentelemetry.io/docs/specs/otel/metrics/data-model/">OpenTelemetry Metrics Data Model</a> - Specification for metrics including exponential histograms</li>
+<li><a href="https://opentelemetry.io/docs/concepts/sampling/">OpenTelemetry Sampling</a> - Head-based and tail-based sampling concepts</li>
+</ul>
+<h4 id="official-documentation" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#official-documentation">Official Documentation</a></h4>
+<ul>
+<li><a href="https://prometheus.io/docs/prometheus/latest/storage/">Prometheus Storage</a> - TSDB architecture, WAL, compaction</li>
+<li><a href="https://ganeshvernekar.com/blog/prometheus-tsdb-the-head-block/">Prometheus TSDB: The Head Block</a> - Deep dive into Prometheus internals by maintainer</li>
+<li><a href="https://prometheus.io/docs/alerting/latest/configuration/">Alertmanager Configuration</a> - Routing, grouping, inhibition</li>
+<li><a href="https://docs.victoriametrics.com/victoriametrics/cluster-victoriametrics/">VictoriaMetrics Cluster Architecture</a> - Shared-nothing design for high cardinality</li>
+</ul>
+<h4 id="sre-practices" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#sre-practices">SRE Practices</a></h4>
+<ul>
+<li><a href="https://sre.google/workbook/alerting-on-slos/">Google SRE Workbook: Alerting on SLOs</a> - Multi-window, multi-burn-rate alerting methodology</li>
+<li><a href="https://prometheus.io/blog/2016/07/23/pull-does-not-scale-or-does-it/">Prometheus Pull Model Rationale</a> - Design decisions behind pull-based architecture</li>
+</ul>
+<h4 id="production-case-studies" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#production-case-studies">Production Case Studies</a></h4>
+<ul>
+<li><a href="https://netflixtechblog.com/introducing-atlas-netflixs-primary-telemetry-platform-bd31f4d8ed9a">Netflix Atlas: Primary Telemetry Platform</a> - Handling 1B+ metrics per minute</li>
+<li><a href="https://grafana.com/blog/2020/03/31/how-to-successfully-correlate-metrics-logs-and-traces-in-grafana/">Grafana Observability Correlation</a> - Connecting metrics, logs, and traces</li>
+<li><a href="https://grafana.com/blog/2022/10/20/how-to-manage-high-cardinality-metrics-in-prometheus-and-kubernetes/">Managing High Cardinality in Prometheus</a> - Practical cardinality management strategies</li>
+</ul> </article>  <section class="article-navigation"> <div class="section-divider"> <span class="section-divider-text">Continue Reading</span> </div> <ul class="article-list"> <li class="article-card"> <p class="article-card-label">Previous</p> <h3 class="article-card-title"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-logging-system" class="article-card-link">  Distributed Logging System </a> </h3> <div class="frontmatter article-card-frontmatter">   <span class="frontmatter-item"> <a title="Category - System Design" href="/legacy-personal-site/v4/articles/system-design" class="frontmatter-link">  System Design </a>  <span class="text-muted">/</span> <a title="Topic - System Design Building Blocks" href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks" class="frontmatter-link">  System Design Building Blocks </a>  </span> <span class="frontmatter-item"> <svg width="1em" height="1em" viewBox="0 0 32 32" class="icon-sm" data-icon="carbon:time">   <use href="#ai:carbon:time"></use>  </svg> 13 min read </span>  </div> <p class="article-card-excerpt"> Centralized logging infrastructure enables observability across distributed systems. This article covers log data models, collection architectures, storage engines, indexing strategies, and scaling approaches—with design trade-offs and real-world implementations from Netflix (5 PB/day), Uber, and others. </p> </li> <li class="article-card"> <p class="article-card-label">Next</p> <h3 class="article-card-title"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/task-scheduler-design" class="article-card-link">  Task Scheduler Design </a> </h3> <div class="frontmatter article-card-frontmatter">   <span class="frontmatter-item"> <a title="Category - System Design" href="/legacy-personal-site/v4/articles/system-design" class="frontmatter-link">  System Design </a>  <span class="text-muted">/</span> <a title="Topic - System Design Building Blocks" href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks" class="frontmatter-link">  System Design Building Blocks </a>  </span> <span class="frontmatter-item"> <svg width="1em" height="1em" viewBox="0 0 32 32" class="icon-sm" data-icon="carbon:time">   <use href="#ai:carbon:time"></use>  </svg> 17 min read </span>  </div> <p class="article-card-excerpt"> Designing reliable distributed task scheduling systems: understanding scheduling models, coordination mechanisms, delivery guarantees, and failure handling strategies across Airflow, Celery, Temporal, and similar platforms. </p> </li> </ul> </section> </div> <footer class="site-footer"> <div class="site-footer-inner">  <nav class="site-footer-categories"> <a title="Browser &#38; Runtime Internals" href="/legacy-personal-site/v4/articles/browser-runtime-internals" class="nav-link">  Browser &amp; Runtime Internals </a><a title="System Design" href="/legacy-personal-site/v4/articles/system-design" class="nav-link">  System Design </a><a title="Platform Engineering" href="/legacy-personal-site/v4/articles/platform-engineering" class="nav-link">  Platform Engineering </a><a title="Frontend Engineering" href="/legacy-personal-site/v4/articles/frontend-engineering" class="nav-link">  Frontend Engineering </a><a title="Web Foundations" href="/legacy-personal-site/v4/articles/web-foundations" class="nav-link">  Web Foundations </a><a title="Programming &#38; Patterns" href="/legacy-personal-site/v4/articles/programming-patterns" class="nav-link">  Programming &amp; Patterns </a><a title="Developer Experience" href="/legacy-personal-site/v4/articles/developer-experience" class="nav-link">  Developer Experience </a> </nav>  <div class="site-footer-bar"> <div class="site-footer-links"> <a href="https://docs.google.com/document/d/1pazXBfzuL9O1wCjPdKb7IS-7nXz_ZzI7EvNL1r_KKRc/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="nav-link">  Resume </a><a href="/legacy-personal-site/v4/tags" class="nav-link">  Tags </a><a href="/legacy-personal-site/v4/articles/drafts" class="nav-link">  Drafts </a> </div> <div class="site-footer-controls">  <div class="site-footer-theme"> <svg width="1em" height="1em" class="site-footer-theme-icon" data-icon="carbon:paint-brush">   <symbol id="ai:carbon:paint-brush" viewBox="0 0 32 32"><path fill="currentColor" d="M28.83 23.17L23 17.33V13a1 1 0 0 0-.29-.71l-10-10a1 1 0 0 0-1.42 0l-9 9a1 1 0 0 0 0 1.42l10 10A1 1 0 0 0 13 23h4.34l5.83 5.84a4 4 0 0 0 5.66-5.66ZM6 10.41l2.29 2.3l1.42-1.42L7.41 9L9 7.41l4.29 4.3l1.42-1.42L10.41 6L12 4.41L18.59 11L11 18.59L4.41 12Zm21.41 17a2 2 0 0 1-2.82 0l-6.13-6.12a1.8 1.8 0 0 0-.71-.29h-4.34l-1-1L20 12.41l1 1v4.34a1 1 0 0 0 .29.7l6.12 6.14a2 2 0 0 1 0 2.82"/></symbol><use href="#ai:carbon:paint-brush"></use>  </svg> <select id="theme-select" class="site-footer-theme-select" aria-label="Select theme"> <option value="auto">Auto</option> <option value="light">Light</option> <option value="dark">Dark</option> <option value="high-contrast-light">High contrast light</option> <option value="high-contrast-dark">High contrast dark</option> <option value="paper">Paper</option> </select> </div>  <div class="site-footer-social"> <a aria-label="GitHub" title="GitHub" href="https://github.com/sujeet-pro" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-github">   <symbol id="ai:carbon:logo-github" viewBox="0 0 32 32"><path fill="currentColor" fill-rule="evenodd" d="M16 2a14 14 0 0 0-4.43 27.28c.7.13 1-.3 1-.67v-2.38c-3.89.84-4.71-1.88-4.71-1.88a3.7 3.7 0 0 0-1.62-2.05c-1.27-.86.1-.85.1-.85a2.94 2.94 0 0 1 2.14 1.45a3 3 0 0 0 4.08 1.16a2.93 2.93 0 0 1 .88-1.87c-3.1-.36-6.37-1.56-6.37-6.92a5.4 5.4 0 0 1 1.44-3.76a5 5 0 0 1 .14-3.7s1.17-.38 3.85 1.43a13.3 13.3 0 0 1 7 0c2.67-1.81 3.84-1.43 3.84-1.43a5 5 0 0 1 .14 3.7a5.4 5.4 0 0 1 1.44 3.76c0 5.38-3.27 6.56-6.39 6.91a3.33 3.33 0 0 1 .95 2.59v3.84c0 .46.25.81 1 .67A14 14 0 0 0 16 2"/></symbol><use href="#ai:carbon:logo-github"></use>  </svg>  </a> <a aria-label="LinkedIn" title="LinkedIn" href="https://www.linkedin.com/in/sujeetkrjaiswal/" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-linkedin">   <symbol id="ai:carbon:logo-linkedin" viewBox="0 0 32 32"><path fill="currentColor" d="M26.2 4H5.8C4.8 4 4 4.8 4 5.7v20.5c0 .9.8 1.7 1.8 1.7h20.4c1 0 1.8-.8 1.8-1.7V5.7c0-.9-.8-1.7-1.8-1.7M11.1 24.4H7.6V13h3.5zm-1.7-13c-1.1 0-2.1-.9-2.1-2.1s.9-2.1 2.1-2.1c1.1 0 2.1.9 2.1 2.1s-1 2.1-2.1 2.1m15.1 12.9H21v-5.6c0-1.3 0-3.1-1.9-3.1S17 17.1 17 18.5v5.7h-3.5V13h3.3v1.5h.1c.5-.9 1.7-1.9 3.4-1.9c3.6 0 4.3 2.4 4.3 5.5v6.2z"/></symbol><use href="#ai:carbon:logo-linkedin"></use>  </svg>  </a> <a aria-label="Twitter" title="Twitter" href="https://twitter.com/sujeetpro" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-twitter">   <symbol id="ai:carbon:logo-twitter" viewBox="0 0 32 32"><path fill="currentColor" d="M11.548 25.752c9.056 0 14.01-7.503 14.01-14.01c0-.213 0-.425-.015-.636A10 10 0 0 0 28 8.556a9.8 9.8 0 0 1-2.828.776a4.94 4.94 0 0 0 2.164-2.724a9.9 9.9 0 0 1-3.126 1.195a4.929 4.929 0 0 0-8.392 4.491A13.98 13.98 0 0 1 5.67 7.15a4.93 4.93 0 0 0 1.525 6.573a4.9 4.9 0 0 1-2.235-.617v.063a4.926 4.926 0 0 0 3.95 4.827a4.9 4.9 0 0 1-2.223.084a4.93 4.93 0 0 0 4.6 3.42A9.88 9.88 0 0 1 4 23.54a13.94 13.94 0 0 0 7.547 2.209"/></symbol><use href="#ai:carbon:logo-twitter"></use>  </svg>  </a> </div> </div> </div>  <p class="site-footer-copyright">
+&copy; 2024-2026 Sujeet Jaiswal </p> </div> </footer> </main> <aside id="right-sidebar" class="zen-sidebar zen-sidebar-right" aria-label="Table of contents"> <div class="zen-sidebar-header"> <span class="zen-sidebar-header-title">On This Page</span> <button class="zen-sidebar-close" data-sidebar-close="right" aria-label="Close table of contents"> <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5"> <path d="M8 8l16 16M24 8L8 24"></path> </svg> </button> </div> <div class="zen-sidebar-content"> <nav aria-label="Table of contents"><h2 class="sidebar-nav-title">On this page</h2><ul class="sidebar-toc-list"><li><a href="#abstract" class="sidebar-toc-item">Abstract</a></li><li><a href="#metrics-types-and-data-models" class="sidebar-toc-item">Metrics: Types and Data Models</a></li><li><a href="#counter" class="sidebar-toc-item sidebar-toc-item--h3">Counter</a></li><li><a href="#gauge" class="sidebar-toc-item sidebar-toc-item--h3">Gauge</a></li><li><a href="#histogram" class="sidebar-toc-item sidebar-toc-item--h3">Histogram</a></li><li><a href="#summary" class="sidebar-toc-item sidebar-toc-item--h3">Summary</a></li><li><a href="#the-cardinality-problem" class="sidebar-toc-item sidebar-toc-item--h3">The Cardinality Problem</a></li><li><a href="#collection-architecture-push-vs-pull" class="sidebar-toc-item">Collection Architecture: Push vs. Pull</a></li><li><a href="#pull-based-prometheus-model" class="sidebar-toc-item sidebar-toc-item--h3">Pull-Based (Prometheus Model)</a></li><li><a href="#push-based-influxdb-datadog-model" class="sidebar-toc-item sidebar-toc-item--h3">Push-Based (InfluxDB, Datadog Model)</a></li><li><a href="#pushgateway-bridging-the-gap" class="sidebar-toc-item sidebar-toc-item--h3">Pushgateway: Bridging the Gap</a></li><li><a href="#opentelemetry-collector" class="sidebar-toc-item sidebar-toc-item--h3">OpenTelemetry Collector</a></li><li><a href="#time-series-database-internals" class="sidebar-toc-item">Time-Series Database Internals</a></li><li><a href="#gorilla-compression-facebook-2015" class="sidebar-toc-item sidebar-toc-item--h3">Gorilla Compression (Facebook, 2015)</a></li><li><a href="#prometheus-tsdb-architecture" class="sidebar-toc-item sidebar-toc-item--h3">Prometheus TSDB Architecture</a></li><li><a href="#victoriametrics-optimizations" class="sidebar-toc-item sidebar-toc-item--h3">VictoriaMetrics Optimizations</a></li><li><a href="#netflix-atlas-scale" class="sidebar-toc-item sidebar-toc-item--h3">Netflix Atlas Scale</a></li><li><a href="#distributed-tracing" class="sidebar-toc-item">Distributed Tracing</a></li><li><a href="#fundamentals-spans-and-traces" class="sidebar-toc-item sidebar-toc-item--h3">Fundamentals: Spans and Traces</a></li><li><a href="#w3c-trace-context-standard" class="sidebar-toc-item sidebar-toc-item--h3">W3C Trace Context (Standard)</a></li><li><a href="#sampling-strategies" class="sidebar-toc-item sidebar-toc-item--h3">Sampling Strategies</a></li><li><a href="#google-dapper-architecture" class="sidebar-toc-item sidebar-toc-item--h3">Google Dapper Architecture</a></li><li><a href="#alerting-systems" class="sidebar-toc-item">Alerting Systems</a></li><li><a href="#alertmanager-architecture" class="sidebar-toc-item sidebar-toc-item--h3">Alertmanager Architecture</a></li><li><a href="#threshold-based-vs-anomaly-detection" class="sidebar-toc-item sidebar-toc-item--h3">Threshold-Based vs. Anomaly Detection</a></li><li><a href="#slo-based-alerting-google-sre-approach" class="sidebar-toc-item sidebar-toc-item--h3">SLO-Based Alerting (Google SRE Approach)</a></li><li><a href="#observability-correlation" class="sidebar-toc-item">Observability Correlation</a></li><li><a href="#exemplars-connecting-metrics-to-traces" class="sidebar-toc-item sidebar-toc-item--h3">Exemplars: Connecting Metrics to Traces</a></li><li><a href="#trace-log-correlation" class="sidebar-toc-item sidebar-toc-item--h3">Trace-Log Correlation</a></li><li><a href="#metrics-from-traces" class="sidebar-toc-item sidebar-toc-item--h3">Metrics from Traces</a></li><li><a href="#design-choices-summary" class="sidebar-toc-item">Design Choices Summary</a></li><li><a href="#collection-method" class="sidebar-toc-item sidebar-toc-item--h3">Collection Method</a></li><li><a href="#time-series-database" class="sidebar-toc-item sidebar-toc-item--h3">Time-Series Database</a></li><li><a href="#tracing-sampling" class="sidebar-toc-item sidebar-toc-item--h3">Tracing Sampling</a></li><li><a href="#alerting-approach" class="sidebar-toc-item sidebar-toc-item--h3">Alerting Approach</a></li><li><a href="#common-pitfalls" class="sidebar-toc-item">Common Pitfalls</a></li><li><a href="#pitfall-1-cardinality-explosion-from-dynamic-labels" class="sidebar-toc-item sidebar-toc-item--h3">Pitfall 1: Cardinality Explosion from Dynamic Labels</a></li><li><a href="#pitfall-2-alerting-on-raw-counter-values" class="sidebar-toc-item sidebar-toc-item--h3">Pitfall 2: Alerting on Raw Counter Values</a></li><li><a href="#pitfall-3-sampling-that-loses-error-traces" class="sidebar-toc-item sidebar-toc-item--h3">Pitfall 3: Sampling That Loses Error Traces</a></li><li><a href="#pitfall-4-alert-fatigue-from-noisy-alerts" class="sidebar-toc-item sidebar-toc-item--h3">Pitfall 4: Alert Fatigue from Noisy Alerts</a></li><li><a href="#conclusion" class="sidebar-toc-item">Conclusion</a></li><li><a href="#appendix" class="sidebar-toc-item">Appendix</a></li><li><a href="#prerequisites" class="sidebar-toc-item sidebar-toc-item--h3">Prerequisites</a></li><li><a href="#terminology" class="sidebar-toc-item sidebar-toc-item--h3">Terminology</a></li><li><a href="#summary-1" class="sidebar-toc-item sidebar-toc-item--h3">Summary</a></li><li><a href="#references" class="sidebar-toc-item sidebar-toc-item--h3">References</a></li></ul></nav> </div> </aside> </div>  <div id="sidebar-backdrop" class="zen-sidebar-backdrop"></div>  <!-- Image Modal --><div id="image-modal" class="image-modal" role="dialog" aria-modal="true" aria-label="Image viewer"> <div class="image-modal-backdrop"></div> <div class="image-modal-content"> <div class="image-modal-header"> <div class="image-modal-controls"> <button type="button" id="image-zoom-out" class="image-modal-btn" aria-label="Zoom out" title="Zoom out"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <circle cx="11" cy="11" r="8"></circle> <line x1="21" y1="21" x2="16.65" y2="16.65"></line> <line x1="8" y1="11" x2="14" y2="11"></line> </svg> </button> <span id="image-zoom-level" class="image-zoom-level">1.0X</span> <button type="button" id="image-zoom-in" class="image-modal-btn" aria-label="Zoom in" title="Zoom in"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <circle cx="11" cy="11" r="8"></circle> <line x1="21" y1="21" x2="16.65" y2="16.65"></line> <line x1="11" y1="8" x2="11" y2="14"></line> <line x1="8" y1="11" x2="14" y2="11"></line> </svg> </button> <button type="button" id="image-zoom-reset" class="image-modal-btn" aria-label="Reset zoom" title="Reset zoom"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path> <path d="M3 3v5h5"></path> </svg> </button> </div> <button type="button" id="image-modal-close" class="image-modal-btn image-modal-close" aria-label="Close image viewer"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <line x1="18" y1="6" x2="6" y2="18"></line> <line x1="6" y1="6" x2="18" y2="18"></line> </svg> </button> </div> <div class="image-modal-body" id="image-modal-body"> <!-- Cloned image will be inserted here --> </div> </div> </div> <script type="module" src="/legacy-personal-site/v4/_astro/image-modal.astro_astro_type_script_index_0_lang.DaIybCtt.js"></script>  <!-- Google Analytics 4 --><script async src="https://www.googletagmanager.com/gtag/js?id=G-1Z2TP5LG65"></script> <script>(function(){const GA_MEASUREMENT_ID = "G-1Z2TP5LG65";
+
+  window.dataLayer = window.dataLayer || []
+  function gtag() {
+    dataLayer.push(arguments)
+  }
+  gtag("js", new Date())
+  gtag("config", GA_MEASUREMENT_ID)
+})();</script> <script type="module" src="/legacy-personal-site/v4/_astro/sidebar-toggle.astro_astro_type_script_index_0_lang.BjmuyXEJ.js"></script> <script type="module">function l(){const s=document.getElementById("main");if(!s)return;const n=Array.from(s.querySelectorAll("h2[id], h3[id]"));if(n.length===0)return;const o=document.querySelectorAll("#right-sidebar .sidebar-toc-item");if(o.length===0)return;const c=new Map;o.forEach(t=>{const e=t.getAttribute("href");e?.startsWith("#")&&c.set(e.slice(1),t)});let r=null;const i=new Set;function f(t){const e=c.get(t);!e||e===r||(r?.classList.remove("is-active"),e.classList.add("is-active"),r=e,e.scrollIntoView({block:"nearest",behavior:"smooth"}))}const a=new IntersectionObserver(t=>{if(t.forEach(e=>{const d=e.target.id;e.isIntersecting?i.add(d):i.delete(d)}),i.size>0){for(const e of n)if(i.has(e.id)){f(e.id);break}}},{rootMargin:"-80px 0px -75% 0px"});n.forEach(t=>a.observe(t)),document.addEventListener("astro:before-swap",()=>{a.disconnect()},{once:!0})}l();document.addEventListener("astro:page-load",l);</script> <script type="module">function c(e,t){const n=window.__themeConfig.THEME_LABELS,o=window.getNextTheme();e.setAttribute("aria-label",`Theme: ${n[t]}. Click to cycle.`),e.title=`Switch to ${n[o]}`,e.dataset.theme=t,e.querySelectorAll("[data-theme-icon]").forEach(a=>{a.style.display=a.dataset.themeIcon===t?"block":"none"})}function s(e,t){e.value!==t&&(e.value=t)}function m(e){e.dataset.themeInit||(e.dataset.themeInit="true",e.addEventListener("click",()=>{const t=window.getNextTheme();window.applySiteTheme(t)}))}function r(e){e.dataset.themeInit||(e.dataset.themeInit="true",e.addEventListener("change",()=>{const t=e.value;window.__themeConfig.THEMES.includes(t)&&window.applySiteTheme(t)}))}function u(){const e=document.documentElement;if(e.dataset.themeObserverInit)return;e.dataset.themeObserverInit="true",new MutationObserver(()=>{const n=e.dataset.theme||"auto",o=document.getElementById("theme-toggle-btn");o&&c(o,n);const i=document.getElementById("theme-select");i&&s(i,n)}).observe(e,{attributes:!0,attributeFilter:["data-theme"]})}function d(){const e=document.documentElement.dataset.theme||"auto",t=document.getElementById("theme-toggle-btn");t&&(c(t,e),m(t));const n=document.getElementById("theme-select");n&&(s(n,e),r(n)),u()}d();document.addEventListener("astro:page-load",d);</script> <script type="module" src="/legacy-personal-site/v4/_astro/docsearch.astro_astro_type_script_index_0_lang.B0uJCub6.js"></script> <script type="module">function a(){function r(){const n=document.documentElement.dataset.colorScheme==="dark";document.querySelectorAll(".mermaid-diagram").forEach(e=>{const t=n?e.dataset.srcDark:e.dataset.srcLight;t&&e.src!==new URL(t,location.origin).href&&(e.src=t)})}r(),new MutationObserver(()=>r()).observe(document.documentElement,{attributes:!0,attributeFilter:["data-color-scheme"]})}document.addEventListener("DOMContentLoaded",a);document.addEventListener("astro:page-load",a);</script> </body> </html> 

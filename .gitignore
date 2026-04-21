@@ -14,5 +14,3 @@ v5/pagefind/
 
 # Local env files created during archival builds.
 v4/.env
-
-gh-pages

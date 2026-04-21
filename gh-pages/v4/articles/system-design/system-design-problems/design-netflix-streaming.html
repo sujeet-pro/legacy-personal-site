@@ -1,0 +1,1335 @@
+<!DOCTYPE html><html lang="en"> <head><meta name="astro-view-transitions-enabled" content="true"><meta name="astro-view-transitions-fallback" content="animate"><script type="module" src="/legacy-personal-site/v4/_astro/ClientRouter.astro_astro_type_script_index_0_lang.HWuSm9BO.js"></script><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light"><script>
+  ;(function () {
+    var THEMES = ["auto", "light", "dark", "high-contrast-light", "high-contrast-dark", "paper"]
+    var STORAGE_KEY = "site-theme"
+    var THEME_LABELS = {
+      auto: "Auto (system)",
+      light: "Light",
+      dark: "Dark",
+      "high-contrast-light": "High contrast light",
+      "high-contrast-dark": "High contrast dark",
+      paper: "Paper",
+    }
+    var darkQuery = window.matchMedia("(prefers-color-scheme: dark)")
+
+    // Expose shared config for module scripts
+    window.__themeConfig = { THEMES: THEMES, STORAGE_KEY: STORAGE_KEY, THEME_LABELS: THEME_LABELS }
+
+    // BroadcastChannel for cross-tab sync
+    var channel = null
+    try {
+      channel = new BroadcastChannel("site-theme-sync")
+    } catch (e) {
+      // BroadcastChannel not supported
+    }
+
+    function getResolvedTheme(theme) {
+      if (theme === "auto") {
+        return darkQuery.matches ? "dark" : "light"
+      }
+      return theme
+    }
+
+    function getColorScheme(resolved) {
+      if (resolved === "dark" || resolved === "high-contrast-dark") return "dark"
+      return "light"
+    }
+
+    function applyTheme(theme, _fromBroadcast) {
+      if (!theme || THEMES.indexOf(theme) === -1) theme = "auto"
+
+      var resolved = getResolvedTheme(theme)
+      var root = document.documentElement
+      var scheme = getColorScheme(resolved)
+
+      // Remove all theme classes
+      for (var i = 0; i < THEMES.length; i++) {
+        root.classList.remove("theme-" + THEMES[i])
+      }
+
+      // Apply resolved theme class
+      root.classList.add("theme-" + resolved)
+
+      // Set color-scheme
+      root.style.setProperty("--color-scheme", scheme)
+
+      // Update meta tag
+      var meta = document.querySelector('meta[name="color-scheme"]')
+      if (meta) meta.setAttribute("content", scheme)
+
+      // Set color scheme data attribute for CSS/JS consumers
+      root.dataset.colorScheme = scheme
+
+      // Store the user's chosen theme (not the resolved one)
+      try {
+        localStorage.setItem(STORAGE_KEY, theme)
+      } catch (e) {
+        // localStorage may be unavailable
+      }
+
+      // Dispatch event for other scripts to react
+      root.dataset.theme = theme
+      root.dataset.resolvedTheme = resolved
+
+      // Broadcast to other tabs (but not if we received this from another tab)
+      if (!_fromBroadcast && channel) {
+        try {
+          channel.postMessage({ theme: theme })
+        } catch (e) {
+          // Channel may be closed
+        }
+      }
+    }
+
+    // Smart cycling: skip the theme that "auto" resolves to
+    function getNextTheme() {
+      var current = "auto"
+      try {
+        current = localStorage.getItem(STORAGE_KEY) || "auto"
+      } catch (e) {}
+      if (THEMES.indexOf(current) === -1) current = "auto"
+
+      var idx = THEMES.indexOf(current)
+      var next = THEMES[(idx + 1) % THEMES.length]
+
+      // If current is "auto", skip the theme auto resolves to
+      if (current === "auto") {
+        var autoResolved = getResolvedTheme("auto")
+        if (next === autoResolved) {
+          next = THEMES[(idx + 2) % THEMES.length]
+        }
+      }
+
+      return next
+    }
+
+    // Apply on load
+    var saved = "auto"
+    try {
+      saved = localStorage.getItem(STORAGE_KEY) || "auto"
+    } catch (e) {
+      // localStorage may be unavailable
+    }
+    applyTheme(saved)
+
+    // Listen for OS preference changes when in auto mode
+    darkQuery.addEventListener("change", function () {
+      var current = "auto"
+      try {
+        current = localStorage.getItem(STORAGE_KEY) || "auto"
+      } catch (e) {}
+      if (current === "auto") {
+        applyTheme("auto")
+      }
+    })
+
+    // Listen for cross-tab theme changes
+    if (channel) {
+      channel.onmessage = function (event) {
+        if (event.data && event.data.theme) {
+          applyTheme(event.data.theme, true)
+        }
+      }
+    }
+
+    // Expose for runtime use
+    window.applySiteTheme = applyTheme
+    window.getNextTheme = getNextTheme
+  })()
+</script><!-- Inline font-face declarations with base path --><style>
+      @font-face {
+        font-family: "Open Sans";
+        font-style: normal;
+        font-weight: 300 800;
+        font-display: swap;
+        src: url("/legacy-personal-site/v4/fonts/open-sans-latin-wght-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+          U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: "JetBrains Mono";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("/legacy-personal-site/v4/fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+          U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+    </style><!-- Preload local fonts --><link rel="preload" as="font" type="font/woff2" href="/legacy-personal-site/v4/fonts/open-sans-latin-wght-normal.woff2" crossorigin="anonymous"><link rel="preload" as="font" type="font/woff2" href="/legacy-personal-site/v4/fonts/jetbrains-mono-latin-400-normal.woff2" crossorigin="anonymous"><!-- Main favicon --><link rel="icon" type="image/x-icon" href="/legacy-personal-site/v4/favicons/favicon.ico"><!-- Apple Touch Icons --><link rel="apple-touch-icon" sizes="57x57" href="/legacy-personal-site/v4/favicons/apple-icon-57x57.png"><link rel="apple-touch-icon" sizes="60x60" href="/legacy-personal-site/v4/favicons/apple-icon-60x60.png"><link rel="apple-touch-icon" sizes="72x72" href="/legacy-personal-site/v4/favicons/apple-icon-72x72.png"><link rel="apple-touch-icon" sizes="76x76" href="/legacy-personal-site/v4/favicons/apple-icon-76x76.png"><link rel="apple-touch-icon" sizes="114x114" href="/legacy-personal-site/v4/favicons/apple-icon-114x114.png"><link rel="apple-touch-icon" sizes="120x120" href="/legacy-personal-site/v4/favicons/apple-icon-120x120.png"><link rel="apple-touch-icon" sizes="144x144" href="/legacy-personal-site/v4/favicons/apple-icon-144x144.png"><link rel="apple-touch-icon" sizes="152x152" href="/legacy-personal-site/v4/favicons/apple-icon-152x152.png"><link rel="apple-touch-icon" sizes="180x180" href="/legacy-personal-site/v4/favicons/apple-icon-180x180.png"><!-- Apple Touch Icon Precomposed (for older iOS versions) --><link rel="apple-touch-icon-precomposed" href="/legacy-personal-site/v4/favicons/apple-icon-precomposed.png"><!-- Standard Icons --><link rel="icon" type="image/png" sizes="192x192" href="/legacy-personal-site/v4/favicons/android-icon-192x192.png"><link rel="icon" type="image/png" sizes="144x144" href="/legacy-personal-site/v4/favicons/android-icon-144x144.png"><link rel="icon" type="image/png" sizes="96x96" href="/legacy-personal-site/v4/favicons/android-icon-96x96.png"><link rel="icon" type="image/png" sizes="72x72" href="/legacy-personal-site/v4/favicons/android-icon-72x72.png"><link rel="icon" type="image/png" sizes="48x48" href="/legacy-personal-site/v4/favicons/android-icon-48x48.png"><link rel="icon" type="image/png" sizes="36x36" href="/legacy-personal-site/v4/favicons/android-icon-36x36.png"><link rel="icon" type="image/png" sizes="32x32" href="/legacy-personal-site/v4/favicons/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/legacy-personal-site/v4/favicons/favicon-16x16.png"><!-- Web App Manifest --><link rel="manifest" href="/legacy-personal-site/v4/manifest.json"><!-- Microsoft Tiles --><meta name="msapplication-config" content="/legacy-personal-site/v4/browserconfig.xml"><meta name="msapplication-TileImage" content="/legacy-personal-site/v4/favicons/ms-icon-144x144.png"><meta name="msapplication-TileColor" content="#f8fafc"><!-- Theme Colors --><meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#020617" media="(prefers-color-scheme: dark)"><meta name="msapplication-TileColor" content="#f8fafc"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="docsearch:language" content="en"><!-- Canonical URL --><link rel="canonical" href="https://sujeet.pro/legacy-personal-site/v4/articles/system-design/system-design-problems/design-netflix-streaming.html"><!-- Primary Meta Tags --><title>Design Netflix Video Streaming - Sujeet Jaiswal</title><meta name="title" content="Design Netflix Video Streaming - Sujeet Jaiswal"><meta name="description" content="Netflix serves 300+ million subscribers across 190+ countries, delivering 94 billion hours of content in H2 2024 alone. Unlike user-generated video platforms (YouTube), Netflix is a consumption-first architecture—the challenge is not upload volume but delivering pre-encoded content with sub-second playback start times while optimizing for quality-per-bit across wildly different devices and network conditions. This design covers the Open Connect CDN, per-title/shot-based encoding pipeline, adaptive bitrate delivery, and the personalization systems that drive 80% of viewing hours."><!-- Open Graph / Facebook --><meta property="og:type" content="website"><meta property="og:url" content="https://sujeet.pro/legacy-personal-site/v4/articles/system-design/system-design-problems/design-netflix-streaming.html"><meta property="og:title" content="Design Netflix Video Streaming - Sujeet Jaiswal"><meta property="og:description" content="Netflix serves 300+ million subscribers across 190+ countries, delivering 94 billion hours of content in H2 2024 alone. Unlike user-generated video platforms (YouTube), Netflix is a consumption-first architecture—the challenge is not upload volume but delivering pre-encoded content with sub-second playback start times while optimizing for quality-per-bit across wildly different devices and network conditions. This design covers the Open Connect CDN, per-title/shot-based encoding pipeline, adaptive bitrate delivery, and the personalization systems that drive 80% of viewing hours."><!-- Twitter / X --><meta name="twitter:site" content="@sujeetpro"><meta name="twitter:card" content="summary_large_image"><!-- DocSearch facets --><meta name="docsearch:category" content="System Design"><meta name="docsearch:topic" content="System Design Problems"><link rel="alternate" type="application/rss+xml" href="/legacy-personal-site/v4/rss.xml"><link rel="sitemap" href="/legacy-personal-site/v4/sitemap-index.xml"><!-- LLM-friendly content --><link rel="alternate" type="text/plain" href="/legacy-personal-site/v4/llms.txt" title="LLM Index"><link rel="alternate" type="text/plain" href="/legacy-personal-site/v4/llms-full.txt" title="LLM Full Content"><link rel="stylesheet" href="/legacy-personal-site/v4/_astro/docsearch.CgGoh9IB.css">
+<style>/*! tailwindcss v4.2.1 | MIT License | https://tailwindcss.com */.sidebar-toc-list{gap:calc(var(--spacing,.25rem) * .5);flex-direction:column;display:flex}
+@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) and (not (color:rgb(from red r g b)))){*,:before,:after,::backdrop{--tw-border-style:solid;--tw-font-weight:initial;--tw-ordinal:initial;--tw-slashed-zero:initial;--tw-numeric-figure:initial;--tw-numeric-spacing:initial;--tw-numeric-fraction:initial}}}.article-nav-category{margin-bottom:calc(var(--spacing,.25rem) * 5)}.article-nav-category+.article-nav-category{border-top-style:var(--tw-border-style);padding-top:calc(var(--spacing,.25rem) * 2);border-top-width:1px;border-color:var(--color-border)}.article-nav-category-name{margin-bottom:calc(var(--spacing,.25rem) * 1.5);padding-inline:calc(var(--spacing,.25rem) * 1);font-family:var(--font-mono,ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);--tw-font-weight:var(--font-weight-semibold,600);font-weight:var(--font-weight-semibold,600);text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-muted);font-size:11px;display:block}.article-nav-category-name.is-current{color:var(--color-text)}.article-nav-topics{flex-direction:column;display:flex}.article-nav-topic{list-style:none}.article-nav-topic-toggle{cursor:pointer;border-radius:var(--radius-md,.375rem);width:100%;padding-inline:calc(var(--spacing,.25rem) * 2);padding-block:calc(var(--spacing,.25rem) * 1.5);color:var(--color-text-muted);transition:all var(--transition-fast);justify-content:space-between;align-items:center;font-size:13px;list-style:none;display:flex}.article-nav-topic-toggle::-webkit-details-marker{display:none}.article-nav-topic-toggle::marker{content:"";display:none}.article-nav-topic-toggle:hover{color:var(--color-text);background:var(--color-bg-alt)}.article-nav-topic-toggle.is-active{color:var(--color-text);font-weight:500}.article-nav-topic-name{min-width:calc(var(--spacing,.25rem) * 0);flex:1}.article-nav-topic-count{--tw-numeric-spacing:tabular-nums;font-variant-numeric:var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);color:var(--color-text-muted);opacity:.6;flex-shrink:0;font-size:11px}.article-nav-chevron{opacity:.4;width:12px;height:12px;transition:transform var(--transition-fast);flex-shrink:0;margin-left:.5rem}.article-nav-topic-toggle:hover .article-nav-chevron{opacity:.7}details[open]>.article-nav-topic-toggle .article-nav-chevron{transform:rotate(90deg)}.article-nav-articles{margin-left:calc(var(--spacing,.25rem) * 3);border-left-style:var(--tw-border-style);padding-left:calc(var(--spacing,.25rem) * 2);border-left-width:1px;border-color:var(--color-border)}.article-nav-article-link{border-radius:var(--radius-md,.375rem);padding-inline:calc(var(--spacing,.25rem) * 2);padding-block:calc(var(--spacing,.25rem) * 1);color:var(--color-text-muted);transition:all var(--transition-fast);font-size:13px;line-height:1.4;text-decoration-line:none;display:block}.article-nav-article-link:hover{color:var(--color-text);background:var(--color-bg-alt)}.article-nav-article-link.is-active{color:var(--color-text);background:var(--color-bg-alt);font-weight:500}@property --tw-border-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-font-weight{syntax:"*";inherits:false}@property --tw-ordinal{syntax:"*";inherits:false}@property --tw-slashed-zero{syntax:"*";inherits:false}@property --tw-numeric-figure{syntax:"*";inherits:false}@property --tw-numeric-spacing{syntax:"*";inherits:false}@property --tw-numeric-fraction{syntax:"*";inherits:false}/*! tailwindcss v4.2.1 | MIT License | https://tailwindcss.com */.article-frontmatter{margin-bottom:calc(var(--spacing,.25rem) * 8)}.article-navigation{margin-top:calc(var(--spacing,.25rem) * 16)}
+</style>
+<link rel="stylesheet" href="/legacy-personal-site/v4/_astro/_slug_.u3hNe2gV.css"><script type="module" src="/legacy-personal-site/v4/_astro/page.CLJIuoFF.js"></script></head> <body> <a href="#main" class="skip-link">Skip to main content</a> <header class="site-header"> <div class="header-container"> <nav class="header-nav"> <!-- Left side: sidebar toggle + logo --> <div class="header-left"> <button id="left-sidebar-toggle" class="sidebar-toggle-btn" aria-label="Toggle navigation sidebar" aria-expanded="true" title="Hide navigation sidebar" aria-hidden="false"> <svg width="1em" height="1em" class="icon-md" data-icon="carbon:side-panel-open">   <symbol id="ai:carbon:side-panel-open" viewBox="0 0 32 32"><path fill="currentColor" d="M28 4H4c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h24c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2M10 26H4V6h6zm18 0H12v-9h10.2l-3.6 3.6L20 22l6-6l-6-6l-1.4 1.4l3.6 3.6H12V6h16z"/></symbol><use href="#ai:carbon:side-panel-open"></use>  </svg> </button> <a href="/legacy-personal-site/v4/" class="header-logo">   <span class="header-logo-name">sujeet.pro</span>  </a> </div> <!-- Center: Nav links - hidden on mobile --> <div class="header-nav-links"> <a href="/legacy-personal-site/v4/articles" class="nav-link">  Articles </a><a href="/legacy-personal-site/v4/blogs" class="nav-link">  Blogs </a><a href="/legacy-personal-site/v4/projects" class="nav-link">  Projects </a> </div> <!-- Right side: search + sidebar toggle + hamburger --> <div class="header-actions"> <!-- DocSearch --> <div id="docsearch-container"></div> <!-- Theme Toggle --> <button id="theme-toggle-btn" class="sidebar-toggle-btn" aria-label="Toggle theme" title="Switch theme"> <!-- Auto (monitor) --> <svg data-theme-icon="auto" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M28 4H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h8v4H8v2h16v-2h-4v-4h8a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 18H4V6h24Z"></path> </svg> <!-- Light (sun) --> <svg data-theme-icon="light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 12.005a4 4 0 1 1-4 4 4.005 4.005 0 0 1 4-4m0-2a6 6 0 1 0 6 6 6 6 0 0 0-6-6ZM5.394 6.813 6.81 5.399l3.505 3.506L8.9 10.319ZM2 15.005h5v2H2ZM5.394 25.197l3.505-3.506 1.414 1.414-3.505 3.506ZM15 25.005h2v5h-2ZM21.687 23.106l1.414-1.414 3.506 3.505-1.414 1.414ZM25 15.005h5v2h-5ZM21.69 8.904l3.505-3.505 1.414 1.415-3.505 3.505ZM15 2.005h2v5h-2Z"></path> </svg> <!-- Dark (moon) --> <svg data-theme-icon="dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M13.502 5.414a15.075 15.075 0 0 0 11.594 18.194 11.113 11.113 0 0 1-7.975 3.39c-.138 0-.278.005-.418 0a11.094 11.094 0 0 1-3.2-21.584M14.98 3a1.002 1.002 0 0 0-.175.016 13.096 13.096 0 0 0 1.825 25.981c.164.006.328 0 .49 0a13.072 13.072 0 0 0 10.703-5.555 1.01 1.01 0 0 0-.783-1.565A13.08 13.08 0 0 1 15.89 4.38 1.015 1.015 0 0 0 14.98 3Z"></path> </svg> <!-- High contrast light --> <svg data-theme-icon="high-contrast-light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26V4a12 12 0 0 1 0 24Z"></path> </svg> <!-- High contrast dark --> <svg data-theme-icon="high-contrast-dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 2a12 12 0 0 1 0 24Z"></path> </svg> <!-- Paper (document) --> <svg data-theme-icon="paper" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M19 10h7v2h-7zM19 6h7v2h-7zM19 14h7v2h-7zM19 18h7v2h-7z"></path> <path d="M28 2H10a2.002 2.002 0 0 0-2 2v6H4a2.002 2.002 0 0 0-2 2v18a2 2 0 0 0 2 2h14a2.002 2.002 0 0 0 2-2v-6h8a2.002 2.002 0 0 0 2-2V4a2.002 2.002 0 0 0-2-2Zm-10 28H4V12h14Zm10-8H20V12a2.002 2.002 0 0 0-2-2h-8V4h18Z"></path> <path d="M6 16h10v2H6zM6 20h10v2H6zM6 24h7v2H6z"></path> </svg> </button> <button id="right-sidebar-toggle" class="sidebar-toggle-btn" aria-label="Toggle table of contents" aria-expanded="true" title="Hide table of contents" aria-hidden="false"> <svg width="1em" height="1em" class="icon-md" data-icon="carbon:side-panel-close">   <symbol id="ai:carbon:side-panel-close" viewBox="0 0 32 32"><path fill="currentColor" d="M28 4H4c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h24c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2M10 26H4V6h6zm18-11H17.8l3.6-3.6L20 10l-6 6l6 6l1.4-1.4l-3.6-3.6H28v9H12V6h16z"/></symbol><use href="#ai:carbon:side-panel-close"></use>  </svg> </button> <!-- Hamburger Menu - visible on mobile only --> <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu" title="Open menu"> <svg width="1em" height="1em" class="icon-lg" data-icon="carbon:menu">   <symbol id="ai:carbon:menu" viewBox="0 0 32 32"><path fill="currentColor" d="M4 6h24v2H4zm0 18h24v2H4zm0-12h24v2H4zm0 6h24v2H4z"/></symbol><use href="#ai:carbon:menu"></use>  </svg> </button> </div> </nav> </div> </header> <div id="mobile-menu-overlay" class="mobile-menu-overlay is-hidden"></div> <aside id="mobile-menu" class="mobile-menu" aria-hidden="true"> <div class="mobile-menu-header"> <a href="/legacy-personal-site/v4/" class="nav-link nav-logo">   sujeet.pro  </a> <button id="mobile-menu-close" class="mobile-menu-close" aria-label="Close menu"> <svg width="1em" height="1em" class="icon-lg" data-icon="carbon:close">   <symbol id="ai:carbon:close" viewBox="0 0 32 32"><path fill="currentColor" d="M17.414 16L24 9.414L22.586 8L16 14.586L9.414 8L8 9.414L14.586 16L8 22.586L9.414 24L16 17.414L22.586 24L24 22.586z"/></symbol><use href="#ai:carbon:close"></use>  </svg> </button> </div> <nav class="mobile-menu-nav"> <a href="/legacy-personal-site/v4/articles" class="mobile-menu-link">  Articles </a><a href="/legacy-personal-site/v4/blogs" class="mobile-menu-link">  Blogs </a><a href="/legacy-personal-site/v4/projects" class="mobile-menu-link">  Projects </a> </nav> </aside> <script type="module" src="/legacy-personal-site/v4/_astro/mobile-menu.astro_astro_type_script_index_0_lang.AuCdxukU.js"></script>  <div class="zen-layout"> <aside id="left-sidebar" class="zen-sidebar zen-sidebar-left" aria-label="Navigation sidebar"> <div class="zen-sidebar-header"> <span class="zen-sidebar-header-title">Navigation</span> <button class="zen-sidebar-close" data-sidebar-close="left" aria-label="Close navigation sidebar"> <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5"> <path d="M8 8l16 16M24 8L8 24"></path> </svg> </button> </div> <div class="zen-sidebar-content"> <nav aria-label="Article navigation" class="article-nav"> <div class="article-nav-category"> <span class="article-nav-category-name">Browser &amp; Runtime Internals</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Critical Rendering Path</span> <span class="article-nav-topic-count">(12)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-rendering-pipeline-overview" class="article-nav-article-link">  Critical Rendering Path: Rendering Pipeline Overview </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-dom-construction" class="article-nav-article-link">  Critical Rendering Path: DOM Construction </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-cssom-construction" class="article-nav-article-link">  Critical Rendering Path: CSSOM Construction </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-style-recalculation" class="article-nav-article-link">  Critical Rendering Path: Style Recalculation </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-layout" class="article-nav-article-link">  Critical Rendering Path: Layout Stage </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-prepaint" class="article-nav-article-link">  Critical Rendering Path: Prepaint </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-paint" class="article-nav-article-link">  Critical Rendering Path: Paint Stage </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-commit" class="article-nav-article-link">  Critical Rendering Path: Commit </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-layerize" class="article-nav-article-link">  Critical Rendering Path: Layerize </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-raster" class="article-nav-article-link">  Critical Rendering Path: Rasterization </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-composit" class="article-nav-article-link">  Critical Rendering Path: Compositing </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-draw" class="article-nav-article-link">  Critical Rendering Path: Draw </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">JavaScript Runtime Internals</span> <span class="article-nav-topic-count">(7)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/v8-engine-architecture" class="article-nav-article-link">  V8 Engine Architecture: Parsing, Optimization, and JIT </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/browser-internals" class="article-nav-article-link">  Browser Architecture: Processes, Caching, and Extensions </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/browser-event-loop" class="article-nav-article-link">  Browser Event Loop: Tasks, Microtasks, Rendering, and Idle Time </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/nodejs-runtime-architecture" class="article-nav-article-link">  Node.js Runtime Architecture: Event Loop, Streams, and APIs </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/libuv-event-loop-internals" class="article-nav-article-link">  libuv Internals: Event Loop and Async I/O </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/nodejs-event-loop" class="article-nav-article-link">  Node.js Event Loop: Phases, Queues, and Process Exit </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/js-event-loop" class="article-nav-article-link">  JS Event Loop: Tasks, Microtasks, and Rendering (For Browser &amp; Node.js) </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name is-current">System Design</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">System Design Fundamentals</span> <span class="article-nav-topic-count">(20)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/consistency-and-cap-theorem" class="article-nav-article-link">  Consistency Models and the CAP Theorem </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/distributed-consensus" class="article-nav-article-link">  Distributed Consensus </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/time-and-ordering" class="article-nav-article-link">  Time and Ordering in Distributed Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/failure-modes-and-resilience" class="article-nav-article-link">  Failure Modes and Resilience Patterns </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/storage-choices-sql-vs-nosql" class="article-nav-article-link">  Storage Choices: SQL vs NoSQL </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/sharding-and-replication" class="article-nav-article-link">  Sharding and Replication </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/indexing-and-query-optimization" class="article-nav-article-link">  Indexing and Query Optimization </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/transactions-and-acid" class="article-nav-article-link">  Transactions and ACID Properties </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/load-balancers-architecture" class="article-nav-article-link">  Load Balancer Architecture: L4 vs L7 and Routing </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/cdn-architecture-and-caching" class="article-nav-article-link">  CDN Architecture and Edge Caching </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/caching-fundamentals-and-strategies" class="article-nav-article-link">  Caching Fundamentals and Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/api-gateway-patterns" class="article-nav-article-link">  API Gateway Patterns: Routing, Auth, and Policies </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/service-discovery-and-registry" class="article-nav-article-link">  Service Discovery and Registry Patterns </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/dns-deep-dive" class="article-nav-article-link">  DNS Deep Dive </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/queues-and-pubsub" class="article-nav-article-link">  Queues and Pub/Sub: Decoupling and Backpressure </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/event-driven-architecture" class="article-nav-article-link">  Event-Driven Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/rpc-and-api-design" class="article-nav-article-link">  RPC and API Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/rate-limiting-strategies" class="article-nav-article-link">  Rate Limiting Strategies: Token Bucket, Leaky Bucket, and Sliding Window </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/circuit-breaker-patterns" class="article-nav-article-link">  Circuit Breaker Patterns for Resilient Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/capacity-planning-and-estimation" class="article-nav-article-link">  Capacity Planning and Back-of-the-Envelope Estimates </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">System Design Building Blocks</span> <span class="article-nav-topic-count">(10)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/lru-cache-design" class="article-nav-article-link">  LRU Cache Design: Eviction Strategies and Trade-offs </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/unique-id-generation" class="article-nav-article-link">  Unique ID Generation in Distributed Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-cache-design" class="article-nav-article-link">  Distributed Cache Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/blob-storage-design" class="article-nav-article-link">  Blob Storage Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-search-engine" class="article-nav-article-link">  Distributed Search Engine </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-logging-system" class="article-nav-article-link">  Distributed Logging System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-monitoring" class="article-nav-article-link">  Distributed Monitoring Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/task-scheduler-design" class="article-nav-article-link">  Task Scheduler Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/sharded-counters" class="article-nav-article-link">  Sharded Counters </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/leaderboard-design" class="article-nav-article-link">  Leaderboard Design </a> </div> </details><details class="article-nav-topic" open> <summary class="article-nav-topic-toggle is-active"> <span class="article-nav-topic-name">System Design Problems</span> <span class="article-nav-topic-count">(28)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-key-value-store" class="article-nav-article-link">  Design a Distributed Key-Value Store </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-distributed-file-system" class="article-nav-article-link">  Design a Distributed File System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-time-series-database" class="article-nav-article-link">  Design a Time Series Database </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-youtube-video-platform" class="article-nav-article-link">  Design a YouTube-Style Video Platform </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-netflix-streaming" class="article-nav-article-link is-active">  Design Netflix Video Streaming </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-instagram-photo-sharing" class="article-nav-article-link">  Design Instagram: Photo Sharing at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-spotify-music-streaming" class="article-nav-article-link">  Design Spotify Music Streaming </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-real-time-chat-messaging" class="article-nav-article-link">  Design Real-Time Chat and Messaging </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-social-feed" class="article-nav-article-link">  Design a Social Feed (Facebook/Instagram) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-notification-system" class="article-nav-article-link">  Design a Notification System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-email-system" class="article-nav-article-link">  Design an Email System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-uber-ride-hailing" class="article-nav-article-link">  Design Uber-Style Ride Hailing </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-maps" class="article-nav-article-link">  Design Google Maps </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-yelp-proximity-service" class="article-nav-article-link">  Design Yelp: Location-Based Business Discovery Platform </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-search-autocomplete" class="article-nav-article-link">  Design Search Autocomplete: Prefix Matching at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-web-crawler" class="article-nav-article-link">  Design a Web Crawler </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-search" class="article-nav-article-link">  Design Google Search </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-docs-collaboration" class="article-nav-article-link">  Design Collaborative Document Editing (Google Docs) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-dropbox-file-sync" class="article-nav-article-link">  Design Dropbox File Sync </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-calendar" class="article-nav-article-link">  Design Google Calendar </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-issue-tracker" class="article-nav-article-link">  Design an Issue Tracker (Jira/Linear) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-payment-system" class="article-nav-article-link">  Design a Payment System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-flash-sale-system" class="article-nav-article-link">  Design a Flash Sale System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-amazon-shopping-cart" class="article-nav-article-link">  Design Amazon Shopping Cart </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/url-shortener-design" class="article-nav-article-link">  Design a URL Shortener: IDs, Storage, and Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-pastebin" class="article-nav-article-link">  Design Pastebin: Text Sharing, Expiration, and Abuse Prevention </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-api-rate-limiter" class="article-nav-article-link">  Design an API Rate Limiter: Distributed Throttling, Multi-Tenant Quotas, and Graceful Degradation </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-cookie-consent-service" class="article-nav-article-link">  Design a Cookie Consent Service </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Core Distributed Patterns</span> <span class="article-nav-topic-count">(9)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/crdt-for-collaborative-systems" class="article-nav-article-link">  CRDTs for Collaborative Systems </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/operational-transformation" class="article-nav-article-link">  Operational Transformation </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/distributed-locking" class="article-nav-article-link">  Distributed Locking </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/exactly-once-delivery" class="article-nav-article-link">  Exactly-Once Delivery </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/event-sourcing-deep-dive" class="article-nav-article-link">  Event Sourcing </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/change-data-capture" class="article-nav-article-link">  Change Data Capture </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/database-migrations-at-scale" class="article-nav-article-link">  Database Migrations at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/multi-region-architecture" class="article-nav-article-link">  Multi-Region Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/graceful-degradation" class="article-nav-article-link">  Graceful Degradation </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Frontend System Design</span> <span class="article-nav-topic-count">(15)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/virtualization-and-windowing" class="article-nav-article-link">  Virtualization and Windowing </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/offline-first-architecture" class="article-nav-article-link">  Offline-First Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/client-state-management" class="article-nav-article-link">  Client State Management </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/real-time-sync-client" class="article-nav-article-link">  Real-Time Sync Client </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/widget-framework" class="article-nav-article-link">  Multi-Tenant Pluggable Widget Framework </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/bundle-splitting-strategies" class="article-nav-article-link">  Bundle Splitting Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/rendering-strategies" class="article-nav-article-link">  Rendering Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/image-loading-optimization" class="article-nav-article-link">  Image Loading Optimization </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/performance-monitoring-client" class="article-nav-article-link">  Client Performance Monitoring </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-rich-text-editor" class="article-nav-article-link">  Design a Rich Text Editor </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-infinite-feed" class="article-nav-article-link">  Design an Infinite Feed </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-drag-drop-system" class="article-nav-article-link">  Design a Drag and Drop System </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-form-builder" class="article-nav-article-link">  Design a Form Builder </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-data-grid" class="article-nav-article-link">  Design a Data Grid </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-file-uploader" class="article-nav-article-link">  Design a File Uploader </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Real-World Case Studies</span> <span class="article-nav-topic-count">(20)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/facebook-2021-outage-analysis" class="article-nav-article-link">  Facebook 2021 Outage: BGP Withdrawal, DNS Collapse, and the Backbone That Disappeared </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/aws-kinesis-2020-outage" class="article-nav-article-link">  AWS Kinesis 2020 Outage: Thread Limits, Thundering Herds, and Hidden Dependencies </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/shopify-pod-architecture" class="article-nav-article-link">  Shopify: Pod Architecture for Multi-Tenant Isolation at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/netflix-microservices-evolution" class="article-nav-article-link">  Netflix: From Monolith to Microservices — A 7-Year Architecture Evolution </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/twitter-timeline-architecture" class="article-nav-article-link">  Twitter/X: Timeline Architecture and the Recommendation Algorithm </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/facebook-tao-social-graph" class="article-nav-article-link">  Facebook TAO: The Social Graph’s Distributed Cache </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/uber-microservices-journey" class="article-nav-article-link">  Uber: From Monolith to Domain-Oriented Microservices </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/uber-schemaless-datastore" class="article-nav-article-link">  Uber Schemaless: Building a Scalable Datastore on MySQL </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/slack-distributed-architecture" class="article-nav-article-link">  Slack: Scaling a Real-Time Messaging Platform from Monolith to Distributed Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/linkedin-kafka-origin" class="article-nav-article-link">  LinkedIn and the Birth of Apache Kafka: Solving the O(N²) Data Integration Problem </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/dropbox-magic-pocket" class="article-nav-article-link">  Dropbox Magic Pocket: Building Exabyte-Scale Blob Storage </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/instagram-cassandra-migration" class="article-nav-article-link">  Instagram: From Redis to Cassandra and the Rocksandra Storage Engine </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/youtube-vitess-scaling" class="article-nav-article-link">  YouTube: Scaling MySQL to Serve Billions with Vitess </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/github-mysql-migration" class="article-nav-article-link">  GitHub: Scaling MySQL from One Database to 1,200+ Hosts </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/pinterest-mysql-sharding" class="article-nav-article-link">  Pinterest: MySQL Sharding from Zero to Billions of Objects </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/stripe-idempotency-reliability" class="article-nav-article-link">  Stripe: Idempotency for Payment Reliability </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/discord-rust-read-states" class="article-nav-article-link">  Discord: Rewriting Read States from Go to Rust </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/discord-message-storage" class="article-nav-article-link">  Discord: From Billions to Trillions of Messages — A Three-Database Journey </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/figma-multiplayer-infrastructure" class="article-nav-article-link">  Figma: Building Multiplayer Infrastructure for Real-Time Design Collaboration </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/whatsapp-erlang-scaling" class="article-nav-article-link">  WhatsApp: 2 Million Connections Per Server with Erlang </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Platform Engineering</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Media Systems</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/drm-basics-for-streaming" class="article-nav-article-link">  DRM Fundamentals for Streaming Media </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/video-transcoding-pipeline" class="article-nav-article-link">  Video Transcoding Pipeline Design </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/web-video-playback-architecture" class="article-nav-article-link">  Web Video Playback Architecture: HLS, DASH, and Low Latency </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/image-processing-service-design" class="article-nav-article-link">  Image Processing Service Design: CDN, Transforms, and APIs </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Observability &amp; Reliability</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/slos-slis-error-budgets" class="article-nav-article-link">  SLOs, SLIs, and Error Budgets </a><a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/csp-violation-reporting-pipeline" class="article-nav-article-link">  CSP Violation Reporting Pipeline at Scale </a><a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/logging-metrics-tracing" class="article-nav-article-link">  Logging, Metrics, and Tracing Fundamentals </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Infrastructure &amp; Delivery</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/edge-delivery-and-cache-invalidation" class="article-nav-article-link">  Edge Delivery and Cache Invalidation </a><a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/deployment-strategies-blue-green-canary" class="article-nav-article-link">  Deployment Strategies: Blue-Green, Canary, and Rolling </a><a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/ssg-performance-optimizations" class="article-nav-article-link">  SSG Performance Optimizations: Build, Cache, and Delivery </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Experimentation &amp; Testing</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/experimentation-testing/k6-load-testing-overview" class="article-nav-article-link">  k6 Load Testing Overview: Smoke, Spike, Soak, Stress </a><a href="/legacy-personal-site/v4/articles/platform-engineering/experimentation-testing/statsig-experimentation-overview" class="article-nav-article-link">  Statsig Experimentation Platform: Architecture and Rollouts </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Platform Migrations</span> <span class="article-nav-topic-count">(1)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/platform-migrations/ecommerce-ssg-to-ssr-migration" class="article-nav-article-link">  E-commerce SSG to SSR Migration: Strategy and Pitfalls </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Frontend Engineering</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Frontend Architecture &amp; Patterns</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/micro-frontends-architecture" class="article-nav-article-link">  Micro-Frontends Architecture: Composition, Isolation, and Delivery </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/rendering-strategies-csr-ssr-ssg-isr" class="article-nav-article-link">  Rendering Strategies: CSR, SSR, SSG, and ISR </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/data-fetching-patterns" class="article-nav-article-link">  Frontend Data Fetching Patterns and Caching </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/css-architecture-strategies" class="article-nav-article-link">  CSS Architecture Strategies: BEM, Utility-First, and CSS-in-JS </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/component-architecture-blueprint" class="article-nav-article-link">  Component Architecture Blueprint for Scalable UI </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Web Performance Optimization</span> <span class="article-nav-topic-count">(6)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-infrastructure-stack" class="article-nav-article-link">  Web Performance Infrastructure: DNS, CDN, Caching, and Edge </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-javascript-optimization" class="article-nav-article-link">  JavaScript Performance Optimization for the Web </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-css-typography" class="article-nav-article-link">  CSS and Typography Performance Optimization </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-image-optimization" class="article-nav-article-link">  Image Performance Optimization for the Web </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/core-web-vitals-measurement" class="article-nav-article-link">  Core Web Vitals Measurement: Lab vs Field Data </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-overview" class="article-nav-article-link">  Web Performance Optimization: Overview and Playbook </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Design Systems</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-system-implementation-scaling" class="article-nav-article-link">  Design System Implementation and Scaling </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/component-library-architecture-and-governance" class="article-nav-article-link">  Component Library Architecture and Governance </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-tokens-and-theming" class="article-nav-article-link">  Design Tokens and Theming Architecture </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-system-adoption-foundations" class="article-nav-article-link">  Design System Adoption: Foundations and Governance </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">React Architecture</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-performance-patterns" class="article-nav-article-link">  React Performance Patterns: Rendering, Memoization, and Scheduling </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-hooks-advanced-patterns" class="article-nav-article-link">  React Hooks Advanced Patterns: Specialized Hooks and Composition </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-rendering-architecture" class="article-nav-article-link">  React Rendering Architecture: Fiber, SSR, and RSC </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-hooks-fundamentals" class="article-nav-article-link">  React Hooks Fundamentals: Rules, Core Hooks, and Custom Hooks </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Web Foundations</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Security &amp; Auth</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/csrf-and-cors-defense" class="article-nav-article-link">  CSRF and CORS Defense for Modern Web Applications </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/oauth-oidc-flow-guide" class="article-nav-article-link">  OAuth 2.0 and OIDC Flows: Authorization Code to PKCE </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/web-app-security-architecture" class="article-nav-article-link">  Web Application Security Architecture </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/auth-foundations-sessions-tokens" class="article-nav-article-link">  Authentication Foundations: Sessions, Tokens, and Trust </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/owasp-top-10-guide" class="article-nav-article-link">  OWASP Top 10: Web Application Security Risks </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Networking &amp; Protocols</span> <span class="article-nav-topic-count">(7)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/http3-quic-and-tls" class="article-nav-article-link">  HTTP/3 and QUIC: Transport Layer Revolution </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/http1-1-to-http2-evolution" class="article-nav-article-link">  HTTP/1.1 to HTTP/2: Bottlenecks and Multiplexing </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/tls-1-3-handshake-and-https" class="article-nav-article-link">  TLS 1.3 Handshake and HTTPS Hardening </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-security-doh-dot-dnssec" class="article-nav-article-link">  DNS Security and Privacy: DNSSEC, DoH, and DoT </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-troubleshooting-playbook" class="article-nav-article-link">  DNS Troubleshooting Playbook </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-records-ttl-and-caching" class="article-nav-article-link">  DNS Records, TTL Strategy, and Cache Behavior </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-resolution-path" class="article-nav-article-link">  DNS Resolution Path: Stub to Recursive to Authoritative </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Browser APIs</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/web-workers-and-worklets" class="article-nav-article-link">  Web Workers and Worklets for Off-Main-Thread Work </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/service-workers-and-cache-api" class="article-nav-article-link">  Service Workers and Cache API </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/fetch-and-streaming-apis" class="article-nav-article-link">  Fetch, Streams, and AbortController </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/storage-apis-local-indexeddb" class="article-nav-article-link">  Browser Storage APIs: localStorage, IndexedDB, and Beyond </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/dom-api-essentials" class="article-nav-article-link">  DOM API Essentials: Structure, Traversal, and Mutation </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Accessibility Standards</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/accessibility-standards/accessibility-testing-tooling" class="article-nav-article-link">  Accessibility Testing and Tooling Workflow </a><a href="/legacy-personal-site/v4/articles/web-foundations/accessibility-standards/wcag-2-2-practical-guide" class="article-nav-article-link">  WCAG 2.2: Practical Accessibility Guide </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Programming &amp; Patterns</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Data Structures</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/heaps-and-priority-queues" class="article-nav-article-link">  Heaps and Priority Queues: Internals, Trade-offs, and When Theory Breaks Down </a><a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/trees-and-graphs" class="article-nav-article-link">  Trees and Graphs: Traversals and Applications </a><a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/arrays-and-hash-maps" class="article-nav-article-link">  Arrays and Hash Maps: Engine Internals and Performance Reality </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Algorithms Foundations</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/k-crystal-balls-problem" class="article-nav-article-link">  K-Crystal Balls Problem: Jump Search Pattern </a><a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/sorting-algorithms-guide" class="article-nav-article-link">  Sorting Algorithms: Complexity, Stability, and Use Cases </a><a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/search-algorithms-guide" class="article-nav-article-link">  Search Algorithms: Linear, Binary, and Graph Traversal </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">JavaScript Patterns</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/publish-subscribe-pattern" class="article-nav-article-link">  Publish-Subscribe Pattern in JavaScript </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/exponential-backoff-retry-strategy" class="article-nav-article-link">  Exponential Backoff and Retry Strategy </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/async-queue-pattern" class="article-nav-article-link">  Async Queue Pattern in JavaScript </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/javascript-error-handling-patterns" class="article-nav-article-link">  JavaScript Error Handling Patterns </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/javascript-string-length" class="article-nav-article-link">  JavaScript String Length: Graphemes, UTF-16, and Unicode </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Developer Experience</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Productivity &amp; Workflows</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/developer-experience/productivity-workflows/chrome-developer-setup" class="article-nav-article-link">  Chrome Developer Setup: Extensions, Profiles, and Shortcuts </a><a href="/legacy-personal-site/v4/articles/developer-experience/productivity-workflows/editor-terminal-setup" class="article-nav-article-link">  macOS Developer Environment Setup </a> </div> </details> </div> </div> </nav> <script type="module">function e(){document.querySelector("#left-sidebar .article-nav-article-link.is-active")?.scrollIntoView({block:"nearest",behavior:"instant"})}e();document.addEventListener("astro:page-load",e);</script>  </div> </aside> <main id="main" class="zen-main"> <div class="page-content"> <nav class="breadcrumb" aria-label="Breadcrumb"><a title="Home" aria-label="Home" href="/legacy-personal-site/v4/" class="nav-link">  <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:home">   <symbol id="ai:carbon:home" viewBox="0 0 32 32"><path fill="currentColor" d="M16.612 2.214a1.01 1.01 0 0 0-1.242 0L1 13.419l1.243 1.572L4 13.621V26a2.004 2.004 0 0 0 2 2h20a2.004 2.004 0 0 0 2-2V13.63L29.757 15L31 13.428ZM18 26h-4v-8h4Zm2 0v-8a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v8H6V12.062l10-7.79l10 7.8V26Z"/></symbol><use href="#ai:carbon:home"></use>  </svg> </a><svg width="1em" height="1em" viewBox="0 0 32 32" class="breadcrumb-separator icon-sm" data-icon="carbon:chevron-right">   <use href="#ai:carbon:chevron-right"></use>  </svg><a href="/legacy-personal-site/v4/articles/system-design" class="nav-link">  System Design </a><svg width="1em" height="1em" class="breadcrumb-separator icon-sm" data-icon="carbon:chevron-right">   <symbol id="ai:carbon:chevron-right" viewBox="0 0 32 32"><path fill="currentColor" d="M22 16L12 26l-1.4-1.4l8.6-8.6l-8.6-8.6L12 6z"/></symbol><use href="#ai:carbon:chevron-right"></use>  </svg><a title="System Design Problems" href="/legacy-personal-site/v4/articles/system-design/system-design-problems" class="nav-link">  System Design Problems </a></nav>    <div id="reading-progress" class="reading-progress" style="width: 0%"></div> <script type="module">function l(){const e=document.getElementById("reading-progress");if(!e)return;const t=document.querySelector("article")||document.querySelector(".prose");if(!t){e.style.display="none";return}function r(){if(!t||!e)return;const i=t.getBoundingClientRect(),s=i.top+window.scrollY,u=i.height,c=window.innerHeight,g=window.scrollY,o=s-c/2,w=s+u-c/2,d=g;let a=0;d>o&&(a=Math.min(100,(d-o)/(w-o)*100)),e.style.width=`${Math.max(0,a)}%`}let n=!1;window.addEventListener("scroll",()=>{n||(requestAnimationFrame(()=>{r(),n=!1}),n=!0)}),r()}document.addEventListener("DOMContentLoaded",l);document.addEventListener("astro:page-load",l);</script>  <div class="frontmatter article-frontmatter">    <span class="frontmatter-item"> <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:time">   <symbol id="ai:carbon:time" viewBox="0 0 32 32"><path fill="currentColor" d="M16 30a14 14 0 1 1 14-14a14 14 0 0 1-14 14m0-26a12 12 0 1 0 12 12A12 12 0 0 0 16 4"/><path fill="currentColor" d="M20.59 22L15 16.41V7h2v8.58l5 5.01z"/></symbol><use href="#ai:carbon:time"></use>  </svg> 15 min read </span> <span class="frontmatter-item"> <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:calendar">   <symbol id="ai:carbon:calendar" viewBox="0 0 32 32"><path fill="currentColor" d="M26 4h-4V2h-2v2h-8V2h-2v2H6c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2m0 22H6V12h20zm0-16H6V6h4v2h2V6h8v2h2V6h4z"/></symbol><use href="#ai:carbon:calendar"></use>  </svg>
+Last updated on Feb 6, 2026 </span> </div>  <article id="article-content" class="article-prose-content DocSearch-content"> <h1 id="design-netflix-video-streaming" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#design-netflix-video-streaming">Design Netflix Video Streaming</a></h1>
+<p>Netflix serves 300+ million subscribers across 190+ countries, delivering 94 billion hours of content in H2 2024 alone. Unlike user-generated video platforms (YouTube), Netflix is a consumption-first architecture—the challenge is not upload volume but delivering pre-encoded content with sub-second playback start times while optimizing for quality-per-bit across wildly different devices and network conditions. This design covers the Open Connect CDN, per-title/shot-based encoding pipeline, adaptive bitrate delivery, and the personalization systems that drive 80% of viewing hours.</p>
+<figure>
+<p><img alt="High-level architecture: content preparation → proactive distribution to Open Connect edge → client playback with personalized steering." loading="lazy" decoding="async" fetchpriority="auto" width="1062" height="1187" src="/legacy-personal-site/v4/_astro/high-level-architecture-content-preparation-proactive-distribution-to-open-conne.CtYu4Dgr_Mj6cW.svg" ></p>
+<figcaption>High-level architecture: content preparation → proactive distribution to Open Connect edge → client playback with personalized steering.</figcaption>
+</figure>
+<h2 id="abstract" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#abstract">Abstract</a></h2>
+<p>Netflix’s streaming architecture is shaped by three fundamental constraints:</p>
+<ol>
+<li>
+<p><strong>Pre-known catalog enables proactive caching</strong>: Unlike YouTube’s real-time uploads, Netflix’s finite catalog (~7,500 titles in US) allows overnight proactive distribution to edge servers. This achieves 98%+ cache hit rates without origin egress during playback.</p>
+</li>
+<li>
+<p><strong>Quality perception varies by content</strong>: A documentary with static shots compresses efficiently at 2 Mbps; an action sequence needs 8+ Mbps for equivalent perceptual quality. Per-title and shot-based encoding optimizes each scene independently.</p>
+</li>
+<li>
+<p><strong>Device fragmentation demands multi-codec strategy</strong>: Smart TVs from 2015 support only H.264; modern browsers support AV1. Netflix encodes each title in multiple codecs (H.264, HEVC, VP9, AV1) to maximize quality-per-bit on each device class.</p>
+</li>
+</ol>
+<p>The core mechanisms:</p>
+<ul>
+<li><strong>Open Connect CDN</strong> embeds Netflix appliances directly in ISP networks, serving 100% of video traffic from 1,000+ locations</li>
+<li><strong>Per-title encoding</strong> analyzes content complexity and generates custom bitrate ladders, achieving 20% average bandwidth savings</li>
+<li><strong>Shot-based (Dynamic Optimizer) encoding</strong> allocates bits per-scene, achieving 50% bitrate reduction for equivalent quality</li>
+<li><strong>VMAF-driven quality control</strong> ensures perceptual quality targets (93+) rather than arbitrary bitrate thresholds</li>
+<li><strong>Proactive fill pipeline</strong> pre-positions content during off-peak hours based on predicted popularity</li>
+</ul>
+<h2 id="requirements" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#requirements">Requirements</a></h2>
+<h3 id="functional-requirements" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#functional-requirements">Functional Requirements</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Requirement</th><th>Priority</th><th>Notes</th></tr></thead><tbody><tr><td>Video playback</td><td>Core</td><td>Adaptive streaming, multiple quality levels</td></tr><tr><td>Multi-device support</td><td>Core</td><td>TVs, mobile, tablets, browsers, game consoles</td></tr><tr><td>Personalized recommendations</td><td>Core</td><td>80% of viewing driven by recommendations</td></tr><tr><td>Continue watching</td><td>Core</td><td>Cross-device position sync</td></tr><tr><td>Multiple profiles</td><td>Core</td><td>Per-user personalization</td></tr><tr><td>Offline downloads</td><td>Core</td><td>Mobile viewing without connectivity</td></tr><tr><td>Search and browse</td><td>Core</td><td>Full catalog discovery</td></tr><tr><td>Subtitles and audio tracks</td><td>Core</td><td>Multiple languages per title</td></tr><tr><td>DRM protection</td><td>Core</td><td>Content security across all platforms</td></tr><tr><td>Parental controls</td><td>Extended</td><td>Content filtering by rating</td></tr><tr><td>Live streaming</td><td>Extended</td><td>Events (recently added)</td></tr></tbody></table></div>
+<h3 id="non-functional-requirements" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#non-functional-requirements">Non-Functional Requirements</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Requirement</th><th>Target</th><th>Rationale</th></tr></thead><tbody><tr><td>Playback availability</td><td>99.99%</td><td>Revenue-critical, subscriber retention</td></tr><tr><td>Playback start latency</td><td>p99 &#x3C; 2s</td><td>Industry benchmark, user experience</td></tr><tr><td>Rebuffering ratio</td><td>&#x3C; 0.1% of playback time</td><td>Netflix target, premium experience</td></tr><tr><td>Video quality</td><td>VMAF > 93</td><td>Perceptual quality standard</td></tr><tr><td>Catalog availability</td><td>99.999%</td><td>Entire catalog playable</td></tr><tr><td>CDN cache hit rate</td><td>> 95%</td><td>Origin cost and latency</td></tr><tr><td>Concurrent streams</td><td>Support 20M+</td><td>Peak evening traffic</td></tr></tbody></table></div>
+<h3 id="scale-estimation" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#scale-estimation">Scale Estimation</a></h3>
+<p><strong>Netflix-scale baseline (Q4 2024):</strong></p>
+<div class="expressive-code"><link rel="stylesheet" href="/legacy-personal-site/v4/_astro/ec.g38ze.css"><script type="module" src="/legacy-personal-site/v4/_astro/ec.0vx5m.js"></script><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Subscribers: 301.63 million (global)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">DAU estimate: ~150M (50% daily engagement)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Concurrent peak estimate: 20M+ streams</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Viewing traffic:</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">- H2 2024: 94 billion hours watched</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">7</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">- Daily average: ~500M hours/day</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">8</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">- Peak concurrent: 20M streams × 8 Mbps average = 160 Tbps</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">9</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">- With 98% edge hit rate: 3.2 Tbps from origin (worst case)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">10</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">11</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Content library:</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">12</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">- US catalog: ~7,500 titles (3,800 movies, 1,800 TV shows)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">13</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">- ~59% Netflix Originals</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">14</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">- Storage per title: 10-50 encoded variants × 2-8 GB each</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">15</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">- Total encoded storage: ~5-10 PB estimated</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">16</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">17</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Open Connect scale:</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">18</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">- 1,000+ deployment locations</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">19</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">- 4,669+ servers mapped by researchers</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">20</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">- Single OCA: up to 400 Gbps serving capacity</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="Subscribers: 301.63 million (global)DAU estimate: ~150M (50% daily engagement)Concurrent peak estimate: 20M+ streamsViewing traffic:- H2 2024: 94 billion hours watched- Daily average: ~500M hours/day- Peak concurrent: 20M streams × 8 Mbps average = 160 Tbps- With 98% edge hit rate: 3.2 Tbps from origin (worst case)Content library:- US catalog: ~7,500 titles (3,800 movies, 1,800 TV shows)- ~59% Netflix Originals- Storage per title: 10-50 encoded variants × 2-8 GB each- Total encoded storage: ~5-10 PB estimatedOpen Connect scale:- 1,000+ deployment locations- 4,669+ servers mapped by researchers- Single OCA: up to 400 Gbps serving capacity"><div></div></button></div></figure></div>
+<p><strong>Live streaming record (November 2024):</strong></p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Tyson vs Paul fight: 65 million concurrent viewers</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Demonstrates burst capacity handling for events</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="Tyson vs Paul fight: 65 million concurrent viewersDemonstrates burst capacity handling for events"><div></div></button></div></figure></div>
+<h2 id="design-paths" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#design-paths">Design Paths</a></h2>
+<h3 id="path-a-third-party-cdn-traditional" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#path-a-third-party-cdn-traditional">Path A: Third-Party CDN (Traditional)</a></h3>
+<p><strong>Best when:</strong></p>
+<ul>
+<li>Smaller catalog (&#x3C; 1,000 titles)</li>
+<li>Limited geographic scope</li>
+<li>Variable/unpredictable traffic patterns</li>
+<li>Cost-sensitive at small scale</li>
+</ul>
+<p><strong>Architecture:</strong></p>
+<ul>
+<li>Use commercial CDN (Akamai, CloudFront, Fastly)</li>
+<li>Origin servers in cloud provider</li>
+<li>CDN handles caching, routing, TLS termination</li>
+</ul>
+<p><strong>Trade-offs:</strong></p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> No infrastructure investment</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Pay-per-GB pricing aligns with usage</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Instant global reach</li>
+<li><span role="img" aria-label="cross mark">❌</span> Per-GB costs prohibitive at scale (Netflix would pay billions)</li>
+<li><span role="img" aria-label="cross mark">❌</span> No ISP-level embedding (additional network hops)</li>
+<li><span role="img" aria-label="cross mark">❌</span> Less control over quality-of-experience</li>
+<li><span role="img" aria-label="cross mark">❌</span> Generic caching strategies, not content-aware</li>
+</ul>
+<p><strong>Real-world example:</strong> Most OTT services (Hulu, Peacock, Paramount+) rely on commercial CDNs. Acceptable when scale doesn’t justify custom infrastructure.</p>
+<h3 id="path-b-custom-cdn-with-isp-embedding-netflix-model" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#path-b-custom-cdn-with-isp-embedding-netflix-model">Path B: Custom CDN with ISP Embedding (Netflix Model)</a></h3>
+<p><strong>Best when:</strong></p>
+<ul>
+<li>Massive scale (100M+ subscribers)</li>
+<li>Predictable catalog enables proactive caching</li>
+<li>Quality differentiation is competitive advantage</li>
+<li>Long-term investment justifies infrastructure</li>
+</ul>
+<p><strong>Architecture:</strong></p>
+<ul>
+<li>Custom appliances (OCAs) deployed in ISP facilities</li>
+<li>Proactive overnight content distribution</li>
+<li>No per-GB transit costs after hardware investment</li>
+<li>Direct peering eliminates intermediate hops</li>
+</ul>
+<p><strong>Trade-offs:</strong></p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> 98%+ cache hit rates with proactive fill</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Sub-millisecond latency to end users</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Amortized cost far below commercial CDN at scale</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Complete control over caching and routing</li>
+<li><span role="img" aria-label="cross mark">❌</span> Massive upfront hardware investment</li>
+<li><span role="img" aria-label="cross mark">❌</span> ISP relationship management complexity</li>
+<li><span role="img" aria-label="cross mark">❌</span> Operational burden (hardware, software, support)</li>
+<li><span role="img" aria-label="cross mark">❌</span> Long deployment lead times for new regions</li>
+</ul>
+<p><strong>Real-world example:</strong> Netflix Open Connect handles 100% of Netflix traffic. Google has similar infrastructure (Google Global Cache) for YouTube.</p>
+<h3 id="path-comparison" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#path-comparison">Path Comparison</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Factor</th><th>Third-Party CDN</th><th>Custom CDN (Open Connect)</th></tr></thead><tbody><tr><td>Setup time</td><td>Hours</td><td>Months</td></tr><tr><td>Upfront cost</td><td>None</td><td>$100M+ in hardware</td></tr><tr><td>Per-GB cost</td><td>$0.02-0.10</td><td>Near-zero (amortized)</td></tr><tr><td>ISP latency</td><td>+10-50ms (peering)</td><td>+1-5ms (embedded)</td></tr><tr><td>Cache hit rate</td><td>85-95%</td><td>98%+</td></tr><tr><td>Control</td><td>Limited</td><td>Complete</td></tr><tr><td>Best for</td><td>&#x3C; 50M subscribers</td><td>> 100M subscribers</td></tr></tbody></table></div>
+<h3 id="this-articles-focus" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#this-articles-focus">This Article’s Focus</a></h3>
+<p>This article focuses on <strong>Path B (Custom CDN)</strong> because:</p>
+<ol>
+<li>Netflix scale justifies the infrastructure investment</li>
+<li>The proactive fill model is unique to predictable catalogs</li>
+<li>ISP embedding provides measurable quality differentiation</li>
+<li>The architecture demonstrates principles applicable to any large-scale streaming service</li>
+</ol>
+<h2 id="high-level-design" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#high-level-design">High-Level Design</a></h2>
+<h3 id="component-overview" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#component-overview">Component Overview</a></h3>
+<figure>
+<p><img alt="System architecture: AWS hosts control plane and personalization; Open Connect handles all video delivery." loading="lazy" decoding="async" fetchpriority="auto" width="2734" height="975" src="/legacy-personal-site/v4/_astro/system-architecture-aws-hosts-control-plane-and-personalization-open-connect-han.Dijxui-C_ESQlb.svg" ></p>
+<figcaption>System architecture: AWS hosts control plane and personalization; Open Connect handles all video delivery.</figcaption>
+</figure>
+<h3 id="traffic-split-aws-vs-open-connect" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#traffic-split-aws-vs-open-connect">Traffic Split: AWS vs Open Connect</a></h3>
+<p>Netflix pioneered a clean separation:</p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Traffic Type</th><th>Infrastructure</th><th>Rationale</th></tr></thead><tbody><tr><td>Video streaming</td><td>Open Connect (100%)</td><td>Bandwidth-intensive, latency-sensitive</td></tr><tr><td>API requests</td><td>AWS</td><td>Compute-intensive, scalable</td></tr><tr><td>Personalization</td><td>AWS</td><td>ML workloads, data-intensive</td></tr><tr><td>License acquisition</td><td>AWS</td><td>Security-sensitive, transactional</td></tr></tbody></table></div>
+<p>This separation allows each infrastructure to optimize for its workload. AWS handles millions of API requests; Open Connect handles hundreds of terabits of video.</p>
+<h3 id="playback-flow" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#playback-flow">Playback Flow</a></h3>
+<ol>
+<li><strong>Client requests playback</strong> → API Gateway authenticates, routes to Playback Service</li>
+<li><strong>Playback Service generates manifest</strong> → Lists available streams (codecs, resolutions, bitrates)</li>
+<li><strong>Steering Service selects OCAs</strong> → Returns ranked list based on proximity, load, health</li>
+<li><strong>Client acquires license</strong> → DRM key exchange with License Service</li>
+<li><strong>Client fetches segments from OCA</strong> → ABR algorithm selects quality</li>
+<li><strong>Playback begins</strong> → Continuous quality adaptation based on buffer and throughput</li>
+</ol>
+<h3 id="control-plane-vs-data-plane" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#control-plane-vs-data-plane">Control Plane vs Data Plane</a></h3>
+<p><strong>Control plane (AWS):</strong></p>
+<ul>
+<li>Authentication and authorization</li>
+<li>Manifest generation</li>
+<li>DRM license issuance</li>
+<li>Personalization and recommendations</li>
+<li>A/B testing</li>
+<li>Billing and account management</li>
+</ul>
+<p><strong>Data plane (Open Connect):</strong></p>
+<ul>
+<li>Video segment delivery</li>
+<li>Cache management</li>
+<li>BGP routing announcements</li>
+<li>Health reporting</li>
+</ul>
+<h2 id="open-connect-cdn" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#open-connect-cdn">Open Connect CDN</a></h2>
+<h3 id="architecture" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#architecture">Architecture</a></h3>
+<figure>
+<p><img alt="Open Connect topology: ISP-embedded OCAs serve most traffic; IXP clusters handle cache misses; origin serves ~2% of requests." loading="lazy" decoding="async" fetchpriority="auto" width="895" height="753" src="/legacy-personal-site/v4/_astro/open-connect-topology-isp-embedded-ocas-serve-most-traffic-ixp-clusters-handle-c.Bs__bd2e_Z1oJ2Q4.svg" ></p>
+<figcaption>Open Connect topology: ISP-embedded OCAs serve most traffic; IXP clusters handle cache misses; origin serves ~2% of requests.</figcaption>
+</figure>
+<h3 id="oca-appliance-specifications" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#oca-appliance-specifications">OCA Appliance Specifications</a></h3>
+<p>Netflix offers multiple OCA configurations to ISP partners:</p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Appliance Type</th><th>Storage</th><th>Throughput</th><th>Use Case</th></tr></thead><tbody><tr><td><strong>Standard Flash</strong></td><td>24 TB NVMe</td><td>190 Gbps</td><td>High-traffic ISPs</td></tr><tr><td><strong>Large Storage</strong></td><td>120 TB HDD</td><td>18 Gbps</td><td>Broad catalog, lower traffic</td></tr><tr><td><strong>Large Flash</strong></td><td>360 TB mixed</td><td>96 Gbps</td><td>Balanced performance/capacity</td></tr></tbody></table></div>
+<p><strong>Performance milestones:</strong></p>
+<ul>
+<li><strong>2017</strong>: 100 Gbps TLS streaming from single server (FreeBSD, NGINX)</li>
+<li><strong>2021</strong>: 400 Gbps from single server with TLS offload to NIC</li>
+</ul>
+<p><strong>2021 configuration achieving 400 Gbps:</strong></p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">CPU: AMD EPYC 7502p (32 cores, Rome)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Memory: 256 GB DDR4-3200</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Storage: 18 × 2TB Western Digital SN720 NVMe</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Network: 2 × Mellanox ConnectX-6 Dx (PCIe 4.0 x16)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">OS: FreeBSD</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Web Server: NGINX</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">7</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">TLS: Offloaded to NIC (key enabler for 400 Gbps)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="CPU: AMD EPYC 7502p (32 cores, Rome)Memory: 256 GB DDR4-3200Storage: 18 × 2TB Western Digital SN720 NVMeNetwork: 2 × Mellanox ConnectX-6 Dx (PCIe 4.0 x16)OS: FreeBSDWeb Server: NGINXTLS: Offloaded to NIC (key enabler for 400 Gbps)"><div></div></button></div></figure></div>
+<p>TLS offloading to the NIC was the critical optimization—without it, throughput capped at ~240 Gbps due to CPU-bound encryption.</p>
+<h3 id="deployment-models" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#deployment-models">Deployment Models</a></h3>
+<p><strong>Embedded (Inside ISP Network):</strong></p>
+<ul>
+<li>OCA deployed in ISP data center</li>
+<li>Zero transit cost for ISP</li>
+<li>Lowest latency to subscribers (1-5ms)</li>
+<li>ISP provides power, space, connectivity</li>
+</ul>
+<p><strong>Peering (Internet Exchange Point):</strong></p>
+<ul>
+<li>OCA deployed at IXP (e.g., Equinix, DE-CIX)</li>
+<li>Serves multiple ISPs via peering</li>
+<li>Higher latency than embedded (10-50ms)</li>
+<li>Used for ISPs without embedded partnership</li>
+</ul>
+<h3 id="bgp-routing" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#bgp-routing">BGP Routing</a></h3>
+<p>OCAs announce routes via BGP to attract Netflix traffic:</p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Netflix ASN: 2906 (customer-facing)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Open Connect ASN: 40027 (OCA infrastructure)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Route announcement:</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">- OCA announces covering prefix (e.g., 45.57.0.0/17)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">- ISP router prefers local OCA routes</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">7</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">- Traffic stays within ISP network</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="Netflix ASN: 2906 (customer-facing)Open Connect ASN: 40027 (OCA infrastructure)Route announcement:- OCA announces covering prefix (e.g., 45.57.0.0/17)- ISP router prefers local OCA routes- Traffic stays within ISP network"><div></div></button></div></figure></div>
+<p><strong>Route selection criteria (in order):</strong></p>
+<ol>
+<li>OCA availability and health</li>
+<li>Route specificity (most specific prefix wins)</li>
+<li>AS path length</li>
+<li>MED (Multi-Exit Discriminator)</li>
+<li>Geographic proximity</li>
+</ol>
+<h3 id="fill-pipeline" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#fill-pipeline">Fill Pipeline</a></h3>
+<p><strong>Proactive caching philosophy:</strong></p>
+<p>Netflix doesn’t wait for cache misses. The Fill Pipeline predicts content demand and pre-positions files during off-peak hours.</p>
+<p><strong>Fill process:</strong></p>
+<ol>
+<li><strong>Popularity computation</strong>: Daily prediction of what members will watch</li>
+<li><strong>Replica calculation</strong>: More popular content → more replicas across clusters</li>
+<li><strong>Manifest generation</strong>: Each OCA receives custom file list</li>
+<li><strong>Off-peak transfer</strong>: Nightly downloads during configurable windows</li>
+<li><strong>Verification</strong>: Checksum validation after transfer</li>
+</ol>
+<p><strong>Optimization milestone:</strong></p>
+<ul>
+<li>Original: Title-level popularity rankings</li>
+<li>Improved: File-level popularity (specific resolution/codec combinations)</li>
+<li>Result: Same cache efficiency with <strong>50% less storage</strong></li>
+</ul>
+<p>This works because not all files for a title are equally popular. 4K HDR files are only needed for capable devices; most streams use 720p or 1080p.</p>
+<h3 id="cache-performance" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#cache-performance">Cache Performance</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Metric</th><th>Target</th><th>Achieved</th></tr></thead><tbody><tr><td>Edge cache hit rate</td><td>> 95%</td><td>~98%</td></tr><tr><td>Origin fetch rate</td><td>&#x3C; 5%</td><td>~2%</td></tr><tr><td>Fill accuracy</td><td>> 90%</td><td>High (exact not published)</td></tr></tbody></table></div>
+<p>At Netflix scale, a 1% improvement in cache hit rate eliminates terabytes of daily origin egress.</p>
+<h2 id="video-encoding-pipeline" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#video-encoding-pipeline">Video Encoding Pipeline</a></h2>
+<h3 id="the-cosmos-platform" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-cosmos-platform">The Cosmos Platform</a></h3>
+<p>Netflix rebuilt its encoding pipeline on Cosmos (completed September 2023), replacing the previous Reloaded system.</p>
+<figure>
+<p><img alt="Cosmos encoding pipeline: analysis → encoding → quality control → packaging. Failed VMAF segments are re-encoded at higher bitrate." loading="lazy" decoding="async" fetchpriority="auto" width="377" height="1510" src="/legacy-personal-site/v4/_astro/cosmos-encoding-pipeline-analysis-encoding-quality-control-packaging-failed-vmaf.Co7-digU_Z1HKz5N.svg" ></p>
+<figcaption>Cosmos encoding pipeline: analysis → encoding → quality control → packaging. Failed VMAF segments are re-encoded at higher bitrate.</figcaption>
+</figure>
+<p><strong>Platform components:</strong></p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Component</th><th>Purpose</th></tr></thead><tbody><tr><td><strong>Optimus</strong></td><td>API layer</td></tr><tr><td><strong>Plato</strong></td><td>Workflow orchestration</td></tr><tr><td><strong>Stratum</strong></td><td>Serverless compute layer</td></tr><tr><td><strong>Timestone</strong></td><td>High-scale priority queuing</td></tr></tbody></table></div>
+<p><strong>Processing scale:</strong></p>
+<p>A single Stranger Things episode requires processing <strong>900 shots</strong> through the pipeline.</p>
+<h3 id="per-title-encoding" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#per-title-encoding">Per-Title Encoding</a></h3>
+<p>Introduced in 2015, per-title encoding customizes bitrate ladders based on content complexity.</p>
+<p><strong>Why fixed ladders fail:</strong></p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Fixed ladder (traditional):</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">720p: 3 Mbps</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">1080p: 5 Mbps</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">4K: 16 Mbps</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Reality:</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">7</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">- Documentary (low motion): VMAF 93 at 720p/1.5 Mbps</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">8</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">- Action movie (high motion): VMAF 93 at 720p/4 Mbps</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">9</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">10</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Result: Fixed ladder wastes 2.5 Mbps on documentaries, under-serves action movies</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="Fixed ladder (traditional):720p: 3 Mbps1080p: 5 Mbps4K: 16 MbpsReality:- Documentary (low motion): VMAF 93 at 720p/1.5 Mbps- Action movie (high motion): VMAF 93 at 720p/4 MbpsResult: Fixed ladder wastes 2.5 Mbps on documentaries, under-serves action movies"><div></div></button></div></figure></div>
+<p><strong>Per-title methodology:</strong></p>
+<ol>
+<li>Encode source to hundreds of resolution/bitrate combinations</li>
+<li>Compute VMAF score for each combination</li>
+<li>Plot quality vs. bitrate curve (convex hull analysis)</li>
+<li>Select optimal points on the curve as the custom ladder</li>
+</ol>
+<p><strong>Results:</strong></p>
+<ul>
+<li>Average: <strong>20% bandwidth savings</strong> without quality loss</li>
+<li>Some titles: <strong>50%+ reduction</strong> (low-complexity content)</li>
+</ul>
+<h3 id="shot-based-encoding-dynamic-optimizer" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#shot-based-encoding-dynamic-optimizer">Shot-Based Encoding (Dynamic Optimizer)</a></h3>
+<p>Per-title improved on fixed ladders, but applied uniform bitrate across an entire title. Shot-based encoding optimizes each scene independently.</p>
+<p><strong>How it works:</strong></p>
+<ol>
+<li><strong>Shot detection</strong>: Identify scene boundaries (cuts, fades, motion discontinuities)</li>
+<li><strong>Complexity analysis</strong>: Compute per-shot complexity (motion, texture, film grain)</li>
+<li><strong>Bitrate allocation</strong>: Allocate more bits to complex shots, fewer to simple ones</li>
+<li><strong>Encoding</strong>: IDR frames aligned with shot boundaries</li>
+<li><strong>Assembly</strong>: Concatenate variable-bitrate shots</li>
+</ol>
+<p><strong>Results:</strong></p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Improvement</th><th>Metric</th></tr></thead><tbody><tr><td>Bitrate reduction</td><td><strong>30%</strong> vs fixed-QP encoding</td></tr><tr><td>Quality-equivalent bitrate</td><td><strong>50% lower</strong> for same VMAF</td></tr><tr><td>4K achievement</td><td><strong>8 Mbps</strong> (previously 16 Mbps)</td></tr><tr><td>HDR storage</td><td><strong>58%</strong> of fixed ladder storage</td></tr></tbody></table></div>
+<p><strong>Example scene:</strong></p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Scene 1: Dialogue in dim room (low complexity)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">  </span></span><span style="--0:#24292e;--1:#e1e4e8">- Fixed: 5 Mbps, VMAF 96</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">  </span></span><span style="--0:#24292e;--1:#e1e4e8">- Dynamic: 2 Mbps, VMAF 95</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">  </span></span><span style="--0:#24292e;--1:#e1e4e8">- Savings: 3 Mbps, negligible quality loss</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Scene 2: Car chase with explosions (high complexity)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">7</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">  </span></span><span style="--0:#24292e;--1:#e1e4e8">- Fixed: 5 Mbps, VMAF 82 (quality loss)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">8</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">  </span></span><span style="--0:#24292e;--1:#e1e4e8">- Dynamic: 9 Mbps, VMAF 93</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">9</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">  </span></span><span style="--0:#24292e;--1:#e1e4e8">- Improvement: 11 VMAF points</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">10</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">11</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Result: Same average bitrate, but quality is optimized per-scene</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="Scene 1: Dialogue in dim room (low complexity)  - Fixed: 5 Mbps, VMAF 96  - Dynamic: 2 Mbps, VMAF 95  - Savings: 3 Mbps, negligible quality lossScene 2: Car chase with explosions (high complexity)  - Fixed: 5 Mbps, VMAF 82 (quality loss)  - Dynamic: 9 Mbps, VMAF 93  - Improvement: 11 VMAF pointsResult: Same average bitrate, but quality is optimized per-scene"><div></div></button></div></figure></div>
+<h3 id="codec-strategy" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#codec-strategy">Codec Strategy</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Codec</th><th>Bandwidth vs H.264</th><th>Device Support</th><th>Encoding Cost</th><th>Netflix Usage</th></tr></thead><tbody><tr><td><strong>H.264 (AVC)</strong></td><td>Baseline</td><td>Universal</td><td>1x</td><td>Legacy fallback</td></tr><tr><td><strong>H.265 (HEVC)</strong></td><td>50% better</td><td>iOS, Safari, some TVs</td><td>2-4x</td><td>Apple ecosystem</td></tr><tr><td><strong>VP9</strong></td><td>50% better</td><td>Chrome, Firefox, Android</td><td>2-3x</td><td>Web, Android</td></tr><tr><td><strong>AV1</strong></td><td>30-50% vs VP9</td><td>Modern browsers, new TVs</td><td>5-10x</td><td><strong>30% of streaming</strong></td></tr></tbody></table></div>
+<p><strong>AV1 adoption (as of 2024):</strong></p>
+<p>Netflix reported AV1 now powers ~30% of streaming traffic, becoming their primary format for capable devices. On TVs specifically, AV1 delivers <strong>1/3 less bandwidth</strong> than H.264/HEVC for equivalent quality.</p>
+<p><strong>Encoding decision tree:</strong></p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">if device.supports(AV1):</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">    </span></span><span style="--0:#24292e;--1:#e1e4e8">serve AV1</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">elif device.supports(VP9):</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">    </span></span><span style="--0:#24292e;--1:#e1e4e8">serve VP9</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">elif device.supports(HEVC) and device.is_apple:</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">    </span></span><span style="--0:#24292e;--1:#e1e4e8">serve HEVC</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">7</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">else:</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">8</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">    </span></span><span style="--0:#24292e;--1:#e1e4e8">serve H.264</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="if device.supports(AV1):    serve AV1elif device.supports(VP9):    serve VP9elif device.supports(HEVC) and device.is_apple:    serve HEVCelse:    serve H.264"><div></div></button></div></figure></div>
+<h3 id="vmaf-quality-metric" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#vmaf-quality-metric">VMAF Quality Metric</a></h3>
+<p>Video Multimethod Assessment Fusion (VMAF) is Netflix’s open-source perceptual quality metric, developed with USC, IPI/LS2N Nantes, and UT Austin LIVE lab.</p>
+<p><strong>Components:</strong></p>
+<ul>
+<li>Visual Information Fidelity (VIF)</li>
+<li>Detail Loss Metric (DLM)</li>
+<li>Mean Co-Located Pixel Difference (MCPD)</li>
+<li>Fused via SVM regression</li>
+</ul>
+<p><strong>Score interpretation:</strong></p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>VMAF Score</th><th>Quality Level</th></tr></thead><tbody><tr><td>93+</td><td>Excellent (Netflix target)</td></tr><tr><td>85-93</td><td>Good</td></tr><tr><td>70-85</td><td>Fair</td></tr><tr><td>&#x3C; 70</td><td>Poor (triggers re-encode)</td></tr></tbody></table></div>
+<p><strong>Why VMAF replaced PSNR:</strong></p>
+<ul>
+<li>PSNR measures pixel-level difference, not human perception</li>
+<li>Film grain scores poorly on PSNR but looks natural to viewers</li>
+<li>Blurring scores well on PSNR but looks bad to viewers</li>
+<li>VMAF correlates with Mean Opinion Score (MOS) from human evaluations</li>
+</ul>
+<p>Netflix replaced PSNR with VMAF in <strong>June 2016</strong>.</p>
+<h2 id="adaptive-bitrate-streaming" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#adaptive-bitrate-streaming">Adaptive Bitrate Streaming</a></h2>
+<h3 id="streaming-protocols" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#streaming-protocols">Streaming Protocols</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Protocol</th><th>Usage</th><th>Notes</th></tr></thead><tbody><tr><td><strong>MPEG-DASH</strong></td><td>Primary for most devices</td><td>ISO standard</td></tr><tr><td><strong>HLS</strong></td><td>Safari, iOS, Apple TV</td><td>Apple ecosystem</td></tr><tr><td><strong>CMAF</strong></td><td>Unified packaging</td><td>Single source for HLS + DASH</td></tr></tbody></table></div>
+<p>Netflix uses CMAF (Common Media Application Format) for packaging, which allows generating both HLS and DASH manifests from the same encoded segments.</p>
+<h3 id="manifest-generation" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#manifest-generation">Manifest Generation</a></h3>
+<p>When a client requests playback, the Playback Service generates a device-specific manifest:</p>
+<p><strong>Manifest contents:</strong></p>
+<ul>
+<li>Available bitrate ladder (device-appropriate)</li>
+<li>Codec options (filtered by device capability)</li>
+<li>Audio track options (languages, formats)</li>
+<li>Subtitle tracks</li>
+<li>DRM information (license server URL, key IDs)</li>
+<li>CDN URLs (OCA endpoints)</li>
+</ul>
+<p><strong>Example HLS variant playlist (simplified):</strong></p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="m3u8"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#616972;--1:#99A0A6">#EXTM3U</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#616972;--1:#99A0A6">#EXT-X-VERSION:7</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span style="--0:#616972;--1:#99A0A6">#EXT-X-STREAM-INF:BANDWIDTH=12000000,RESOLUTION=3840x2160,CODECS="av01.0.13M.08"</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span style="--0:#032F62;--1:#9ECBFF">4k-av1/playlist.m3u8</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">7</div></div><div class="code"><span style="--0:#616972;--1:#99A0A6">#EXT-X-STREAM-INF:BANDWIDTH=8000000,RESOLUTION=1920x1080,CODECS="av01.0.08M.08"</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">8</div></div><div class="code"><span style="--0:#032F62;--1:#9ECBFF">1080p-av1/playlist.m3u8</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">9</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">10</div></div><div class="code"><span style="--0:#616972;--1:#99A0A6">#EXT-X-STREAM-INF:BANDWIDTH=3000000,RESOLUTION=1280x720,CODECS="av01.0.04M.08"</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">11</div></div><div class="code"><span style="--0:#032F62;--1:#9ECBFF">720p-av1/playlist.m3u8</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">12</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">13</div></div><div class="code"><span style="--0:#616972;--1:#99A0A6">#EXT-X-STREAM-INF:BANDWIDTH=1000000,RESOLUTION=854x480,CODECS="av01.0.01M.08"</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">14</div></div><div class="code"><span style="--0:#032F62;--1:#9ECBFF">480p-av1/playlist.m3u8</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="#EXTM3U#EXT-X-VERSION:7#EXT-X-STREAM-INF:BANDWIDTH=12000000,RESOLUTION=3840x2160,CODECS=&#x22;av01.0.13M.08&#x22;4k-av1/playlist.m3u8#EXT-X-STREAM-INF:BANDWIDTH=8000000,RESOLUTION=1920x1080,CODECS=&#x22;av01.0.08M.08&#x22;1080p-av1/playlist.m3u8#EXT-X-STREAM-INF:BANDWIDTH=3000000,RESOLUTION=1280x720,CODECS=&#x22;av01.0.04M.08&#x22;720p-av1/playlist.m3u8#EXT-X-STREAM-INF:BANDWIDTH=1000000,RESOLUTION=854x480,CODECS=&#x22;av01.0.01M.08&#x22;480p-av1/playlist.m3u8"><div></div></button></div></figure></div>
+<h3 id="abr-algorithm" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#abr-algorithm">ABR Algorithm</a></h3>
+<p>Netflix’s ABR algorithm balances multiple objectives:</p>
+<p><strong>Input signals:</strong></p>
+<ul>
+<li>Buffer level (seconds of content buffered)</li>
+<li>Throughput history (recent segment download speeds)</li>
+<li>Device constraints (memory, CPU, battery)</li>
+<li>Network type (WiFi vs cellular)</li>
+</ul>
+<p><strong>Algorithm approach (hybrid):</strong></p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Throughput estimation:</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">- Exponential weighted moving average of recent downloads</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">- Conservative safety margin (70% of estimated)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Buffer-based adjustment:</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">- Low buffer (&#x3C; 10s): Prioritize stability, drop quality</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">7</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">- Target buffer (30s): Normal operation</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">8</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">- High buffer (> 45s): Allow quality increase</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">9</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">10</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Quality selection:</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">11</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">safe_bitrate = throughput_estimate × 0.7</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">12</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">buffer_factor = buffer_level / target_buffer</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">13</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">14</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">if rebuffering_recent:</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">15</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">    </span></span><span style="--0:#24292e;--1:#e1e4e8">selected = lowest_quality</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">16</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">elif buffer_factor &#x3C; 0.5:</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">17</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">    </span></span><span style="--0:#24292e;--1:#e1e4e8">selected = quality_below_safe_bitrate</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">18</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">else:</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">19</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">    </span></span><span style="--0:#24292e;--1:#e1e4e8">selected = highest_quality_below_safe_bitrate</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="Throughput estimation:- Exponential weighted moving average of recent downloads- Conservative safety margin (70% of estimated)Buffer-based adjustment:- Low buffer (< 10s): Prioritize stability, drop quality- Target buffer (30s): Normal operation- High buffer (> 45s): Allow quality increaseQuality selection:safe_bitrate = throughput_estimate × 0.7buffer_factor = buffer_level / target_bufferif rebuffering_recent:    selected = lowest_qualityelif buffer_factor < 0.5:    selected = quality_below_safe_bitrateelse:    selected = highest_quality_below_safe_bitrate"><div></div></button></div></figure></div>
+<p><strong>Startup behavior:</strong></p>
+<ol>
+<li>Start at conservative quality (720p or below)</li>
+<li>Fetch first few segments quickly to build buffer</li>
+<li>Ramp up quality as buffer exceeds 10 seconds</li>
+<li>Reach target quality within 15-30 seconds</li>
+</ol>
+<p><strong>Quality switch constraints:</strong></p>
+<ul>
+<li>Minimum dwell time between switches: 10 seconds (prevents oscillation)</li>
+<li>Maximum drop per switch: 2 quality levels</li>
+<li>Emergency drop: Any level if buffer &#x3C; 5 seconds</li>
+</ul>
+<h3 id="rebuffering-prevention" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#rebuffering-prevention">Rebuffering Prevention</a></h3>
+<p>Netflix targets &#x3C; 0.1% rebuffering ratio (industry-leading).</p>
+<p><strong>Mechanisms:</strong></p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Mechanism</th><th>How It Helps</th></tr></thead><tbody><tr><td>Proactive quality drop</td><td>Drop before buffer empties</td></tr><tr><td>Segment prefetch</td><td>Always fetch ahead</td></tr><tr><td>OCA fallback</td><td>Switch OCA if current is slow</td></tr><tr><td>Conservative startup</td><td>Don’t overcommit early</td></tr></tbody></table></div>
+<h2 id="drm-and-license-management" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#drm-and-license-management">DRM and License Management</a></h2>
+<h3 id="multi-drm-strategy" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#multi-drm-strategy">Multi-DRM Strategy</a></h3>
+<p>Netflix uses three DRM systems to cover all devices:</p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>DRM System</th><th>Provider</th><th>Devices</th></tr></thead><tbody><tr><td><strong>Widevine</strong></td><td>Google</td><td>Android, Chrome, smart TVs</td></tr><tr><td><strong>PlayReady</strong></td><td>Microsoft</td><td>Windows, Xbox, Edge</td></tr><tr><td><strong>FairPlay</strong></td><td>Apple</td><td>iOS, Safari, Apple TV</td></tr></tbody></table></div>
+<p>All three use CENC (Common Encryption) for the encrypted content, so Netflix encrypts once and decrypts with any compatible DRM.</p>
+<h3 id="license-acquisition-flow" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#license-acquisition-flow">License Acquisition Flow</a></h3>
+<figure>
+<p><img alt="DRM flow: player requests encrypted content, CDM generates license request, license server validates and returns keys." loading="lazy" decoding="async" fetchpriority="auto" width="922" height="701" src="/legacy-personal-site/v4/_astro/drm-flow-player-requests-encrypted-content-cdm-generates-license-request-license.C9hl_QjN_g4IM8.svg" ></p>
+<figcaption>DRM flow: player requests encrypted content, CDM generates license request, license server validates and returns keys.</figcaption>
+</figure>
+<p><strong>Security layers:</strong></p>
+<ul>
+<li><strong>Device attestation</strong>: CDM proves it’s a legitimate device</li>
+<li><strong>Entitlement check</strong>: License server verifies subscription</li>
+<li><strong>Key rotation</strong>: Periodic re-keying for live content</li>
+<li><strong>Output protection</strong>: HDCP enforcement for HD/4K</li>
+</ul>
+<h3 id="offline-download" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#offline-download">Offline Download</a></h3>
+<p><strong>Download architecture:</strong></p>
+<ol>
+<li>Client requests download license (more permissive duration)</li>
+<li>Segments downloaded and encrypted to device storage</li>
+<li>Offline license has expiration (typically 7-30 days)</li>
+<li>Playback requires periodic license renewal when online</li>
+</ol>
+<p><strong>Challenges:</strong></p>
+<ul>
+<li>Storage estimation before download</li>
+<li>Codec/bitrate changes require re-download</li>
+<li>License expiration handling</li>
+<li>Device storage management</li>
+</ul>
+<h2 id="personalization-system" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#personalization-system">Personalization System</a></h2>
+<h3 id="recommendation-architecture" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#recommendation-architecture">Recommendation Architecture</a></h3>
+<p>Netflix recommendations drive <strong>75-80% of viewing hours</strong>. The system is estimated to save over <strong>$1 billion annually</strong> by reducing subscriber churn.</p>
+<figure>
+<p><img alt="Two-stage recommendation: retrieve candidates via embedding similarity, rank with Personalized Video Ranking (PVR) model." loading="lazy" decoding="async" fetchpriority="auto" width="837" height="914" src="/legacy-personal-site/v4/_astro/two-stage-recommendation-retrieve-candidates-via-embedding-similarity-rank-with-.ClwAgUQ__iR7rC.svg" ></p>
+<figcaption>Two-stage recommendation: retrieve candidates via embedding similarity, rank with Personalized Video Ranking (PVR) model.</figcaption>
+</figure>
+<h3 id="algorithm-types" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#algorithm-types">Algorithm Types</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Algorithm</th><th>Purpose</th></tr></thead><tbody><tr><td><strong>Collaborative filtering</strong></td><td>Similar users like similar content</td></tr><tr><td><strong>Content-based</strong></td><td>Similar content features</td></tr><tr><td><strong>Matrix factorization</strong></td><td>Latent factor models</td></tr><tr><td><strong>Deep learning (PVR)</strong></td><td>Personalized ranking</td></tr><tr><td><strong>Contextual bandits</strong></td><td>Explore/exploit balance</td></tr><tr><td><strong>Reinforcement learning</strong></td><td>Long-term engagement</td></tr></tbody></table></div>
+<h3 id="personalized-artwork" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#personalized-artwork">Personalized Artwork</a></h3>
+<p>Netflix dynamically selects thumbnail artwork per user:</p>
+<p><strong>How it works:</strong></p>
+<ul>
+<li>Each title has multiple artwork variants</li>
+<li>Contextual bandit model predicts which variant will maximize click-through</li>
+<li>If Netflix knows you like Uma Thurman, Pulp Fiction shows Uma’s image</li>
+<li>If you like action, the same movie shows an action scene</li>
+</ul>
+<p><strong>Technical implementation:</strong></p>
+<ul>
+<li>Pre-computed personalized artwork at render time</li>
+<li>Cached results for fast serving</li>
+<li>Labels components in artwork (actors, genres, moods)</li>
+<li>A/B testing validates selections</li>
+</ul>
+<h3 id="ab-testing-scale" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#ab-testing-scale">A/B Testing Scale</a></h3>
+<p>Every product change goes through rigorous A/B testing:</p>
+<ul>
+<li>Users may be in multiple concurrent tests</li>
+<li>Tests run for weeks to measure long-term retention</li>
+<li>Causal inference prevents confounding</li>
+<li>Multi-objective optimization balances engagement vs. satisfaction</li>
+</ul>
+<h2 id="frontend-considerations" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#frontend-considerations">Frontend Considerations</a></h2>
+<h3 id="client-architecture" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#client-architecture">Client Architecture</a></h3>
+<p>Netflix clients (TV, mobile, web) share common patterns:</p>
+<p><strong>Core responsibilities:</strong></p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Component</th><th>Function</th></tr></thead><tbody><tr><td><strong>Manifest parser</strong></td><td>HLS/DASH parsing</td></tr><tr><td><strong>ABR controller</strong></td><td>Quality selection</td></tr><tr><td><strong>Buffer manager</strong></td><td>Segment prefetch</td></tr><tr><td><strong>DRM handler</strong></td><td>License acquisition, key management</td></tr><tr><td><strong>Player core</strong></td><td>Decode, render, audio sync</td></tr><tr><td><strong>Telemetry</strong></td><td>QoE metrics collection</td></tr></tbody></table></div>
+<h3 id="playback-start-optimization" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#playback-start-optimization">Playback Start Optimization</a></h3>
+<p><strong>Target: &#x3C; 2 seconds to first frame</strong></p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Phase</th><th>Target</th><th>Optimization</th></tr></thead><tbody><tr><td>DNS</td><td>&#x3C; 20ms</td><td>Pre-resolved CDN domains</td></tr><tr><td>TLS</td><td>&#x3C; 50ms</td><td>TLS 1.3, 0-RTT resumption</td></tr><tr><td>Manifest</td><td>&#x3C; 100ms</td><td>Edge-cached, pre-fetched</td></tr><tr><td>License</td><td>&#x3C; 200ms</td><td>Parallel with first segment</td></tr><tr><td>First segment</td><td>&#x3C; 500ms</td><td>Small initial segments</td></tr><tr><td>Decode + render</td><td>&#x3C; 200ms</td><td>Hardware decode</td></tr></tbody></table></div>
+<p><strong>Techniques:</strong></p>
+<ul>
+<li>DNS prefetch for OCA domains</li>
+<li>TLS session resumption</li>
+<li>Manifest pre-fetch while browsing</li>
+<li>License acquisition in parallel with segment fetch</li>
+<li>Initial segment at lower quality for fast decode</li>
+</ul>
+<h3 id="offline-playback" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#offline-playback">Offline Playback</a></h3>
+<p>Mobile apps support offline downloads with:</p>
+<ul>
+<li><strong>Storage estimation</strong>: Show size before download</li>
+<li><strong>Partial downloads</strong>: Resume interrupted downloads</li>
+<li><strong>Smart downloads</strong>: Auto-download next episodes</li>
+<li><strong>License management</strong>: Handle expiration gracefully</li>
+<li><strong>Quality selection</strong>: User chooses download quality</li>
+</ul>
+<p><strong>Mobile-optimized encoding:</strong></p>
+<p>Netflix introduced AVCHi-Mobile and VP9-Mobile encodes specifically optimized for mobile screens and storage constraints.</p>
+<h2 id="infrastructure" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#infrastructure">Infrastructure</a></h2>
+<h3 id="aws-architecture" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#aws-architecture">AWS Architecture</a></h3>
+<p>Netflix runs all non-video services on AWS:</p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Service</th><th>AWS Component</th><th>Purpose</th></tr></thead><tbody><tr><td>API Gateway</td><td>Custom (Zuul) + ELB</td><td>Request routing, auth</td></tr><tr><td>Service Discovery</td><td>Eureka</td><td>Dynamic service registry</td></tr><tr><td>Load Balancing</td><td>Ribbon (client-side)</td><td>Client-side balancing</td></tr><tr><td>Microservices</td><td>EC2 + Titus (containers)</td><td>1000+ services</td></tr><tr><td>Cache</td><td>EVCache (Memcached)</td><td>Hot data caching</td></tr><tr><td>Database</td><td>Cassandra, MySQL</td><td>Metadata, user data</td></tr><tr><td>Analytics</td><td>Kafka, Spark</td><td>Event processing</td></tr></tbody></table></div>
+<p><strong>EVCache scale (distributed cache):</strong></p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Clusters: 200 Memcached clusters</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Instances: 22,000 server instances</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Operations: 400 million ops/second</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Items: 2 trillion cached items</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Storage: 14.3 petabytes total</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="Clusters: 200 Memcached clustersInstances: 22,000 server instancesOperations: 400 million ops/secondItems: 2 trillion cached itemsStorage: 14.3 petabytes total"><div></div></button></div></figure></div>
+<h3 id="resilience-chaos-engineering" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#resilience-chaos-engineering">Resilience (Chaos Engineering)</a></h3>
+<p>Netflix pioneered chaos engineering to ensure resilience:</p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Tool</th><th>Function</th></tr></thead><tbody><tr><td><strong>Chaos Monkey</strong></td><td>Randomly terminates production instances</td></tr><tr><td><strong>Chaos Gorilla</strong></td><td>Drops entire AWS Availability Zone</td></tr><tr><td><strong>Chaos Kong</strong></td><td>Drops entire AWS Region</td></tr><tr><td><strong>FIT</strong></td><td>Targeted failure injection</td></tr></tbody></table></div>
+<p><strong>Philosophy:</strong></p>
+<p>Systems should be resilient to failure by design. Random production failures ensure this resilience is real, not theoretical.</p>
+<h3 id="global-architecture" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#global-architecture">Global Architecture</a></h3>
+<figure>
+<p><img alt="Netflix operates in 4 AWS regions for control plane; Open Connect provides global video delivery." loading="lazy" decoding="async" fetchpriority="auto" width="1095" height="504" src="/legacy-personal-site/v4/_astro/netflix-operates-in-4-aws-regions-for-control-plane-open-connect-provides-global.CCDCIG9J_ZHJHsI.svg" ></p>
+<figcaption>Netflix operates in 4 AWS regions for control plane; Open Connect provides global video delivery.</figcaption>
+</figure>
+<h2 id="conclusion" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#conclusion">Conclusion</a></h2>
+<p>Designing Netflix-scale streaming requires different optimizations than user-generated video platforms:</p>
+<p><strong>Key architectural decisions:</strong></p>
+<ol>
+<li><strong>Custom CDN (Open Connect)</strong> eliminates transit costs and reduces latency by embedding in ISP networks</li>
+<li><strong>Proactive fill pipeline</strong> achieves 98%+ cache hit rates by predicting demand and pre-positioning content</li>
+<li><strong>Per-title and shot-based encoding</strong> saves 30-50% bandwidth by optimizing each scene independently</li>
+<li><strong>Multi-codec strategy</strong> (H.264 → VP9 → AV1) maximizes quality-per-bit for each device class</li>
+<li><strong>VMAF-driven quality control</strong> ensures perceptual quality targets rather than arbitrary bitrate thresholds</li>
+<li><strong>Personalization at scale</strong> drives 80% of viewing, justifying massive recommendation infrastructure investment</li>
+</ol>
+<p><strong>What this design optimizes for:</strong></p>
+<ul>
+<li>Sub-2-second playback start</li>
+<li>Industry-leading rebuffering ratio (&#x3C; 0.1%)</li>
+<li>Bandwidth efficiency (best quality per bit)</li>
+<li>Global scale (300M+ subscribers, 190+ countries)</li>
+</ul>
+<p><strong>What this design sacrifices:</strong></p>
+<ul>
+<li>Upfront infrastructure investment ($100M+ in Open Connect)</li>
+<li>Operational complexity (ISP relationships, custom hardware)</li>
+<li>Encoding compute costs (per-title/shot analysis is expensive)</li>
+</ul>
+<p><strong>When to choose this design:</strong></p>
+<ul>
+<li>Premium streaming services where quality is a differentiator</li>
+<li>Scale justifies custom infrastructure investment (> 100M subscribers)</li>
+<li>Predictable catalog enables proactive caching (not user-generated)</li>
+</ul>
+<h2 id="appendix" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#appendix">Appendix</a></h2>
+<h3 id="prerequisites" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#prerequisites">Prerequisites</a></h3>
+<ul>
+<li>CDN architecture: edge caching, origin shield concepts</li>
+<li>Video encoding: codecs, containers, bitrates, transcoding</li>
+<li>Streaming protocols: HLS, DASH fundamentals</li>
+<li>DRM: encryption, license servers, CDM integration</li>
+<li>Distributed systems: microservices, caching, eventual consistency</li>
+</ul>
+<h3 id="terminology" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#terminology">Terminology</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Term</th><th>Definition</th></tr></thead><tbody><tr><td><strong>ABR</strong></td><td>Adaptive Bitrate—dynamically selecting video quality based on conditions</td></tr><tr><td><strong>AV1</strong></td><td>AOMedia Video 1—open, royalty-free video codec</td></tr><tr><td><strong>CDM</strong></td><td>Content Decryption Module—browser component handling DRM</td></tr><tr><td><strong>CMAF</strong></td><td>Common Media Application Format—unified packaging for HLS/DASH</td></tr><tr><td><strong>DASH</strong></td><td>Dynamic Adaptive Streaming over HTTP—ISO streaming standard</td></tr><tr><td><strong>HEVC</strong></td><td>High Efficiency Video Coding (H.265)—successor to H.264</td></tr><tr><td><strong>HLS</strong></td><td>HTTP Live Streaming—Apple’s adaptive streaming protocol</td></tr><tr><td><strong>OCA</strong></td><td>Open Connect Appliance—Netflix’s edge cache server</td></tr><tr><td><strong>Per-title encoding</strong></td><td>Custom bitrate ladder based on content complexity</td></tr><tr><td><strong>Shot-based encoding</strong></td><td>Variable bitrate allocation per scene</td></tr><tr><td><strong>VMAF</strong></td><td>Video Multimethod Assessment Fusion—perceptual quality metric</td></tr><tr><td><strong>VP9</strong></td><td>Google’s video codec, predecessor to AV1</td></tr></tbody></table></div>
+<h3 id="summary" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#summary">Summary</a></h3>
+<ul>
+<li>Netflix separates control plane (AWS) from data plane (Open Connect) for optimal scaling</li>
+<li>Open Connect embeds cache servers in 1,000+ ISP locations, serving 100% of video traffic</li>
+<li>Per-title encoding analyzes content complexity to generate custom bitrate ladders (20% savings)</li>
+<li>Shot-based encoding allocates bits per-scene for 30-50% additional efficiency</li>
+<li>AV1 codec now powers 30% of streaming, delivering 50%+ bandwidth savings over H.264</li>
+<li>Proactive fill pipeline pre-positions content overnight, achieving 98%+ cache hit rates</li>
+<li>Personalization (recommendations, artwork) drives 80% of viewing hours</li>
+</ul>
+<h3 id="references" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#references">References</a></h3>
+<ul>
+<li><a href="https://openconnect.netflix.com/en_gb/">Netflix Open Connect</a> - Official CDN documentation</li>
+<li><a href="https://openconnect.netflix.com/en/appliances/">Netflix Open Connect Appliances</a> - OCA specifications</li>
+<li><a href="https://netflixtechblog.com/per-title-encode-optimization-7e99442b62a2">Netflix Tech Blog - Per-Title Encode Optimization</a> - Per-title encoding methodology</li>
+<li><a href="https://netflixtechblog.com/dynamic-optimizer-a-perceptual-video-encoding-optimization-framework-e19f1e3a277f">Netflix Tech Blog - Dynamic Optimizer</a> - Shot-based encoding</li>
+<li><a href="https://netflixtechblog.com/serving-100-gbps-from-an-open-connect-appliance-cdb51dda3b99">Netflix Tech Blog - Serving 100 Gbps</a> - OCA performance optimization</li>
+<li><a href="https://papers.freebsd.org/2021/eurobsdcon/gallatin-netflix-freebsd-400gbps/">FreeBSD 400Gbps Presentation</a> - 400 Gbps achievement details</li>
+<li><a href="https://netflixtechblog.com/rebuilding-netflix-video-processing-pipeline-with-microservices-4e5e6310e359">Netflix Tech Blog - Rebuilding Video Processing Pipeline</a> - Cosmos platform architecture</li>
+<li><a href="https://netflixtechblog.com/the-netflix-cosmos-platform-35c14d9351ad">Netflix Tech Blog - The Netflix Cosmos Platform</a> - Pipeline components</li>
+<li><a href="https://github.com/Netflix/vmaf">Netflix VMAF GitHub</a> - Quality metric source and documentation</li>
+<li><a href="https://netflixtechblog.com/all-of-netflixs-hdr-video-streaming-is-now-dynamically-optimized-e9e0cb15f2ba">Netflix Tech Blog - HDR Dynamic Optimization</a> - HDR encoding optimization</li>
+<li><a href="https://github.com/Netflix/EVCache">Netflix EVCache GitHub</a> - Distributed caching system</li>
+<li><a href="https://research.netflix.com/research-area/recommendations">Netflix Research - Recommendations</a> - Recommendation system overview</li>
+<li><a href="https://www.rfc-editor.org/rfc/rfc8216">HLS Specification (RFC 8216)</a> - HTTP Live Streaming standard</li>
+<li><a href="https://www.iso.org/standard/79329.html">DASH Specification (ISO/IEC 23009-1)</a> - MPEG-DASH standard</li>
+</ul> </article>  <section class="article-navigation"> <div class="section-divider"> <span class="section-divider-text">Continue Reading</span> </div> <ul class="article-list"> <li class="article-card"> <p class="article-card-label">Previous</p> <h3 class="article-card-title"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-youtube-video-platform" class="article-card-link">  Design a YouTube-Style Video Platform </a> </h3> <div class="frontmatter article-card-frontmatter">   <span class="frontmatter-item"> <a title="Category - System Design" href="/legacy-personal-site/v4/articles/system-design" class="frontmatter-link">  System Design </a>  <span class="text-muted">/</span> <a title="Topic - System Design Problems" href="/legacy-personal-site/v4/articles/system-design/system-design-problems" class="frontmatter-link">  System Design Problems </a>  </span> <span class="frontmatter-item"> <svg width="1em" height="1em" viewBox="0 0 32 32" class="icon-sm" data-icon="carbon:time">   <use href="#ai:carbon:time"></use>  </svg> 15 min read </span>  </div> <p class="article-card-excerpt"> A video platform at YouTube scale handles massive upload volumes, transcoding across dozens of resolution/codec combinations, and global delivery to billions of daily viewers. This design covers the upload pipeline, transcoding infrastructure, adaptive streaming delivery, and metadata/discovery systems—focusing on the architectural decisions that enable sub-second playback start times while processing 500+ hours of new video every minute. </p> </li> <li class="article-card"> <p class="article-card-label">Next</p> <h3 class="article-card-title"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-instagram-photo-sharing" class="article-card-link">  Design Instagram: Photo Sharing at Scale </a> </h3> <div class="frontmatter article-card-frontmatter">   <span class="frontmatter-item"> <a title="Category - System Design" href="/legacy-personal-site/v4/articles/system-design" class="frontmatter-link">  System Design </a>  <span class="text-muted">/</span> <a title="Topic - System Design Problems" href="/legacy-personal-site/v4/articles/system-design/system-design-problems" class="frontmatter-link">  System Design Problems </a>  </span> <span class="frontmatter-item"> <svg width="1em" height="1em" viewBox="0 0 32 32" class="icon-sm" data-icon="carbon:time">   <use href="#ai:carbon:time"></use>  </svg> 19 min read </span>  </div> <p class="article-card-excerpt"> A photo-sharing social platform at Instagram scale handles 1+ billion photos uploaded daily, serves feeds to 500M+ daily active users, and delivers sub-second playback for Stories. This design covers the image upload pipeline, feed generation with fan-out strategies, Stories architecture, and the recommendation systems that power Explore—focusing on the architectural decisions that enable Instagram to process 95M+ daily uploads while maintaining real-time feed delivery. </p> </li> </ul> </section> </div> <footer class="site-footer"> <div class="site-footer-inner">  <nav class="site-footer-categories"> <a title="Browser &#38; Runtime Internals" href="/legacy-personal-site/v4/articles/browser-runtime-internals" class="nav-link">  Browser &amp; Runtime Internals </a><a title="System Design" href="/legacy-personal-site/v4/articles/system-design" class="nav-link">  System Design </a><a title="Platform Engineering" href="/legacy-personal-site/v4/articles/platform-engineering" class="nav-link">  Platform Engineering </a><a title="Frontend Engineering" href="/legacy-personal-site/v4/articles/frontend-engineering" class="nav-link">  Frontend Engineering </a><a title="Web Foundations" href="/legacy-personal-site/v4/articles/web-foundations" class="nav-link">  Web Foundations </a><a title="Programming &#38; Patterns" href="/legacy-personal-site/v4/articles/programming-patterns" class="nav-link">  Programming &amp; Patterns </a><a title="Developer Experience" href="/legacy-personal-site/v4/articles/developer-experience" class="nav-link">  Developer Experience </a> </nav>  <div class="site-footer-bar"> <div class="site-footer-links"> <a href="https://docs.google.com/document/d/1pazXBfzuL9O1wCjPdKb7IS-7nXz_ZzI7EvNL1r_KKRc/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="nav-link">  Resume </a><a href="/legacy-personal-site/v4/tags" class="nav-link">  Tags </a><a href="/legacy-personal-site/v4/articles/drafts" class="nav-link">  Drafts </a> </div> <div class="site-footer-controls">  <div class="site-footer-theme"> <svg width="1em" height="1em" class="site-footer-theme-icon" data-icon="carbon:paint-brush">   <symbol id="ai:carbon:paint-brush" viewBox="0 0 32 32"><path fill="currentColor" d="M28.83 23.17L23 17.33V13a1 1 0 0 0-.29-.71l-10-10a1 1 0 0 0-1.42 0l-9 9a1 1 0 0 0 0 1.42l10 10A1 1 0 0 0 13 23h4.34l5.83 5.84a4 4 0 0 0 5.66-5.66ZM6 10.41l2.29 2.3l1.42-1.42L7.41 9L9 7.41l4.29 4.3l1.42-1.42L10.41 6L12 4.41L18.59 11L11 18.59L4.41 12Zm21.41 17a2 2 0 0 1-2.82 0l-6.13-6.12a1.8 1.8 0 0 0-.71-.29h-4.34l-1-1L20 12.41l1 1v4.34a1 1 0 0 0 .29.7l6.12 6.14a2 2 0 0 1 0 2.82"/></symbol><use href="#ai:carbon:paint-brush"></use>  </svg> <select id="theme-select" class="site-footer-theme-select" aria-label="Select theme"> <option value="auto">Auto</option> <option value="light">Light</option> <option value="dark">Dark</option> <option value="high-contrast-light">High contrast light</option> <option value="high-contrast-dark">High contrast dark</option> <option value="paper">Paper</option> </select> </div>  <div class="site-footer-social"> <a aria-label="GitHub" title="GitHub" href="https://github.com/sujeet-pro" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-github">   <symbol id="ai:carbon:logo-github" viewBox="0 0 32 32"><path fill="currentColor" fill-rule="evenodd" d="M16 2a14 14 0 0 0-4.43 27.28c.7.13 1-.3 1-.67v-2.38c-3.89.84-4.71-1.88-4.71-1.88a3.7 3.7 0 0 0-1.62-2.05c-1.27-.86.1-.85.1-.85a2.94 2.94 0 0 1 2.14 1.45a3 3 0 0 0 4.08 1.16a2.93 2.93 0 0 1 .88-1.87c-3.1-.36-6.37-1.56-6.37-6.92a5.4 5.4 0 0 1 1.44-3.76a5 5 0 0 1 .14-3.7s1.17-.38 3.85 1.43a13.3 13.3 0 0 1 7 0c2.67-1.81 3.84-1.43 3.84-1.43a5 5 0 0 1 .14 3.7a5.4 5.4 0 0 1 1.44 3.76c0 5.38-3.27 6.56-6.39 6.91a3.33 3.33 0 0 1 .95 2.59v3.84c0 .46.25.81 1 .67A14 14 0 0 0 16 2"/></symbol><use href="#ai:carbon:logo-github"></use>  </svg>  </a> <a aria-label="LinkedIn" title="LinkedIn" href="https://www.linkedin.com/in/sujeetkrjaiswal/" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-linkedin">   <symbol id="ai:carbon:logo-linkedin" viewBox="0 0 32 32"><path fill="currentColor" d="M26.2 4H5.8C4.8 4 4 4.8 4 5.7v20.5c0 .9.8 1.7 1.8 1.7h20.4c1 0 1.8-.8 1.8-1.7V5.7c0-.9-.8-1.7-1.8-1.7M11.1 24.4H7.6V13h3.5zm-1.7-13c-1.1 0-2.1-.9-2.1-2.1s.9-2.1 2.1-2.1c1.1 0 2.1.9 2.1 2.1s-1 2.1-2.1 2.1m15.1 12.9H21v-5.6c0-1.3 0-3.1-1.9-3.1S17 17.1 17 18.5v5.7h-3.5V13h3.3v1.5h.1c.5-.9 1.7-1.9 3.4-1.9c3.6 0 4.3 2.4 4.3 5.5v6.2z"/></symbol><use href="#ai:carbon:logo-linkedin"></use>  </svg>  </a> <a aria-label="Twitter" title="Twitter" href="https://twitter.com/sujeetpro" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-twitter">   <symbol id="ai:carbon:logo-twitter" viewBox="0 0 32 32"><path fill="currentColor" d="M11.548 25.752c9.056 0 14.01-7.503 14.01-14.01c0-.213 0-.425-.015-.636A10 10 0 0 0 28 8.556a9.8 9.8 0 0 1-2.828.776a4.94 4.94 0 0 0 2.164-2.724a9.9 9.9 0 0 1-3.126 1.195a4.929 4.929 0 0 0-8.392 4.491A13.98 13.98 0 0 1 5.67 7.15a4.93 4.93 0 0 0 1.525 6.573a4.9 4.9 0 0 1-2.235-.617v.063a4.926 4.926 0 0 0 3.95 4.827a4.9 4.9 0 0 1-2.223.084a4.93 4.93 0 0 0 4.6 3.42A9.88 9.88 0 0 1 4 23.54a13.94 13.94 0 0 0 7.547 2.209"/></symbol><use href="#ai:carbon:logo-twitter"></use>  </svg>  </a> </div> </div> </div>  <p class="site-footer-copyright">
+&copy; 2024-2026 Sujeet Jaiswal </p> </div> </footer> </main> <aside id="right-sidebar" class="zen-sidebar zen-sidebar-right" aria-label="Table of contents"> <div class="zen-sidebar-header"> <span class="zen-sidebar-header-title">On This Page</span> <button class="zen-sidebar-close" data-sidebar-close="right" aria-label="Close table of contents"> <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5"> <path d="M8 8l16 16M24 8L8 24"></path> </svg> </button> </div> <div class="zen-sidebar-content"> <nav aria-label="Table of contents"><h2 class="sidebar-nav-title">On this page</h2><ul class="sidebar-toc-list"><li><a href="#abstract" class="sidebar-toc-item">Abstract</a></li><li><a href="#requirements" class="sidebar-toc-item">Requirements</a></li><li><a href="#functional-requirements" class="sidebar-toc-item sidebar-toc-item--h3">Functional Requirements</a></li><li><a href="#non-functional-requirements" class="sidebar-toc-item sidebar-toc-item--h3">Non-Functional Requirements</a></li><li><a href="#scale-estimation" class="sidebar-toc-item sidebar-toc-item--h3">Scale Estimation</a></li><li><a href="#design-paths" class="sidebar-toc-item">Design Paths</a></li><li><a href="#path-a-third-party-cdn-traditional" class="sidebar-toc-item sidebar-toc-item--h3">Path A: Third-Party CDN (Traditional)</a></li><li><a href="#path-b-custom-cdn-with-isp-embedding-netflix-model" class="sidebar-toc-item sidebar-toc-item--h3">Path B: Custom CDN with ISP Embedding (Netflix Model)</a></li><li><a href="#path-comparison" class="sidebar-toc-item sidebar-toc-item--h3">Path Comparison</a></li><li><a href="#this-articles-focus" class="sidebar-toc-item sidebar-toc-item--h3">This Article’s Focus</a></li><li><a href="#high-level-design" class="sidebar-toc-item">High-Level Design</a></li><li><a href="#component-overview" class="sidebar-toc-item sidebar-toc-item--h3">Component Overview</a></li><li><a href="#traffic-split-aws-vs-open-connect" class="sidebar-toc-item sidebar-toc-item--h3">Traffic Split: AWS vs Open Connect</a></li><li><a href="#playback-flow" class="sidebar-toc-item sidebar-toc-item--h3">Playback Flow</a></li><li><a href="#control-plane-vs-data-plane" class="sidebar-toc-item sidebar-toc-item--h3">Control Plane vs Data Plane</a></li><li><a href="#open-connect-cdn" class="sidebar-toc-item">Open Connect CDN</a></li><li><a href="#architecture" class="sidebar-toc-item sidebar-toc-item--h3">Architecture</a></li><li><a href="#oca-appliance-specifications" class="sidebar-toc-item sidebar-toc-item--h3">OCA Appliance Specifications</a></li><li><a href="#deployment-models" class="sidebar-toc-item sidebar-toc-item--h3">Deployment Models</a></li><li><a href="#bgp-routing" class="sidebar-toc-item sidebar-toc-item--h3">BGP Routing</a></li><li><a href="#fill-pipeline" class="sidebar-toc-item sidebar-toc-item--h3">Fill Pipeline</a></li><li><a href="#cache-performance" class="sidebar-toc-item sidebar-toc-item--h3">Cache Performance</a></li><li><a href="#video-encoding-pipeline" class="sidebar-toc-item">Video Encoding Pipeline</a></li><li><a href="#the-cosmos-platform" class="sidebar-toc-item sidebar-toc-item--h3">The Cosmos Platform</a></li><li><a href="#per-title-encoding" class="sidebar-toc-item sidebar-toc-item--h3">Per-Title Encoding</a></li><li><a href="#shot-based-encoding-dynamic-optimizer" class="sidebar-toc-item sidebar-toc-item--h3">Shot-Based Encoding (Dynamic Optimizer)</a></li><li><a href="#codec-strategy" class="sidebar-toc-item sidebar-toc-item--h3">Codec Strategy</a></li><li><a href="#vmaf-quality-metric" class="sidebar-toc-item sidebar-toc-item--h3">VMAF Quality Metric</a></li><li><a href="#adaptive-bitrate-streaming" class="sidebar-toc-item">Adaptive Bitrate Streaming</a></li><li><a href="#streaming-protocols" class="sidebar-toc-item sidebar-toc-item--h3">Streaming Protocols</a></li><li><a href="#manifest-generation" class="sidebar-toc-item sidebar-toc-item--h3">Manifest Generation</a></li><li><a href="#abr-algorithm" class="sidebar-toc-item sidebar-toc-item--h3">ABR Algorithm</a></li><li><a href="#rebuffering-prevention" class="sidebar-toc-item sidebar-toc-item--h3">Rebuffering Prevention</a></li><li><a href="#drm-and-license-management" class="sidebar-toc-item">DRM and License Management</a></li><li><a href="#multi-drm-strategy" class="sidebar-toc-item sidebar-toc-item--h3">Multi-DRM Strategy</a></li><li><a href="#license-acquisition-flow" class="sidebar-toc-item sidebar-toc-item--h3">License Acquisition Flow</a></li><li><a href="#offline-download" class="sidebar-toc-item sidebar-toc-item--h3">Offline Download</a></li><li><a href="#personalization-system" class="sidebar-toc-item">Personalization System</a></li><li><a href="#recommendation-architecture" class="sidebar-toc-item sidebar-toc-item--h3">Recommendation Architecture</a></li><li><a href="#algorithm-types" class="sidebar-toc-item sidebar-toc-item--h3">Algorithm Types</a></li><li><a href="#personalized-artwork" class="sidebar-toc-item sidebar-toc-item--h3">Personalized Artwork</a></li><li><a href="#ab-testing-scale" class="sidebar-toc-item sidebar-toc-item--h3">A/B Testing Scale</a></li><li><a href="#frontend-considerations" class="sidebar-toc-item">Frontend Considerations</a></li><li><a href="#client-architecture" class="sidebar-toc-item sidebar-toc-item--h3">Client Architecture</a></li><li><a href="#playback-start-optimization" class="sidebar-toc-item sidebar-toc-item--h3">Playback Start Optimization</a></li><li><a href="#offline-playback" class="sidebar-toc-item sidebar-toc-item--h3">Offline Playback</a></li><li><a href="#infrastructure" class="sidebar-toc-item">Infrastructure</a></li><li><a href="#aws-architecture" class="sidebar-toc-item sidebar-toc-item--h3">AWS Architecture</a></li><li><a href="#resilience-chaos-engineering" class="sidebar-toc-item sidebar-toc-item--h3">Resilience (Chaos Engineering)</a></li><li><a href="#global-architecture" class="sidebar-toc-item sidebar-toc-item--h3">Global Architecture</a></li><li><a href="#conclusion" class="sidebar-toc-item">Conclusion</a></li><li><a href="#appendix" class="sidebar-toc-item">Appendix</a></li><li><a href="#prerequisites" class="sidebar-toc-item sidebar-toc-item--h3">Prerequisites</a></li><li><a href="#terminology" class="sidebar-toc-item sidebar-toc-item--h3">Terminology</a></li><li><a href="#summary" class="sidebar-toc-item sidebar-toc-item--h3">Summary</a></li><li><a href="#references" class="sidebar-toc-item sidebar-toc-item--h3">References</a></li></ul></nav> </div> </aside> </div>  <div id="sidebar-backdrop" class="zen-sidebar-backdrop"></div>  <!-- Image Modal --><div id="image-modal" class="image-modal" role="dialog" aria-modal="true" aria-label="Image viewer"> <div class="image-modal-backdrop"></div> <div class="image-modal-content"> <div class="image-modal-header"> <div class="image-modal-controls"> <button type="button" id="image-zoom-out" class="image-modal-btn" aria-label="Zoom out" title="Zoom out"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <circle cx="11" cy="11" r="8"></circle> <line x1="21" y1="21" x2="16.65" y2="16.65"></line> <line x1="8" y1="11" x2="14" y2="11"></line> </svg> </button> <span id="image-zoom-level" class="image-zoom-level">1.0X</span> <button type="button" id="image-zoom-in" class="image-modal-btn" aria-label="Zoom in" title="Zoom in"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <circle cx="11" cy="11" r="8"></circle> <line x1="21" y1="21" x2="16.65" y2="16.65"></line> <line x1="11" y1="8" x2="11" y2="14"></line> <line x1="8" y1="11" x2="14" y2="11"></line> </svg> </button> <button type="button" id="image-zoom-reset" class="image-modal-btn" aria-label="Reset zoom" title="Reset zoom"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path> <path d="M3 3v5h5"></path> </svg> </button> </div> <button type="button" id="image-modal-close" class="image-modal-btn image-modal-close" aria-label="Close image viewer"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <line x1="18" y1="6" x2="6" y2="18"></line> <line x1="6" y1="6" x2="18" y2="18"></line> </svg> </button> </div> <div class="image-modal-body" id="image-modal-body"> <!-- Cloned image will be inserted here --> </div> </div> </div> <script type="module" src="/legacy-personal-site/v4/_astro/image-modal.astro_astro_type_script_index_0_lang.DaIybCtt.js"></script>  <!-- Google Analytics 4 --><script async src="https://www.googletagmanager.com/gtag/js?id=G-1Z2TP5LG65"></script> <script>(function(){const GA_MEASUREMENT_ID = "G-1Z2TP5LG65";
+
+  window.dataLayer = window.dataLayer || []
+  function gtag() {
+    dataLayer.push(arguments)
+  }
+  gtag("js", new Date())
+  gtag("config", GA_MEASUREMENT_ID)
+})();</script> <script type="module" src="/legacy-personal-site/v4/_astro/sidebar-toggle.astro_astro_type_script_index_0_lang.BjmuyXEJ.js"></script> <script type="module">function l(){const s=document.getElementById("main");if(!s)return;const n=Array.from(s.querySelectorAll("h2[id], h3[id]"));if(n.length===0)return;const o=document.querySelectorAll("#right-sidebar .sidebar-toc-item");if(o.length===0)return;const c=new Map;o.forEach(t=>{const e=t.getAttribute("href");e?.startsWith("#")&&c.set(e.slice(1),t)});let r=null;const i=new Set;function f(t){const e=c.get(t);!e||e===r||(r?.classList.remove("is-active"),e.classList.add("is-active"),r=e,e.scrollIntoView({block:"nearest",behavior:"smooth"}))}const a=new IntersectionObserver(t=>{if(t.forEach(e=>{const d=e.target.id;e.isIntersecting?i.add(d):i.delete(d)}),i.size>0){for(const e of n)if(i.has(e.id)){f(e.id);break}}},{rootMargin:"-80px 0px -75% 0px"});n.forEach(t=>a.observe(t)),document.addEventListener("astro:before-swap",()=>{a.disconnect()},{once:!0})}l();document.addEventListener("astro:page-load",l);</script> <script type="module">function c(e,t){const n=window.__themeConfig.THEME_LABELS,o=window.getNextTheme();e.setAttribute("aria-label",`Theme: ${n[t]}. Click to cycle.`),e.title=`Switch to ${n[o]}`,e.dataset.theme=t,e.querySelectorAll("[data-theme-icon]").forEach(a=>{a.style.display=a.dataset.themeIcon===t?"block":"none"})}function s(e,t){e.value!==t&&(e.value=t)}function m(e){e.dataset.themeInit||(e.dataset.themeInit="true",e.addEventListener("click",()=>{const t=window.getNextTheme();window.applySiteTheme(t)}))}function r(e){e.dataset.themeInit||(e.dataset.themeInit="true",e.addEventListener("change",()=>{const t=e.value;window.__themeConfig.THEMES.includes(t)&&window.applySiteTheme(t)}))}function u(){const e=document.documentElement;if(e.dataset.themeObserverInit)return;e.dataset.themeObserverInit="true",new MutationObserver(()=>{const n=e.dataset.theme||"auto",o=document.getElementById("theme-toggle-btn");o&&c(o,n);const i=document.getElementById("theme-select");i&&s(i,n)}).observe(e,{attributes:!0,attributeFilter:["data-theme"]})}function d(){const e=document.documentElement.dataset.theme||"auto",t=document.getElementById("theme-toggle-btn");t&&(c(t,e),m(t));const n=document.getElementById("theme-select");n&&(s(n,e),r(n)),u()}d();document.addEventListener("astro:page-load",d);</script> <script type="module" src="/legacy-personal-site/v4/_astro/docsearch.astro_astro_type_script_index_0_lang.B0uJCub6.js"></script> <script type="module">function a(){function r(){const n=document.documentElement.dataset.colorScheme==="dark";document.querySelectorAll(".mermaid-diagram").forEach(e=>{const t=n?e.dataset.srcDark:e.dataset.srcLight;t&&e.src!==new URL(t,location.origin).href&&(e.src=t)})}r(),new MutationObserver(()=>r()).observe(document.documentElement,{attributes:!0,attributeFilter:["data-color-scheme"]})}document.addEventListener("DOMContentLoaded",a);document.addEventListener("astro:page-load",a);</script> </body> </html> 

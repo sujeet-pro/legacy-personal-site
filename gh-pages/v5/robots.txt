@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://projects.sujeet.pro/legacy-personal-site/v5/sitemap.xml

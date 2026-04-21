@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en-US" class="no-js color-scheme-auto theme-paper"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light dark"><script>(function(){try{var p=JSON.parse(localStorage.getItem('pagesmith-theme'));if(p){var d=document.documentElement;if(p.colorScheme)d.className=d.className.replace(/color-scheme-\w+/,'color-scheme-'+p.colorScheme);if(p.theme)d.className=d.className.replace(/theme-\w[\w-]*/,'theme-'+p.theme);if(p.textSize&&p.textSize!=='base')d.dataset.textSize=p.textSize}}catch(e){}})();</script><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://www.google-analytics.com https://analytics.google.com; object-src 'none'; base-uri 'self'; form-action 'self'"><meta name="referrer" content="strict-origin-when-cross-origin"><title>Instagram: From Redis to Cassandra and the Rocksandra Storage Engine — Sujeet Jaiswal - Principal Software Engineer</title><meta name="description" content="How Instagram migrated activity feed and fraud detection from Redis to Cassandra for ≈75% cost savings, then built Rocksandra (a RocksDB-based pluggable storage engine) to drop P99 reads from 60 ms to 20 ms and GC stalls by ~10x — a seven-year evolution from 12 nodes to 1,000+ across six data centres."><link rel="canonical" href="https://projects.sujeet.pro/legacy-personal-site/v5/articles/instagram-cassandra-migration"><meta property="og:type" content="article"><meta property="og:url" content="https://projects.sujeet.pro/legacy-personal-site/v5/articles/instagram-cassandra-migration"><meta property="og:title" content="Instagram: From Redis to Cassandra and the Rocksandra Storage Engine — Sujeet Jaiswal - Principal Software Engineer"><meta property="og:description" content="How Instagram migrated activity feed and fraud detection from Redis to Cassandra for ≈75% cost savings, then built Rocksandra (a RocksDB-based pluggable storage engine) to drop P99 reads from 60 ms to 20 ms and GC stalls by ~10x — a seven-year evolution from 12 nodes to 1,000+ across six data centres."><meta property="og:locale" content="en_US"><meta property="og:site_name" content="Sujeet Jaiswal"><meta property="article:author" content="Sujeet Jaiswal"><meta property="article:published_time" content="2026-02-08T00:00:00.000Z"><meta property="article:modified_time" content="Tue Apr 21 2026 05:30:00 GMT+0530 (India Standard Time)"><meta property="article:tag" content="Case Study"><meta property="article:tag" content="Data"><meta property="article:tag" content="Migrations"><meta property="article:tag" content="Distributed Systems"><meta property="article:tag" content="Storage"><meta property="article:tag" content="Databases"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="Instagram: From Redis to Cassandra and the Rocksandra Storage Engine — Sujeet Jaiswal - Principal Software Engineer"><meta name="twitter:description" content="How Instagram migrated activity feed and fraud detection from Redis to Cassandra for ≈75% cost savings, then built Rocksandra (a RocksDB-based pluggable storage engine) to drop P99 reads from 60 ms to 20 ms and GC stalls by ~10x — a seven-year evolution from 12 nodes to 1,000+ across six data centres."><meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#020617" media="(prefers-color-scheme: dark)"><link rel="preload" href="/legacy-personal-site/v5/assets/fonts/open-sans-variable.63a65b9b.woff2" as="font" type="font/woff2" crossorigin=""><link rel="preconnect" href="https://www.googletagmanager.com" crossorigin=""><link rel="stylesheet" href="/legacy-personal-site/v5/pagefind/pagefind-component-ui.css"><link rel="stylesheet" href="/legacy-personal-site/v5/assets/index-BlmQN5MU.d5ff1cea.css"><script>document.documentElement.classList.remove('no-js')</script><script src="/legacy-personal-site/v5/pagefind/pagefind-component-ui.js" type="module"></script><script async src="https://www.googletagmanager.com/gtag/js?id=G-1Z2TP5LG65"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-1Z2TP5LG65');</script></head><body><header class="doc-header"><a href="#doc-main-content" class="doc-skip-link" data-skip-link="" onclick="document.getElementById('doc-main-content')?.focus()">Skip to main content</a><div class="doc-header-inner"><div class="doc-header-left"><button type="button" class="doc-sidebar-toggle" aria-label="Toggle navigation" aria-controls="sidebar-modal" aria-expanded="false" data-sidebar-toggle=""><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 5h14M3 10h14M3 15h14"/></svg></button><a href="/legacy-personal-site/v5" class="doc-logo">Sujeet Jaiswal</a></div><nav class="doc-nav" aria-label="Primary navigation"><a href="/legacy-personal-site/v5/articles" class="active">Articles</a><a href="/legacy-personal-site/v5/blogs">Blogs</a></nav><div class="doc-header-right"><pagefind-modal-trigger class="doc-search-trigger"></pagefind-modal-trigger><div class="doc-theme-toggle no-js-hidden" data-theme-toggle="" data-ps-theme-controls=""><button type="button" class="doc-theme-toggle-btn" aria-label="Change theme" aria-expanded="false" aria-haspopup="true" aria-controls="doc-theme-dropdown" data-theme-toggle-btn="" data-ps-theme-toggle-button=""><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="10" cy="10" r="4"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.93 4.93l1.41 1.41M13.66 13.66l1.41 1.41M4.93 15.07l1.41-1.41M13.66 6.34l1.41-1.41"/></svg></button><div id="doc-theme-dropdown" class="doc-theme-dropdown" data-theme-dropdown="" data-ps-theme-dropdown="" hidden><fieldset class="doc-theme-group"><legend>Appearance</legend><label class="doc-theme-option" data-scheme="auto"><input type="radio" name="colorScheme" value="auto" checked>Auto</label><label class="doc-theme-option" data-scheme="light"><input type="radio" name="colorScheme" value="light">Light</label><label class="doc-theme-option" data-scheme="dark"><input type="radio" name="colorScheme" value="dark">Dark</label></fieldset><fieldset class="doc-theme-group"><legend>Theme</legend><label class="doc-theme-option" data-theme="paper"><input type="radio" name="theme" value="paper" checked>Paper</label><label class="doc-theme-option" data-theme="high-contrast"><input type="radio" name="theme" value="high-contrast">High Contrast</label></fieldset><fieldset class="doc-theme-group"><legend>Text Size</legend><div class="doc-text-size-options"><label class="doc-text-size-option" title="Small"><input class="sr-only" type="radio" name="textSize" value="small"><span class="doc-text-size-label" data-size="small" aria-hidden="true">A</span><span class="sr-only">Small text size</span></label><label class="doc-text-size-option" title="Default"><input class="sr-only" type="radio" name="textSize" value="base" checked><span class="doc-text-size-label" data-size="base" aria-hidden="true">A</span><span class="sr-only">Default text size</span></label><label class="doc-text-size-option" title="Large"><input class="sr-only" type="radio" name="textSize" value="large"><span class="doc-text-size-label" data-size="large" aria-hidden="true">A</span><span class="sr-only">Large text size</span></label></div></fieldset></div></div></div></div></header><div class="doc-layout"><aside class="doc-sidebar"><nav class="doc-sidebar-nav" aria-label="Documentation navigation"><div class="doc-sidebar-section"><p class="doc-sidebar-heading">Series</p><ul class="doc-sidebar-list "><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-rendering-pipeline-overview" class="doc-sidebar-link">Critical Rendering Path</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-rendering-pipeline-overview" class="doc-sidebar-link">CRP: Pipeline Overview</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-dom-construction" class="doc-sidebar-link">CRP: DOM Construction</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-cssom-construction" class="doc-sidebar-link">CRP: CSSOM Construction</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-style-recalculation" class="doc-sidebar-link">CRP: Style Recalc</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-layout" class="doc-sidebar-link">CRP: Layout</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-prepaint" class="doc-sidebar-link">CRP: Prepaint</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-paint" class="doc-sidebar-link">CRP: Paint</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-commit" class="doc-sidebar-link">CRP: Commit</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-layerize" class="doc-sidebar-link">CRP: Layerize</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-raster" class="doc-sidebar-link">CRP: Raster</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-composit" class="doc-sidebar-link">CRP: Composite</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-draw" class="doc-sidebar-link">CRP: Draw</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/v8-engine-architecture" class="doc-sidebar-link">JavaScript Runtime Internals</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/v8-engine-architecture" class="doc-sidebar-link">V8 Engine</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/browser-internals" class="doc-sidebar-link">Browser Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/browser-event-loop" class="doc-sidebar-link">Browser Event Loop</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/nodejs-runtime-architecture" class="doc-sidebar-link">Node.js Runtime</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/libuv-event-loop-internals" class="doc-sidebar-link">libuv Internals</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/nodejs-event-loop" class="doc-sidebar-link">Node.js Event Loop</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/js-event-loop" class="doc-sidebar-link">JS Event Loop</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/auth-foundations-sessions-tokens" class="doc-sidebar-link">Web Security &amp; Authentication</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/auth-foundations-sessions-tokens" class="doc-sidebar-link">Auth Foundations</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-app-security-architecture" class="doc-sidebar-link">Web App Security</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/csrf-and-cors-defense" class="doc-sidebar-link">CSRF &amp; CORS</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/oauth-oidc-flow-guide" class="doc-sidebar-link">OAuth &amp; OIDC</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/csp-violation-reporting-pipeline" class="doc-sidebar-link">CSP Reporting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/owasp-top-10-guide" class="doc-sidebar-link">OWASP Top 10</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-resolution-path" class="doc-sidebar-link">Networking Protocols</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-resolution-path" class="doc-sidebar-link">DNS: Resolution Path</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-records-ttl-and-caching" class="doc-sidebar-link">DNS: Records &amp; TTL</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-security-doh-dot-dnssec" class="doc-sidebar-link">DNS: Security</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-troubleshooting-playbook" class="doc-sidebar-link">DNS: Troubleshooting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/tls-1-3-handshake-and-https" class="doc-sidebar-link">TLS 1.3 &amp; HTTPS</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/http1-1-to-http2-evolution" class="doc-sidebar-link">HTTP/1.1 → HTTP/2</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/http3-quic-and-tls" class="doc-sidebar-link">HTTP/3 &amp; QUIC</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dom-api-essentials" class="doc-sidebar-link">Browser APIs &amp; Accessibility</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dom-api-essentials" class="doc-sidebar-link">DOM API Essentials</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-components" class="doc-sidebar-link">Web Components</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/intersection-observer" class="doc-sidebar-link">Intersection Observer</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-workers-and-worklets" class="doc-sidebar-link">Web Workers &amp; Worklets</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/fetch-and-streaming-apis" class="doc-sidebar-link">Fetch &amp; Streams</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/storage-apis-local-indexeddb" class="doc-sidebar-link">Browser Storage APIs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/service-workers-and-cache-api" class="doc-sidebar-link">Service Workers</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/accessibility-testing-tooling" class="doc-sidebar-link">A11y Testing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/wcag-2-2-practical-guide" class="doc-sidebar-link">WCAG 2.2</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/frontend-architecture-at-scale" class="doc-sidebar-link">Frontend Architecture Patterns</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/frontend-architecture-at-scale" class="doc-sidebar-link">Frontend Arch at Scale</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/micro-frontends-architecture" class="doc-sidebar-link">Micro-Frontends</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rendering-strategies-csr-ssr-ssg-isr" class="doc-sidebar-link">CSR / SSR / SSG / ISR</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/state-management-patterns" class="doc-sidebar-link">State Management</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/data-fetching-patterns" class="doc-sidebar-link">Data Fetching</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/css-architecture-strategies" class="doc-sidebar-link">CSS Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/component-architecture-blueprint" class="doc-sidebar-link">Component Architecture</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-infrastructure-stack" class="doc-sidebar-link">Web Performance Optimization</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-infrastructure-stack" class="doc-sidebar-link">Perf: Infrastructure</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-javascript-optimization" class="doc-sidebar-link">Perf: JavaScript</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-css-typography" class="doc-sidebar-link">Perf: CSS &amp; Typography</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-image-optimization" class="doc-sidebar-link">Perf: Images</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/core-web-vitals-measurement" class="doc-sidebar-link">Core Web Vitals</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-overview" class="doc-sidebar-link">Perf: Overview</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-system-adoption-foundations" class="doc-sidebar-link">Design Systems &amp; React</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-system-adoption-foundations" class="doc-sidebar-link">DS: Adoption</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-tokens-and-theming" class="doc-sidebar-link">Design Tokens</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/component-library-architecture-and-governance" class="doc-sidebar-link">Component Library</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-system-implementation-scaling" class="doc-sidebar-link">DS: Implementation</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-hooks-fundamentals" class="doc-sidebar-link">React Hooks</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-rendering-architecture" class="doc-sidebar-link">React Rendering</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-hooks-advanced-patterns" class="doc-sidebar-link">React Hooks: Advanced</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-performance-patterns" class="doc-sidebar-link">React Performance</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rendering-strategies" class="doc-sidebar-link">Frontend System Design</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rendering-strategies" class="doc-sidebar-link">Modern Rendering</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/image-loading-optimization" class="doc-sidebar-link">Image Loading</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/bundle-splitting-strategies" class="doc-sidebar-link">Bundle Splitting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/virtualization-and-windowing" class="doc-sidebar-link">Virtualization</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/performance-monitoring-client" class="doc-sidebar-link">Client Perf Monitoring</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/client-state-management" class="doc-sidebar-link">Client State</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/real-time-sync-client" class="doc-sidebar-link">Real-Time Sync</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/offline-first-architecture" class="doc-sidebar-link">Offline-First</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/widget-framework" class="doc-sidebar-link">Widget Framework</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-rich-text-editor" class="doc-sidebar-link">Rich Text Editor</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-infinite-feed" class="doc-sidebar-link">Infinite Feed</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-drag-drop-system" class="doc-sidebar-link">Drag &amp; Drop</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-form-builder" class="doc-sidebar-link">Form Builder</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-data-grid" class="doc-sidebar-link">Data Grid</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-file-uploader" class="doc-sidebar-link">File Uploader</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/consistency-and-cap-theorem" class="doc-sidebar-link">Distributed Systems Core</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/consistency-and-cap-theorem" class="doc-sidebar-link">CAP Theorem</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-consensus" class="doc-sidebar-link">Distributed Consensus</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/time-and-ordering" class="doc-sidebar-link">Time &amp; Ordering</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/failure-modes-and-resilience" class="doc-sidebar-link">Failure Modes</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rate-limiting-strategies" class="doc-sidebar-link">Rate Limiting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/circuit-breaker-patterns" class="doc-sidebar-link">Circuit Breakers</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/capacity-planning-and-estimation" class="doc-sidebar-link">Capacity Planning</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/storage-choices-sql-vs-nosql" class="doc-sidebar-link">Data Storage &amp; Indexing</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/storage-choices-sql-vs-nosql" class="doc-sidebar-link">SQL vs NoSQL</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/sharding-and-replication" class="doc-sidebar-link">Sharding &amp; Replication</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/indexing-and-query-optimization" class="doc-sidebar-link">Indexing &amp; Queries</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/transactions-and-acid" class="doc-sidebar-link">Transactions &amp; ACID</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/caching-fundamentals-and-strategies" class="doc-sidebar-link">Caching Fundamentals</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/load-balancers-architecture" class="doc-sidebar-link">Infrastructure Components</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/load-balancers-architecture" class="doc-sidebar-link">Load Balancers</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/cdn-architecture-and-caching" class="doc-sidebar-link">CDN Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/api-gateway-patterns" class="doc-sidebar-link">API Gateway</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/service-discovery-and-registry" class="doc-sidebar-link">Service Discovery</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-deep-dive" class="doc-sidebar-link">DNS: Deep Dive</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/queues-and-pubsub" class="doc-sidebar-link">Queues &amp; Pub/Sub</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/event-driven-architecture" class="doc-sidebar-link">Event-Driven Arch</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rpc-and-api-design" class="doc-sidebar-link">RPC &amp; API Design</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crdt-for-collaborative-systems" class="doc-sidebar-link">Core Distributed Patterns</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crdt-for-collaborative-systems" class="doc-sidebar-link">CRDTs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/operational-transformation" class="doc-sidebar-link">OT</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-locking" class="doc-sidebar-link">Distributed Locking</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/exactly-once-delivery" class="doc-sidebar-link">Exactly-Once</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/event-sourcing-deep-dive" class="doc-sidebar-link">Event Sourcing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/change-data-capture" class="doc-sidebar-link">CDC</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/database-migrations-at-scale" class="doc-sidebar-link">DB Migrations</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/multi-region-architecture" class="doc-sidebar-link">Multi-Region</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/lru-cache-design" class="doc-sidebar-link">System Design Building Blocks</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/lru-cache-design" class="doc-sidebar-link">LRU Cache</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/unique-id-generation" class="doc-sidebar-link">Unique IDs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-cache-design" class="doc-sidebar-link">Distributed Cache</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/blob-storage-design" class="doc-sidebar-link">Blob Storage</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-search-engine" class="doc-sidebar-link">Search Engine</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-logging-system" class="doc-sidebar-link">Logging System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-monitoring" class="doc-sidebar-link">Monitoring</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/task-scheduler-design" class="doc-sidebar-link">Task Scheduler</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/sharded-counters" class="doc-sidebar-link">Sharded Counters</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/leaderboard-design" class="doc-sidebar-link">Leaderboard</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-key-value-store" class="doc-sidebar-link">System Design Scenarios</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-key-value-store" class="doc-sidebar-link">Key-Value Store</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-distributed-file-system" class="doc-sidebar-link">Distributed File System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-time-series-database" class="doc-sidebar-link">Time-Series DB</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-youtube-video-platform" class="doc-sidebar-link">YouTube</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-netflix-streaming" class="doc-sidebar-link">Netflix</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-instagram-photo-sharing" class="doc-sidebar-link">Instagram</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-spotify-music-streaming" class="doc-sidebar-link">Spotify</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-real-time-chat-messaging" class="doc-sidebar-link">Chat &amp; Messaging</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-social-feed" class="doc-sidebar-link">Social Feed</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-notification-system" class="doc-sidebar-link">Notifications</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-email-system" class="doc-sidebar-link">Email System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-uber-ride-hailing" class="doc-sidebar-link">Uber</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-maps" class="doc-sidebar-link">Google Maps</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-yelp-proximity-service" class="doc-sidebar-link">Yelp / Proximity</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-search-autocomplete" class="doc-sidebar-link">Search Autocomplete</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-web-crawler" class="doc-sidebar-link">Web Crawler</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-search" class="doc-sidebar-link">Google Search</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-docs-collaboration" class="doc-sidebar-link">Google Docs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-dropbox-file-sync" class="doc-sidebar-link">Dropbox Sync</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-calendar" class="doc-sidebar-link">Google Calendar</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-issue-tracker" class="doc-sidebar-link">Issue Tracker</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-payment-system" class="doc-sidebar-link">Payment System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-flash-sale-system" class="doc-sidebar-link">Flash Sale</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-amazon-shopping-cart" class="doc-sidebar-link">Shopping Cart</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/url-shortener-design" class="doc-sidebar-link">URL Shortener</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-pastebin" class="doc-sidebar-link">Pastebin</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-api-rate-limiter" class="doc-sidebar-link">API Rate Limiter</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-cookie-consent-service" class="doc-sidebar-link">Cookie Consent</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/facebook-2021-outage-analysis" class="doc-sidebar-link">Case Studies: Outages &amp; Reliability</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/facebook-2021-outage-analysis" class="doc-sidebar-link">Facebook 2021</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/aws-kinesis-2020-outage" class="doc-sidebar-link">AWS Kinesis 2020</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/stripe-idempotency-reliability" class="doc-sidebar-link">Stripe Idempotency</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/discord-rust-read-states" class="doc-sidebar-link">Discord: Go → Rust</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/graceful-degradation" class="doc-sidebar-link">Graceful Degradation</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/shopify-pod-architecture" class="doc-sidebar-link">Case Studies: Architecture</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/shopify-pod-architecture" class="doc-sidebar-link">Shopify Pods</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/netflix-microservices-evolution" class="doc-sidebar-link">Netflix Microservices</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/twitter-timeline-architecture" class="doc-sidebar-link">Twitter Timeline</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/facebook-tao-social-graph" class="doc-sidebar-link">Facebook TAO</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/uber-microservices-journey" class="doc-sidebar-link">Uber Microservices</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/uber-schemaless-datastore" class="doc-sidebar-link">Uber Schemaless</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/slack-distributed-architecture" class="doc-sidebar-link">Slack Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/linkedin-kafka-origin" class="doc-sidebar-link">LinkedIn → Kafka</a></li></ul></li><li class="doc-sidebar-item  expanded"><a href="/legacy-personal-site/v5/articles/dropbox-magic-pocket" class="doc-sidebar-link">Case Studies: Data &amp; Migrations</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dropbox-magic-pocket" class="doc-sidebar-link">Dropbox Magic Pocket</a></li><li class="doc-sidebar-item active "><a href="/legacy-personal-site/v5/articles/instagram-cassandra-migration" class="doc-sidebar-link">Instagram → Cassandra</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/youtube-vitess-scaling" class="doc-sidebar-link">YouTube + Vitess</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/github-mysql-migration" class="doc-sidebar-link">GitHub MySQL</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/pinterest-mysql-sharding" class="doc-sidebar-link">Pinterest Sharding</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/discord-message-storage" class="doc-sidebar-link">Discord Messages</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/figma-multiplayer-infrastructure" class="doc-sidebar-link">Figma Multiplayer</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/whatsapp-erlang-scaling" class="doc-sidebar-link">WhatsApp + Erlang</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/edge-delivery-and-cache-invalidation" class="doc-sidebar-link">Platform Delivery &amp; Reliability</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/edge-delivery-and-cache-invalidation" class="doc-sidebar-link">Edge Delivery</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/deployment-strategies-blue-green-canary" class="doc-sidebar-link">Blue-Green &amp; Canary</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/ssg-performance-optimizations" class="doc-sidebar-link">SSG on CloudFront</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/build-pipelines-ci-cd" class="doc-sidebar-link">Build Pipelines</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/ecommerce-ssg-to-ssr-migration" class="doc-sidebar-link">SSG → SSR Migration</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/data-migration-strategies" class="doc-sidebar-link">Data Migrations</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/slos-slis-error-budgets" class="doc-sidebar-link">SLOs &amp; SLIs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/logging-metrics-tracing" class="doc-sidebar-link">Logs / Metrics / Traces</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/drm-basics-for-streaming" class="doc-sidebar-link">Media Systems &amp; Testing</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/drm-basics-for-streaming" class="doc-sidebar-link">DRM Basics</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/video-transcoding-pipeline" class="doc-sidebar-link">Video Transcoding</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-video-playback-architecture" class="doc-sidebar-link">Web Video Playback</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/image-processing-service-design" class="doc-sidebar-link">Image Processing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/load-testing-strategy-capacity-planning" class="doc-sidebar-link">Load Testing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/k6-load-testing-overview" class="doc-sidebar-link">k6 Load Testing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/statsig-experimentation-overview" class="doc-sidebar-link">Statsig</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/arrays-and-hash-maps" class="doc-sidebar-link">Data Structures &amp; Algorithms</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/arrays-and-hash-maps" class="doc-sidebar-link">Arrays &amp; Hash Maps</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/trees-and-graphs" class="doc-sidebar-link">Trees &amp; Graphs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/heaps-and-priority-queues" class="doc-sidebar-link">Heaps &amp; PQs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/sorting-algorithms-guide" class="doc-sidebar-link">Sorting Algorithms</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/search-algorithms-guide" class="doc-sidebar-link">Search Algorithms</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/k-crystal-balls-problem" class="doc-sidebar-link">K Crystal Balls</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/publish-subscribe-pattern" class="doc-sidebar-link">JavaScript Patterns</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/publish-subscribe-pattern" class="doc-sidebar-link">Pub/Sub</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/exponential-backoff-retry-strategy" class="doc-sidebar-link">Exponential Backoff</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/async-queue-pattern" class="doc-sidebar-link">Async Queue</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/javascript-error-handling-patterns" class="doc-sidebar-link">JS Error Handling</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/javascript-string-length" class="doc-sidebar-link">JS String Length</a></li></ul></li></ul></div></nav></aside><div class="doc-content"><nav class="doc-breadcrumbs" aria-label="Breadcrumbs"><a href="/legacy-personal-site/v5/articles">Articles</a><span class="doc-breadcrumb-sep" aria-hidden="true">/</span><a href="/legacy-personal-site/v5/articles">Data Cases</a><span class="doc-breadcrumb-sep" aria-hidden="true">/</span><span aria-current="page">Instagram → Cassandra</span></nav><details class="doc-toc-mobile"><summary>On this page</summary><nav class="doc-toc" aria-label="Table of contents" data-ps-toc=""><p class="doc-toc-title">On this page</p><ul class="doc-toc-list"><li class="doc-toc-item depth-2"><a href="#abstract">Abstract</a></li><li class="doc-toc-item depth-2"><a href="#context">Context</a></li><li class="doc-toc-item depth-3"><a href="#the-system">The System</a></li><li class="doc-toc-item depth-3"><a href="#the-trigger">The Trigger</a></li><li class="doc-toc-item depth-3"><a href="#constraints">Constraints</a></li><li class="doc-toc-item depth-2"><a href="#the-problem">The Problem</a></li><li class="doc-toc-item depth-3"><a href="#symptoms">Symptoms</a></li><li class="doc-toc-item depth-3"><a href="#root-cause-analysis">Root Cause Analysis</a></li><li class="doc-toc-item depth-3"><a href="#why-it-wasnt-obvious-earlier">Why It Wasn’t Obvious Earlier</a></li><li class="doc-toc-item depth-2"><a href="#options-considered">Options Considered</a></li><li class="doc-toc-item depth-3"><a href="#option-1-scale-redis-vertically">Option 1: Scale Redis Vertically</a></li><li class="doc-toc-item depth-3"><a href="#option-2-hbase">Option 2: HBase</a></li><li class="doc-toc-item depth-3"><a href="#option-3-apache-cassandra-chosen">Option 3: Apache Cassandra (Chosen)</a></li><li class="doc-toc-item depth-3"><a href="#decision-factors">Decision Factors</a></li><li class="doc-toc-item depth-2"><a href="#implementation">Implementation</a></li><li class="doc-toc-item depth-3"><a href="#phase-1-initial-cassandra-deployment-2012-2013">Phase 1: Initial Cassandra Deployment (2012-2013)</a></li><li class="doc-toc-item depth-3"><a href="#phase-2-scaling-to-1000-nodes-2014-2016">Phase 2: Scaling to 1,000+ Nodes (2014-2016)</a></li><li class="doc-toc-item depth-3"><a href="#phase-3-rocksandra--replacing-the-storage-engine-2017-2018">Phase 3: Rocksandra — Replacing the Storage Engine (2017-2018)</a></li><li class="doc-toc-item depth-3"><a href="#phase-4-geographic-data-partitioning-with-akkio-2018">Phase 4: Geographic Data Partitioning with Akkio (2018)</a></li><li class="doc-toc-item depth-2"><a href="#outcome">Outcome</a></li><li class="doc-toc-item depth-3"><a href="#metrics-comparison-across-phases">Metrics Comparison Across Phases</a></li><li class="doc-toc-item depth-3"><a href="#timeline">Timeline</a></li><li class="doc-toc-item depth-3"><a href="#unexpected-benefits">Unexpected Benefits</a></li><li class="doc-toc-item depth-3"><a href="#remaining-limitations">Remaining Limitations</a></li><li class="doc-toc-item depth-2"><a href="#lessons-learned">Lessons Learned</a></li><li class="doc-toc-item depth-3"><a href="#technical-lessons">Technical Lessons</a></li><li class="doc-toc-item depth-3"><a href="#process-lessons">Process Lessons</a></li><li class="doc-toc-item depth-3"><a href="#organizational-lessons">Organizational Lessons</a></li><li class="doc-toc-item depth-2"><a href="#applying-this-to-your-system">Applying This to Your System</a></li><li class="doc-toc-item depth-3"><a href="#when-this-pattern-applies">When This Pattern Applies</a></li><li class="doc-toc-item depth-3"><a href="#checklist-for-evaluation">Checklist for Evaluation</a></li><li class="doc-toc-item depth-3"><a href="#starting-points">Starting Points</a></li><li class="doc-toc-item depth-2"><a href="#conclusion">Conclusion</a></li><li class="doc-toc-item depth-2"><a href="#appendix">Appendix</a></li><li class="doc-toc-item depth-3"><a href="#prerequisites">Prerequisites</a></li><li class="doc-toc-item depth-3"><a href="#terminology">Terminology</a></li><li class="doc-toc-item depth-3"><a href="#summary">Summary</a></li><li class="doc-toc-item depth-3"><a href="#references">References</a></li></ul></nav></details><main><article id="doc-main-content" tabindex="-1" data-pagefind-body=""><div class="site-content-meta"><div class="site-content-meta-row"><span>Published Feb 8, 2026</span><span>Updated Apr 21, 2026</span></div><div class="site-tag-list" aria-label="Tags"><span class="site-pill site-pill-subtle">Case Study</span><span class="site-pill site-pill-subtle">Data</span><span class="site-pill site-pill-subtle">Migrations</span><span class="site-pill site-pill-subtle">Distributed Systems</span><span class="site-pill site-pill-subtle">Storage</span><span class="site-pill site-pill-subtle">Databases</span></div></div><div class="prose"><h1 id="instagram-from-redis-to-cassandra-and-the-rocksandra-storage-engine"><a href="#instagram-from-redis-to-cassandra-and-the-rocksandra-storage-engine">Instagram: From Redis to Cassandra and the Rocksandra Storage Engine</a></h1>
+<p>Instagram migrated activity feed, fraud detection, and direct-message workloads from Redis to Apache Cassandra in 2012 to escape memory-bound costs, then built <a href="https://issues.apache.org/jira/browse/CASSANDRA-13474" rel="noopener noreferrer" target="_blank">Rocksandra</a> — a pluggable storage engine that swaps Cassandra’s Java storage path for <a href="http://rocksdb.org/" rel="noopener noreferrer" target="_blank">RocksDB</a> — to reverse JVM garbage collection stalls that dominated P99 latency at 1,000+ nodes. The pattern reappears at each phase: adopt a proven distributed system, hit a structural ceiling, and replace the offending layer rather than the entire stack. This article reconstructs the seven-year evolution from primary sources — Cassandra Summit talks, the Apache JIRA, the Instagram engineering blog, and the OSDI 2018 Akkio paper — and surfaces the engineering decisions a senior engineer would want to relitigate today.</p>
+<p><figure class="ps-figure ps-figure-themed ps-figure-zoomable"><picture><source srcset="/legacy-personal-site/v5/assets/cassandra-journey-timeline-dark.f997f1ce.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" data-scheme="dark"><source srcset="/legacy-personal-site/v5/assets/cassandra-journey-timeline-light.18a76ad4.svg" type="image/svg+xml" data-scheme="light"><img src="/legacy-personal-site/v5/assets/cassandra-journey-timeline-light.18a76ad4.svg" alt="Instagram&#x27;s Cassandra journey across four phases: Redis replacement, scale-out to 1,000+ nodes, Rocksandra storage swap, and Akkio-driven geo-locality." width="1564" height="842" style="max-width:min(1564px,100%)"></picture><figcaption>Instagram's Cassandra journey: from Redis replacement to a globally distributed, custom-storage-engine deployment spanning six data centres.</figcaption><button type="button" class="ps-img-zoom-btn" hidden aria-label="Zoom image" data-ps-img-zoom-btn=""><svg class="ps-img-zoom-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6"></path></svg></button></figure></p>
+<h2 id="abstract"><a href="#abstract">Abstract</a></h2>
+<p>Instagram’s Cassandra story is not a single migration but a series of compounding infrastructure decisions spanning 2012 to 2019:</p>
+<ul>
+<li><strong>The cost problem (2012)</strong>: Redis stored everything in memory. Fraud detection logs and activity feeds were growing faster than Instagram could afford RAM. Cassandra’s disk-backed LSM (Log-Structured Merge) tree storage cut infrastructure costs by ≈75% while adding horizontal scalability (<a href="https://www.slideshare.net/slideshow/c-summit-2013-cassandra-at-instagram-23756207/23756207" rel="noopener noreferrer" target="_blank">Branson, Cassandra Summit 2013</a>).</li>
+<li><strong>The latency problem (2017)</strong>: At 1,000+ nodes, JVM garbage collection (GC) stalls drove P99 read latencies into the 25–60 ms range. Instagram designed a pluggable storage engine API (<a href="https://issues.apache.org/jira/browse/CASSANDRA-13474" rel="noopener noreferrer" target="_blank">CASSANDRA-13474</a>) and slotted in a C++ RocksDB-based engine (<a href="https://issues.apache.org/jira/browse/CASSANDRA-13476" rel="noopener noreferrer" target="_blank">Rocksandra</a>). P99 reads dropped to ≈20 ms, GC stalls from 2.5 % to 0.3 %, and the Instagram engineering team measured “more than 10 times reduction” for some tail-latency-sensitive workloads (<a href="https://instagram-engineering.com/open-sourcing-a-10x-reduction-in-apache-cassandra-tail-latency-d64f86b43589" rel="noopener noreferrer" target="_blank">Instagram Engineering, 2018</a>).</li>
+<li><strong>The locality problem (2018)</strong>: Full data replication across continents wasted storage and forced cross-ocean quorum requests. Akkio, Facebook’s data placement service, partitioned data by user geography — US data in US data centres, EU data in EU data centres — reducing access latency by up to 50 %, cross-datacentre traffic by up to 50 %, and storage footprint by up to 40 % (<a href="https://www.usenix.org/system/files/osdi18-annamalai.pdf" rel="noopener noreferrer" target="_blank">Annamalai et al., OSDI 2018</a>).</li>
+</ul>
+<p>Each phase built on the previous one. The Redis migration proved Cassandra viable. Scale revealed JVM limits, which drove Rocksandra. Global expansion demanded locality-aware placement. The pattern: adopt, hit limits, engineer past them.</p>
+<h2 id="context"><a href="#context">Context</a></h2>
+<h3 id="the-system"><a href="#the-system">The System</a></h3>
+<p>Instagram launched in October 2010 as an iOS photo-sharing app built by two engineers: Kevin Systrom and Mike Krieger. The original stack ran entirely on Amazon Web Services (AWS):</p>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Technology</th>
+<th>Configuration</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Application</strong></td>
+<td>Django (Python) + Gunicorn</td>
+<td>25+ High-CPU Extra-Large EC2 instances</td>
+</tr>
+<tr>
+<td><strong>Primary database</strong></td>
+<td>PostgreSQL</td>
+<td>12 Quadruple Extra-Large Memory instances + 12 replicas</td>
+</tr>
+<tr>
+<td><strong>Caching</strong></td>
+<td>Redis + Memcached</td>
+<td>Multiple Quadruple Extra-Large instances (Redis), 6 instances (Memcached)</td>
+</tr>
+<tr>
+<td><strong>Photo storage</strong></td>
+<td>Amazon S3 + CloudFront</td>
+<td>Several terabytes</td>
+</tr>
+<tr>
+<td><strong>Async tasks</strong></td>
+<td>Gearman</td>
+<td>~200 Python workers</td>
+</tr>
+</tbody>
+</table></div>
+<p>Redis powered several critical data structures:</p>
+<ul>
+<li><strong>Photo-to-user ID mapping</strong>: 300 million entries, optimized via hash bucketing to fit in ~5 GB (vs ~21 GB naive approach)</li>
+<li><strong>Activity feed</strong>: A 32-node cluster (16 masters, 16 replicas) storing per-user activity timelines</li>
+<li><strong>Main feed</strong>: Photo feed data for the home timeline</li>
+<li><strong>Sessions</strong>: User authentication state</li>
+</ul>
+<p>PostgreSQL handled users, photo metadata, tags, comments, and relationships, sharded using a custom scheme with PostgreSQL schemas as logical shards. Instagram’s custom 64-bit ID generation used PL/pgSQL functions within each shard (41 bits for time, 13 bits for shard ID, 10 bits for sequence).</p>
+<h3 id="the-trigger"><a href="#the-trigger">The Trigger</a></h3>
+<p><strong>Date</strong>: Early 2012</p>
+<p><strong>Growth</strong>: Instagram crossed 30 million users in early 2012 and was acquired by Facebook for $1 billion in April 2012 with just 13 employees. By mid-2013, monthly active users hit 100 million.</p>
+<p><strong>Key metrics at the time:</strong></p>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Registered users</td>
+<td>30+ million (early 2012)</td>
+</tr>
+<tr>
+<td>Monthly active users</td>
+<td>100 million (mid-2013)</td>
+</tr>
+<tr>
+<td>Photos stored</td>
+<td>150+ million (August 2011), 20 billion (2013)</td>
+</tr>
+<tr>
+<td>Upload rate</td>
+<td>25+ photos/sec, 90+ likes/sec</td>
+</tr>
+<tr>
+<td>Engineering team</td>
+<td>3-6 engineers</td>
+</tr>
+<tr>
+<td>Redis activity feed cluster</td>
+<td>32 nodes (16 masters, 16 replicas)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="constraints"><a href="#constraints">Constraints</a></h3>
+<ul>
+<li><strong>Memory cost</strong>: Redis stored everything in RAM. Quadruple Extra-Large Memory EC2 instances were the most expensive instance class, and the activity feed cluster alone required 32 of them.</li>
+<li><strong>Workload mismatch</strong>: Fraud detection and activity feeds had write-heavy access patterns (high write-to-read ratio). Paying for in-memory speed on data that was mostly written and rarely read was wasteful.</li>
+<li><strong>Durability</strong>: Redis was designed as an in-memory store with persistence as a secondary feature. For security audit data used in fraud detection and spam fighting, stronger durability guarantees were needed.</li>
+<li><strong>Scaling model</strong>: Redis scaled vertically (bigger instances) rather than horizontally (more nodes). Adding capacity meant migrating to larger instances, not simply adding machines.</li>
+<li><strong>Team size</strong>: With 3-6 engineers, operational complexity had to stay minimal.</li>
+</ul>
+<h2 id="the-problem"><a href="#the-problem">The Problem</a></h2>
+<h3 id="symptoms"><a href="#symptoms">Symptoms</a></h3>
+<p>The activity feed and fraud detection systems consumed the most expensive hardware in Instagram’s fleet while underutilizing CPU. Redis machines ran out of memory long before they ran out of compute.</p>
+<p>Rick Branson, Instagram’s infrastructure engineer, described the core issue at Cassandra Summit 2013: the data was growing faster than the team could justify paying for in-memory storage. Fraud detection logs, security audit data, and activity feeds were append-heavy workloads where sub-millisecond reads were unnecessary—but they were paying for sub-millisecond capability on every byte.</p>
+<h3 id="root-cause-analysis"><a href="#root-cause-analysis">Root Cause Analysis</a></h3>
+<p><strong>The fundamental mismatch</strong>: Redis optimizes for access speed by keeping everything in memory. Instagram’s growing workloads—fraud detection logs, activity feeds, user inbox data—had a high write-to-read ratio. Most data was written once and read infrequently. Storing it in RAM was paying a premium for a capability the workload did not need.</p>
+<p><strong>The scaling ceiling</strong>: When a Redis node filled its memory, the only option was to migrate to a larger instance type. There was no mechanism to spread load across additional smaller nodes without re-architecting the sharding layer. Redis’s single-threaded design further constrained vertical headroom.</p>
+<p><strong>The durability gap</strong>: Redis offered persistence through RDB (Redis Database) snapshots and AOF (Append-Only File) logs, but these were secondary features. For data used in fraud detection and spam enforcement, the team needed storage with replication and durability as first-class properties.</p>
+<h3 id="why-it-wasnt-obvious-earlier"><a href="#why-it-wasnt-obvious-earlier">Why It Wasn’t Obvious Earlier</a></h3>
+<p>At Instagram’s initial scale (2010-2011), Redis was the right choice. The entire working dataset fit in memory, latency was critical for feed rendering, and the operational simplicity of Redis with a small team was a significant advantage. The problem only emerged as data volumes outgrew what memory-based storage could justify economically.</p>
+<h2 id="options-considered"><a href="#options-considered">Options Considered</a></h2>
+<h3 id="option-1-scale-redis-vertically"><a href="#option-1-scale-redis-vertically">Option 1: Scale Redis Vertically</a></h3>
+<p><strong>Approach</strong>: Upgrade to larger EC2 instance types with more RAM.</p>
+<p><strong>Pros:</strong></p>
+<ul>
+<li>Zero code changes</li>
+<li>Familiar operations</li>
+</ul>
+<p><strong>Cons:</strong></p>
+<ul>
+<li>Cost scales linearly with data growth (all data in RAM)</li>
+<li>Instance types had memory ceilings—no path to unlimited growth</li>
+<li>Single-threaded architecture limited per-node throughput</li>
+<li>No horizontal elasticity</li>
+</ul>
+<p><strong>Why not chosen</strong>: Cost was already prohibitive and would only increase. Memory-based storage for write-heavy, rarely-read data was architecturally wrong for the workload.</p>
+<h3 id="option-2-hbase"><a href="#option-2-hbase">Option 2: HBase</a></h3>
+<p><strong>Approach</strong>: Use Apache HBase, which Facebook had adopted internally for some workloads after moving away from Cassandra for inbox search.</p>
+<p><strong>Pros:</strong></p>
+<ul>
+<li>Proven at Facebook scale</li>
+<li>Strong consistency model</li>
+<li>Good integration with Hadoop ecosystem</li>
+</ul>
+<p><strong>Cons:</strong></p>
+<ul>
+<li>Requires ZooKeeper and HDFS—significant operational overhead</li>
+<li>Master-slave architecture introduces single points of failure</li>
+<li>Higher operational complexity for a team of 3-6 engineers</li>
+</ul>
+<p><strong>Why not chosen</strong>: The operational complexity of running ZooKeeper + HDFS + HBase was disproportionate for the team size. Instagram’s philosophy was “do the simple thing first.”</p>
+<h3 id="option-3-apache-cassandra-chosen"><a href="#option-3-apache-cassandra-chosen">Option 3: Apache Cassandra (Chosen)</a></h3>
+<p><strong>Approach</strong>: Migrate fraud detection, activity feed, and inbox data from Redis to Cassandra.</p>
+<p><strong>Pros:</strong></p>
+<ul>
+<li>Peer-to-peer architecture (no master, no SPOF)</li>
+<li>Tunable consistency per query</li>
+<li>Horizontal scaling by adding nodes</li>
+<li>High write throughput on commodity hardware</li>
+<li>Disk-based storage (dramatically cheaper per GB than RAM)</li>
+</ul>
+<p><strong>Cons:</strong></p>
+<ul>
+<li>Eventually consistent by default (not suitable for all workloads)</li>
+<li>JVM-based (GC pauses could affect tail latency)</li>
+<li>Less mature tooling than PostgreSQL</li>
+</ul>
+<p><strong>Why chosen</strong>: The write-heavy, high-volume, eventual-consistency-tolerant workloads matched Cassandra’s design point. The peer-to-peer architecture minimized operational burden. One of Instagram’s engineers had deep Cassandra expertise from prior work at DataStax, reducing adoption risk.</p>
+<h3 id="decision-factors"><a href="#decision-factors">Decision Factors</a></h3>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Factor</th>
+<th>Scale Redis</th>
+<th>HBase</th>
+<th>Cassandra</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cost per GB</td>
+<td>Very high (RAM)</td>
+<td>Low (disk)</td>
+<td>Low (disk)</td>
+</tr>
+<tr>
+<td>Horizontal scalability</td>
+<td>Poor</td>
+<td>Good</td>
+<td>Good</td>
+</tr>
+<tr>
+<td>Operational complexity</td>
+<td>Low</td>
+<td>High (ZK+HDFS)</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td>Write throughput</td>
+<td>High (single node)</td>
+<td>High</td>
+<td>Very high</td>
+</tr>
+<tr>
+<td>Team expertise</td>
+<td>Strong</td>
+<td>None</td>
+<td>Strong (one engineer)</td>
+</tr>
+<tr>
+<td>Single point of failure</td>
+<td>Per-node</td>
+<td>ZooKeeper, Master</td>
+<td>None</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="implementation"><a href="#implementation">Implementation</a></h2>
+<h3 id="phase-1-initial-cassandra-deployment-2012-2013"><a href="#phase-1-initial-cassandra-deployment-2012-2013">Phase 1: Initial Cassandra Deployment (2012-2013)</a></h3>
+<h4 id="cluster-configuration"><a href="#cluster-configuration">Cluster Configuration</a></h4>
+<p>The first production Cassandra cluster was deployed on AWS for fraud detection and activity feed workloads:</p>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Cassandra version</strong></td>
+<td>1.2.3</td>
+</tr>
+<tr>
+<td><strong>Cluster size</strong></td>
+<td>12 nodes</td>
+</tr>
+<tr>
+<td><strong>Instance type</strong></td>
+<td>EC2 hi1.4xlarge (8-core CPU, 60 GB RAM, 2 TB SSD)</td>
+</tr>
+<tr>
+<td><strong>Availability zones</strong></td>
+<td>3</td>
+</tr>
+<tr>
+<td><strong>Replication factor</strong></td>
+<td>3</td>
+</tr>
+<tr>
+<td><strong>Write consistency</strong></td>
+<td>TWO</td>
+</tr>
+<tr>
+<td><strong>Read consistency</strong></td>
+<td>ONE</td>
+</tr>
+<tr>
+<td><strong>Compaction strategy</strong></td>
+<td>LeveledCompactionStrategy</td>
+</tr>
+<tr>
+<td><strong>Virtual nodes</strong></td>
+<td>Enabled</td>
+</tr>
+<tr>
+<td><strong>JVM heap</strong></td>
+<td>8 GB</td>
+</tr>
+<tr>
+<td><strong>Young generation</strong></td>
+<td>800 MB</td>
+</tr>
+<tr>
+<td><strong>Data stored</strong></td>
+<td>~1.2 TB</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Why these choices:</strong></p>
+<ul>
+<li><strong>RF=3 across 3 AZs</strong>: Every row existed in all three availability zones, providing AZ-level fault tolerance.</li>
+<li><strong>W=TWO, R=ONE</strong>: Writes were durable (confirmed by two replicas) while reads were fast (single replica). This matched the write-heavy access pattern.</li>
+<li><strong>LeveledCompactionStrategy</strong>: Optimizes read latency by maintaining sorted data at the cost of higher write amplification. Chosen because when reads did happen (e.g., rendering a user’s activity feed), latency mattered.</li>
+<li><strong>hi1.4xlarge instances</strong>: High I/O instances with SSD storage—critical for Cassandra’s disk-heavy workload. The 60 GB RAM allowed large page caches while keeping the JVM heap small.</li>
+</ul>
+<h4 id="data-model-activity-feed"><a href="#data-model-activity-feed">Data Model: Activity Feed</a></h4>
+<p>The primary data model replaced Redis lists with Cassandra wide rows:</p>
+<p><strong>Redis (before):</strong></p>
+<figure class="ps-code-block" style="--ps-code-light-bg:#fff;--ps-code-dark-bg:#24292e;--ps-code-light-fg:#24292e;--ps-code-dark-fg:#e1e4e8" data-ps-code-lang="bash" data-ps-code-wrap="false" data-ps-code-line-numbers="true" data-ps-code-renderer="pagesmith" data-ps-code-frame="terminal"><div class="ps-code-toolbar ps-code-toolbar--terminal"><div class="ps-code-toolbar-main ps-code-toolbar-main--terminal"><span class="ps-code-traffic-lights" aria-hidden="true"><span class="ps-code-traffic-light"></span><span class="ps-code-traffic-light"></span><span class="ps-code-traffic-light"></span></span><span class="ps-code-toolbar-chip"><span class="ps-code-language-badge ps-code-language-badge--icon" data-ps-code-language="bash" style="--ps-code-language-badge-bg:#111827;--ps-code-language-badge-fg:#86efac" aria-hidden="true" title="Shell"><svg class="ps-code-language-icon ps-code-language-icon--terminal" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="14" height="12" rx="2"></rect><path d="M6.5 8.5 8.75 10.5 6.5 12.5"></path><path d="M10.5 12.5h3"></path></svg></span><span class="ps-code-toolbar-label">Shell</span></span></div><button class="ps-code-copy" type="button" data-ps-code-copy="true" data-copy-label="Copy" data-copied-label="Copied" data-error-label="Retry" aria-label="Copy code block" title="Copy"><svg class="ps-code-copy-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"></rect><path d="M10.5 5.5V4a1.5 1.5 0 0 0-1.5-1.5H4A1.5 1.5 0 0 0 2.5 4v5A1.5 1.5 0 0 0 4 10.5h1.5"></path></svg><svg class="ps-code-copy-icon ps-code-copy-icon--copied" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 9 6.5 12 12.5 4.5"></path></svg></button></div><div class="ps-code-body"><pre class="ps-code-pre shiki shiki-themes" tabindex="0" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8"><code class="ps-code-code language-bash"><span class="ps-code-line" data-ps-code-line="1"><span class="ps-code-line-number" aria-hidden="true">1</span><span class="ps-code-line-content"><span style="color:#6F42C1;--shiki-dark:#B392F0">key:</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> </span><span style="color:#032F62;--shiki-dark:#9ECBFF">inbox:</span><span style="color:#D73A49;--shiki-dark:#F97583">&#x3C;</span><span style="color:#032F62;--shiki-dark:#9ECBFF">user_i</span><span style="color:#24292E;--shiki-dark:#E1E4E8">d</span><span style="color:#D73A49;--shiki-dark:#F97583">></span></span></span><span class="ps-code-line" data-ps-code-line="2"><span class="ps-code-line-number" aria-hidden="true">2</span><span class="ps-code-line-content"><span style="color:#6F42C1;--shiki-dark:#B392F0">value:</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> </span><span style="color:#032F62;--shiki-dark:#9ECBFF">list</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> </span><span style="color:#032F62;--shiki-dark:#9ECBFF">of</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> </span><span style="color:#032F62;--shiki-dark:#9ECBFF">activity</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> </span><span style="color:#032F62;--shiki-dark:#9ECBFF">JSON</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> </span><span style="color:#032F62;--shiki-dark:#9ECBFF">blobs</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> (LPUSH/LRANGE)</span></span></span></code></pre></div></figure>
+<p><strong>Cassandra (after):</strong></p>
+<figure class="ps-code-block" style="--ps-code-light-bg:#fff;--ps-code-dark-bg:#24292e;--ps-code-light-fg:#24292e;--ps-code-dark-fg:#e1e4e8" data-ps-code-lang="sql" data-ps-code-wrap="false" data-ps-code-line-numbers="true" data-ps-code-renderer="pagesmith" data-ps-code-title="Activity feed schema (CQL)" data-ps-code-frame="code"><div class="ps-code-toolbar ps-code-toolbar--code"><div class="ps-code-toolbar-main ps-code-toolbar-main--code"><span class="ps-code-toolbar-chip"><span class="ps-code-language-badge ps-code-language-badge--icon" data-ps-code-language="sql" style="--ps-code-language-badge-bg:#336791;--ps-code-language-badge-fg:#ffffff" aria-hidden="true" title="SQL"><svg class="ps-code-language-icon ps-code-language-icon--data" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.25 5.5c-1 0-1.5.75-1.5 1.75v1.25c0 .8-.45 1.5-1.25 1.5.8 0 1.25.7 1.25 1.5v1.25c0 1 .5 1.75 1.5 1.75"></path><path d="M12.75 5.5c1 0 1.5.75 1.5 1.75v1.25c0 .8.45 1.5 1.25 1.5-.8 0-1.25.7-1.25 1.5v1.25c0 1-.5 1.75-1.5 1.75"></path><path d="M8.5 8h3"></path><path d="M8.5 10h3"></path><path d="M8.5 12h3"></path></svg></span><span class="ps-code-toolbar-label">Activity feed schema (CQL)</span></span></div><button class="ps-code-copy" type="button" data-ps-code-copy="true" data-copy-label="Copy" data-copied-label="Copied" data-error-label="Retry" aria-label="Copy code block" title="Copy"><svg class="ps-code-copy-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"></rect><path d="M10.5 5.5V4a1.5 1.5 0 0 0-1.5-1.5H4A1.5 1.5 0 0 0 2.5 4v5A1.5 1.5 0 0 0 4 10.5h1.5"></path></svg><svg class="ps-code-copy-icon ps-code-copy-icon--copied" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 9 6.5 12 12.5 4.5"></path></svg></button></div><div class="ps-code-body"><pre class="ps-code-pre shiki shiki-themes" tabindex="0" style="background-color:#fff;--shiki-dark-bg:#24292e;color:#24292e;--shiki-dark:#e1e4e8"><code class="ps-code-code language-sql"><span class="ps-code-line" data-ps-code-line="1"><span class="ps-code-line-number" aria-hidden="true">1</span><span class="ps-code-line-content"><span style="color:#D73A49;--shiki-dark:#F97583">CREATE</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> </span><span style="color:#D73A49;--shiki-dark:#F97583">TABLE</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> </span><span style="color:#6F42C1;--shiki-dark:#B392F0">inbox_activities_by_user</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> (</span></span></span><span class="ps-code-line" data-ps-code-line="2"><span class="ps-code-line-number" aria-hidden="true">2</span><span class="ps-code-line-content"><span style="color:#24292E;--shiki-dark:#E1E4E8">    user_id </span><span style="color:#D73A49;--shiki-dark:#F97583">bigint</span><span style="color:#24292E;--shiki-dark:#E1E4E8">,</span></span></span><span class="ps-code-line" data-ps-code-line="3"><span class="ps-code-line-number" aria-hidden="true">3</span><span class="ps-code-line-content"><span style="color:#24292E;--shiki-dark:#E1E4E8">    activity_id timeuuid,</span></span></span><span class="ps-code-line" data-ps-code-line="4"><span class="ps-code-line-number" aria-hidden="true">4</span><span class="ps-code-line-content"><span style="color:#24292E;--shiki-dark:#E1E4E8">    activity_data blob,</span></span></span><span class="ps-code-line" data-ps-code-line="5"><span class="ps-code-line-number" aria-hidden="true">5</span><span class="ps-code-line-content"><span style="color:#24292E;--shiki-dark:#E1E4E8">    </span><span style="color:#D73A49;--shiki-dark:#F97583">PRIMARY KEY</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> (user_id, activity_id)</span></span></span><span class="ps-code-line" data-ps-code-line="6"><span class="ps-code-line-number" aria-hidden="true">6</span><span class="ps-code-line-content"><span style="color:#24292E;--shiki-dark:#E1E4E8">) </span><span style="color:#D73A49;--shiki-dark:#F97583">WITH</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> CLUSTERING </span><span style="color:#D73A49;--shiki-dark:#F97583">ORDER BY</span><span style="color:#24292E;--shiki-dark:#E1E4E8"> (activity_id </span><span style="color:#D73A49;--shiki-dark:#F97583">DESC</span><span style="color:#24292E;--shiki-dark:#E1E4E8">);</span></span></span></code></pre></div></figure>
+<p><strong>Why this model:</strong></p>
+<ul>
+<li><code>user_id</code> as partition key co-located all activities for a single user on the same nodes, enabling efficient range scans.</li>
+<li><code>activity_id</code> as a TimeUUID clustering column provided natural time ordering without a separate sort.</li>
+<li><code>CLUSTERING ORDER BY DESC</code> meant the most recent activities were physically first on disk, optimizing the most common query: “show me the latest N activities.”</li>
+</ul>
+<h4 id="peak-throughput"><a href="#peak-throughput">Peak Throughput</a></h4>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Peak writes</td>
+<td>~20,000/sec</td>
+</tr>
+<tr>
+<td>Peak reads</td>
+<td>~15,000/sec</td>
+</tr>
+<tr>
+<td>Data consistency</td>
+<td>99.63% (measured across replicas)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="phase-2-scaling-to-1000-nodes-2014-2016"><a href="#phase-2-scaling-to-1000-nodes-2014-2016">Phase 2: Scaling to 1,000+ Nodes (2014-2016)</a></h3>
+<p>After Instagram migrated from AWS to Facebook’s data centers in 2013-2014, Cassandra usage expanded dramatically. By Dikang Gu’s Cassandra Summit 2016 presentation, the deployment had grown to:</p>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Total nodes</strong></td>
+<td>1,000+</td>
+</tr>
+<tr>
+<td><strong>Data stored</strong></td>
+<td>Hundreds of terabytes</td>
+</tr>
+<tr>
+<td><strong>Operations per second</strong></td>
+<td>Millions</td>
+</tr>
+<tr>
+<td><strong>Largest single cluster</strong></td>
+<td>100+ nodes</td>
+</tr>
+<tr>
+<td><strong>Use cases</strong></td>
+<td>Feed, inbox, Direct messaging, counters, fraud detection</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="feed-data-model-2016"><a href="#feed-data-model-2016">Feed Data Model (2016)</a></h4>
+<p>The feed system became Cassandra’s highest-throughput use case:</p>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Write QPS (Queries Per Second)</td>
+<td>1M+</td>
+</tr>
+<tr>
+<td>Average read latency</td>
+<td>20 ms</td>
+</tr>
+<tr>
+<td>P99 read latency</td>
+<td>100 ms</td>
+</tr>
+</tbody>
+</table></div>
+<p>Write path: when a user posted a photo, the system performed fan-out-on-write, pushing the media id to each follower’s feed store. This traded write amplification for read simplicity — rendering a feed became a single partition read rather than a scatter-gather across followed users.</p>
+<p><strong>Celebrity fan-out optimisation</strong>: for accounts with millions of followers, fan-out-on-write was prohibitively expensive. Instagram used a hybrid approach: non-celebrity posts were pre-computed (push model), while celebrity content was computed on demand (pull model). When a user read their feed, parallel threads fetched the pre-computed inbox and the small set of celebrity posts the user follows, then merged the results. An LRU-eviction cache stored active users’ feeds to reduce re-computation.</p>
+<p><figure class="ps-figure ps-figure-themed ps-figure-zoomable"><picture><source srcset="/legacy-personal-site/v5/assets/feed-fan-out-hybrid-dark.34665a05.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" data-scheme="dark"><source srcset="/legacy-personal-site/v5/assets/feed-fan-out-hybrid-light.f63b4c6a.svg" type="image/svg+xml" data-scheme="light"><img src="/legacy-personal-site/v5/assets/feed-fan-out-hybrid-light.f63b4c6a.svg" alt="Hybrid fan-out for the home feed: posts from normal accounts are fanned out at write time into per-follower wide rows; celebrity posts are stored once and pulled at read time. The feed renderer issues both fetches in parallel, then merges by timestamp." width="1021" height="998" style="max-width:min(1021px,100%)"></picture><figcaption>Hybrid feed fan-out — push for normal accounts, pull for celebrities, merge at read time.</figcaption><button type="button" class="ps-img-zoom-btn" hidden aria-label="Zoom image" data-ps-img-zoom-btn=""><svg class="ps-img-zoom-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6"></path></svg></button></figure></p>
+<h4 id="proxy-nodes"><a href="#proxy-nodes">Proxy Nodes</a></h4>
+<p>As clusters grew, Instagram discovered that co-locating coordinator responsibilities with data storage on the same node caused latency spikes when data nodes became hot. The solution: dedicated proxy nodes configured with <code>join_ring: false</code>, acting as coordinators without storing data locally. Clients connected exclusively to proxy nodes, which forwarded requests to the appropriate data nodes. This architectural change alone produced a 2x latency improvement.</p>
+<h4 id="counter-service"><a href="#counter-service">Counter Service</a></h4>
+<p>A separate Cassandra-backed counter service tracked likes, views, and engagement metrics:</p>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Read/Write QPS</td>
+<td>50K+</td>
+</tr>
+<tr>
+<td>Average read latency</td>
+<td>3 ms</td>
+</tr>
+<tr>
+<td>P99 read latency</td>
+<td>50 ms</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="jvm-tuning-evolution"><a href="#jvm-tuning-evolution">JVM Tuning Evolution</a></h4>
+<p>As clusters grew, GC tuning became increasingly critical:</p>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Period</th>
+<th>Heap</th>
+<th>Young Gen</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2013 (initial)</td>
+<td>8 GB</td>
+<td>800 MB</td>
+<td>Default settings</td>
+</tr>
+<tr>
+<td>2014</td>
+<td>20 GB</td>
+<td>10 GB</td>
+<td>Addressed Young GC double-collection bug in JDK 1.7+</td>
+</tr>
+<tr>
+<td>Later</td>
+<td>64 GB</td>
+<td>16 GB</td>
+<td>MaxTenuringThreshold=6, Young GC every 10s, 2x P99 improvement</td>
+</tr>
+</tbody>
+</table></div>
+<p>The 2014 scaling to 60 hi1.4xlarge instances (2x the highest estimate) revealed that Cassandra’s JVM heap management required careful tuning. The Young GC double-collection bug in JDK 1.7+ caused objects to be collected twice, and the fix—running 10 GB Young Gen with 20 GB total heap—was a hard-won operational lesson.</p>
+<h3 id="phase-3-rocksandra--replacing-the-storage-engine-2017-2018"><a href="#phase-3-rocksandra--replacing-the-storage-engine-2017-2018">Phase 3: Rocksandra — Replacing the Storage Engine (2017-2018)</a></h3>
+<h4 id="the-latency-problem"><a href="#the-latency-problem">The Latency Problem</a></h4>
+<p>Despite years of JVM tuning, GC remained the dominant source of tail latency:</p>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Average read latency</td>
+<td>5 ms</td>
+</tr>
+<tr>
+<td>P99 read latency</td>
+<td>25-60 ms (varied by cluster)</td>
+</tr>
+<tr>
+<td>GC stall rate (low traffic)</td>
+<td>1.25%</td>
+</tr>
+<tr>
+<td>GC stall rate (high traffic)</td>
+<td>2.5%</td>
+</tr>
+<tr>
+<td>Target SLA (Service Level Agreement)</td>
+<td>Five nines (99.999%) reliability</td>
+</tr>
+</tbody>
+</table></div>
+<p>The root cause was structural: Cassandra’s memtable, compaction, read path, and write path all created short-lived objects on the Java heap. As data volume and throughput increased, so did GC pressure. No amount of tuning could eliminate the fundamental tension between JVM-managed memory and latency-sensitive storage workloads.</p>
+<p><figure class="ps-figure ps-figure-themed ps-figure-zoomable"><picture><source srcset="/legacy-personal-site/v5/assets/gc-pause-tail-latency-dark.0279ba74.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" data-scheme="dark"><source srcset="/legacy-personal-site/v5/assets/gc-pause-tail-latency-light.cafd5c8c.svg" type="image/svg+xml" data-scheme="light"><img src="/legacy-personal-site/v5/assets/gc-pause-tail-latency-light.cafd5c8c.svg" alt="How a JVM stop-the-world Young GC turns a steady-state 5 ms read into a 25-60 ms P99 spike: while mutator threads are paused, incoming reads queue and every queued request inherits the pause length on resume." width="1218" height="1079" style="max-width:min(1218px,100%)"></picture><figcaption>GC pause impact on tail latency — stop-the-world Young GC freezes mutator threads, queued reads then inherit the full pause and surface as P99 spikes.</figcaption><button type="button" class="ps-img-zoom-btn" hidden aria-label="Zoom image" data-ps-img-zoom-btn=""><svg class="ps-img-zoom-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6"></path></svg></button></figure></p>
+<h4 id="architecture-pluggable-storage-engine"><a href="#architecture-pluggable-storage-engine">Architecture: Pluggable Storage Engine</a></h4>
+<p>Cassandra had no pluggable storage engine architecture. Instagram designed one from scratch, defining a new <code>StorageEngine</code> API that separated Cassandra’s distribution layer (gossip, replication, consistency) from its storage layer (memtables, SSTables, compaction).</p>
+<p><figure class="ps-figure ps-figure-themed ps-figure-zoomable"><picture><source srcset="/legacy-personal-site/v5/assets/architecture-before-after-rocksandra-dark.68585775.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" data-scheme="dark"><source srcset="/legacy-personal-site/v5/assets/architecture-before-after-rocksandra-light.1cc714f3.svg" type="image/svg+xml" data-scheme="light"><img src="/legacy-personal-site/v5/assets/architecture-before-after-rocksandra-light.1cc714f3.svg" alt="Side-by-side architecture: stock Cassandra runs the entire memtable, SSTable, and compaction path on the JVM heap, generating GC pressure; Rocksandra keeps the JVM coordinator unchanged but routes row-level work through a StorageEngine API to a C++ RocksDB engine, removing Java garbage from the storage hot path." width="1119" height="959" style="max-width:min(1119px,100%)"></picture><figcaption>Architecture before vs after Rocksandra — only the storage layer changes; gossip, replication, and consistency stay on the JVM.</figcaption><button type="button" class="ps-img-zoom-btn" hidden aria-label="Zoom image" data-ps-img-zoom-btn=""><svg class="ps-img-zoom-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6"></path></svg></button></figure></p>
+<p>The three core challenges:</p>
+<ol>
+<li>
+<p><strong>Storage engine API</strong>: Define clean interfaces between Cassandra’s coordination layer and the storage implementation. Filed as <a href="https://issues.apache.org/jira/browse/CASSANDRA-13474" rel="noopener noreferrer" target="_blank">CASSANDRA-13474</a> in Apache JIRA.</p>
+</li>
+<li>
+<p><strong>Data type encoding/decoding</strong>: Cassandra supports rich data types (collections, UDTs, counters, frozen types). RocksDB is a pure key-value store. Instagram designed encoding algorithms that mapped Cassandra’s table schemas and data types into RocksDB’s byte-oriented key-value pairs while preserving the same query semantics. Filed as <a href="https://issues.apache.org/jira/browse/CASSANDRA-13476" rel="noopener noreferrer" target="_blank">CASSANDRA-13476</a>.</p>
+</li>
+<li>
+<p><strong>Streaming decoupling</strong>: Cassandra’s streaming (used for repairs, bootstrapping, and data movement) was tightly coupled to the SSTable format. Instagram re-implemented streaming using RocksDB APIs: incoming data streamed into temporary SST files first, then used RocksDB’s ingest file API to bulk-load them—avoiding the overhead of individual writes during bootstrap and repair.</p>
+</li>
+</ol>
+<p>The pluggable engine API was defined at <code>org.apache.cassandra.engine.StorageEngine</code>, with Instagram’s RocksDB implementation at <code>org.apache.cassandra.rocksdb.RocksDBEngine</code>. Configuration required three JVM parameters: <code>cassandra.rocksdb.keyspace</code> (target keyspace), <code>cassandra.rocksdb.dir</code> (data directory), and <code>cassandra.rocksdb.stream.dir</code> (temporary streaming directory).</p>
+<p><strong>Feature scope</strong>: Rocksandra supported most non-nested data types, table schemas, point and range queries, mutations, timestamps, TTL (Time To Live), and cell-level tombstones. It did not support multi-partition queries, nested data types, counters, range tombstones, materialized views, secondary indexes, or repair operations. These limitations were acceptable because Instagram’s primary use cases were simple key-value and wide-column patterns.</p>
+<h4 id="why-rocksdb"><a href="#why-rocksdb">Why RocksDB</a></h4>
+<p>RocksDB is a C++ embeddable key-value store originally developed at Facebook, optimized for fast storage (SSDs and NVMe). It uses an LSM tree architecture—the same fundamental structure as Cassandra’s storage engine—but implemented in C++ with arena-allocated memtables and off-heap iterators, so the storage hot path produces no Java garbage at all.</p>
+<p>Instagram already operated RocksDB at scale for other Facebook workloads. Using a proven technology that the team understood, rather than adopting a new distributed database like ScyllaDB, minimized adoption risk. As one engineer noted in the Hacker News discussion: why replace a system proven at massive scale with something unproven at that scale?</p>
+<p><figure class="ps-figure ps-figure-themed ps-figure-zoomable"><picture><source srcset="/legacy-personal-site/v5/assets/write-path-comparison-dark.d3e6cc9c.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" data-scheme="dark"><source srcset="/legacy-personal-site/v5/assets/write-path-comparison-light.3d9806f9.svg" type="image/svg+xml" data-scheme="light"><img src="/legacy-personal-site/v5/assets/write-path-comparison-light.3d9806f9.svg" alt="Write-path comparison: in stock Cassandra, every step (memtable, flush, compaction) allocates short-lived Java objects and feeds Young GC pressure; in Rocksandra, the same steps run inside RocksDB on off-heap C++ memory, leaving the JVM coordinator unchanged." width="1137" height="1298" style="max-width:min(1137px,100%)"></picture><figcaption>Write-path comparison — Cassandra's Java path churns short-lived heap objects at every stage; Rocksandra's RocksDB path is fully off-heap and produces no Java garbage on writes.</figcaption><button type="button" class="ps-img-zoom-btn" hidden aria-label="Zoom image" data-ps-img-zoom-btn=""><svg class="ps-img-zoom-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6"></path></svg></button></figure></p>
+<h4 id="performance-results"><a href="#performance-results">Performance Results</a></h4>
+<p>After approximately one year of development and testing — the <a href="https://issues.apache.org/jira/browse/CASSANDRA-13474" rel="noopener noreferrer" target="_blank">CASSANDRA-13474 description</a> confirms the timeline — Rocksandra was rolled into production clusters:</p>
+<p><strong>Production metrics</strong>: the engineering blog reports a “3-4× reduction on P99 read latency in general, even more than 10 times reduction for some use cases” and a step change in GC behaviour:</p>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Before (Java engine)</th>
+<th>After (Rocksandra)</th>
+<th>Improvement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P99 read latency (one prod cluster)</td>
+<td>60 ms</td>
+<td>20 ms</td>
+<td>≈3× reduction</td>
+</tr>
+<tr>
+<td>GC stall rate</td>
+<td>2.5 % (peak)</td>
+<td>0.3 %</td>
+<td>≈10× reduction</td>
+</tr>
+<tr>
+<td>Latency variance</td>
+<td>High (GC-driven)</td>
+<td>Low</td>
+<td>Predictable across runs</td>
+</tr>
+<tr>
+<td>Read-only throughput at P99 ≈ 2 ms (NDBench)</td>
+<td>≈30 K ops/s</td>
+<td>≈300 K ops/s</td>
+<td>≈10× reduction in cost-per-QPS</td>
+</tr>
+</tbody>
+</table></div>
+<div class="markdown-alert markdown-alert-note">
+<p class="markdown-alert-title"><span class="octicon octicon-note" style="--oct-icon: url(&#x22;data:image/svg+xml;utf8,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; class=&#x27;octicon octicon-info mr-2&#x27; viewBox=&#x27;0 0 16 16&#x27; version=&#x27;1.1&#x27; width=&#x27;16&#x27; height=&#x27;16&#x27; aria-hidden=&#x27;true&#x27;%3E%3Cpath d=&#x27;M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z&#x27;%3E%3C/path%3E%3C/svg%3E&#x22;)"></span>Note</p>
+<p>The “10×” headline in <a href="https://instagram-engineering.com/open-sourcing-a-10x-reduction-in-apache-cassandra-tail-latency-d64f86b43589" rel="noopener noreferrer" target="_blank">Instagram’s open-source announcement</a> actually points at two different numbers: the GC stall rate fell ≈10× (2.5 % → 0.3 %) and the read-only NDBench benchmark sustained ≈10× the throughput at the same ≈2 ms P99 (300 K/s vs 30 K/s on Cassandra 3.0). The single-cluster production P99 improvement was closer to 3× (60 ms → 20 ms). Cite the right number for the right workload.</p>
+</div>
+<p><strong>Benchmark environment</strong> (<a href="https://github.com/Netflix/ndbench" rel="noopener noreferrer" target="_blank">NDBench</a> on AWS, per the Instagram blog):</p>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Instances</td>
+<td>3 × i3.8xlarge EC2 (32-core, 244 GB RAM)</td>
+</tr>
+<tr>
+<td>Storage</td>
+<td>RAID0 across 4 NVMe flash drives (≈500 GB of data per server)</td>
+</tr>
+<tr>
+<td>Schema</td>
+<td>NDBench default <code>emp</code> table (<code>emp_uname</code> PK + 3 text columns)</td>
+</tr>
+<tr>
+<td>Dataset</td>
+<td>250 million rows, 6 KB each</td>
+</tr>
+<tr>
+<td>Concurrency</td>
+<td>128 readers + 128 writers</td>
+</tr>
+</tbody>
+</table></div>
+<p><figure class="ps-figure ps-figure-themed ps-figure-zoomable"><picture><source srcset="/legacy-personal-site/v5/assets/rocksandra-architecture-dark.5a861617.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" data-scheme="dark"><source srcset="/legacy-personal-site/v5/assets/rocksandra-architecture-light.d5dbacb5.svg" type="image/svg+xml" data-scheme="light"><img src="/legacy-personal-site/v5/assets/rocksandra-architecture-light.d5dbacb5.svg" alt="Rocksandra internal layout: the JVM coordinator drives gossip, replication, and streaming; the StorageEngine API hands rows over JNI to a RocksDB engine that owns encode/decode (CASSANDRA-13476) and a bulk SST ingest path used by streaming, repair, and bootstrap." width="567" height="927" style="max-width:min(567px,100%)"></picture><figcaption>Rocksandra internals — the StorageEngine API plus a re-implemented streaming layer that bulk-loads incoming SST files via RocksDB's ingest API, avoiding per-row writes during repair and bootstrap.</figcaption><button type="button" class="ps-img-zoom-btn" hidden aria-label="Zoom image" data-ps-img-zoom-btn=""><svg class="ps-img-zoom-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6"></path></svg></button></figure></p>
+<p>The improvement was not just in absolute latency but in consistency. With the Java engine, P99 latency varied between 25 ms and 60 ms depending on GC timing. With Rocksandra the storage hot path produces no Java garbage, so the dominant source of P99 variance is gone — what remains is mostly JVM coordination overhead.</p>
+<h4 id="open-source"><a href="#open-source">Open Source</a></h4>
+<p>Instagram open-sourced Rocksandra on GitHub (<a href="https://github.com/Instagram/cassandra" rel="noopener noreferrer" target="_blank">Instagram/cassandra</a>, <code>rocks_3.0</code> branch, based on Cassandra 3.0). The CASSANDRA-13474 JIRA already referenced the public blog post by April 2017; Rocksandra and the <a href="https://github.com/Instagram/cassandra-aws-benchmark" rel="noopener noreferrer" target="_blank">benchmark framework</a> were open-sourced in 2017–2018 alongside the F8 2018 talk “<a href="https://developers.facebook.com/videos/f8-2018/cassandra-on-rocksdb-at-instagram/" rel="noopener noreferrer" target="_blank">Cassandra on RocksDB at Instagram</a>”. The repository was archived by Instagram on 28 September 2023.</p>
+<h3 id="phase-4-geographic-data-partitioning-with-akkio-2018"><a href="#phase-4-geographic-data-partitioning-with-akkio-2018">Phase 4: Geographic Data Partitioning with Akkio (2018)</a></h3>
+<h4 id="the-locality-problem"><a href="#the-locality-problem">The Locality Problem</a></h4>
+<p>By 2018, Instagram served over 1 billion monthly active users across multiple continents. The original approach—replicating all data across all data centers—created two problems:</p>
+<ol>
+<li><strong>Storage waste</strong>: Full replication meant every user’s data existed in every region, even if that user only accessed their data from one continent.</li>
+<li><strong>Cross-ocean latency</strong>: Quorum consistency (requiring a majority of replicas to agree) meant some requests had to cross the Atlantic, adding 60+ ms of latency.</li>
+</ol>
+<h4 id="akkio-facebooks-data-placement-service"><a href="#akkio-facebooks-data-placement-service">Akkio: Facebook’s Data Placement Service</a></h4>
+<p>Instagram integrated <a href="https://engineering.fb.com/2018/10/08/core-infra/akkio/" rel="noopener noreferrer" target="_blank">Akkio</a>, a Facebook-internal locality management service that had been in production since 2014 and, by the time of <a href="https://www.usenix.org/system/files/osdi18-annamalai.pdf" rel="noopener noreferrer" target="_blank">the OSDI 2018 paper</a>, managed roughly 100 PB across five different storage backends.</p>
+<p><strong>Core concept: microshards (μ-shards)</strong></p>
+<p>Akkio sits between client applications and the underlying datastore. Each μ-shard is an application-defined unit of related data exhibiting access locality. Average μ-shard size at Facebook is ≈200 KB, with typical sizes ranging from a few hundred bytes to a few megabytes; for Instagram’s user-keyed data, one user’s data is one μ-shard. μ-shards never span shards — Akkio assigns each μ-shard to exactly one underlying shard and migrates it as a unit.</p>
+<p><strong>How it works:</strong></p>
+<ol>
+<li><strong>Access tracking</strong>: An Akkio client library wraps every datastore call, asynchronously recording the requesting region against the μ-shard id in a time-windowed counter (10-day retention, typically queried over the last 3 days).</li>
+<li><strong>Placement scoring</strong>: When the Akkio client detects a cross-region access, it hints the Data Placement Service (DPS). The DPS reads the recent access history, scores each region by weighted recency × available capacity, and picks the highest-scoring placement.</li>
+<li><strong>Migration</strong>: If the chosen placement differs from the current one, the DPS serialises a migration: lock the μ-shard, set the source ACL to read-only, copy to the destination, atomically update the location DB, delete from source, release the lock. For eventually consistent backends like Cassandra, Akkio uses timestamp-based ordering rather than ACL flips.</li>
+</ol>
+<p><figure class="ps-figure ps-figure-themed ps-figure-zoomable"><picture><source srcset="/legacy-personal-site/v5/assets/akkio-microshard-placement-dark.dc9da3af.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" data-scheme="dark"><source srcset="/legacy-personal-site/v5/assets/akkio-microshard-placement-light.c60fb355.svg" type="image/svg+xml" data-scheme="light"><img src="/legacy-personal-site/v5/assets/akkio-microshard-placement-light.c60fb355.svg" alt="Akkio microshard placement: the client library records access patterns, the Data Placement Service scores regions by recency-weighted history × capacity, and migrations are serialised through a lock on the location database." width="1561" height="1040" style="max-width:min(1561px,100%)"></picture><figcaption>Akkio microshard placement and migration flow — every cross-region access is a hint that triggers asynchronous re-evaluation by the DPS.</figcaption><button type="button" class="ps-img-zoom-btn" hidden aria-label="Zoom image" data-ps-img-zoom-btn=""><svg class="ps-img-zoom-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6"></path></svg></button></figure></p>
+<p><strong>The canonical Cassandra + Akkio use case at Instagram — Connection-Info</strong></p>
+<p>The OSDI 2018 paper documents Instagram <strong>Connection-Info</strong> as the headline Cassandra deployment behind Akkio. Connection-Info stores per-user state (when and where each user was online, status, connection endpoints) and has roughly <strong>30 billion μ-shards</strong>. It runs on Cassandra with quorum reads and writes for strong consistency. The original deployment used 5× full replication across five US datacentres; once usage in a second continent grew, that no longer fit. Akkio enabled a 3× replication scheme with two replicas in the destination continent and one in the source — keeping a quorum within one continent and read/write latencies under 50 ms instead of the 100+ ms a cross-ocean quorum would impose. <strong>Without Akkio, Instagram could not have expanded Connection-Info into the second continent at all.</strong></p>
+<p><strong>Architecture after Akkio integration:</strong></p>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Region</th>
+<th>Data centres</th>
+<th>Data scope</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>US</td>
+<td>3 data centres</td>
+<td>US users’ data</td>
+</tr>
+<tr>
+<td>EU</td>
+<td>3 data centres</td>
+<td>EU users’ data</td>
+</tr>
+</tbody>
+</table></div>
+<p>Each region maintained 20 % capacity headroom for single-datacentre failover within the region (<a href="https://www.infoq.com/news/2018/11/instagram-across-continents/" rel="noopener noreferrer" target="_blank">Xiao, LISA 2018</a>).</p>
+<p><strong>Aggregate results across Akkio-managed services:</strong></p>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Improvement</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Access latency</td>
+<td>Up to 50 % reduction</td>
+<td>OSDI 2018 abstract</td>
+</tr>
+<tr>
+<td>Cross-datacentre traffic</td>
+<td>Up to 50 % reduction</td>
+<td>OSDI 2018 abstract</td>
+</tr>
+<tr>
+<td>Storage footprint</td>
+<td>Up to 40 % reduction</td>
+<td>OSDI 2018 abstract</td>
+</tr>
+<tr>
+<td>Instagram Direct end-to-end p90 latency</td>
+<td>−90 ms</td>
+<td>OSDI 2018 §5.2.4</td>
+</tr>
+<tr>
+<td>Instagram Direct end-to-end p95 latency</td>
+<td>−150 ms</td>
+<td>OSDI 2018 §5.2.4</td>
+</tr>
+<tr>
+<td>Instagram Direct text message send rate</td>
+<td>+1.1 %</td>
+<td>OSDI 2018 §5.2.4</td>
+</tr>
+</tbody>
+</table></div>
+<div class="markdown-alert markdown-alert-important">
+<p class="markdown-alert-title"><span class="octicon octicon-important" style="--oct-icon: url(&#x22;data:image/svg+xml;utf8,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; class=&#x27;octicon octicon-report mr-2&#x27; viewBox=&#x27;0 0 16 16&#x27; version=&#x27;1.1&#x27; width=&#x27;16&#x27; height=&#x27;16&#x27; aria-hidden=&#x27;true&#x27;%3E%3Cpath d=&#x27;M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v9.5A1.75 1.75 0 0 1 14.25 13H8.06l-2.573 2.573A1.458 1.458 0 0 1 3 14.543V13H1.75A1.75 1.75 0 0 1 0 11.25Zm1.75-.25a.25.25 0 0 0-.25.25v9.5c0 .138.112.25.25.25h2a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h6.5a.25.25 0 0 0 .25-.25v-9.5a.25.25 0 0 0-.25-.25Zm7 2.25v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 9a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z&#x27;%3E%3C/path%3E%3C/svg%3E&#x22;)"></span>Important</p>
+<p>The Direct numbers above describe <strong>Iris</strong>, the Facebook-internal queueing service that Instagram Direct uses (Iris persists to MySQL, not Cassandra). They illustrate Akkio’s reach beyond Cassandra rather than the Cassandra read path itself. Cassandra-on-Akkio at Instagram is best characterised by Connection-Info: locality determines whether a quorum can stay on one continent.</p>
+</div>
+<p>The Social Hash partitioner routed requests to the correct Cassandra buckets based on user geography, with special handling for high-follower accounts that generated distributed access patterns across regions. TAO, Facebook’s social graph store, was modified for region-local masters but did <strong>not</strong> use Akkio: media objects are accessed globally, so locality-based μ-shard placement would have provided little benefit (<a href="https://www.infoq.com/news/2018/11/instagram-across-continents/" rel="noopener noreferrer" target="_blank">Xiao, LISA 2018</a>).</p>
+<h2 id="outcome"><a href="#outcome">Outcome</a></h2>
+<h3 id="metrics-comparison-across-phases"><a href="#metrics-comparison-across-phases">Metrics Comparison Across Phases</a></h3>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Redis (2012)</th>
+<th>Cassandra 1.2 (2013)</th>
+<th>Cassandra at scale (2016)</th>
+<th>Rocksandra (2018)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Nodes</td>
+<td>32 (activity feed)</td>
+<td>12</td>
+<td>1,000+</td>
+<td>1,000+</td>
+</tr>
+<tr>
+<td>Data stored</td>
+<td>In-memory only</td>
+<td>~1.2 TB</td>
+<td>Hundreds of TB</td>
+<td>Hundreds of TB</td>
+</tr>
+<tr>
+<td>Cost (relative)</td>
+<td>100%</td>
+<td>~25%</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr>
+<td>P99 read latency</td>
+<td>Sub-ms</td>
+<td>-</td>
+<td>25-60 ms</td>
+<td>20 ms</td>
+</tr>
+<tr>
+<td>GC stall rate</td>
+<td>N/A</td>
+<td>-</td>
+<td>1.25-2.5%</td>
+<td>0.3%</td>
+</tr>
+<tr>
+<td>Write QPS (feed)</td>
+<td>-</td>
+<td>20K</td>
+<td>1M+</td>
+<td>1M+</td>
+</tr>
+<tr>
+<td>Geographic scope</td>
+<td>Single region</td>
+<td>Single region</td>
+<td>Multi-DC (US)</td>
+<td>US + EU (6 DCs)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="timeline"><a href="#timeline">Timeline</a></h3>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Milestone</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>October 2010</td>
+<td>Instagram launches on PostgreSQL + Redis</td>
+</tr>
+<tr>
+<td>Early 2012</td>
+<td>Cassandra adoption begins for fraud detection</td>
+</tr>
+<tr>
+<td>April 2012</td>
+<td>Facebook acquires Instagram (13 employees)</td>
+</tr>
+<tr>
+<td>June 2013</td>
+<td>Rick Branson presents first 12-node Cassandra cluster at Cassandra Summit</td>
+</tr>
+<tr>
+<td>April 2013 - Mid 2014</td>
+<td>Migration from AWS to Facebook data centers</td>
+</tr>
+<tr>
+<td>2014</td>
+<td>Cassandra scales to 60+ nodes; Cassandra Summit 2014 presentation</td>
+</tr>
+<tr>
+<td>2015</td>
+<td>Multi-datacenter expansion within the US</td>
+</tr>
+<tr>
+<td>2016</td>
+<td>1,000+ nodes, Dikang Gu presents at Cassandra Summit 2016</td>
+</tr>
+<tr>
+<td>2016-2017</td>
+<td>Rocksandra development (~1 year); CASSANDRA-13474/13476 filed Apr 2017</td>
+</tr>
+<tr>
+<td>2017-2018</td>
+<td>Rocksandra open-sourced (<a href="https://github.com/Instagram/cassandra/tree/rocks_3.0" rel="noopener noreferrer" target="_blank">Instagram/cassandra <code>rocks_3.0</code></a>); F8 2018 talk in May</td>
+</tr>
+<tr>
+<td>October 2018</td>
+<td>Geographic partitioning with Akkio (<a href="https://www.infoq.com/news/2018/11/instagram-across-continents/" rel="noopener noreferrer" target="_blank">LISA 2018</a>, <a href="https://www.usenix.org/system/files/osdi18-annamalai.pdf" rel="noopener noreferrer" target="_blank">OSDI 2018</a>)</td>
+</tr>
+<tr>
+<td>2019</td>
+<td>Cassandra as a Service inside Instagram (<a href="https://www.datastax.com/resources/video/datastax-accelerate-2019-solving-optimal-data-placement-instagrams-global-scale" rel="noopener noreferrer" target="_blank">Dikang Gu, DataStax Accelerate 2019</a>)</td>
+</tr>
+<tr>
+<td>September 2023</td>
+<td>Instagram archives the <code>Instagram/cassandra</code> GitHub repo</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="unexpected-benefits"><a href="#unexpected-benefits">Unexpected Benefits</a></h3>
+<ul>
+<li><strong>Operational simplicity at scale</strong>: Cassandra’s peer-to-peer architecture meant no master failovers, no ZooKeeper dependency, and straightforward capacity additions — critical for a team that grew dramatically from a handful of engineers in 2012 to hundreds inside Facebook over the next several years.</li>
+<li><strong>Pluggable storage engine as a platform</strong>: The storage engine API Instagram built for Rocksandra (CASSANDRA-13474) was proposed upstream to Apache Cassandra, potentially enabling other storage backends beyond RocksDB.</li>
+<li><strong>Akkio enablement</strong>: Cassandra’s flexible replication model made it a natural fit for Akkio’s microshard-based data placement, which was harder to apply to systems like TAO (Facebook’s social graph store) with globally-accessed data.</li>
+</ul>
+<h3 id="remaining-limitations"><a href="#remaining-limitations">Remaining Limitations</a></h3>
+<ul>
+<li><strong>Rocksandra adoption</strong>: The pluggable storage engine API (<a href="https://issues.apache.org/jira/browse/CASSANDRA-13474" rel="noopener noreferrer" target="_blank">CASSANDRA-13474</a>) was not merged into mainline Apache Cassandra — its status remains “Open” with no fix version, and Jeremiah Jordan’s review feedback (2017) noted the API needs a second engine implementation to validate it. Instagram maintained a fork, which was <a href="https://github.com/Instagram/cassandra" rel="noopener noreferrer" target="_blank">archived on GitHub on 28 September 2023</a>.</li>
+<li><strong>JVM overhead persists</strong>: Cassandra’s coordination layer (gossip, request handling) still runs on the JVM. Rocksandra only replaced the storage path.</li>
+<li><strong>Eventual consistency trade-offs</strong>: Workloads requiring strong consistency remained on PostgreSQL or TAO. Cassandra served use cases where eventual consistency was acceptable.</li>
+</ul>
+<h2 id="lessons-learned"><a href="#lessons-learned">Lessons Learned</a></h2>
+<h3 id="technical-lessons"><a href="#technical-lessons">Technical Lessons</a></h3>
+<h4 id="1-match-storage-costs-to-access-patterns"><a href="#1-match-storage-costs-to-access-patterns">1. Match Storage Costs to Access Patterns</a></h4>
+<p><strong>The insight</strong>: Storing write-heavy, rarely-read data in RAM is an architectural smell. The cost model should match the access pattern—disk storage for archival writes, memory for hot reads.</p>
+<p><strong>How it applies elsewhere:</strong></p>
+<ul>
+<li>Audit logs, analytics events, and activity streams rarely need sub-millisecond reads</li>
+<li>The ≈75 % cost saving Instagram reported came from recognising that write performance, not read speed, was the binding constraint (<a href="https://www.slideshare.net/slideshow/c-summit-2013-cassandra-at-instagram-23756207/23756207" rel="noopener noreferrer" target="_blank">Branson, 2013</a>)</li>
+</ul>
+<p><strong>Warning signs to watch for:</strong></p>
+<ul>
+<li>Memory utilization growing faster than CPU utilization on cache/store nodes</li>
+<li>Storage cost dominating infrastructure budget for data that is mostly written</li>
+</ul>
+<h4 id="2-jvm-garbage-collection-limits-tail-latency-at-scale"><a href="#2-jvm-garbage-collection-limits-tail-latency-at-scale">2. JVM Garbage Collection Limits Tail Latency at Scale</a></h4>
+<p><strong>The insight</strong>: JVM-based storage engines create an inherent tension between throughput and P99 latency. At sufficient scale (1,000+ nodes, millions of operations), no amount of GC tuning eliminates the problem.</p>
+<p><strong>How it applies elsewhere:</strong></p>
+<ul>
+<li>Any JVM-based data store (Elasticsearch, Kafka, HBase) will face similar GC pressure at scale</li>
+<li>The pattern of replacing hot-path components with native code (C++/Rust) is increasingly common: ScyllaDB (C++ Cassandra), Redpanda (C++ Kafka), Quickwit (Rust Elasticsearch)</li>
+</ul>
+<p><strong>Warning signs to watch for:</strong></p>
+<ul>
+<li>P99 latency 10-15x higher than average (indicates GC pauses, not I/O)</li>
+<li>GC stall percentage above 1% during normal operation</li>
+<li>Latency variance that does not correlate with load changes</li>
+</ul>
+<h4 id="3-build-on-proven-components-rather-than-replacing-entire-systems"><a href="#3-build-on-proven-components-rather-than-replacing-entire-systems">3. Build on Proven Components Rather Than Replacing Entire Systems</a></h4>
+<p><strong>The insight</strong>: Instagram replaced Cassandra’s storage engine with RocksDB rather than replacing Cassandra entirely with ScyllaDB or another system. This preserved operational expertise, cluster tooling, and the proven distribution layer while solving the specific problem (GC latency).</p>
+<p><strong>How it applies elsewhere:</strong></p>
+<ul>
+<li>When a system has one problematic layer, consider replacing that layer rather than the entire system</li>
+<li>Organizational trust in a technology is a real engineering asset—switching costs include lost operational knowledge</li>
+</ul>
+<p><strong>What they’d do differently:</strong>
+The pluggable storage engine API was not accepted upstream into Apache Cassandra, leaving Instagram on a fork. Contributing the API earlier in the process might have changed the outcome.</p>
+<h3 id="process-lessons"><a href="#process-lessons">Process Lessons</a></h3>
+<h4 id="1-presentation-driven-engineering-rigor"><a href="#1-presentation-driven-engineering-rigor">1. Presentation-Driven Engineering Rigor</a></h4>
+<p>Instagram’s Cassandra team presented at Cassandra Summit every year from 2013 to 2019. Each presentation forced the team to quantify their deployment’s state, document decisions, and articulate challenges. This created an unusually well-documented evolution that other teams could learn from.</p>
+<h4 id="2-shadow-clustering-for-version-upgrades"><a href="#2-shadow-clustering-for-version-upgrades">2. Shadow Clustering for Version Upgrades</a></h4>
+<p>When migrating from Cassandra 2.2 to 3.0, Dikang Gu’s team used shadow clusters—parallel deployments receiving replicated traffic—to validate behavior before cutting over production. This pattern reduced the risk of major version upgrades on a system serving billions of operations.</p>
+<h3 id="organizational-lessons"><a href="#organizational-lessons">Organizational Lessons</a></h3>
+<h4 id="1-small-teams-need-low-ops-technology"><a href="#1-small-teams-need-low-ops-technology">1. Small Teams Need Low-Ops Technology</a></h4>
+<p>Instagram chose Cassandra partly because its peer-to-peer architecture required less operational overhead than master-slave systems like HBase. With 3-6 engineers running the entire infrastructure, every operational burden was magnified. The absence of ZooKeeper dependencies, master failover procedures, and HDFS management was a decisive factor.</p>
+<h4 id="2-expertise-acquisition-through-hiring"><a href="#2-expertise-acquisition-through-hiring">2. Expertise Acquisition Through Hiring</a></h4>
+<p>One of Instagram’s engineers had deep Cassandra expertise from prior work at DataStax. This single hire de-risked the entire migration. When adopting unfamiliar infrastructure, hiring someone who has operated it at scale is often more effective than training existing staff.</p>
+<h2 id="applying-this-to-your-system"><a href="#applying-this-to-your-system">Applying This to Your System</a></h2>
+<h3 id="when-this-pattern-applies"><a href="#when-this-pattern-applies">When This Pattern Applies</a></h3>
+<p>You might face similar challenges if:</p>
+<ul>
+<li>You are storing append-heavy, rarely-read data (logs, events, feeds) in an in-memory store</li>
+<li>Your storage costs are growing faster than your read throughput requirements justify</li>
+<li>You need horizontal scalability without master-node bottlenecks</li>
+<li>Your JVM-based data store has P99 latencies significantly higher than P50</li>
+</ul>
+<h3 id="checklist-for-evaluation"><a href="#checklist-for-evaluation">Checklist for Evaluation</a></h3>
+<ul class="contains-task-list">
+<li class="task-list-item"><input type="checkbox" disabled aria-label="Pending: Is your storage cost dominated by memory for data with a high write-to-read ratio?"> Is your storage cost dominated by memory for data with a high write-to-read ratio?</li>
+<li class="task-list-item"><input type="checkbox" disabled aria-label="Pending: Are you hitting vertical scaling limits (memory, instance type ceilings)?"> Are you hitting vertical scaling limits (memory, instance type ceilings)?</li>
+<li class="task-list-item"><input type="checkbox" disabled aria-label="Pending: Is your P99 latency 10x+ higher than average, suggesting GC pressure?"> Is your P99 latency 10x+ higher than average, suggesting GC pressure?</li>
+<li class="task-list-item"><input type="checkbox" disabled aria-label="Pending: Does your team have (or can acquire) Cassandra operational expertise?"> Does your team have (or can acquire) Cassandra operational expertise?</li>
+<li class="task-list-item"><input type="checkbox" disabled aria-label="Pending: Are your consistency requirements compatible with eventual consistency?"> Are your consistency requirements compatible with eventual consistency?</li>
+</ul>
+<h3 id="starting-points"><a href="#starting-points">Starting Points</a></h3>
+<p>If you want to explore this approach:</p>
+<ol>
+<li><strong>Profile your workload</strong>: Measure write-to-read ratio, access recency, and hot data percentage. If most data is cold, it does not belong in RAM.</li>
+<li><strong>Benchmark Cassandra for your schema</strong>: Use cassandra-stress or NDBench with your actual data model and access patterns. Test with LeveledCompactionStrategy for read-heavy partitions and SizeTieredCompactionStrategy for write-heavy ones.</li>
+<li><strong>Start with one workload</strong>: Instagram started with fraud detection—a non-user-facing, write-heavy workload where Cassandra failure would not break the product. Choose your lowest-risk, highest-waste workload.</li>
+<li><strong>Monitor GC from day one</strong>: Track GC stall percentage, not just average latency. A 2% stall rate that is invisible in averages will dominate your P99.</li>
+</ol>
+<h2 id="conclusion"><a href="#conclusion">Conclusion</a></h2>
+<p>Instagram’s Cassandra journey demonstrates a recurring pattern in infrastructure evolution: adopt technology for its strengths, discover its limits at scale, then engineer past those limits rather than replacing the system entirely. The ≈75 % cost saving from migrating off Redis validated Cassandra. The GC-latency wall at 1,000+ nodes led to Rocksandra rather than a database switch. Geographic expansion drove Akkio integration rather than a replication redesign.</p>
+<p>The transferable insight is not “use Cassandra.” It is: match your storage cost model to your access patterns, expect JVM-based systems to hit GC walls at scale, and when you hit a wall, replace the problematic layer—not the entire stack.</p>
+<h2 id="appendix"><a href="#appendix">Appendix</a></h2>
+<h3 id="prerequisites"><a href="#prerequisites">Prerequisites</a></h3>
+<ul>
+<li>Understanding of LSM tree storage engines (memtables, SSTables, compaction)</li>
+<li>Familiarity with distributed system concepts (replication factor, consistency levels, partitioning)</li>
+<li>Basic knowledge of JVM garbage collection (Young/Old Gen, GC pauses, stall rates)</li>
+</ul>
+<h3 id="terminology"><a href="#terminology">Terminology</a></h3>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Definition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>LSM tree</strong></td>
+<td>Log-Structured Merge tree. A write-optimized data structure that buffers writes in memory (memtable), flushes to sorted files on disk (SSTables), and periodically merges them (compaction).</td>
+</tr>
+<tr>
+<td><strong>Rocksandra</strong></td>
+<td>Instagram’s name for their modified Cassandra with RocksDB as the storage engine.</td>
+</tr>
+<tr>
+<td><strong>Akkio</strong></td>
+<td>Facebook’s data placement service that tracks access patterns and migrates data units (microshards) to data centers closest to frequent accessors.</td>
+</tr>
+<tr>
+<td><strong>Microshard (u-shard)</strong></td>
+<td>An application-defined data unit in Akkio, typically representing a single user’s data, that can be independently placed in a specific data center.</td>
+</tr>
+<tr>
+<td><strong>GC stall rate</strong></td>
+<td>The percentage of time a JVM-based application is paused for garbage collection, unable to process requests.</td>
+</tr>
+<tr>
+<td><strong>Fan-out on write</strong></td>
+<td>A pattern where data is duplicated to all recipients’ stores at write time, trading write amplification for fast reads.</td>
+</tr>
+<tr>
+<td><strong>LeveledCompactionStrategy</strong></td>
+<td>A Cassandra compaction strategy that maintains data in sorted levels, optimizing read latency at the cost of higher write amplification.</td>
+</tr>
+<tr>
+<td><strong>Shadow cluster</strong></td>
+<td>A parallel deployment receiving replicated production traffic for testing, used to validate new configurations or versions before production cutover.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="summary"><a href="#summary">Summary</a></h3>
+<ul>
+<li>Instagram migrated fraud detection and activity-feed workloads from Redis to Cassandra in 2012, cutting infrastructure costs by ≈75 % by moving from in-memory to disk-based storage for write-heavy, rarely-read data.</li>
+<li>The initial 12-node Cassandra 1.2 cluster on AWS grew to 1,000+ nodes on Facebook’s infrastructure by 2016, handling millions of operations per second across feed, inbox, Direct messaging, and counter workloads.</li>
+<li>JVM garbage collection became the dominant source of P99 latency at scale (25–60 ms). Instagram built Rocksandra, replacing Cassandra’s Java storage engine with a C++ RocksDB engine through a pluggable <code>StorageEngine</code> API. Typical P99 reads dropped to ~20 ms (≈3×), and GC stall rate fell from 2.5 % to 0.3 % (≈10×).</li>
+<li>Geographic data partitioning via Akkio eliminated cross-continent replication for user-keyed Cassandra workloads (Connection-Info), reducing latency by up to 50 % and storage by up to 40 % by placing each user’s μ-shard in the nearest regional cluster.</li>
+<li>The pattern — adopt proven technology, discover scale-specific limits, engineer past them rather than replace the system — is a reusable approach for infrastructure evolution.</li>
+</ul>
+<h3 id="references"><a href="#references">References</a></h3>
+<p><strong>Primary sources — Cassandra Summit and Instagram engineering</strong></p>
+<ul>
+<li><a href="https://www.slideshare.net/slideshow/c-summit-2013-cassandra-at-instagram-23756207/23756207" rel="noopener noreferrer" target="_blank">Cassandra at Instagram, Cassandra Summit 2013 — Rick Branson</a> — initial 12-node hi1.4xlarge deployment, RF=3 / W=TWO / R=ONE, 75 % cost reduction.</li>
+<li><a href="https://www.slideshare.net/rbranson/cassandra-at-instagram-aug-2013" rel="noopener noreferrer" target="_blank">Cassandra at Instagram (August 2013) — Rick Branson</a> — updated cluster configuration and data models.</li>
+<li><a href="https://www.slideshare.net/planetcassandra/cassandra-summit-2014-cassandra-at-instagram-2014" rel="noopener noreferrer" target="_blank">Cassandra at Instagram 2014, Cassandra Summit 2014 — Rick Branson</a> — scaling to 60+ nodes; JVM tuning lessons including the JDK 1.7 Young GC double-collection bug.</li>
+<li><a href="https://www.slideshare.net/DataStax/cassandra-at-instagram-2016" rel="noopener noreferrer" target="_blank">Cassandra at Instagram 2016, Cassandra Summit 2016 — Dikang Gu</a> — 1,000+ nodes, feed data model, proxy nodes, counter service.</li>
+<li><a href="https://instagram-engineering.com/open-sourcing-a-10x-reduction-in-apache-cassandra-tail-latency-d64f86b43589" rel="noopener noreferrer" target="_blank">Open-sourcing a 10x reduction in Apache Cassandra tail latency — Instagram Engineering</a> — Rocksandra announcement, NDBench results, feature scope.</li>
+<li><a href="https://instagram-engineering.com/what-powers-instagram-hundreds-of-instances-dozens-of-technologies-adf2e22da2ad" rel="noopener noreferrer" target="_blank">What Powers Instagram — Instagram Engineering</a> — original AWS stack: Django + Gunicorn, PostgreSQL, Redis, Memcached, Gearman, S3, CloudFront.</li>
+<li><a href="https://instagram-engineering.com/sharding-ids-at-instagram-1cf5a71e5a5c" rel="noopener noreferrer" target="_blank">Sharding &#x26; IDs at Instagram — Instagram Engineering</a> — 64-bit ID layout (41 bits time, 13 bits shard, 10 bits sequence) and PL/pgSQL implementation.</li>
+<li><a href="https://instagram-engineering.com/instagration-pt-2-scaling-our-infrastructure-to-multiple-data-centers-5745cbad7834" rel="noopener noreferrer" target="_blank">Instagration Pt. 2: Scaling to Multiple Data Centers — Instagram Engineering</a> — multi-DC expansion within the US.</li>
+</ul>
+<p><strong>Apache JIRA and Rocksandra source</strong></p>
+<ul>
+<li><a href="https://issues.apache.org/jira/browse/CASSANDRA-13474" rel="noopener noreferrer" target="_blank">CASSANDRA-13474 — Cassandra pluggable storage engine, Apache JIRA</a> — umbrella ticket; status “Open” as of 2025; sub-tasks include CASSANDRA-13475 (engine design), CASSANDRA-14115/16/18 (streaming, repair, write-path refactors).</li>
+<li><a href="https://issues.apache.org/jira/browse/CASSANDRA-13476" rel="noopener noreferrer" target="_blank">CASSANDRA-13476 — RocksDB based storage engine, Apache JIRA</a> — concrete RocksDB engine implementation.</li>
+<li><a href="https://github.com/Instagram/cassandra/tree/rocks_3.0" rel="noopener noreferrer" target="_blank">Instagram/cassandra (<code>rocks_3.0</code> branch) — GitHub</a> — open-source Rocksandra code; archived 28 September 2023.</li>
+<li><a href="https://conferences.oreilly.com/oscon/oscon-or-2018/public/schedule/detail/67020.html" rel="noopener noreferrer" target="_blank">Cassandra on RocksDB (OSCON 2018) — Dikang Gu</a> — technical deep-dive on Rocksandra architecture.</li>
+<li><a href="https://developers.facebook.com/videos/f8-2018/cassandra-on-rocksdb-at-instagram/" rel="noopener noreferrer" target="_blank">Cassandra on RocksDB at Instagram (F8 2018) — Meta for Developers</a> — F8 talk; coincides with broader open-source rollout.</li>
+<li><a href="https://thenewstack.io/instagram-supercharges-cassandra-pluggable-rocksdb-storage-engine/" rel="noopener noreferrer" target="_blank">Instagram Supercharges Cassandra with a Pluggable RocksDB Storage Engine — The New Stack</a> — interview with Francois Deliege and Dikang Gu on the storage engine API design.</li>
+</ul>
+<p><strong>Akkio and geographic partitioning</strong></p>
+<ul>
+<li><a href="https://www.usenix.org/system/files/osdi18-annamalai.pdf" rel="noopener noreferrer" target="_blank">Sharding the Shards: Managing Datastore Locality at Scale with Akkio — USENIX OSDI 2018</a> — Akkio architecture, μ-shards, Connection-Info (§5.2.3) and Direct (§5.2.4) production results.</li>
+<li><a href="https://engineering.fb.com/2018/10/08/core-infra/akkio/" rel="noopener noreferrer" target="_blank">Managing data store locality at scale with Akkio — Engineering at Meta</a> — DPS architecture, ZippyDB-backed metadata, capacity scoring.</li>
+<li><a href="https://www.infoq.com/news/2018/11/instagram-across-continents/" rel="noopener noreferrer" target="_blank">Splitting Stateful Services across Continents at Instagram — InfoQ (LISA 2018, Sherry Xiao)</a> — 3 US + 3 EU layout, 20 % regional headroom, why TAO does not use Akkio.</li>
+<li><a href="https://www.datastax.com/resources/video/datastax-accelerate-2019-solving-optimal-data-placement-instagrams-global-scale" rel="noopener noreferrer" target="_blank">Solving Optimal Data Placement for Instagram’s Global Scale, DataStax Accelerate 2019 — Dikang Gu</a> — operational view of Akkio integration.</li>
+</ul>
+<p><strong>Context and corroboration</strong></p>
+<ul>
+<li><a href="https://news.ycombinator.com/item?id=5845107" rel="noopener noreferrer" target="_blank">Instagram: Making the Switch to Cassandra from Redis — Hacker News discussion</a> — Rick Branson’s contemporaneous comments on the Redis-to-Cassandra decision.</li>
+<li><a href="https://www.kqed.org/news/61601/facebook-to-buy-instagram-for-1-billion" rel="noopener noreferrer" target="_blank">Facebook to Buy Instagram (13 employees) for $1 Billion — KQED</a> — acquisition date and team size.</li>
+</ul></div></article></main><footer class="doc-footer"><div class="doc-page-meta"><a href="https://github.com/sujeet-pro/v5.sujeet.pro/blob/main/content/articles/instagram-cassandra-migration/README.md" class="doc-edit-link" target="_blank" rel="noopener noreferrer">Edit this page</a><span class="doc-last-updated">Last updated: <time datetime="Tue Apr 21 2026 05:30:00 GMT+0530 (India Standard Time)">April 21, 2026</time></span></div><nav class="doc-article-nav" aria-label="Page navigation"><a href="/legacy-personal-site/v5/articles/dropbox-magic-pocket" class="doc-article-link doc-article-prev"><span class="doc-article-label">Previous</span><span class="doc-article-title">Dropbox Magic Pocket</span></a><a href="/legacy-personal-site/v5/articles/youtube-vitess-scaling" class="doc-article-link doc-article-next"><span class="doc-article-label">Next</span><span class="doc-article-title">YouTube + Vitess</span></a></nav><nav class="doc-footer-links doc-footer-links-grouped" aria-label="Footer links" style="--doc-footer-columns:2;--doc-footer-columns-compact:2"><div class="doc-footer-link-group"><p class="doc-footer-link-group-header">Content</p><div class="doc-footer-link-group-links"><a class="doc-footer-group-link" href="/legacy-personal-site/v5/articles"><span class="doc-footer-link-label">Articles</span></a><a class="doc-footer-group-link" href="/legacy-personal-site/v5/blogs"><span class="doc-footer-link-label">Blogs</span></a></div></div><div class="doc-footer-link-group"><p class="doc-footer-link-group-header">Profiles</p><div class="doc-footer-link-group-links"><a class="doc-footer-group-link" href="https://github.com/sujeet-pro" target="_blank" rel="noopener noreferrer"><span class="doc-footer-link-label">GitHub</span></a><a class="doc-footer-group-link" href="https://www.linkedin.com/in/sujeetkrjaiswal/" target="_blank" rel="noopener noreferrer"><span class="doc-footer-link-label">LinkedIn</span></a><a class="doc-footer-group-link" href="https://twitter.com/sujeetpro" target="_blank" rel="noopener noreferrer"><span class="doc-footer-link-label">Twitter</span></a></div></div></nav><div class="doc-footer-theme no-js-hidden" data-footer-theme=""><div class="doc-footer-theme-group"><span class="doc-footer-theme-label">Appearance</span><div class="doc-footer-theme-options" data-footer-scheme="" data-ps-footer-scheme=""><button type="button" data-scheme="auto" class="active" aria-pressed="true">Auto</button><button type="button" data-scheme="light" aria-pressed="false">Light</button><button type="button" data-scheme="dark" aria-pressed="false">Dark</button></div></div><div class="doc-footer-theme-group"><span class="doc-footer-theme-label">Theme</span><div class="doc-footer-theme-options" data-footer-theme-type="" data-ps-footer-theme=""><button type="button" data-theme="paper" class="active" aria-pressed="true">Paper</button><button type="button" data-theme="high-contrast" aria-pressed="false">High Contrast</button></div></div><div class="doc-footer-theme-group"><span class="doc-footer-theme-label">Text Size</span><div class="doc-footer-theme-options" data-footer-text-size="" data-ps-footer-text-size=""><button type="button" data-size="small" aria-pressed="false" aria-label="Small text"><span class="doc-text-size-label" data-size="small" aria-hidden="true">A</span></button><button type="button" data-size="base" class="active" aria-pressed="true" aria-label="Default text"><span class="doc-text-size-label" data-size="base" aria-hidden="true">A</span></button><button type="button" data-size="large" aria-pressed="false" aria-label="Large text"><span class="doc-text-size-label" data-size="large" aria-hidden="true">A</span></button></div></div></div><div class="doc-footer-legal"><p class="doc-footer-copyright">© <span class="doc-footer-year-range" data-current-year-range=""><span class="doc-footer-year-start">2024</span><span class="doc-footer-year-separator" aria-hidden="true">–</span><span id="pagesmith-footer-year-end" data-start-year="2024" data-rendered-year="2026" data-auto-update="true">2026</span></span> Sujeet Jaiswal</p><p class="doc-footer-signoff"><span class="doc-footer-legal-separator" aria-hidden="true">|</span>Made with <span aria-hidden="true">❤</span> using <a href="https://projects.sujeet.pro/pagesmith/" target="_blank" rel="noopener noreferrer">Pagesmith</a><span> and is maintained by <a href="https://sujeet.pro" target="_blank" rel="noopener noreferrer">Sujeet Jaiswal</a></span></p></div></footer></div><aside class="doc-aside"><nav class="doc-toc" aria-label="Table of contents" data-ps-toc=""><p class="doc-toc-title">On this page</p><ul class="doc-toc-list"><li class="doc-toc-item depth-2"><a href="#abstract">Abstract</a></li><li class="doc-toc-item depth-2"><a href="#context">Context</a></li><li class="doc-toc-item depth-3"><a href="#the-system">The System</a></li><li class="doc-toc-item depth-3"><a href="#the-trigger">The Trigger</a></li><li class="doc-toc-item depth-3"><a href="#constraints">Constraints</a></li><li class="doc-toc-item depth-2"><a href="#the-problem">The Problem</a></li><li class="doc-toc-item depth-3"><a href="#symptoms">Symptoms</a></li><li class="doc-toc-item depth-3"><a href="#root-cause-analysis">Root Cause Analysis</a></li><li class="doc-toc-item depth-3"><a href="#why-it-wasnt-obvious-earlier">Why It Wasn’t Obvious Earlier</a></li><li class="doc-toc-item depth-2"><a href="#options-considered">Options Considered</a></li><li class="doc-toc-item depth-3"><a href="#option-1-scale-redis-vertically">Option 1: Scale Redis Vertically</a></li><li class="doc-toc-item depth-3"><a href="#option-2-hbase">Option 2: HBase</a></li><li class="doc-toc-item depth-3"><a href="#option-3-apache-cassandra-chosen">Option 3: Apache Cassandra (Chosen)</a></li><li class="doc-toc-item depth-3"><a href="#decision-factors">Decision Factors</a></li><li class="doc-toc-item depth-2"><a href="#implementation">Implementation</a></li><li class="doc-toc-item depth-3"><a href="#phase-1-initial-cassandra-deployment-2012-2013">Phase 1: Initial Cassandra Deployment (2012-2013)</a></li><li class="doc-toc-item depth-3"><a href="#phase-2-scaling-to-1000-nodes-2014-2016">Phase 2: Scaling to 1,000+ Nodes (2014-2016)</a></li><li class="doc-toc-item depth-3"><a href="#phase-3-rocksandra--replacing-the-storage-engine-2017-2018">Phase 3: Rocksandra — Replacing the Storage Engine (2017-2018)</a></li><li class="doc-toc-item depth-3"><a href="#phase-4-geographic-data-partitioning-with-akkio-2018">Phase 4: Geographic Data Partitioning with Akkio (2018)</a></li><li class="doc-toc-item depth-2"><a href="#outcome">Outcome</a></li><li class="doc-toc-item depth-3"><a href="#metrics-comparison-across-phases">Metrics Comparison Across Phases</a></li><li class="doc-toc-item depth-3"><a href="#timeline">Timeline</a></li><li class="doc-toc-item depth-3"><a href="#unexpected-benefits">Unexpected Benefits</a></li><li class="doc-toc-item depth-3"><a href="#remaining-limitations">Remaining Limitations</a></li><li class="doc-toc-item depth-2"><a href="#lessons-learned">Lessons Learned</a></li><li class="doc-toc-item depth-3"><a href="#technical-lessons">Technical Lessons</a></li><li class="doc-toc-item depth-3"><a href="#process-lessons">Process Lessons</a></li><li class="doc-toc-item depth-3"><a href="#organizational-lessons">Organizational Lessons</a></li><li class="doc-toc-item depth-2"><a href="#applying-this-to-your-system">Applying This to Your System</a></li><li class="doc-toc-item depth-3"><a href="#when-this-pattern-applies">When This Pattern Applies</a></li><li class="doc-toc-item depth-3"><a href="#checklist-for-evaluation">Checklist for Evaluation</a></li><li class="doc-toc-item depth-3"><a href="#starting-points">Starting Points</a></li><li class="doc-toc-item depth-2"><a href="#conclusion">Conclusion</a></li><li class="doc-toc-item depth-2"><a href="#appendix">Appendix</a></li><li class="doc-toc-item depth-3"><a href="#prerequisites">Prerequisites</a></li><li class="doc-toc-item depth-3"><a href="#terminology">Terminology</a></li><li class="doc-toc-item depth-3"><a href="#summary">Summary</a></li><li class="doc-toc-item depth-3"><a href="#references">References</a></li></ul></nav></aside></div><dialog class="doc-sidebar-modal" id="sidebar-modal" data-sidebar-modal=""><div class="doc-sidebar-modal-backdrop" data-sidebar-close=""></div><div class="doc-sidebar-modal-panel"><button type="button" class="doc-sidebar-modal-close" data-sidebar-close="" aria-label="Close navigation"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m5 5 10 10M15 5 5 15"/></svg></button><nav class="doc-sidebar-nav" aria-label="Navigation"><div class="doc-sidebar-section"><p class="doc-sidebar-heading">Navigation</p><ul class="doc-sidebar-list "><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles" class="doc-sidebar-link">Articles</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/blogs" class="doc-sidebar-link">Blogs</a></li></ul></div><div class="doc-sidebar-section"><p class="doc-sidebar-heading">Series</p><ul class="doc-sidebar-list "><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-rendering-pipeline-overview" class="doc-sidebar-link">Critical Rendering Path</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-rendering-pipeline-overview" class="doc-sidebar-link">CRP: Pipeline Overview</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-dom-construction" class="doc-sidebar-link">CRP: DOM Construction</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-cssom-construction" class="doc-sidebar-link">CRP: CSSOM Construction</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-style-recalculation" class="doc-sidebar-link">CRP: Style Recalc</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-layout" class="doc-sidebar-link">CRP: Layout</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-prepaint" class="doc-sidebar-link">CRP: Prepaint</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-paint" class="doc-sidebar-link">CRP: Paint</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-commit" class="doc-sidebar-link">CRP: Commit</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-layerize" class="doc-sidebar-link">CRP: Layerize</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-raster" class="doc-sidebar-link">CRP: Raster</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-composit" class="doc-sidebar-link">CRP: Composite</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-draw" class="doc-sidebar-link">CRP: Draw</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/v8-engine-architecture" class="doc-sidebar-link">JavaScript Runtime Internals</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/v8-engine-architecture" class="doc-sidebar-link">V8 Engine</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/browser-internals" class="doc-sidebar-link">Browser Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/browser-event-loop" class="doc-sidebar-link">Browser Event Loop</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/nodejs-runtime-architecture" class="doc-sidebar-link">Node.js Runtime</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/libuv-event-loop-internals" class="doc-sidebar-link">libuv Internals</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/nodejs-event-loop" class="doc-sidebar-link">Node.js Event Loop</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/js-event-loop" class="doc-sidebar-link">JS Event Loop</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/auth-foundations-sessions-tokens" class="doc-sidebar-link">Web Security &amp; Authentication</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/auth-foundations-sessions-tokens" class="doc-sidebar-link">Auth Foundations</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-app-security-architecture" class="doc-sidebar-link">Web App Security</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/csrf-and-cors-defense" class="doc-sidebar-link">CSRF &amp; CORS</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/oauth-oidc-flow-guide" class="doc-sidebar-link">OAuth &amp; OIDC</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/csp-violation-reporting-pipeline" class="doc-sidebar-link">CSP Reporting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/owasp-top-10-guide" class="doc-sidebar-link">OWASP Top 10</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-resolution-path" class="doc-sidebar-link">Networking Protocols</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-resolution-path" class="doc-sidebar-link">DNS: Resolution Path</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-records-ttl-and-caching" class="doc-sidebar-link">DNS: Records &amp; TTL</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-security-doh-dot-dnssec" class="doc-sidebar-link">DNS: Security</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-troubleshooting-playbook" class="doc-sidebar-link">DNS: Troubleshooting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/tls-1-3-handshake-and-https" class="doc-sidebar-link">TLS 1.3 &amp; HTTPS</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/http1-1-to-http2-evolution" class="doc-sidebar-link">HTTP/1.1 → HTTP/2</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/http3-quic-and-tls" class="doc-sidebar-link">HTTP/3 &amp; QUIC</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dom-api-essentials" class="doc-sidebar-link">Browser APIs &amp; Accessibility</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dom-api-essentials" class="doc-sidebar-link">DOM API Essentials</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-components" class="doc-sidebar-link">Web Components</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/intersection-observer" class="doc-sidebar-link">Intersection Observer</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-workers-and-worklets" class="doc-sidebar-link">Web Workers &amp; Worklets</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/fetch-and-streaming-apis" class="doc-sidebar-link">Fetch &amp; Streams</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/storage-apis-local-indexeddb" class="doc-sidebar-link">Browser Storage APIs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/service-workers-and-cache-api" class="doc-sidebar-link">Service Workers</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/accessibility-testing-tooling" class="doc-sidebar-link">A11y Testing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/wcag-2-2-practical-guide" class="doc-sidebar-link">WCAG 2.2</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/frontend-architecture-at-scale" class="doc-sidebar-link">Frontend Architecture Patterns</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/frontend-architecture-at-scale" class="doc-sidebar-link">Frontend Arch at Scale</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/micro-frontends-architecture" class="doc-sidebar-link">Micro-Frontends</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rendering-strategies-csr-ssr-ssg-isr" class="doc-sidebar-link">CSR / SSR / SSG / ISR</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/state-management-patterns" class="doc-sidebar-link">State Management</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/data-fetching-patterns" class="doc-sidebar-link">Data Fetching</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/css-architecture-strategies" class="doc-sidebar-link">CSS Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/component-architecture-blueprint" class="doc-sidebar-link">Component Architecture</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-infrastructure-stack" class="doc-sidebar-link">Web Performance Optimization</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-infrastructure-stack" class="doc-sidebar-link">Perf: Infrastructure</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-javascript-optimization" class="doc-sidebar-link">Perf: JavaScript</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-css-typography" class="doc-sidebar-link">Perf: CSS &amp; Typography</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-image-optimization" class="doc-sidebar-link">Perf: Images</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/core-web-vitals-measurement" class="doc-sidebar-link">Core Web Vitals</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-overview" class="doc-sidebar-link">Perf: Overview</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-system-adoption-foundations" class="doc-sidebar-link">Design Systems &amp; React</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-system-adoption-foundations" class="doc-sidebar-link">DS: Adoption</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-tokens-and-theming" class="doc-sidebar-link">Design Tokens</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/component-library-architecture-and-governance" class="doc-sidebar-link">Component Library</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-system-implementation-scaling" class="doc-sidebar-link">DS: Implementation</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-hooks-fundamentals" class="doc-sidebar-link">React Hooks</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-rendering-architecture" class="doc-sidebar-link">React Rendering</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-hooks-advanced-patterns" class="doc-sidebar-link">React Hooks: Advanced</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-performance-patterns" class="doc-sidebar-link">React Performance</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rendering-strategies" class="doc-sidebar-link">Frontend System Design</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rendering-strategies" class="doc-sidebar-link">Modern Rendering</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/image-loading-optimization" class="doc-sidebar-link">Image Loading</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/bundle-splitting-strategies" class="doc-sidebar-link">Bundle Splitting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/virtualization-and-windowing" class="doc-sidebar-link">Virtualization</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/performance-monitoring-client" class="doc-sidebar-link">Client Perf Monitoring</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/client-state-management" class="doc-sidebar-link">Client State</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/real-time-sync-client" class="doc-sidebar-link">Real-Time Sync</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/offline-first-architecture" class="doc-sidebar-link">Offline-First</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/widget-framework" class="doc-sidebar-link">Widget Framework</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-rich-text-editor" class="doc-sidebar-link">Rich Text Editor</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-infinite-feed" class="doc-sidebar-link">Infinite Feed</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-drag-drop-system" class="doc-sidebar-link">Drag &amp; Drop</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-form-builder" class="doc-sidebar-link">Form Builder</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-data-grid" class="doc-sidebar-link">Data Grid</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-file-uploader" class="doc-sidebar-link">File Uploader</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/consistency-and-cap-theorem" class="doc-sidebar-link">Distributed Systems Core</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/consistency-and-cap-theorem" class="doc-sidebar-link">CAP Theorem</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-consensus" class="doc-sidebar-link">Distributed Consensus</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/time-and-ordering" class="doc-sidebar-link">Time &amp; Ordering</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/failure-modes-and-resilience" class="doc-sidebar-link">Failure Modes</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rate-limiting-strategies" class="doc-sidebar-link">Rate Limiting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/circuit-breaker-patterns" class="doc-sidebar-link">Circuit Breakers</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/capacity-planning-and-estimation" class="doc-sidebar-link">Capacity Planning</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/storage-choices-sql-vs-nosql" class="doc-sidebar-link">Data Storage &amp; Indexing</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/storage-choices-sql-vs-nosql" class="doc-sidebar-link">SQL vs NoSQL</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/sharding-and-replication" class="doc-sidebar-link">Sharding &amp; Replication</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/indexing-and-query-optimization" class="doc-sidebar-link">Indexing &amp; Queries</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/transactions-and-acid" class="doc-sidebar-link">Transactions &amp; ACID</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/caching-fundamentals-and-strategies" class="doc-sidebar-link">Caching Fundamentals</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/load-balancers-architecture" class="doc-sidebar-link">Infrastructure Components</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/load-balancers-architecture" class="doc-sidebar-link">Load Balancers</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/cdn-architecture-and-caching" class="doc-sidebar-link">CDN Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/api-gateway-patterns" class="doc-sidebar-link">API Gateway</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/service-discovery-and-registry" class="doc-sidebar-link">Service Discovery</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-deep-dive" class="doc-sidebar-link">DNS: Deep Dive</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/queues-and-pubsub" class="doc-sidebar-link">Queues &amp; Pub/Sub</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/event-driven-architecture" class="doc-sidebar-link">Event-Driven Arch</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rpc-and-api-design" class="doc-sidebar-link">RPC &amp; API Design</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crdt-for-collaborative-systems" class="doc-sidebar-link">Core Distributed Patterns</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crdt-for-collaborative-systems" class="doc-sidebar-link">CRDTs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/operational-transformation" class="doc-sidebar-link">OT</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-locking" class="doc-sidebar-link">Distributed Locking</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/exactly-once-delivery" class="doc-sidebar-link">Exactly-Once</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/event-sourcing-deep-dive" class="doc-sidebar-link">Event Sourcing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/change-data-capture" class="doc-sidebar-link">CDC</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/database-migrations-at-scale" class="doc-sidebar-link">DB Migrations</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/multi-region-architecture" class="doc-sidebar-link">Multi-Region</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/lru-cache-design" class="doc-sidebar-link">System Design Building Blocks</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/lru-cache-design" class="doc-sidebar-link">LRU Cache</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/unique-id-generation" class="doc-sidebar-link">Unique IDs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-cache-design" class="doc-sidebar-link">Distributed Cache</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/blob-storage-design" class="doc-sidebar-link">Blob Storage</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-search-engine" class="doc-sidebar-link">Search Engine</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-logging-system" class="doc-sidebar-link">Logging System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-monitoring" class="doc-sidebar-link">Monitoring</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/task-scheduler-design" class="doc-sidebar-link">Task Scheduler</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/sharded-counters" class="doc-sidebar-link">Sharded Counters</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/leaderboard-design" class="doc-sidebar-link">Leaderboard</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-key-value-store" class="doc-sidebar-link">System Design Scenarios</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-key-value-store" class="doc-sidebar-link">Key-Value Store</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-distributed-file-system" class="doc-sidebar-link">Distributed File System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-time-series-database" class="doc-sidebar-link">Time-Series DB</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-youtube-video-platform" class="doc-sidebar-link">YouTube</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-netflix-streaming" class="doc-sidebar-link">Netflix</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-instagram-photo-sharing" class="doc-sidebar-link">Instagram</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-spotify-music-streaming" class="doc-sidebar-link">Spotify</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-real-time-chat-messaging" class="doc-sidebar-link">Chat &amp; Messaging</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-social-feed" class="doc-sidebar-link">Social Feed</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-notification-system" class="doc-sidebar-link">Notifications</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-email-system" class="doc-sidebar-link">Email System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-uber-ride-hailing" class="doc-sidebar-link">Uber</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-maps" class="doc-sidebar-link">Google Maps</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-yelp-proximity-service" class="doc-sidebar-link">Yelp / Proximity</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-search-autocomplete" class="doc-sidebar-link">Search Autocomplete</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-web-crawler" class="doc-sidebar-link">Web Crawler</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-search" class="doc-sidebar-link">Google Search</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-docs-collaboration" class="doc-sidebar-link">Google Docs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-dropbox-file-sync" class="doc-sidebar-link">Dropbox Sync</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-calendar" class="doc-sidebar-link">Google Calendar</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-issue-tracker" class="doc-sidebar-link">Issue Tracker</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-payment-system" class="doc-sidebar-link">Payment System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-flash-sale-system" class="doc-sidebar-link">Flash Sale</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-amazon-shopping-cart" class="doc-sidebar-link">Shopping Cart</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/url-shortener-design" class="doc-sidebar-link">URL Shortener</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-pastebin" class="doc-sidebar-link">Pastebin</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-api-rate-limiter" class="doc-sidebar-link">API Rate Limiter</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-cookie-consent-service" class="doc-sidebar-link">Cookie Consent</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/facebook-2021-outage-analysis" class="doc-sidebar-link">Case Studies: Outages &amp; Reliability</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/facebook-2021-outage-analysis" class="doc-sidebar-link">Facebook 2021</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/aws-kinesis-2020-outage" class="doc-sidebar-link">AWS Kinesis 2020</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/stripe-idempotency-reliability" class="doc-sidebar-link">Stripe Idempotency</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/discord-rust-read-states" class="doc-sidebar-link">Discord: Go → Rust</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/graceful-degradation" class="doc-sidebar-link">Graceful Degradation</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/shopify-pod-architecture" class="doc-sidebar-link">Case Studies: Architecture</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/shopify-pod-architecture" class="doc-sidebar-link">Shopify Pods</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/netflix-microservices-evolution" class="doc-sidebar-link">Netflix Microservices</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/twitter-timeline-architecture" class="doc-sidebar-link">Twitter Timeline</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/facebook-tao-social-graph" class="doc-sidebar-link">Facebook TAO</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/uber-microservices-journey" class="doc-sidebar-link">Uber Microservices</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/uber-schemaless-datastore" class="doc-sidebar-link">Uber Schemaless</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/slack-distributed-architecture" class="doc-sidebar-link">Slack Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/linkedin-kafka-origin" class="doc-sidebar-link">LinkedIn → Kafka</a></li></ul></li><li class="doc-sidebar-item  expanded"><a href="/legacy-personal-site/v5/articles/dropbox-magic-pocket" class="doc-sidebar-link">Case Studies: Data &amp; Migrations</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dropbox-magic-pocket" class="doc-sidebar-link">Dropbox Magic Pocket</a></li><li class="doc-sidebar-item active "><a href="/legacy-personal-site/v5/articles/instagram-cassandra-migration" class="doc-sidebar-link">Instagram → Cassandra</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/youtube-vitess-scaling" class="doc-sidebar-link">YouTube + Vitess</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/github-mysql-migration" class="doc-sidebar-link">GitHub MySQL</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/pinterest-mysql-sharding" class="doc-sidebar-link">Pinterest Sharding</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/discord-message-storage" class="doc-sidebar-link">Discord Messages</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/figma-multiplayer-infrastructure" class="doc-sidebar-link">Figma Multiplayer</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/whatsapp-erlang-scaling" class="doc-sidebar-link">WhatsApp + Erlang</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/edge-delivery-and-cache-invalidation" class="doc-sidebar-link">Platform Delivery &amp; Reliability</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/edge-delivery-and-cache-invalidation" class="doc-sidebar-link">Edge Delivery</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/deployment-strategies-blue-green-canary" class="doc-sidebar-link">Blue-Green &amp; Canary</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/ssg-performance-optimizations" class="doc-sidebar-link">SSG on CloudFront</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/build-pipelines-ci-cd" class="doc-sidebar-link">Build Pipelines</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/ecommerce-ssg-to-ssr-migration" class="doc-sidebar-link">SSG → SSR Migration</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/data-migration-strategies" class="doc-sidebar-link">Data Migrations</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/slos-slis-error-budgets" class="doc-sidebar-link">SLOs &amp; SLIs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/logging-metrics-tracing" class="doc-sidebar-link">Logs / Metrics / Traces</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/drm-basics-for-streaming" class="doc-sidebar-link">Media Systems &amp; Testing</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/drm-basics-for-streaming" class="doc-sidebar-link">DRM Basics</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/video-transcoding-pipeline" class="doc-sidebar-link">Video Transcoding</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-video-playback-architecture" class="doc-sidebar-link">Web Video Playback</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/image-processing-service-design" class="doc-sidebar-link">Image Processing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/load-testing-strategy-capacity-planning" class="doc-sidebar-link">Load Testing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/k6-load-testing-overview" class="doc-sidebar-link">k6 Load Testing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/statsig-experimentation-overview" class="doc-sidebar-link">Statsig</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/arrays-and-hash-maps" class="doc-sidebar-link">Data Structures &amp; Algorithms</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/arrays-and-hash-maps" class="doc-sidebar-link">Arrays &amp; Hash Maps</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/trees-and-graphs" class="doc-sidebar-link">Trees &amp; Graphs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/heaps-and-priority-queues" class="doc-sidebar-link">Heaps &amp; PQs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/sorting-algorithms-guide" class="doc-sidebar-link">Sorting Algorithms</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/search-algorithms-guide" class="doc-sidebar-link">Search Algorithms</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/k-crystal-balls-problem" class="doc-sidebar-link">K Crystal Balls</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/publish-subscribe-pattern" class="doc-sidebar-link">JavaScript Patterns</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/publish-subscribe-pattern" class="doc-sidebar-link">Pub/Sub</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/exponential-backoff-retry-strategy" class="doc-sidebar-link">Exponential Backoff</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/async-queue-pattern" class="doc-sidebar-link">Async Queue</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/javascript-error-handling-patterns" class="doc-sidebar-link">JS Error Handling</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/javascript-string-length" class="doc-sidebar-link">JS String Length</a></li></ul></li></ul></div></nav></div></dialog><pagefind-modal reset-on-close=""><pagefind-modal-header><pagefind-input></pagefind-input></pagefind-modal-header><pagefind-modal-body><pagefind-summary></pagefind-summary><pagefind-results></pagefind-results></pagefind-modal-body><pagefind-modal-footer><pagefind-keyboard-hints></pagefind-keyboard-hints></pagefind-modal-footer></pagefind-modal><script src="/legacy-personal-site/v5/assets/index-DWHO1FvG.ff92fc92.js" type="module"></script></body></html>

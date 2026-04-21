@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en-US" class="no-js color-scheme-auto theme-paper"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light dark"><script>(function(){try{var p=JSON.parse(localStorage.getItem('pagesmith-theme'));if(p){var d=document.documentElement;if(p.colorScheme)d.className=d.className.replace(/color-scheme-\w+/,'color-scheme-'+p.colorScheme);if(p.theme)d.className=d.className.replace(/theme-\w[\w-]*/,'theme-'+p.theme);if(p.textSize&&p.textSize!=='base')d.dataset.textSize=p.textSize}}catch(e){}})();</script><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://www.google-analytics.com https://analytics.google.com; object-src 'none'; base-uri 'self'; form-action 'self'"><meta name="referrer" content="strict-origin-when-cross-origin"><title>Sharding and Replication — Sujeet Jaiswal - Principal Software Engineer</title><meta name="description" content="Two orthogonal axes of database scaling — sharding (hash, range, consistent hash, directory) for write throughput and replication (single-leader, multi-leader, leaderless) for availability — with production patterns from CockroachDB, Cassandra, DynamoDB, and Vitess."><link rel="canonical" href="https://projects.sujeet.pro/legacy-personal-site/v5/articles/sharding-and-replication"><meta property="og:type" content="article"><meta property="og:url" content="https://projects.sujeet.pro/legacy-personal-site/v5/articles/sharding-and-replication"><meta property="og:title" content="Sharding and Replication — Sujeet Jaiswal - Principal Software Engineer"><meta property="og:description" content="Two orthogonal axes of database scaling — sharding (hash, range, consistent hash, directory) for write throughput and replication (single-leader, multi-leader, leaderless) for availability — with production patterns from CockroachDB, Cassandra, DynamoDB, and Vitess."><meta property="og:locale" content="en_US"><meta property="og:site_name" content="Sujeet Jaiswal"><meta property="article:author" content="Sujeet Jaiswal"><meta property="article:published_time" content="2026-02-03T00:00:00.000Z"><meta property="article:modified_time" content="Tue Apr 21 2026 05:30:00 GMT+0530 (India Standard Time)"><meta property="article:tag" content="Databases"><meta property="article:tag" content="Storage"><meta property="article:tag" content="Distributed Systems"><meta property="article:tag" content="System Design"><meta property="article:tag" content="Reliability"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="Sharding and Replication — Sujeet Jaiswal - Principal Software Engineer"><meta name="twitter:description" content="Two orthogonal axes of database scaling — sharding (hash, range, consistent hash, directory) for write throughput and replication (single-leader, multi-leader, leaderless) for availability — with production patterns from CockroachDB, Cassandra, DynamoDB, and Vitess."><meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#020617" media="(prefers-color-scheme: dark)"><link rel="preload" href="/legacy-personal-site/v5/assets/fonts/open-sans-variable.63a65b9b.woff2" as="font" type="font/woff2" crossorigin=""><link rel="preconnect" href="https://www.googletagmanager.com" crossorigin=""><link rel="stylesheet" href="/legacy-personal-site/v5/pagefind/pagefind-component-ui.css"><link rel="stylesheet" href="/legacy-personal-site/v5/assets/index-BlmQN5MU.d5ff1cea.css"><script>document.documentElement.classList.remove('no-js')</script><script src="/legacy-personal-site/v5/pagefind/pagefind-component-ui.js" type="module"></script><script async src="https://www.googletagmanager.com/gtag/js?id=G-1Z2TP5LG65"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-1Z2TP5LG65');</script></head><body><header class="doc-header"><a href="#doc-main-content" class="doc-skip-link" data-skip-link="" onclick="document.getElementById('doc-main-content')?.focus()">Skip to main content</a><div class="doc-header-inner"><div class="doc-header-left"><button type="button" class="doc-sidebar-toggle" aria-label="Toggle navigation" aria-controls="sidebar-modal" aria-expanded="false" data-sidebar-toggle=""><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 5h14M3 10h14M3 15h14"/></svg></button><a href="/legacy-personal-site/v5" class="doc-logo">Sujeet Jaiswal</a></div><nav class="doc-nav" aria-label="Primary navigation"><a href="/legacy-personal-site/v5/articles" class="active">Articles</a><a href="/legacy-personal-site/v5/blogs">Blogs</a></nav><div class="doc-header-right"><pagefind-modal-trigger class="doc-search-trigger"></pagefind-modal-trigger><div class="doc-theme-toggle no-js-hidden" data-theme-toggle="" data-ps-theme-controls=""><button type="button" class="doc-theme-toggle-btn" aria-label="Change theme" aria-expanded="false" aria-haspopup="true" aria-controls="doc-theme-dropdown" data-theme-toggle-btn="" data-ps-theme-toggle-button=""><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="10" cy="10" r="4"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.93 4.93l1.41 1.41M13.66 13.66l1.41 1.41M4.93 15.07l1.41-1.41M13.66 6.34l1.41-1.41"/></svg></button><div id="doc-theme-dropdown" class="doc-theme-dropdown" data-theme-dropdown="" data-ps-theme-dropdown="" hidden><fieldset class="doc-theme-group"><legend>Appearance</legend><label class="doc-theme-option" data-scheme="auto"><input type="radio" name="colorScheme" value="auto" checked>Auto</label><label class="doc-theme-option" data-scheme="light"><input type="radio" name="colorScheme" value="light">Light</label><label class="doc-theme-option" data-scheme="dark"><input type="radio" name="colorScheme" value="dark">Dark</label></fieldset><fieldset class="doc-theme-group"><legend>Theme</legend><label class="doc-theme-option" data-theme="paper"><input type="radio" name="theme" value="paper" checked>Paper</label><label class="doc-theme-option" data-theme="high-contrast"><input type="radio" name="theme" value="high-contrast">High Contrast</label></fieldset><fieldset class="doc-theme-group"><legend>Text Size</legend><div class="doc-text-size-options"><label class="doc-text-size-option" title="Small"><input class="sr-only" type="radio" name="textSize" value="small"><span class="doc-text-size-label" data-size="small" aria-hidden="true">A</span><span class="sr-only">Small text size</span></label><label class="doc-text-size-option" title="Default"><input class="sr-only" type="radio" name="textSize" value="base" checked><span class="doc-text-size-label" data-size="base" aria-hidden="true">A</span><span class="sr-only">Default text size</span></label><label class="doc-text-size-option" title="Large"><input class="sr-only" type="radio" name="textSize" value="large"><span class="doc-text-size-label" data-size="large" aria-hidden="true">A</span><span class="sr-only">Large text size</span></label></div></fieldset></div></div></div></div></header><div class="doc-layout"><aside class="doc-sidebar"><nav class="doc-sidebar-nav" aria-label="Documentation navigation"><div class="doc-sidebar-section"><p class="doc-sidebar-heading">Series</p><ul class="doc-sidebar-list "><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-rendering-pipeline-overview" class="doc-sidebar-link">Critical Rendering Path</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-rendering-pipeline-overview" class="doc-sidebar-link">CRP: Pipeline Overview</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-dom-construction" class="doc-sidebar-link">CRP: DOM Construction</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-cssom-construction" class="doc-sidebar-link">CRP: CSSOM Construction</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-style-recalculation" class="doc-sidebar-link">CRP: Style Recalc</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-layout" class="doc-sidebar-link">CRP: Layout</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-prepaint" class="doc-sidebar-link">CRP: Prepaint</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-paint" class="doc-sidebar-link">CRP: Paint</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-commit" class="doc-sidebar-link">CRP: Commit</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-layerize" class="doc-sidebar-link">CRP: Layerize</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-raster" class="doc-sidebar-link">CRP: Raster</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-composit" class="doc-sidebar-link">CRP: Composite</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-draw" class="doc-sidebar-link">CRP: Draw</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/v8-engine-architecture" class="doc-sidebar-link">JavaScript Runtime Internals</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/v8-engine-architecture" class="doc-sidebar-link">V8 Engine</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/browser-internals" class="doc-sidebar-link">Browser Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/browser-event-loop" class="doc-sidebar-link">Browser Event Loop</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/nodejs-runtime-architecture" class="doc-sidebar-link">Node.js Runtime</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/libuv-event-loop-internals" class="doc-sidebar-link">libuv Internals</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/nodejs-event-loop" class="doc-sidebar-link">Node.js Event Loop</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/js-event-loop" class="doc-sidebar-link">JS Event Loop</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/auth-foundations-sessions-tokens" class="doc-sidebar-link">Web Security &amp; Authentication</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/auth-foundations-sessions-tokens" class="doc-sidebar-link">Auth Foundations</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-app-security-architecture" class="doc-sidebar-link">Web App Security</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/csrf-and-cors-defense" class="doc-sidebar-link">CSRF &amp; CORS</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/oauth-oidc-flow-guide" class="doc-sidebar-link">OAuth &amp; OIDC</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/csp-violation-reporting-pipeline" class="doc-sidebar-link">CSP Reporting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/owasp-top-10-guide" class="doc-sidebar-link">OWASP Top 10</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-resolution-path" class="doc-sidebar-link">Networking Protocols</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-resolution-path" class="doc-sidebar-link">DNS: Resolution Path</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-records-ttl-and-caching" class="doc-sidebar-link">DNS: Records &amp; TTL</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-security-doh-dot-dnssec" class="doc-sidebar-link">DNS: Security</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-troubleshooting-playbook" class="doc-sidebar-link">DNS: Troubleshooting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/tls-1-3-handshake-and-https" class="doc-sidebar-link">TLS 1.3 &amp; HTTPS</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/http1-1-to-http2-evolution" class="doc-sidebar-link">HTTP/1.1 → HTTP/2</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/http3-quic-and-tls" class="doc-sidebar-link">HTTP/3 &amp; QUIC</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dom-api-essentials" class="doc-sidebar-link">Browser APIs &amp; Accessibility</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dom-api-essentials" class="doc-sidebar-link">DOM API Essentials</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-components" class="doc-sidebar-link">Web Components</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/intersection-observer" class="doc-sidebar-link">Intersection Observer</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-workers-and-worklets" class="doc-sidebar-link">Web Workers &amp; Worklets</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/fetch-and-streaming-apis" class="doc-sidebar-link">Fetch &amp; Streams</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/storage-apis-local-indexeddb" class="doc-sidebar-link">Browser Storage APIs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/service-workers-and-cache-api" class="doc-sidebar-link">Service Workers</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/accessibility-testing-tooling" class="doc-sidebar-link">A11y Testing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/wcag-2-2-practical-guide" class="doc-sidebar-link">WCAG 2.2</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/frontend-architecture-at-scale" class="doc-sidebar-link">Frontend Architecture Patterns</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/frontend-architecture-at-scale" class="doc-sidebar-link">Frontend Arch at Scale</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/micro-frontends-architecture" class="doc-sidebar-link">Micro-Frontends</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rendering-strategies-csr-ssr-ssg-isr" class="doc-sidebar-link">CSR / SSR / SSG / ISR</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/state-management-patterns" class="doc-sidebar-link">State Management</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/data-fetching-patterns" class="doc-sidebar-link">Data Fetching</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/css-architecture-strategies" class="doc-sidebar-link">CSS Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/component-architecture-blueprint" class="doc-sidebar-link">Component Architecture</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-infrastructure-stack" class="doc-sidebar-link">Web Performance Optimization</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-infrastructure-stack" class="doc-sidebar-link">Perf: Infrastructure</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-javascript-optimization" class="doc-sidebar-link">Perf: JavaScript</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-css-typography" class="doc-sidebar-link">Perf: CSS &amp; Typography</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-image-optimization" class="doc-sidebar-link">Perf: Images</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/core-web-vitals-measurement" class="doc-sidebar-link">Core Web Vitals</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-overview" class="doc-sidebar-link">Perf: Overview</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-system-adoption-foundations" class="doc-sidebar-link">Design Systems &amp; React</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-system-adoption-foundations" class="doc-sidebar-link">DS: Adoption</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-tokens-and-theming" class="doc-sidebar-link">Design Tokens</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/component-library-architecture-and-governance" class="doc-sidebar-link">Component Library</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-system-implementation-scaling" class="doc-sidebar-link">DS: Implementation</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-hooks-fundamentals" class="doc-sidebar-link">React Hooks</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-rendering-architecture" class="doc-sidebar-link">React Rendering</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-hooks-advanced-patterns" class="doc-sidebar-link">React Hooks: Advanced</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-performance-patterns" class="doc-sidebar-link">React Performance</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rendering-strategies" class="doc-sidebar-link">Frontend System Design</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rendering-strategies" class="doc-sidebar-link">Modern Rendering</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/image-loading-optimization" class="doc-sidebar-link">Image Loading</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/bundle-splitting-strategies" class="doc-sidebar-link">Bundle Splitting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/virtualization-and-windowing" class="doc-sidebar-link">Virtualization</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/performance-monitoring-client" class="doc-sidebar-link">Client Perf Monitoring</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/client-state-management" class="doc-sidebar-link">Client State</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/real-time-sync-client" class="doc-sidebar-link">Real-Time Sync</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/offline-first-architecture" class="doc-sidebar-link">Offline-First</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/widget-framework" class="doc-sidebar-link">Widget Framework</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-rich-text-editor" class="doc-sidebar-link">Rich Text Editor</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-infinite-feed" class="doc-sidebar-link">Infinite Feed</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-drag-drop-system" class="doc-sidebar-link">Drag &amp; Drop</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-form-builder" class="doc-sidebar-link">Form Builder</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-data-grid" class="doc-sidebar-link">Data Grid</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-file-uploader" class="doc-sidebar-link">File Uploader</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/consistency-and-cap-theorem" class="doc-sidebar-link">Distributed Systems Core</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/consistency-and-cap-theorem" class="doc-sidebar-link">CAP Theorem</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-consensus" class="doc-sidebar-link">Distributed Consensus</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/time-and-ordering" class="doc-sidebar-link">Time &amp; Ordering</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/failure-modes-and-resilience" class="doc-sidebar-link">Failure Modes</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rate-limiting-strategies" class="doc-sidebar-link">Rate Limiting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/circuit-breaker-patterns" class="doc-sidebar-link">Circuit Breakers</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/capacity-planning-and-estimation" class="doc-sidebar-link">Capacity Planning</a></li></ul></li><li class="doc-sidebar-item  expanded"><a href="/legacy-personal-site/v5/articles/storage-choices-sql-vs-nosql" class="doc-sidebar-link">Data Storage &amp; Indexing</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/storage-choices-sql-vs-nosql" class="doc-sidebar-link">SQL vs NoSQL</a></li><li class="doc-sidebar-item active "><a href="/legacy-personal-site/v5/articles/sharding-and-replication" class="doc-sidebar-link">Sharding &amp; Replication</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/indexing-and-query-optimization" class="doc-sidebar-link">Indexing &amp; Queries</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/transactions-and-acid" class="doc-sidebar-link">Transactions &amp; ACID</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/caching-fundamentals-and-strategies" class="doc-sidebar-link">Caching Fundamentals</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/load-balancers-architecture" class="doc-sidebar-link">Infrastructure Components</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/load-balancers-architecture" class="doc-sidebar-link">Load Balancers</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/cdn-architecture-and-caching" class="doc-sidebar-link">CDN Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/api-gateway-patterns" class="doc-sidebar-link">API Gateway</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/service-discovery-and-registry" class="doc-sidebar-link">Service Discovery</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-deep-dive" class="doc-sidebar-link">DNS: Deep Dive</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/queues-and-pubsub" class="doc-sidebar-link">Queues &amp; Pub/Sub</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/event-driven-architecture" class="doc-sidebar-link">Event-Driven Arch</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rpc-and-api-design" class="doc-sidebar-link">RPC &amp; API Design</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crdt-for-collaborative-systems" class="doc-sidebar-link">Core Distributed Patterns</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crdt-for-collaborative-systems" class="doc-sidebar-link">CRDTs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/operational-transformation" class="doc-sidebar-link">OT</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-locking" class="doc-sidebar-link">Distributed Locking</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/exactly-once-delivery" class="doc-sidebar-link">Exactly-Once</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/event-sourcing-deep-dive" class="doc-sidebar-link">Event Sourcing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/change-data-capture" class="doc-sidebar-link">CDC</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/database-migrations-at-scale" class="doc-sidebar-link">DB Migrations</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/multi-region-architecture" class="doc-sidebar-link">Multi-Region</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/lru-cache-design" class="doc-sidebar-link">System Design Building Blocks</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/lru-cache-design" class="doc-sidebar-link">LRU Cache</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/unique-id-generation" class="doc-sidebar-link">Unique IDs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-cache-design" class="doc-sidebar-link">Distributed Cache</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/blob-storage-design" class="doc-sidebar-link">Blob Storage</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-search-engine" class="doc-sidebar-link">Search Engine</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-logging-system" class="doc-sidebar-link">Logging System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-monitoring" class="doc-sidebar-link">Monitoring</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/task-scheduler-design" class="doc-sidebar-link">Task Scheduler</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/sharded-counters" class="doc-sidebar-link">Sharded Counters</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/leaderboard-design" class="doc-sidebar-link">Leaderboard</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-key-value-store" class="doc-sidebar-link">System Design Scenarios</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-key-value-store" class="doc-sidebar-link">Key-Value Store</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-distributed-file-system" class="doc-sidebar-link">Distributed File System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-time-series-database" class="doc-sidebar-link">Time-Series DB</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-youtube-video-platform" class="doc-sidebar-link">YouTube</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-netflix-streaming" class="doc-sidebar-link">Netflix</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-instagram-photo-sharing" class="doc-sidebar-link">Instagram</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-spotify-music-streaming" class="doc-sidebar-link">Spotify</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-real-time-chat-messaging" class="doc-sidebar-link">Chat &amp; Messaging</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-social-feed" class="doc-sidebar-link">Social Feed</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-notification-system" class="doc-sidebar-link">Notifications</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-email-system" class="doc-sidebar-link">Email System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-uber-ride-hailing" class="doc-sidebar-link">Uber</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-maps" class="doc-sidebar-link">Google Maps</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-yelp-proximity-service" class="doc-sidebar-link">Yelp / Proximity</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-search-autocomplete" class="doc-sidebar-link">Search Autocomplete</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-web-crawler" class="doc-sidebar-link">Web Crawler</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-search" class="doc-sidebar-link">Google Search</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-docs-collaboration" class="doc-sidebar-link">Google Docs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-dropbox-file-sync" class="doc-sidebar-link">Dropbox Sync</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-calendar" class="doc-sidebar-link">Google Calendar</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-issue-tracker" class="doc-sidebar-link">Issue Tracker</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-payment-system" class="doc-sidebar-link">Payment System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-flash-sale-system" class="doc-sidebar-link">Flash Sale</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-amazon-shopping-cart" class="doc-sidebar-link">Shopping Cart</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/url-shortener-design" class="doc-sidebar-link">URL Shortener</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-pastebin" class="doc-sidebar-link">Pastebin</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-api-rate-limiter" class="doc-sidebar-link">API Rate Limiter</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-cookie-consent-service" class="doc-sidebar-link">Cookie Consent</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/facebook-2021-outage-analysis" class="doc-sidebar-link">Case Studies: Outages &amp; Reliability</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/facebook-2021-outage-analysis" class="doc-sidebar-link">Facebook 2021</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/aws-kinesis-2020-outage" class="doc-sidebar-link">AWS Kinesis 2020</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/stripe-idempotency-reliability" class="doc-sidebar-link">Stripe Idempotency</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/discord-rust-read-states" class="doc-sidebar-link">Discord: Go → Rust</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/graceful-degradation" class="doc-sidebar-link">Graceful Degradation</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/shopify-pod-architecture" class="doc-sidebar-link">Case Studies: Architecture</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/shopify-pod-architecture" class="doc-sidebar-link">Shopify Pods</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/netflix-microservices-evolution" class="doc-sidebar-link">Netflix Microservices</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/twitter-timeline-architecture" class="doc-sidebar-link">Twitter Timeline</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/facebook-tao-social-graph" class="doc-sidebar-link">Facebook TAO</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/uber-microservices-journey" class="doc-sidebar-link">Uber Microservices</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/uber-schemaless-datastore" class="doc-sidebar-link">Uber Schemaless</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/slack-distributed-architecture" class="doc-sidebar-link">Slack Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/linkedin-kafka-origin" class="doc-sidebar-link">LinkedIn → Kafka</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dropbox-magic-pocket" class="doc-sidebar-link">Case Studies: Data &amp; Migrations</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dropbox-magic-pocket" class="doc-sidebar-link">Dropbox Magic Pocket</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/instagram-cassandra-migration" class="doc-sidebar-link">Instagram → Cassandra</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/youtube-vitess-scaling" class="doc-sidebar-link">YouTube + Vitess</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/github-mysql-migration" class="doc-sidebar-link">GitHub MySQL</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/pinterest-mysql-sharding" class="doc-sidebar-link">Pinterest Sharding</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/discord-message-storage" class="doc-sidebar-link">Discord Messages</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/figma-multiplayer-infrastructure" class="doc-sidebar-link">Figma Multiplayer</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/whatsapp-erlang-scaling" class="doc-sidebar-link">WhatsApp + Erlang</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/edge-delivery-and-cache-invalidation" class="doc-sidebar-link">Platform Delivery &amp; Reliability</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/edge-delivery-and-cache-invalidation" class="doc-sidebar-link">Edge Delivery</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/deployment-strategies-blue-green-canary" class="doc-sidebar-link">Blue-Green &amp; Canary</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/ssg-performance-optimizations" class="doc-sidebar-link">SSG on CloudFront</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/build-pipelines-ci-cd" class="doc-sidebar-link">Build Pipelines</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/ecommerce-ssg-to-ssr-migration" class="doc-sidebar-link">SSG → SSR Migration</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/data-migration-strategies" class="doc-sidebar-link">Data Migrations</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/slos-slis-error-budgets" class="doc-sidebar-link">SLOs &amp; SLIs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/logging-metrics-tracing" class="doc-sidebar-link">Logs / Metrics / Traces</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/drm-basics-for-streaming" class="doc-sidebar-link">Media Systems &amp; Testing</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/drm-basics-for-streaming" class="doc-sidebar-link">DRM Basics</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/video-transcoding-pipeline" class="doc-sidebar-link">Video Transcoding</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-video-playback-architecture" class="doc-sidebar-link">Web Video Playback</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/image-processing-service-design" class="doc-sidebar-link">Image Processing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/load-testing-strategy-capacity-planning" class="doc-sidebar-link">Load Testing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/k6-load-testing-overview" class="doc-sidebar-link">k6 Load Testing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/statsig-experimentation-overview" class="doc-sidebar-link">Statsig</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/arrays-and-hash-maps" class="doc-sidebar-link">Data Structures &amp; Algorithms</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/arrays-and-hash-maps" class="doc-sidebar-link">Arrays &amp; Hash Maps</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/trees-and-graphs" class="doc-sidebar-link">Trees &amp; Graphs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/heaps-and-priority-queues" class="doc-sidebar-link">Heaps &amp; PQs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/sorting-algorithms-guide" class="doc-sidebar-link">Sorting Algorithms</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/search-algorithms-guide" class="doc-sidebar-link">Search Algorithms</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/k-crystal-balls-problem" class="doc-sidebar-link">K Crystal Balls</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/publish-subscribe-pattern" class="doc-sidebar-link">JavaScript Patterns</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/publish-subscribe-pattern" class="doc-sidebar-link">Pub/Sub</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/exponential-backoff-retry-strategy" class="doc-sidebar-link">Exponential Backoff</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/async-queue-pattern" class="doc-sidebar-link">Async Queue</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/javascript-error-handling-patterns" class="doc-sidebar-link">JS Error Handling</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/javascript-string-length" class="doc-sidebar-link">JS String Length</a></li></ul></li></ul></div></nav></aside><div class="doc-content"><nav class="doc-breadcrumbs" aria-label="Breadcrumbs"><a href="/legacy-personal-site/v5/articles">Articles</a><span class="doc-breadcrumb-sep" aria-hidden="true">/</span><a href="/legacy-personal-site/v5/articles">Storage</a><span class="doc-breadcrumb-sep" aria-hidden="true">/</span><span aria-current="page">Sharding &amp; Replication</span></nav><details class="doc-toc-mobile"><summary>On this page</summary><nav class="doc-toc" aria-label="Table of contents" data-ps-toc=""><p class="doc-toc-title">On this page</p><ul class="doc-toc-list"><li class="doc-toc-item depth-2"><a href="#abstract">Abstract</a></li><li class="doc-toc-item depth-2"><a href="#sharding-strategies">Sharding Strategies</a></li><li class="doc-toc-item depth-3"><a href="#hash-partitioning">Hash Partitioning</a></li><li class="doc-toc-item depth-3"><a href="#range-partitioning">Range Partitioning</a></li><li class="doc-toc-item depth-3"><a href="#consistent-hashing">Consistent Hashing</a></li><li class="doc-toc-item depth-3"><a href="#directory-based-sharding">Directory-Based Sharding</a></li><li class="doc-toc-item depth-3"><a href="#sharding-strategy-decision-matrix">Sharding Strategy Decision Matrix</a></li><li class="doc-toc-item depth-2"><a href="#replication-models">Replication Models</a></li><li class="doc-toc-item depth-3"><a href="#single-leader-replication">Single-Leader Replication</a></li><li class="doc-toc-item depth-3"><a href="#multi-leader-replication">Multi-Leader Replication</a></li><li class="doc-toc-item depth-3"><a href="#leaderless-replication">Leaderless Replication</a></li><li class="doc-toc-item depth-3"><a href="#replication-model-decision-matrix">Replication Model Decision Matrix</a></li><li class="doc-toc-item depth-2"><a href="#synchronous-vs-asynchronous-replication">Synchronous vs. Asynchronous Replication</a></li><li class="doc-toc-item depth-3"><a href="#synchronous-replication">Synchronous Replication</a></li><li class="doc-toc-item depth-3"><a href="#asynchronous-replication">Asynchronous Replication</a></li><li class="doc-toc-item depth-3"><a href="#semi-synchronous-replication">Semi-Synchronous Replication</a></li><li class="doc-toc-item depth-2"><a href="#readwrite-routing">Read/Write Routing</a></li><li class="doc-toc-item depth-3"><a href="#write-routing">Write Routing</a></li><li class="doc-toc-item depth-3"><a href="#read-routing-strategies">Read Routing Strategies</a></li><li class="doc-toc-item depth-2"><a href="#consistency-and-replication-lag">Consistency and Replication Lag</a></li><li class="doc-toc-item depth-3"><a href="#sources-of-lag">Sources of Lag</a></li><li class="doc-toc-item depth-3"><a href="#lag-implications">Lag Implications</a></li><li class="doc-toc-item depth-3"><a href="#monitoring-lag">Monitoring Lag</a></li><li class="doc-toc-item depth-2"><a href="#how-to-choose">How to Choose</a></li><li class="doc-toc-item depth-3"><a href="#factors-to-consider">Factors to Consider</a></li><li class="doc-toc-item depth-3"><a href="#decision-tree">Decision Tree</a></li><li class="doc-toc-item depth-3"><a href="#production-benchmarks">Production Benchmarks</a></li><li class="doc-toc-item depth-2"><a href="#resharding-and-data-migration">Resharding and Data Migration</a></li><li class="doc-toc-item depth-3"><a href="#online-resharding-challenges">Online Resharding Challenges</a></li><li class="doc-toc-item depth-3"><a href="#stripes-zero-downtime-migration-docdb">Stripe’s Zero-Downtime Migration (DocDB)</a></li><li class="doc-toc-item depth-3"><a href="#automatic-splitmerge">Automatic Split/Merge</a></li><li class="doc-toc-item depth-2"><a href="#consensus-protocols-in-practice">Consensus Protocols in Practice</a></li><li class="doc-toc-item depth-3"><a href="#raft">Raft</a></li><li class="doc-toc-item depth-3"><a href="#multi-raft">Multi-Raft</a></li><li class="doc-toc-item depth-3"><a href="#paxos-google-spanner">Paxos (Google Spanner)</a></li><li class="doc-toc-item depth-2"><a href="#failure-handling">Failure Handling</a></li><li class="doc-toc-item depth-3"><a href="#failure-detection">Failure Detection</a></li><li class="doc-toc-item depth-3"><a href="#leader-failover-single-leader-systems">Leader Failover (Single-Leader Systems)</a></li><li class="doc-toc-item depth-3"><a href="#quorum-and-split-brain-prevention">Quorum and Split-Brain Prevention</a></li><li class="doc-toc-item depth-3"><a href="#real-world-failure-scenarios">Real-World Failure Scenarios</a></li><li class="doc-toc-item depth-2"><a href="#observability-and-operational-tooling">Observability and Operational Tooling</a></li><li class="doc-toc-item depth-3"><a href="#essential-metrics">Essential Metrics</a></li><li class="doc-toc-item depth-3"><a href="#alerting-thresholds">Alerting Thresholds</a></li><li class="doc-toc-item depth-3"><a href="#operational-runbooks">Operational Runbooks</a></li><li class="doc-toc-item depth-2"><a href="#common-pitfalls">Common Pitfalls</a></li><li class="doc-toc-item depth-3"><a href="#1-choosing-shard-key-without-analyzing-access-patterns">1. Choosing Shard Key Without Analyzing Access Patterns</a></li><li class="doc-toc-item depth-3"><a href="#2-underestimating-replication-lag-impact">2. Underestimating Replication Lag Impact</a></li><li class="doc-toc-item depth-3"><a href="#3-ignoring-hot-partition-problem">3. Ignoring Hot Partition Problem</a></li><li class="doc-toc-item depth-3"><a href="#4-treating-failover-as-instantaneous">4. Treating Failover as Instantaneous</a></li><li class="doc-toc-item depth-2"><a href="#conclusion">Conclusion</a></li><li class="doc-toc-item depth-2"><a href="#appendix">Appendix</a></li><li class="doc-toc-item depth-3"><a href="#prerequisites">Prerequisites</a></li><li class="doc-toc-item depth-3"><a href="#terminology">Terminology</a></li><li class="doc-toc-item depth-3"><a href="#summary">Summary</a></li><li class="doc-toc-item depth-3"><a href="#references">References</a></li></ul></nav></details><main><article id="doc-main-content" tabindex="-1" data-pagefind-body=""><div class="site-content-meta"><div class="site-content-meta-row"><span>Published Feb 3, 2026</span><span>Updated Apr 21, 2026</span></div><div class="site-tag-list" aria-label="Tags"><span class="site-pill site-pill-subtle">Databases</span><span class="site-pill site-pill-subtle">Storage</span><span class="site-pill site-pill-subtle">Distributed Systems</span><span class="site-pill site-pill-subtle">System Design</span><span class="site-pill site-pill-subtle">Reliability</span></div></div><div class="prose"><h1 id="sharding-and-replication"><a href="#sharding-and-replication">Sharding and Replication</a></h1>
+<p>Scaling data stores beyond a single machine requires two complementary strategies: <strong>sharding</strong> (horizontal partitioning) distributes data across nodes to scale writes and storage capacity; <strong>replication</strong> copies data across nodes to improve read throughput and availability. These mechanisms are orthogonal—you choose a sharding strategy independently from a replication model—but their interaction determines your system’s consistency, availability, and operational complexity. This article covers design choices, trade-offs, and production patterns from systems handling millions of queries per second.</p>
+<p><figure class="ps-figure ps-figure-themed ps-figure-zoomable"><picture><source srcset="/legacy-personal-site/v5/assets/sharding-replication-overview-dark.a9cf01e4.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" data-scheme="dark"><source srcset="/legacy-personal-site/v5/assets/sharding-replication-overview-light.dce89c8b.svg" type="image/svg+xml" data-scheme="light"><img src="/legacy-personal-site/v5/assets/sharding-replication-overview-light.dce89c8b.svg" alt="Sharding partitions data horizontally; replication copies each shard for fault tolerance. A router directs traffic based on the shard key." width="763" height="512" style="max-width:min(763px,100%)"></picture><figcaption>Sharding partitions data horizontally; replication copies each shard for fault tolerance. A router directs traffic based on the shard key.</figcaption><button type="button" class="ps-img-zoom-btn" hidden aria-label="Zoom image" data-ps-img-zoom-btn=""><svg class="ps-img-zoom-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6"></path></svg></button></figure></p>
+<h2 id="abstract"><a href="#abstract">Abstract</a></h2>
+<p>The mental model: <strong>sharding solves capacity, replication solves availability</strong>. A single machine has finite write throughput, storage, and memory—sharding breaks the data into partitions that can live on different machines, scaling these resources linearly. But each shard is now a single point of failure—replication creates copies so the system survives node failures.</p>
+<p><strong>These are independent design axes:</strong></p>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Axis</th>
+<th>Options</th>
+<th>Determines</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Sharding strategy</strong></td>
+<td>Hash, range, consistent hash, directory</td>
+<td>Data distribution, query efficiency</td>
+</tr>
+<tr>
+<td><strong>Replication model</strong></td>
+<td>Single-leader, multi-leader, leaderless</td>
+<td>Consistency guarantees, write availability</td>
+</tr>
+<tr>
+<td><strong>Replication timing</strong></td>
+<td>Sync, async, semi-sync</td>
+<td>Durability vs. latency</td>
+</tr>
+</tbody>
+</table></div>
+<p>Every combination is valid:</p>
+<ul>
+<li><strong>CockroachDB</strong> (v24.x): range partitioning + Multi-Raft consensus — each range (default <code>range_max_bytes</code> = 512 MiB) is an independent Raft group (<a href="https://www.cockroachlabs.com/docs/stable/configure-replication-zones" rel="noopener noreferrer" target="_blank">CockroachDB replication zone defaults</a>)</li>
+<li><strong>Cassandra / ScyllaDB</strong>: consistent hashing + leaderless replication — vnodes (Cassandra) or <a href="https://www.scylladb.com/2024/12/03/enterprise-tablets/" rel="noopener noreferrer" target="_blank">tablets (ScyllaDB 2024.2+)</a> for load distribution</li>
+<li><strong>DynamoDB</strong>: hash partitioning + quorum-based replication — the partition key determines data placement (<a href="https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf" rel="noopener noreferrer" target="_blank">DynamoDB SOSP 2007 paper</a>)</li>
+<li><strong>Vitess</strong> (powers Slack at 2.3M QPS): directory-based sharding + MySQL single-leader replication (<a href="https://slack.engineering/scaling-datastores-at-slack-with-vitess/" rel="noopener noreferrer" target="_blank">Slack Vitess engineering write-up</a>)</li>
+</ul>
+<p>The choice depends on access patterns, consistency requirements, and operational capacity.</p>
+<h2 id="sharding-strategies"><a href="#sharding-strategies">Sharding Strategies</a></h2>
+<p>Sharding (also called horizontal partitioning) splits data across multiple nodes. The shard key determines which node owns each record. The strategy choice affects query efficiency, load distribution, and operational complexity.</p>
+<h3 id="hash-partitioning"><a href="#hash-partitioning">Hash Partitioning</a></h3>
+<p>Apply a hash function to the shard key; the hash value determines the target shard.</p>
+<p><strong>Mechanism</strong>: <code>shard_id = hash(key) % num_shards</code>. Uniform hash functions distribute keys evenly regardless of key distribution.</p>
+<p><strong>When to use</strong>:</p>
+<ul>
+<li>Random point reads/writes (e.g., user profiles by user ID)</li>
+<li>Write-heavy workloads needing even distribution</li>
+<li>No range query requirements</li>
+</ul>
+<p><strong>Trade-offs</strong>:</p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Even distribution with good hash function—prevents hot shards from skewed key distribution</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Simple routing logic</li>
+<li><span role="img" aria-label="cross mark">❌</span> Range queries require scatter-gather across all shards</li>
+<li><span role="img" aria-label="cross mark">❌</span> Adding/removing shards requires rehashing all keys (mitigated by consistent hashing)</li>
+</ul>
+<p><strong>Real-world</strong>: DynamoDB uses hash partitioning for item distribution. Partition key choice is critical—a hot partition (celebrity user, viral post) can throttle the entire table even when other partitions are idle. AWS recommends write sharding for high-throughput tables: append a random suffix to partition keys (e.g., <code>user_id#0</code> through <code>user_id#9</code>), then aggregate reads across all suffixes. This trades read complexity for write distribution.</p>
+<h3 id="range-partitioning"><a href="#range-partitioning">Range Partitioning</a></h3>
+<p>Assign contiguous key ranges to each shard. Adjacent keys live on the same shard.</p>
+<p><strong>Mechanism</strong>: Define split points (e.g., <code>[A-M] → Shard 1, [N-Z] → Shard 2</code>). Keys within a range route to the same shard.</p>
+<p><strong>When to use</strong>:</p>
+<ul>
+<li>Time-series data (partition by time bucket)</li>
+<li>Range scan requirements (e.g., “all orders from last week”)</li>
+<li>Data archival (drop old partitions)</li>
+</ul>
+<p><strong>Trade-offs</strong>:</p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Efficient range queries—single shard scan instead of scatter-gather</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Natural data locality for sequential access patterns</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Easy archival—drop partitions for old time ranges</li>
+<li><span role="img" aria-label="cross mark">❌</span> Hot spots on recent data (time-series) or popular key ranges</li>
+<li><span role="img" aria-label="cross mark">❌</span> Split point management adds operational complexity</li>
+</ul>
+<p><strong>Real-world</strong>: <a href="https://www.cockroachlabs.com/docs/stable/architecture/distribution-layer#range-splits" rel="noopener noreferrer" target="_blank">CockroachDB</a> (v24.x) defaults to range partitioning with automatic splitting once a range hits <code>range_max_bytes</code> — <strong>512 MiB by default since v20.1</strong>, often misquoted as the older 64 MiB value. Each range forms an independent Raft consensus group, so a cluster can have hundreds of thousands of ranges. <a href="https://research.google/pubs/pub39966/" rel="noopener noreferrer" target="_blank">Google Spanner</a> uses range-based directory partitioning with TrueTime for external consistency. HBase uses range partitioning by row key, and operators have repeatedly reported that hot regions on monotonically increasing keys (timestamps, sequential IDs) drive a disproportionate share of their incidents; the standard mitigation is a salted row key (hash prefix) for write-heavy tables, trading range-scan efficiency for write distribution.</p>
+<p><strong>TiDB / TiKV</strong> uses the same shape: data divides into Regions, each one a Raft group. The default <code>region-split-size</code> was <strong>96 MiB historically and is 256 MiB from v8.4.0 onward</strong> (<a href="https://docs.pingcap.com/tidb/stable/tune-region-performance" rel="noopener noreferrer" target="_blank">TiDB region-size tuning guide</a>). Auto-split and merge happen transparently — applications see a single logical table.</p>
+<h3 id="consistent-hashing"><a href="#consistent-hashing">Consistent Hashing</a></h3>
+<p>Hash both keys and nodes onto a virtual ring. Keys route to the next node clockwise on the ring.</p>
+<p><figure class="ps-figure ps-figure-themed ps-figure-zoomable"><picture><source srcset="/legacy-personal-site/v5/assets/consistent-hashing-ring-dark.5e75d040.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" data-scheme="dark"><source srcset="/legacy-personal-site/v5/assets/consistent-hashing-ring-light.04be7f4e.svg" type="image/svg+xml" data-scheme="light"><img src="/legacy-personal-site/v5/assets/consistent-hashing-ring-light.04be7f4e.svg" alt="Consistent hashing ring with virtual nodes — each physical node owns multiple tokens; keys map to the next clockwise vnode." width="689" height="1134" style="max-width:min(689px,100%)"></picture><figcaption>Consistent hashing ring with virtual nodes — each physical node owns multiple tokens; keys map to the next clockwise vnode.</figcaption><button type="button" class="ps-img-zoom-btn" hidden aria-label="Zoom image" data-ps-img-zoom-btn=""><svg class="ps-img-zoom-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6"></path></svg></button></figure></p>
+<p><strong>Mechanism</strong>: Each node owns a portion of the hash ring. Adding a node only remaps keys between the new node and its clockwise neighbor — approximately <code>1/N</code> of all keys when scaling from <code>N</code> to <code>N+1</code> nodes (<a href="https://dl.acm.org/doi/10.1145/258533.258660" rel="noopener noreferrer" target="_blank">Karger et al., STOC 1997</a>).</p>
+<p><strong>Why it exists</strong>: Standard hash partitioning (<code>hash % N</code>) remaps nearly all keys when N changes. Consistent hashing minimizes disruption during scaling.</p>
+<p><strong>Virtual nodes (vnodes)</strong>: Each physical node claims multiple positions on the ring. Benefits:</p>
+<ul>
+<li>Smoother load distribution (more tokens = finer granularity)</li>
+<li>Faster rebalancing when nodes join/leave</li>
+<li>Better utilization of heterogeneous hardware (more vnodes for beefier machines)</li>
+</ul>
+<p>Cassandra historically shipped with <code>num_tokens: 256</code>. The 4.0 release <a href="https://cassandra.apache.org/doc/4.0/cassandra/configuration/cass_yaml_file.html" rel="noopener noreferrer" target="_blank">changed the default to 16</a> (per CASSANDRA-13701) because the high-token configuration amplified repair, streaming, and availability problems on large clusters. More vnodes reduce variance but increase metadata overhead and repair complexity.</p>
+<div class="markdown-alert markdown-alert-note">
+<p class="markdown-alert-title"><span class="octicon octicon-note" style="--oct-icon: url(&#x22;data:image/svg+xml;utf8,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; class=&#x27;octicon octicon-info mr-2&#x27; viewBox=&#x27;0 0 16 16&#x27; version=&#x27;1.1&#x27; width=&#x27;16&#x27; height=&#x27;16&#x27; aria-hidden=&#x27;true&#x27;%3E%3Cpath d=&#x27;M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z&#x27;%3E%3C/path%3E%3C/svg%3E&#x22;)"></span>Note</p>
+<p>Kleppmann notes in DDIA ch. 6 that “consistent hashing” in Karger’s original sense is rarely used unmodified in databases — the math minimizes the <em>number</em> of keys that change owner, but every one of those keys still has to be physically moved, and the routing-table churn is its own operational cost. Production systems lean on the broader consistent-hashing <em>family</em> (rings, vnodes, tablets) plus replication for availability rather than on resharding alone.</p>
+</div>
+<p><strong>ScyllaDB Tablets (2024)</strong>: ScyllaDB’s new replication architecture replaces legacy vnodes with “tablets”—dynamically redistributed data units. This achieves <strong>30x faster</strong> scaling operations and <strong>50% reduction</strong> in network costs compared to traditional vnode-based consistent hashing.</p>
+<p><strong>Trade-offs</strong>:</p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Minimal key remapping during scaling (only ~1/N keys move)</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Natural load balancing with vnodes</li>
+<li><span role="img" aria-label="cross mark">❌</span> Ring management adds operational complexity</li>
+<li><span role="img" aria-label="cross mark">❌</span> Still scatter-gather for range queries</li>
+<li><span role="img" aria-label="cross mark">❌</span> Vnodes increase metadata and routing table size</li>
+</ul>
+<p><strong>Real-world</strong>: Amazon DynamoDB, Apache Cassandra, and Discord all use consistent hashing. Discord’s Cassandra cluster scaled from 12 to 177 nodes — consistent hashing kept migration overhead manageable. Discord ultimately migrated to ScyllaDB in 2023, citing Cassandra’s JVM GC pauses and hot-partition pathologies; <a href="https://discord.com/blog/how-discord-stores-trillions-of-messages" rel="noopener noreferrer" target="_blank">Discord’s own writeup</a> reports a custom Rust-based migrator that moved <strong>trillions of messages from a 177-node Cassandra cluster to a 72-node ScyllaDB cluster in ~9 days at peak ~3.2 million records/sec</strong>.</p>
+<h3 id="directory-based-sharding"><a href="#directory-based-sharding">Directory-Based Sharding</a></h3>
+<p>A lookup service maps keys to shard locations. Maximum flexibility at the cost of an additional network hop and single point of failure.</p>
+<p><strong>Mechanism</strong>: Every read/write first queries the directory service to find the target shard. The directory can implement any mapping logic—hash, range, or custom rules.</p>
+<p><strong>When to use</strong>:</p>
+<ul>
+<li>Custom shard placement rules (e.g., isolate high-traffic tenants)</li>
+<li>Gradual migration between sharding schemes</li>
+<li>Regulatory requirements (data residency)</li>
+</ul>
+<p><strong>Trade-offs</strong>:</p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Maximum flexibility—any mapping logic, any rebalancing strategy</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Can move individual keys without full resharding</li>
+<li><span role="img" aria-label="cross mark">❌</span> Directory becomes SPOF and latency bottleneck</li>
+<li><span role="img" aria-label="cross mark">❌</span> Additional network hop for every operation</li>
+<li><span role="img" aria-label="cross mark">❌</span> Directory state must be highly available and consistent</li>
+</ul>
+<p><strong>Real-world</strong>: MongoDB’s (v8.0) config servers act as a sharding directory. MongoDB 8.0 introduced embedded config servers—no separate deployment needed—and <strong>50x faster</strong> data distribution across shards.</p>
+<p>Vitess (used by YouTube since 2011, Slack, Pinterest, Square) maintains a topology service that maps keyspace ranges to shards. Slack runs Vitess at <strong>2.3 million QPS</strong> (2M reads, 300K writes) with median latency of <strong>2ms</strong> and p99 of <strong>11ms</strong>. The directory is typically replicated (via etcd or ZooKeeper) and cached aggressively to mitigate the SPOF concern.</p>
+<p><strong><a href="https://medium.com/pinterest-engineering/sharding-pinterest-how-we-scaled-our-mysql-fleet-3f341e96ca6f" rel="noopener noreferrer" target="_blank">Pinterest’s MySQL sharding</a></strong> encodes the shard location into the row’s 64-bit primary key: 16 bits shard ID + 10 bits type ID + 36 bits local ID + 2 reserved bits, so any ID self-routes without a directory hop. The corresponding rule is brutal but cheap to operate: <strong>data never moves between shards once placed</strong>. This eliminates resharding complexity at the cost of inflexible data placement.</p>
+<h3 id="sharding-strategy-decision-matrix"><a href="#sharding-strategy-decision-matrix">Sharding Strategy Decision Matrix</a></h3>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Factor</th>
+<th>Hash</th>
+<th>Range</th>
+<th>Consistent Hash</th>
+<th>Directory</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Point queries</td>
+<td><span role="img" aria-label="white heavy check mark">✅</span> Single shard</td>
+<td><span role="img" aria-label="white heavy check mark">✅</span> Single shard</td>
+<td><span role="img" aria-label="white heavy check mark">✅</span> Single shard</td>
+<td><span role="img" aria-label="white heavy check mark">✅</span> Single shard</td>
+</tr>
+<tr>
+<td>Range queries</td>
+<td><span role="img" aria-label="cross mark">❌</span> Scatter-gather</td>
+<td><span role="img" aria-label="white heavy check mark">✅</span> Single shard</td>
+<td><span role="img" aria-label="cross mark">❌</span> Scatter-gather</td>
+<td>Depends on mapping</td>
+</tr>
+<tr>
+<td>Write distribution</td>
+<td><span role="img" aria-label="white heavy check mark">✅</span> Even</td>
+<td><span role="img" aria-label="cross mark">❌</span> Hot spots likely</td>
+<td><span role="img" aria-label="white heavy check mark">✅</span> Even with vnodes</td>
+<td>Configurable</td>
+</tr>
+<tr>
+<td>Adding nodes</td>
+<td><span role="img" aria-label="cross mark">❌</span> Full rehash</td>
+<td>Manual split</td>
+<td><span role="img" aria-label="white heavy check mark">✅</span> Minimal remapping</td>
+<td>Manual</td>
+</tr>
+<tr>
+<td>Operational complexity</td>
+<td>Low</td>
+<td>Medium</td>
+<td>Medium</td>
+<td>High</td>
+</tr>
+<tr>
+<td>Flexibility</td>
+<td>Low</td>
+<td>Medium</td>
+<td>Low</td>
+<td>High</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="replication-models"><a href="#replication-models">Replication Models</a></h2>
+<p>Replication copies data across nodes for fault tolerance and read scaling. The replication model determines who accepts writes, how changes propagate, and what consistency guarantees exist.</p>
+<h3 id="single-leader-replication"><a href="#single-leader-replication">Single-Leader Replication</a></h3>
+<p>One node (leader) accepts all writes; followers replicate from the leader and serve reads.</p>
+<p><strong>Mechanism</strong>: Writes go to the leader, which logs them to a Write-Ahead Log (WAL). Followers pull or receive the WAL and apply changes. Reads can go to the leader (strong consistency) or followers (eventual consistency).</p>
+<p><strong>Why it exists</strong>: Simplest model to reason about. No conflict resolution needed—all writes serialize through one node.</p>
+<p><strong>When to use</strong>:</p>
+<ul>
+<li>Strong consistency requirements</li>
+<li>Moderate write throughput (single leader is bottleneck)</li>
+<li>Simpler operational model preferred</li>
+</ul>
+<p><strong>Trade-offs</strong>:</p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> No write conflicts—single serialization point</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Simpler to reason about and debug</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Strong consistency achievable (read from leader)</li>
+<li><span role="img" aria-label="cross mark">❌</span> Leader is write throughput bottleneck</li>
+<li><span role="img" aria-label="cross mark">❌</span> Leader failure requires failover (brief unavailability)</li>
+<li><span role="img" aria-label="cross mark">❌</span> Cross-region writes have high latency (must reach leader)</li>
+</ul>
+<p><strong>Real-world</strong>: PostgreSQL (v17+) streaming replication, MySQL replication, MongoDB replica sets. PostgreSQL 17 (September 2024) added logical replication failover—automatic slot sync to standbys via <code>sync_replication_slots</code> and the new <code>failover</code> parameter. Previously, logical replication couldn’t survive primary failure without manual intervention.</p>
+<p>Slack’s original architecture used single-leader MySQL with asynchronous replication—writes in one datacenter, read replicas everywhere. This worked until COVID-19 traffic spikes exposed the write bottleneck, prompting their Vitess migration.</p>
+<h3 id="multi-leader-replication"><a href="#multi-leader-replication">Multi-Leader Replication</a></h3>
+<p>Multiple nodes accept writes independently, then replicate to each other.</p>
+<p><strong>Mechanism</strong>: Each leader handles writes for its region/partition. Leaders exchange changes asynchronously. Conflicts (concurrent writes to same key) require resolution.</p>
+<p><strong>Why it exists</strong>: Single-leader can’t scale writes or survive leader datacenter failure. Multi-leader allows writes in every region with local latency.</p>
+<p><strong>Conflict resolution strategies</strong>:</p>
+<ul>
+<li><strong>Last-write-wins (LWW)</strong>: Timestamp determines winner. Simple but loses data.</li>
+<li><strong>Merge</strong>: Application-specific logic combines conflicting values (e.g., union of sets).</li>
+<li><strong>Custom resolution</strong>: Application callback decides winner.</li>
+</ul>
+<p><strong>When to use</strong>:</p>
+<ul>
+<li>Multi-region deployments needing local write latency</li>
+<li>Offline-capable clients (each client is a “leader”)</li>
+<li>High write availability requirements</li>
+</ul>
+<p><strong>Trade-offs</strong>:</p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Local write latency in each region</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Survives datacenter failures without failover</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Higher write throughput (multiple leaders)</li>
+<li><span role="img" aria-label="cross mark">❌</span> Conflict resolution complexity</li>
+<li><span role="img" aria-label="cross mark">❌</span> Harder to reason about consistency</li>
+<li><span role="img" aria-label="cross mark">❌</span> Potential data loss with LWW</li>
+</ul>
+<p><strong>Real-world</strong>: CouchDB’s multi-master replication for offline-first apps. Cassandra with <code>NetworkTopologyStrategy</code> for multi-datacenter deployments. Google Docs uses Operational Transformation (a form of conflict resolution) for real-time collaboration.</p>
+<h3 id="leaderless-replication"><a href="#leaderless-replication">Leaderless Replication</a></h3>
+<p>Any node accepts reads and writes. Clients contact multiple nodes; quorum determines success.</p>
+<p><figure class="ps-figure ps-figure-themed ps-figure-zoomable"><picture><source srcset="/legacy-personal-site/v5/assets/quorum-overlap-dark.426d4df4.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" data-scheme="dark"><source srcset="/legacy-personal-site/v5/assets/quorum-overlap-light.57494c27.svg" type="image/svg+xml" data-scheme="light"><img src="/legacy-personal-site/v5/assets/quorum-overlap-light.57494c27.svg" alt="Quorum overlap with N=3, W=2, R=2 — at least one replica is in both quorums, so the read sees the latest write." width="749" height="599" style="max-width:min(749px,100%)"></picture><figcaption>Quorum overlap with N=3, W=2, R=2 — at least one replica is in both quorums, so the read sees the latest write.</figcaption><button type="button" class="ps-img-zoom-btn" hidden aria-label="Zoom image" data-ps-img-zoom-btn=""><svg class="ps-img-zoom-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6"></path></svg></button></figure></p>
+<p><strong>Mechanism</strong>: Client sends writes to W replicas and reads from R replicas. If <code>W + R > N</code> (total replicas), every read quorum intersects every write quorum on at least one replica — so a successful read always touches a node that holds the latest acknowledged write (<a href="https://dataintensive.net/" rel="noopener noreferrer" target="_blank">DDIA, ch. 5</a>). Quorum ensures overlap, not freshness on every node.</p>
+<p><strong>Why it exists</strong>: No leader means no single point of failure and no failover. Any node can serve any request.</p>
+<p><strong>Quorum configurations</strong>:</p>
+<ul>
+<li><code>N=3, W=2, R=2</code>: Balanced reads/writes, tolerates 1 failure</li>
+<li><code>N=3, W=3, R=1</code>: Fast reads, slow writes, no write tolerance</li>
+<li><code>N=3, W=1, R=3</code>: Fast writes, slow reads, no read tolerance</li>
+</ul>
+<p><strong>Read repair and anti-entropy</strong>: Stale replicas are updated during reads (read repair) or background synchronization (anti-entropy/Merkle trees).</p>
+<p><strong>When to use</strong>:</p>
+<ul>
+<li>High availability requirements</li>
+<li>Can tolerate eventual consistency</li>
+<li>No single point of failure acceptable</li>
+</ul>
+<p><strong>Trade-offs</strong>:</p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> No leader = no failover needed</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> High availability (any quorum serves requests)</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Tunable consistency via quorum settings</li>
+<li><span role="img" aria-label="cross mark">❌</span> Eventual consistency only (unless W=N and R=N)</li>
+<li><span role="img" aria-label="cross mark">❌</span> Conflict resolution needed for concurrent writes</li>
+<li><span role="img" aria-label="cross mark">❌</span> Higher network traffic (multiple replicas per request)</li>
+</ul>
+<p><strong>Real-world</strong>: Amazon DynamoDB, Apache Cassandra, Riak. DynamoDB’s original paper (2007) introduced the quorum model that influenced a generation of databases.</p>
+<p><strong>Discord’s ScyllaDB migration (2023)</strong> results:</p>
+<ul>
+<li>p99 read latency: <strong>15ms</strong> (vs. 40-125ms on Cassandra)</li>
+<li>p99 write latency: <strong>5ms</strong> (vs. 5-70ms on Cassandra)</li>
+<li><strong>50% fewer nodes</strong> due to higher storage density</li>
+<li>Uses <code>LOCAL_QUORUM</code> for both reads and writes</li>
+</ul>
+<h3 id="replication-model-decision-matrix"><a href="#replication-model-decision-matrix">Replication Model Decision Matrix</a></h3>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Factor</th>
+<th>Single-Leader</th>
+<th>Multi-Leader</th>
+<th>Leaderless</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Write consistency</td>
+<td><span role="img" aria-label="white heavy check mark">✅</span> Strong (via leader)</td>
+<td><span role="img" aria-label="cross mark">❌</span> Conflicts possible</td>
+<td><span role="img" aria-label="cross mark">❌</span> Eventual</td>
+</tr>
+<tr>
+<td>Write availability</td>
+<td><span role="img" aria-label="cross mark">❌</span> Leader SPOF</td>
+<td><span role="img" aria-label="white heavy check mark">✅</span> Any leader</td>
+<td><span role="img" aria-label="white heavy check mark">✅</span> Any quorum</td>
+</tr>
+<tr>
+<td>Write throughput</td>
+<td><span role="img" aria-label="cross mark">❌</span> Single bottleneck</td>
+<td><span role="img" aria-label="white heavy check mark">✅</span> Scales with leaders</td>
+<td><span role="img" aria-label="white heavy check mark">✅</span> Scales with W</td>
+</tr>
+<tr>
+<td>Read consistency</td>
+<td>Configurable</td>
+<td><span role="img" aria-label="cross mark">❌</span> Eventual</td>
+<td>Configurable via R</td>
+</tr>
+<tr>
+<td>Operational complexity</td>
+<td>Low</td>
+<td>High (conflicts)</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td>Failover needed</td>
+<td>Yes</td>
+<td>No</td>
+<td>No</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="synchronous-vs-asynchronous-replication"><a href="#synchronous-vs-asynchronous-replication">Synchronous vs. Asynchronous Replication</a></h2>
+<p>The replication timing determines durability and latency trade-offs.</p>
+<p><figure class="ps-figure ps-figure-themed ps-figure-zoomable"><picture><source srcset="/legacy-personal-site/v5/assets/replication-timing-dark.f9fa0454.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" data-scheme="dark"><source srcset="/legacy-personal-site/v5/assets/replication-timing-light.eabacaeb.svg" type="image/svg+xml" data-scheme="light"><img src="/legacy-personal-site/v5/assets/replication-timing-light.eabacaeb.svg" alt="Sync vs semi-sync vs async replication timing — when the leader acknowledges the client relative to follower replication." width="863" height="1054" style="max-width:min(863px,100%)"></picture><figcaption>Sync vs semi-sync vs async replication timing — when the leader acknowledges the client relative to follower replication.</figcaption><button type="button" class="ps-img-zoom-btn" hidden aria-label="Zoom image" data-ps-img-zoom-btn=""><svg class="ps-img-zoom-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6"></path></svg></button></figure></p>
+<h3 id="synchronous-replication"><a href="#synchronous-replication">Synchronous Replication</a></h3>
+<p>Leader waits for follower acknowledgment before confirming write to client.</p>
+<p><strong>Guarantee</strong>: Write is durable on multiple nodes before confirmation. No data loss if leader fails.</p>
+<p><strong>Cost</strong>: Latency = leader write time + slowest follower replication time. Throughput limited by follower speed.</p>
+<p><strong>When to use</strong>: Financial transactions, audit logs, any data where loss is unacceptable.</p>
+<p><strong>Real-world</strong>: Google Spanner uses synchronous Paxos replication — writes commit only after majority acknowledgment. The TrueTime API (atomic clocks + GPS) bounds clock uncertainty (<code>ε</code>) to <strong>less than 10 ms in steady state, typically around 1–7 ms</strong> depending on time-master polling and load (<a href="https://research.google/pubs/pub39966/" rel="noopener noreferrer" target="_blank">Spanner OSDI 2012, §3</a>) — not the sub-millisecond figure that often gets repeated. Spanner’s “commit wait” delays transaction visibility until the commit timestamp has passed; with tight TrueTime bounds, this wait is short but non-zero.</p>
+<h3 id="asynchronous-replication"><a href="#asynchronous-replication">Asynchronous Replication</a></h3>
+<p>Leader confirms write immediately; followers replicate in background.</p>
+<p><strong>Guarantee</strong>: Eventual consistency. Leader failure before replication = data loss.</p>
+<p><strong>Benefit</strong>: Minimum latency. Throughput unaffected by follower speed.</p>
+<p><strong>When to use</strong>: High throughput requirements, acceptable eventual consistency, acceptable rare data loss.</p>
+<p><strong>Real-world</strong>: Most single-leader systems default to async. Slack’s MySQL used asynchronous replication with subsecond lag under normal conditions—but lag could spike to minutes during traffic bursts, causing stale reads.</p>
+<h3 id="semi-synchronous-replication"><a href="#semi-synchronous-replication">Semi-Synchronous Replication</a></h3>
+<p>Leader waits for at least one follower before confirming, but not all.</p>
+<p><strong>Guarantee</strong>: Write survives leader failure if the confirmed follower survives.</p>
+<p><strong>Balance</strong>: Better durability than async, better latency than full sync.</p>
+<p><strong>When to use</strong>: Most production single-leader deployments.</p>
+<p><strong>Real-world</strong>: MySQL semi-synchronous replication (<code>rpl_semi_sync_master_wait_for_slave_count=1</code>). PostgreSQL synchronous replication with <code>synchronous_commit = on</code> and named synchronous standbys.</p>
+<h2 id="readwrite-routing"><a href="#readwrite-routing">Read/Write Routing</a></h2>
+<p>How clients find the right node for their request.</p>
+<h3 id="write-routing"><a href="#write-routing">Write Routing</a></h3>
+<p>Writes must reach nodes that accept writes:</p>
+<ul>
+<li><strong>Single-leader</strong>: Route to leader (failover-aware routing)</li>
+<li><strong>Multi-leader</strong>: Route to local leader (region-aware routing)</li>
+<li><strong>Leaderless</strong>: Route to W replicas (any W of N)</li>
+</ul>
+<h3 id="read-routing-strategies"><a href="#read-routing-strategies">Read Routing Strategies</a></h3>
+<p><strong>Read-your-writes consistency</strong>: After a write, subsequent reads see that write.</p>
+<p>Implementation options:</p>
+<ol>
+<li><strong>Read from leader</strong>: Guarantees consistency but doesn’t scale</li>
+<li><strong>Sticky sessions</strong>: Client always reads from same replica</li>
+<li><strong>Version tracking</strong>: Client tracks last write version; read waits for replica to catch up</li>
+</ol>
+<p><strong>Monotonic reads</strong>: Once you see a value, you never see an older value.</p>
+<p>Implementation: Sticky sessions (same replica per client) or version vectors.</p>
+<p><strong>Bounded staleness</strong>: Reads are at most T seconds behind writes.</p>
+<p>Implementation: Track replication lag; route reads to replicas within bound.</p>
+<p><strong>Real-world</strong>: Stripe uses read-your-writes for payment confirmations (critical) but eventual consistency for analytics (acceptable lag). CockroachDB’s follower reads allow stale reads with bounded staleness for latency-sensitive queries.</p>
+<h2 id="consistency-and-replication-lag"><a href="#consistency-and-replication-lag">Consistency and Replication Lag</a></h2>
+<p>Replication lag is the delay between a write on the leader and its visibility on followers.</p>
+<h3 id="sources-of-lag"><a href="#sources-of-lag">Sources of Lag</a></h3>
+<ol>
+<li><strong>Network latency</strong>: Time for WAL to reach follower</li>
+<li><strong>Apply time</strong>: Time for follower to apply changes (especially with heavy indexes)</li>
+<li><strong>Load</strong>: High write throughput or follower CPU saturation</li>
+<li><strong>Cross-region</strong>: WAN latency (50-300ms typical)</li>
+</ol>
+<h3 id="lag-implications"><a href="#lag-implications">Lag Implications</a></h3>
+<p><strong>Single-leader with async replication</strong>: Read from follower may miss recent writes. Read from leader always consistent but doesn’t scale.</p>
+<p><strong>Quorum systems</strong>: <code>W + R > N</code> ensures overlap, but the overlapping node might have an older version during the quorum window.</p>
+<p><strong>Real-world</strong>: Discord observed P99 read latencies jump from 40ms to 125ms during Cassandra compaction storms—lag spikes caused by follower CPU saturation applying SSTable merges.</p>
+<h3 id="monitoring-lag"><a href="#monitoring-lag">Monitoring Lag</a></h3>
+<p>Essential metrics:</p>
+<ul>
+<li><strong>Replication lag (seconds)</strong>: Primary indicator of follower freshness</li>
+<li><strong>Lag percentiles (P50, P99)</strong>: Average lag hides spikes</li>
+<li><strong>Lag by replica</strong>: Identifies problematic followers</li>
+<li><strong>Lag during writes</strong>: Correlate with write throughput</li>
+</ul>
+<p>PostgreSQL: <code>pg_stat_replication.replay_lag</code>
+MySQL: <code>Seconds_Behind_Master</code> (misleading—measures relay log position, not actual staleness)
+Cassandra: <code>org.apache.cassandra.metrics:type=Table,name=CoordinatorReadLatency</code></p>
+<h2 id="how-to-choose"><a href="#how-to-choose">How to Choose</a></h2>
+<p>Choosing sharding and replication strategies requires analyzing your specific requirements across multiple dimensions.</p>
+<h3 id="factors-to-consider"><a href="#factors-to-consider">Factors to Consider</a></h3>
+<h4 id="1-access-patterns"><a href="#1-access-patterns">1. Access Patterns</a></h4>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Recommended Sharding</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Random point reads/writes</td>
+<td>Hash partitioning</td>
+<td>Even distribution regardless of key patterns</td>
+</tr>
+<tr>
+<td>Range scans (time-series, logs)</td>
+<td>Range partitioning</td>
+<td>Sequential data on same shard</td>
+</tr>
+<tr>
+<td>Mixed point + range queries</td>
+<td>Range with secondary hash indexes</td>
+<td>Trade-off: range efficiency with some distribution</td>
+</tr>
+<tr>
+<td>Hot keys (celebrity users, viral posts)</td>
+<td>Hash + write sharding or dedicated partitions</td>
+<td>Spread load across multiple partitions</td>
+</tr>
+<tr>
+<td>Multi-tenant with isolation</td>
+<td>Directory-based</td>
+<td>Per-tenant shard placement control</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="2-consistency-requirements"><a href="#2-consistency-requirements">2. Consistency Requirements</a></h4>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Requirement</th>
+<th>Replication Model</th>
+<th>Replication Timing</th>
+<th>Example Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Strong consistency, serializable</td>
+<td>Single-leader</td>
+<td>Synchronous</td>
+<td>Financial transactions, inventory</td>
+</tr>
+<tr>
+<td>Strong consistency, linearizable</td>
+<td>Raft/Paxos consensus</td>
+<td>Synchronous</td>
+<td>Coordination services (etcd, ZooKeeper)</td>
+</tr>
+<tr>
+<td>Read-your-writes</td>
+<td>Single-leader</td>
+<td>Any (with version tracking)</td>
+<td>User-facing CRUD operations</td>
+</tr>
+<tr>
+<td>Eventual (seconds OK)</td>
+<td>Multi-leader or leaderless</td>
+<td>Asynchronous</td>
+<td>Social feeds, analytics</td>
+</tr>
+<tr>
+<td>Eventual (minutes OK)</td>
+<td>Leaderless</td>
+<td>Asynchronous</td>
+<td>DNS, config distribution, logging</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="3-scale-thresholds"><a href="#3-scale-thresholds">3. Scale Thresholds</a></h4>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Scale Factor</th>
+<th>Threshold</th>
+<th>Recommended Approach</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Operations/sec</td>
+<td>&#x3C; 10K</td>
+<td>Single node with read replicas may suffice</td>
+</tr>
+<tr>
+<td>Operations/sec</td>
+<td>10K-100K</td>
+<td>Replication + connection pooling + caching</td>
+</tr>
+<tr>
+<td>Operations/sec</td>
+<td>> 100K</td>
+<td>Sharding required</td>
+</tr>
+<tr>
+<td>Data size</td>
+<td>&#x3C; 100GB</td>
+<td>Single node (with backups)</td>
+</tr>
+<tr>
+<td>Data size</td>
+<td>100GB-1TB</td>
+<td>Replication for availability</td>
+</tr>
+<tr>
+<td>Data size</td>
+<td>> 1TB</td>
+<td>Sharding required</td>
+</tr>
+<tr>
+<td>Write:read ratio</td>
+<td>> 1:10</td>
+<td>Single-leader often sufficient</td>
+</tr>
+<tr>
+<td>Write:read ratio</td>
+<td>> 1:1</td>
+<td>Consider multi-leader or leaderless</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="4-operational-capacity"><a href="#4-operational-capacity">4. Operational Capacity</a></h4>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Team Capability</th>
+<th>Recommended Approach</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>No dedicated database team</td>
+<td>Managed services (RDS, DynamoDB, Cloud Spanner)</td>
+</tr>
+<tr>
+<td>Small SRE team</td>
+<td>Simpler replication (single-leader), managed sharding</td>
+</tr>
+<tr>
+<td>Large platform team</td>
+<td>Self-hosted with custom tooling (Vitess, CockroachDB)</td>
+</tr>
+<tr>
+<td>Global operations</td>
+<td>Multi-region with automated failover</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="decision-tree"><a href="#decision-tree">Decision Tree</a></h3>
+<p><figure class="ps-figure ps-figure-themed ps-figure-zoomable"><picture><source srcset="/legacy-personal-site/v5/assets/sharding-decision-tree-dark.d663f1f4.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" data-scheme="dark"><source srcset="/legacy-personal-site/v5/assets/sharding-decision-tree-light.8319492c.svg" type="image/svg+xml" data-scheme="light"><img src="/legacy-personal-site/v5/assets/sharding-decision-tree-light.8319492c.svg" alt="Sharding and replication decision tree, branching on bottleneck (writes / reads / geo / HA) and consistency requirement." width="1120" height="551" style="max-width:min(1120px,100%)"></picture><figcaption>Sharding and replication decision tree, branching on bottleneck (writes / reads / geo / HA) and consistency requirement.</figcaption><button type="button" class="ps-img-zoom-btn" hidden aria-label="Zoom image" data-ps-img-zoom-btn=""><svg class="ps-img-zoom-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6"></path></svg></button></figure></p>
+<p>The tree is a starting point, not a verdict — most production systems sit at the intersection of two paths (e.g. range sharding + leaderless reads from a follower) and tune from there.</p>
+<h3 id="production-benchmarks"><a href="#production-benchmarks">Production Benchmarks</a></h3>
+<p>Reference points from production systems (as of 2024):</p>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>System</th>
+<th>QPS</th>
+<th>Latency</th>
+<th>Scale</th>
+<th>Architecture</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Slack (Vitess, 2020)</td>
+<td>2.3M peak (2M reads, 300K writes)</td>
+<td>2 ms p50, 11 ms p99</td>
+<td>tens of PB</td>
+<td>Directory + single-leader</td>
+</tr>
+<tr>
+<td>Stripe DocDB (2024)</td>
+<td>5M</td>
+<td>n/a</td>
+<td>2,000+ shards, 5,000+ collections, PB data</td>
+<td>Directory + custom replication</td>
+</tr>
+<tr>
+<td>Uber Docstore (Aug 2024)</td>
+<td>40M+ reads/sec via CacheFront</td>
+<td>n/a</td>
+<td>tens of PB</td>
+<td>Partitioned + Raft + Redis cache</td>
+</tr>
+<tr>
+<td>Uber Docstore (Aug 2025)</td>
+<td>150M+ reads/sec via CacheFront</td>
+<td>n/a</td>
+<td>tens of PB</td>
+<td>Partitioned + Raft + Redis cache</td>
+</tr>
+<tr>
+<td>Discord (ScyllaDB, 2023)</td>
+<td>n/a</td>
+<td>15 ms p99 read</td>
+<td>trillions of messages, 72-node ScyllaDB cluster</td>
+<td>Consistent hash + leaderless</td>
+</tr>
+<tr>
+<td>Netflix (Cassandra)</td>
+<td>millions/sec</td>
+<td>n/a</td>
+<td>PB data, 10K+ nodes</td>
+<td>Consistent hash + leaderless</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="resharding-and-data-migration"><a href="#resharding-and-data-migration">Resharding and Data Migration</a></h2>
+<p>As data grows, shards need to split. As traffic patterns change, shards need to rebalance.</p>
+<h3 id="online-resharding-challenges"><a href="#online-resharding-challenges">Online Resharding Challenges</a></h3>
+<ol>
+<li><strong>Consistency</strong>: Reads and writes continue during migration</li>
+<li><strong>Completeness</strong>: No data lost or duplicated</li>
+<li><strong>Performance</strong>: Migration doesn’t degrade production traffic</li>
+<li><strong>Rollback</strong>: Ability to abort if issues arise</li>
+</ol>
+<h3 id="stripes-zero-downtime-migration-docdb"><a href="#stripes-zero-downtime-migration-docdb">Stripe’s Zero-Downtime Migration (DocDB)</a></h3>
+<p>Stripe’s <a href="https://stripe.com/blog/how-stripes-document-databases-supported-99.999-uptime-with-zero-downtime-data-migrations" rel="noopener noreferrer" target="_blank">DocDB</a> (a MongoDB-Community-based document store) serves over <strong>5 million QPS</strong> across <strong>2,000+ shards</strong> holding petabytes of data across 5,000+ collections. Their Data Movement Platform enables zero-downtime migrations:</p>
+<p><figure class="ps-figure ps-figure-themed ps-figure-zoomable"><picture><source srcset="/legacy-personal-site/v5/assets/online-resharding-pipeline-dark.5a9c7b87.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" data-scheme="dark"><source srcset="/legacy-personal-site/v5/assets/online-resharding-pipeline-light.46bd55a2.svg" type="image/svg+xml" data-scheme="light"><img src="/legacy-personal-site/v5/assets/online-resharding-pipeline-light.46bd55a2.svg" alt="Online resharding pipeline — register intent, bulk copy, CDC catch-up, brief cutover, verify, cleanup; CDC keeps the destination current throughout." width="587" height="858" style="max-width:min(587px,100%)"></picture><figcaption>Online resharding pipeline — register intent, bulk copy, CDC catch-up, brief cutover, verify, cleanup; CDC keeps the destination current throughout.</figcaption><button type="button" class="ps-img-zoom-btn" hidden aria-label="Zoom image" data-ps-img-zoom-btn=""><svg class="ps-img-zoom-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6"></path></svg></button></figure></p>
+<p><strong>Phase 1 - Setup</strong>:</p>
+<ul>
+<li>Register migration intent in coordination service</li>
+<li>Build indexes on destination shard</li>
+<li>Set up Change Data Capture (CDC) from source</li>
+</ul>
+<p><strong>Phase 2 - Bulk Copy</strong>:</p>
+<ul>
+<li>Snapshot source shard at point-in-time</li>
+<li>Bulk load to destination in sort order (B-tree friendly insertion)</li>
+<li>CDC captures writes during bulk copy</li>
+</ul>
+<p><strong>Phase 3 - Catch-up</strong>:</p>
+<ul>
+<li>Apply CDC changes to destination</li>
+<li>Repeat until lag is minimal (seconds)</li>
+</ul>
+<p><strong>Phase 4 - Cutover</strong>:</p>
+<ul>
+<li>Brief write pause (&#x3C;2 seconds)</li>
+<li>Apply final CDC batch</li>
+<li>Update routing to point to destination</li>
+<li>Resume writes</li>
+</ul>
+<p><strong>Phase 5 - Verification</strong>:</p>
+<ul>
+<li>Point-in-time comparison between source and destination</li>
+<li>Reconcile any discrepancies (automatic rollback if issues detected)</li>
+</ul>
+<p><strong>Phase 6 - Cleanup</strong>:</p>
+<ul>
+<li>Mark migration complete</li>
+<li>Tombstone source data</li>
+<li>Remove CDC pipeline</li>
+</ul>
+<p><strong>Evolution</strong>: Stripe evolved from few large shards (tens of TB each) to thousands of smaller shards. Future work includes heat management for proactive balancing and shard autoscaling based on load patterns.</p>
+<h3 id="automatic-splitmerge"><a href="#automatic-splitmerge">Automatic Split/Merge</a></h3>
+<p>Some systems handle resharding automatically:</p>
+<p><strong>CockroachDB</strong>: Ranges split when they exceed size threshold (default 512MB) or experience high traffic. Raft-based replication handles the split coordination.</p>
+<p><strong>Google Spanner</strong>: Tablets split automatically. The split is transparent to applications—Paxos groups coordinate the redistribution.</p>
+<p><strong>Trade-off</strong>: Automation reduces operational burden but can cause unexpected load (splits during peak traffic). Most systems allow disabling auto-split for critical periods.</p>
+<h2 id="consensus-protocols-in-practice"><a href="#consensus-protocols-in-practice">Consensus Protocols in Practice</a></h2>
+<p>Modern distributed databases use consensus protocols (Raft, Paxos) to coordinate replicas. Understanding their implementation details matters for operational decisions.</p>
+<h3 id="raft"><a href="#raft">Raft</a></h3>
+<p>Raft powers etcd, CockroachDB, TiDB, and is the most widely-deployed consensus implementation.</p>
+<p><strong>Core mechanism</strong>: Leader election + log replication. One node is elected leader; all writes go through the leader; the leader replicates log entries to followers and commits when a majority acknowledges.</p>
+<p><strong>Key extensions in production:</strong></p>
+<ul>
+<li><strong>PreVote</strong>: Prevents disruptive elections when a rejoining node (with outdated log) tries to start an election. The node first checks if it <em>could</em> win before incrementing its term.</li>
+<li><strong>Leadership transfer</strong>: Orderly handoff during planned maintenance or when a better leader candidate exists.</li>
+<li><strong>Membership changes</strong>: One node at a time, taking effect when the configuration entry is <em>applied</em> (not just added to log).</li>
+</ul>
+<p><strong>Why odd node counts</strong>: 3 nodes tolerate 1 failure; 4 nodes also tolerate only 1 failure (need majority). Adding nodes doesn’t always improve fault tolerance.</p>
+<h3 id="multi-raft"><a href="#multi-raft">Multi-Raft</a></h3>
+<p>When a database has thousands of shards, each shard being an independent Raft group creates overhead (goroutines, heartbeats, memory).</p>
+<p><strong>CockroachDB’s solution</strong>: Coalesce heartbeats across all Raft groups between two nodes into a single request/response. Result: <strong>3 goroutines per node</strong> regardless of range count, instead of 1 goroutine per range.</p>
+<p><strong>TiDB/TiKV</strong>: One of few open-source implementations of Multi-Raft. Regions split automatically once they exceed <code>region-split-size</code> — historically 96 MiB, raised to 256 MiB from v8.4.0 onward (<a href="https://docs.pingcap.com/tidb/stable/tune-region-performance" rel="noopener noreferrer" target="_blank">TiDB region-size tuning guide</a>). Each Region maintains its own Raft state machine.</p>
+<h3 id="paxos-google-spanner"><a href="#paxos-google-spanner">Paxos (Google Spanner)</a></h3>
+<p>Spanner uses leader-based Paxos with leases. Each tablet has its own Paxos state machine.</p>
+<p><strong>TrueTime integration</strong>: GPS receivers and atomic clocks in each datacenter let TrueTime expose <code>TT.now()</code> as an interval <code>[earliest, latest]</code> whose half-width <code>ε</code> is <strong>typically a few milliseconds (1–7 ms in steady state, &#x3C; 10 ms even during time-master polling)</strong> — Spanner’s external consistency depends on <code>ε</code> staying small, not on <code>ε</code> being sub-millisecond (<a href="https://research.google/pubs/pub39966/" rel="noopener noreferrer" target="_blank">Spanner OSDI 2012, §3</a>).</p>
+<p><strong>Commit wait</strong>: After committing, Spanner waits until <code>TT.after(commit_ts)</code> is true before making the transaction visible — proportional to <code>2ε</code>. With ε in the low single-digit milliseconds, this wait is small enough that throughput is dominated by Paxos round-trips, not by <code>commit_wait</code>.</p>
+<h2 id="failure-handling"><a href="#failure-handling">Failure Handling</a></h2>
+<p>Node failures, network partitions, and split-brain scenarios require careful handling.</p>
+<h3 id="failure-detection"><a href="#failure-detection">Failure Detection</a></h3>
+<p><strong>Heartbeats</strong>: Nodes periodically ping each other. Missing heartbeats trigger failure suspicion.</p>
+<p><strong>Timeouts</strong>: How long to wait before declaring failure? Too short = false positives (network hiccup). Too long = slow failover.</p>
+<p><strong>Phi Accrual Failure Detector</strong>: Used by Cassandra. Outputs a continuously varying suspicion level (<code>φ</code>) computed from the distribution of heartbeat inter-arrival times rather than a hard up/down verdict, so the threshold can be tuned to network conditions (<a href="https://doi.org/10.1109/RELDIS.2004.1353004" rel="noopener noreferrer" target="_blank">Hayashibara et al., SRDS 2004</a>).</p>
+<h3 id="leader-failover-single-leader-systems"><a href="#leader-failover-single-leader-systems">Leader Failover (Single-Leader Systems)</a></h3>
+<p><strong>Detection</strong>: Followers notice missing heartbeats from leader.</p>
+<p><strong>Election</strong>: Followers propose themselves; voting determines new leader. Raft uses randomized timeouts to avoid split votes.</p>
+<p><strong>Promotion</strong>: New leader starts accepting writes. Old leader (if still alive) must step down.</p>
+<p><strong>Risks</strong>:</p>
+<ul>
+<li><strong>Split-brain</strong>: Old leader doesn’t know it’s been replaced, accepts writes → data divergence</li>
+<li><strong>Data loss</strong>: Async replication means new leader may miss recent writes</li>
+<li><strong>Cascading failures</strong>: Failover load causes new leader to fail</li>
+</ul>
+<p><strong>Fencing</strong>: Prevent split-brain by ensuring old leader can’t accept writes:</p>
+<ul>
+<li><strong>STONITH (Shoot The Other Node In The Head)</strong>: Power off the old leader</li>
+<li><strong>Fencing tokens</strong>: Monotonically increasing tokens; storage rejects old tokens</li>
+<li><strong>Lease expiration</strong>: Leader’s write permission expires; must reacquire</li>
+</ul>
+<h3 id="quorum-and-split-brain-prevention"><a href="#quorum-and-split-brain-prevention">Quorum and Split-Brain Prevention</a></h3>
+<p><strong>Majority quorum</strong>: Decisions require >50% of nodes. In a network partition, at most one partition has majority.</p>
+<p><strong>Example</strong>: 5-node cluster. Partition splits into 3 and 2 nodes. Only the 3-node partition can form quorums; 2-node partition stops accepting writes (preserves consistency, sacrifices availability).</p>
+<p><strong>Why odd numbers</strong>: Even splits (2-2 in 4-node cluster) means no partition has majority. Odd numbers guarantee one partition can progress.</p>
+<p><strong>Quorum reads</strong>: Reading from majority ensures at least one node has the latest value (if <code>W > N/2</code>).</p>
+<h3 id="real-world-failure-scenarios"><a href="#real-world-failure-scenarios">Real-World Failure Scenarios</a></h3>
+<p><strong>Discord’s Cassandra hot partition incident (pre-2023)</strong>: A viral server caused one partition to receive 1000x normal traffic. The partition’s replicas couldn’t keep up; read latencies spiked from 15ms to 125ms. Cassandra’s JVM GC pauses exacerbated the problem. Short-term fix: caching for hot data. Long-term fix: <strong>migration to ScyllaDB</strong> (2023)—written in C++, no GC pauses, and new tablet architecture handles hot partitions better.</p>
+<p><strong>Slack’s MySQL failover during COVID-19</strong>: Traffic jumped 50% in one week. Replication lag spiked, triggering alerts. The system handled it without failover because they had headroom, but it exposed that their lag monitoring thresholds were too conservative. They adjusted thresholds and added capacity—and accelerated their <strong>Vitess migration</strong> to decouple sharding from application logic.</p>
+<p><strong>Stripe’s DocDB migration</strong>: Moving data across their 2,000+ shard fleet while maintaining 99.999% uptime. Their Data Movement Platform handles zero-downtime migrations with consistency verification. During one shard consolidation, they detected data discrepancy in the verification phase. The system automatically rolled back, triggered alerts, and paused migration. Root cause: CDC (Change Data Capture) missed a rare edge case with concurrent deletes. Fix deployed, migration resumed successfully.</p>
+<p><strong>Uber Docstore’s Raft split-brain recovery</strong>: Each partition runs a 3-5 node Raft group with NVMe SSD storage. When network partitions isolate the leader, the Raft protocol ensures the minority partition cannot accept writes (no quorum). Upon partition heal, the isolated leader steps down gracefully via lease expiration. Key learning: Raft’s leader lease (2 seconds in their configuration) must be shorter than client timeouts to prevent stale reads.</p>
+<h2 id="observability-and-operational-tooling"><a href="#observability-and-operational-tooling">Observability and Operational Tooling</a></h2>
+<p>Operating sharded, replicated systems requires comprehensive observability.</p>
+<h3 id="essential-metrics"><a href="#essential-metrics">Essential Metrics</a></h3>
+<p><strong>Per-shard metrics</strong>:</p>
+<ul>
+<li>Query throughput (reads/writes per second)</li>
+<li>Query latency (P50, P95, P99)</li>
+<li>Data size and growth rate</li>
+<li>Connection count</li>
+</ul>
+<p><strong>Replication metrics</strong>:</p>
+<ul>
+<li>Replication lag (seconds behind leader)</li>
+<li>Replication throughput (bytes/second)</li>
+<li>Follower health status</li>
+</ul>
+<p><strong>Cluster-wide metrics</strong>:</p>
+<ul>
+<li>Shard balance (data distribution skew)</li>
+<li>Hot shard detection (throughput imbalance)</li>
+<li>Cross-shard query rate (indicator of shard key problems)</li>
+</ul>
+<h3 id="alerting-thresholds"><a href="#alerting-thresholds">Alerting Thresholds</a></h3>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Warning</th>
+<th>Critical</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Replication lag</td>
+<td>> 10s</td>
+<td>> 60s</td>
+<td>Investigate follower load; consider failover</td>
+</tr>
+<tr>
+<td>Shard size imbalance</td>
+<td>> 20%</td>
+<td>> 50%</td>
+<td>Rebalance or reshard</td>
+</tr>
+<tr>
+<td>Query latency P99</td>
+<td>> 2x baseline</td>
+<td>> 5x baseline</td>
+<td>Check for hot partitions, compaction</td>
+</tr>
+<tr>
+<td>Cross-shard query rate</td>
+<td>> 10%</td>
+<td>> 25%</td>
+<td>Review shard key design</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="operational-runbooks"><a href="#operational-runbooks">Operational Runbooks</a></h3>
+<p><strong>Replication lag spike</strong>:</p>
+<ol>
+<li>Check follower CPU/IO—is it keeping up with apply?</li>
+<li>Check network between leader and follower</li>
+<li>Check for long-running transactions blocking replication</li>
+<li>Consider promoting a less-lagged replica if lag is critical</li>
+</ol>
+<p><strong>Hot shard detected</strong>:</p>
+<ol>
+<li>Identify hot keys (query logs, slow query analysis)</li>
+<li>Short-term: Add caching layer for hot data</li>
+<li>Medium-term: Add read replicas for hot shard</li>
+<li>Long-term: Reshard to split hot partition</li>
+</ol>
+<p><strong>Split-brain suspected</strong>:</p>
+<ol>
+<li>Check network connectivity between nodes</li>
+<li>Verify quorum state on each partition</li>
+<li>If confirmed split-brain: isolate the minority partition (network block)</li>
+<li>Reconcile any diverged writes manually</li>
+</ol>
+<h2 id="common-pitfalls"><a href="#common-pitfalls">Common Pitfalls</a></h2>
+<h3 id="1-choosing-shard-key-without-analyzing-access-patterns"><a href="#1-choosing-shard-key-without-analyzing-access-patterns">1. Choosing Shard Key Without Analyzing Access Patterns</a></h3>
+<p><strong>The mistake</strong>: Picking shard key based on data model (primary key) rather than query patterns.</p>
+<p><strong>Why it happens</strong>: Database primary key seems like the obvious choice.</p>
+<p><strong>The consequence</strong>: Cross-shard queries for common operations. A user dashboard querying all their orders across time-sharded data requires scatter-gather.</p>
+<p><strong>The fix</strong>: Analyze top queries before choosing shard key. The key should partition data along your most common access pattern.</p>
+<p><strong>Example</strong>: An e-commerce site sharded orders by <code>order_id</code>. Every “show my orders” query became a scatter-gather across all shards. Resharding by <code>user_id</code> made the common query single-shard.</p>
+<h3 id="2-underestimating-replication-lag-impact"><a href="#2-underestimating-replication-lag-impact">2. Underestimating Replication Lag Impact</a></h3>
+<p><strong>The mistake</strong>: Assuming replication is “fast enough” without measuring.</p>
+<p><strong>Why it happens</strong>: Lag is often subsecond in development; production load is different.</p>
+<p><strong>The consequence</strong>: Users see stale data. Worse: read-after-write inconsistency causes user-visible bugs (“I just updated my profile but it shows old data”).</p>
+<p><strong>The fix</strong>: Measure lag percentiles in production. Implement read-your-writes consistency for user-facing flows. Alert on lag spikes.</p>
+<p><strong>Example</strong>: Slack found replication lag spiked to minutes during traffic bursts, causing support tickets about “missing messages.” They added version tracking for read-your-writes consistency on critical paths.</p>
+<h3 id="3-ignoring-hot-partition-problem"><a href="#3-ignoring-hot-partition-problem">3. Ignoring Hot Partition Problem</a></h3>
+<p><strong>The mistake</strong>: Assuming hash sharding eliminates hot spots.</p>
+<p><strong>Why it happens</strong>: Hash sharding distributes keys evenly, but access patterns aren’t uniform.</p>
+<p><strong>The consequence</strong>: One partition (celebrity user, viral content) receives 1000x traffic, overwhelming its replicas.</p>
+<p><strong>The fix</strong>: Monitor per-partition throughput. Design for hot key mitigation: caching, request coalescing, or dedicated partitions for known hot keys.</p>
+<p><strong>Example</strong>: Discord’s “celebrity server” problem—servers with 100K+ members had orders of magnitude more traffic than small friend groups. Solution: channel-level sharding (not server-level) to distribute load within popular servers.</p>
+<h3 id="4-treating-failover-as-instantaneous"><a href="#4-treating-failover-as-instantaneous">4. Treating Failover as Instantaneous</a></h3>
+<p><strong>The mistake</strong>: Assuming failover is seamless and instant.</p>
+<p><strong>Why it happens</strong>: Marketing materials say “automatic failover.”</p>
+<p><strong>The consequence</strong>: Failover takes 10-30 seconds. During failover: connection errors, potential data loss (async replication), application retry storms.</p>
+<p><strong>The fix</strong>: Design applications to handle brief unavailability. Implement circuit breakers. Test failover regularly. Consider synchronous replication for zero data loss.</p>
+<p><strong>Example</strong>: A team assumed their managed database “had failover.” In production, failover took 25 seconds — their 30-second HTTP timeout caused cascading failures. Fix: shorter timeouts (5–10 seconds), circuit breakers, and regular failover testing in staging. <a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZ.Failover.html" rel="noopener noreferrer" target="_blank">AWS RDS Multi-AZ DB instance failover typically takes 60–120 seconds</a>; the newer <a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/multi-az-db-clusters-concepts-failover.html" rel="noopener noreferrer" target="_blank">Multi-AZ DB cluster</a> variant (2 readable standbys) is typically under 35 seconds — plan for whichever your config actually uses.</p>
+<h2 id="conclusion"><a href="#conclusion">Conclusion</a></h2>
+<p>Sharding and replication are independent design axes with distinct trade-offs:</p>
+<p><strong>Sharding strategy</strong> determines data distribution and query efficiency:</p>
+<ul>
+<li><strong>Hash partitioning</strong>: Even distribution, but range queries require scatter-gather</li>
+<li><strong>Range partitioning</strong>: Efficient scans, but hot spots on recent/popular data</li>
+<li><strong>Consistent hashing</strong>: Minimal disruption during scaling, but resharding costs remain high</li>
+<li><strong>Directory-based</strong>: Maximum flexibility, but adds operational complexity and SPOF risk</li>
+</ul>
+<p><strong>Replication model</strong> determines consistency and availability:</p>
+<ul>
+<li><strong>Single-leader</strong>: Simplest to reason about, but leader is SPOF and write bottleneck</li>
+<li><strong>Multi-leader</strong>: Multi-region writes with local latency, but requires conflict resolution</li>
+<li><strong>Leaderless</strong>: No SPOF, highly available, but eventual consistency only</li>
+</ul>
+<p><strong>Consensus protocols</strong> (Raft, Paxos) enable strong consistency with replication. Multi-Raft scales to hundreds of thousands of consensus groups per cluster.</p>
+<p><strong>Production patterns (2024)</strong>:</p>
+<ul>
+<li><strong>Slack</strong> (Vitess, 2.3M QPS): Directory-based sharding + single-leader MySQL</li>
+<li><strong>Discord</strong> (ScyllaDB, 2023 migration): Consistent hashing on legacy vnodes + leaderless replication; ScyllaDB has since launched a tablet-based architecture (<a href="https://www.scylladb.com/2024/12/03/enterprise-tablets/" rel="noopener noreferrer" target="_blank">ScyllaDB tablets, 2024</a>) that replaces vnodes for new clusters.</li>
+<li><strong>Stripe</strong> (DocDB, 5M QPS): Directory-based sharding + custom replication</li>
+<li><strong>Uber</strong> (Docstore, 40M+ reads/sec): Partitioned + Raft consensus</li>
+</ul>
+<p>There’s no universal answer—only trade-offs that match your access patterns, consistency requirements, and operational capacity.</p>
+<h2 id="appendix"><a href="#appendix">Appendix</a></h2>
+<h3 id="prerequisites"><a href="#prerequisites">Prerequisites</a></h3>
+<ul>
+<li>Basic database concepts (ACID, indexes, transactions)</li>
+<li>Distributed systems fundamentals (network partitions, CAP theorem)</li>
+<li>Understanding of consistency models (strong vs. eventual)</li>
+</ul>
+<h3 id="terminology"><a href="#terminology">Terminology</a></h3>
+<ul>
+<li><strong>Shard/Partition</strong>: A horizontal partition of data; one piece of a partitioned dataset</li>
+<li><strong>Replica</strong>: A copy of data on another node for fault tolerance</li>
+<li><strong>Leader/Primary</strong>: The node that accepts writes in single-leader replication</li>
+<li><strong>Follower/Secondary</strong>: A node that replicates from a leader</li>
+<li><strong>Quorum</strong>: The minimum number of nodes that must agree for an operation to succeed</li>
+<li><strong>WAL (Write-Ahead Log)</strong>: Append-only log of changes used for durability and replication</li>
+<li><strong>Vnode</strong>: Virtual node; a token position on a consistent hashing ring</li>
+<li><strong>Tablet/Region</strong>: A data partition in systems using Raft/Paxos (Spanner, CockroachDB, TiDB)</li>
+<li><strong>CDC (Change Data Capture)</strong>: Technology for capturing row-level changes for replication or migration</li>
+<li><strong>Raft</strong>: Consensus protocol for leader election and log replication; simpler alternative to Paxos</li>
+<li><strong>Multi-Raft</strong>: Running multiple independent Raft consensus groups per cluster (one per shard/region)</li>
+</ul>
+<h3 id="summary"><a href="#summary">Summary</a></h3>
+<ul>
+<li><strong>Sharding scales capacity</strong>: Distribute data across nodes to scale writes, storage, and memory</li>
+<li><strong>Replication scales availability</strong>: Copy data across nodes to survive failures and scale reads</li>
+<li><strong>Orthogonal axes</strong>: Choose sharding strategy and replication model independently based on access patterns</li>
+<li><strong>Hash partitioning</strong>: Even distribution, scatter-gather for range queries</li>
+<li><strong>Range partitioning</strong>: Efficient scans, hot spots on recent data</li>
+<li><strong>Single-leader</strong>: Simplest, strong consistency, but leader is SPOF and write bottleneck</li>
+<li><strong>Leaderless</strong>: No SPOF, high availability, eventual consistency, conflict resolution needed</li>
+<li><strong>Raft/Paxos consensus</strong>: Enables strong consistency with replication; Multi-Raft scales to thousands of groups</li>
+<li><strong>Zero-downtime resharding</strong>: CDC, bulk copy, catch-up, brief cutover, verification, rollback capability</li>
+<li><strong>Monitor lag, hot partitions, and cross-shard queries</strong> to detect problems before they impact users</li>
+</ul>
+<h3 id="references"><a href="#references">References</a></h3>
+<p><strong>Foundational Papers &#x26; Specifications</strong></p>
+<ul>
+<li><a href="https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf" rel="noopener noreferrer" target="_blank">Amazon DynamoDB Paper (2007)</a> - Foundational paper on consistent hashing and quorum-based replication</li>
+<li><a href="https://research.google/pubs/pub39966/" rel="noopener noreferrer" target="_blank">Google Spanner Paper (2012)</a> - Globally distributed database with synchronous replication and TrueTime</li>
+<li><a href="https://raft.github.io/" rel="noopener noreferrer" target="_blank">Raft Consensus Algorithm</a> - Understandable consensus for leader election and log replication</li>
+<li><a href="https://github.com/etcd-io/raft" rel="noopener noreferrer" target="_blank">etcd Raft Library</a> - Production Raft implementation used by Kubernetes, CockroachDB, TiDB</li>
+</ul>
+<p><strong>Official Documentation</strong></p>
+<ul>
+<li><a href="https://www.cockroachlabs.com/docs/stable/architecture/overview.html" rel="noopener noreferrer" target="_blank">CockroachDB Architecture</a> - Range partitioning with Multi-Raft replication</li>
+<li><a href="https://www.cockroachlabs.com/blog/scaling-raft/" rel="noopener noreferrer" target="_blank">CockroachDB: Scaling Raft</a> - Multi-Raft implementation details</li>
+<li><a href="https://www.postgresql.org/about/news/postgresql-17-released-2936/" rel="noopener noreferrer" target="_blank">PostgreSQL 17 Release Notes</a> - Logical replication failover features</li>
+<li><a href="https://www.mongodb.com/company/blog/mongodb-8-0-raising-the-bar" rel="noopener noreferrer" target="_blank">MongoDB 8.0 Announcement</a> - Embedded config servers, 50x faster sharding</li>
+<li><a href="https://www.scylladb.com/2024/12/03/enterprise-tablets/" rel="noopener noreferrer" target="_blank">ScyllaDB Tablets (2024)</a> - New replication architecture replacing vnodes</li>
+</ul>
+<p><strong>Engineering Blog Posts</strong></p>
+<ul>
+<li><a href="https://discord.com/blog/how-discord-stores-trillions-of-messages" rel="noopener noreferrer" target="_blank">Discord: How Discord Stores Trillions of Messages</a> - Cassandra to ScyllaDB migration (2023)</li>
+<li><a href="https://slack.engineering/scaling-datastores-at-slack-with-vitess/" rel="noopener noreferrer" target="_blank">Slack: Scaling Datastores with Vitess</a> - MySQL sharding at 2.3M QPS</li>
+<li><a href="https://stripe.com/blog/how-stripes-document-databases-supported-99.999-uptime-with-zero-downtime-data-migrations" rel="noopener noreferrer" target="_blank">Stripe: Zero-Downtime Data Migrations</a> - DocDB migration methodology</li>
+<li><a href="https://medium.com/pinterest-engineering/sharding-pinterest-how-we-scaled-our-mysql-fleet-3f341e96ca6f" rel="noopener noreferrer" target="_blank">Pinterest: Sharding MySQL</a> - ID-encoded shard placement</li>
+<li><a href="https://www.uber.com/blog/how-uber-serves-over-40-million-reads-per-second-using-an-integrated-cache/" rel="noopener noreferrer" target="_blank">Uber Docstore (40M reads/sec)</a> - Original CacheFront write-up, August 2024</li>
+<li><a href="https://www.uber.com/blog/how-uber-serves-over-150-million-reads/" rel="noopener noreferrer" target="_blank">Uber Docstore (150M reads/sec)</a> - CacheFront with stronger consistency, August 2025</li>
+<li><a href="https://engineering.linkedin.com/espresso/introducing-espresso-linkedins-hot-new-distributed-document-store" rel="noopener noreferrer" target="_blank">LinkedIn Espresso</a> - Hash-based partitioning at scale</li>
+<li><a href="https://netflixtechblog.com/introducing-netflixs-key-value-data-abstraction-layer-1ea8a0a11b30" rel="noopener noreferrer" target="_blank">Netflix Key-Value Data Abstraction</a> - Cassandra-based data layer</li>
+<li><a href="https://www.pingcap.com/blog/building-a-large-scale-distributed-storage-system-based-on-raft/" rel="noopener noreferrer" target="_blank">TiDB Architecture</a> - Multi-Raft implementation</li>
+<li><a href="https://docs.pingcap.com/tidb/stable/tune-region-performance" rel="noopener noreferrer" target="_blank">TiDB region-size tuning</a> - Region split-size defaults (96 MiB historical, 256 MiB from v8.4.0)</li>
+<li><a href="https://issues.apache.org/jira/browse/CASSANDRA-13701" rel="noopener noreferrer" target="_blank">Cassandra 4.0 num_tokens default change</a> - Why the vnode default dropped from 256 to 16</li>
+<li><a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZ.Failover.html" rel="noopener noreferrer" target="_blank">AWS RDS Multi-AZ failover</a> - Multi-AZ instance vs Multi-AZ DB cluster failover budgets</li>
+</ul>
+<p><strong>Books</strong></p>
+<ul>
+<li><a href="https://dataintensive.net/" rel="noopener noreferrer" target="_blank">Martin Kleppmann: Designing Data-Intensive Applications</a> - Chapters 5-6 on replication and partitioning</li>
+</ul></div></article></main><footer class="doc-footer"><div class="doc-page-meta"><a href="https://github.com/sujeet-pro/v5.sujeet.pro/blob/main/content/articles/sharding-and-replication/README.md" class="doc-edit-link" target="_blank" rel="noopener noreferrer">Edit this page</a><span class="doc-last-updated">Last updated: <time datetime="Tue Apr 21 2026 05:30:00 GMT+0530 (India Standard Time)">April 21, 2026</time></span></div><nav class="doc-article-nav" aria-label="Page navigation"><a href="/legacy-personal-site/v5/articles/storage-choices-sql-vs-nosql" class="doc-article-link doc-article-prev"><span class="doc-article-label">Previous</span><span class="doc-article-title">SQL vs NoSQL</span></a><a href="/legacy-personal-site/v5/articles/indexing-and-query-optimization" class="doc-article-link doc-article-next"><span class="doc-article-label">Next</span><span class="doc-article-title">Indexing &amp; Queries</span></a></nav><nav class="doc-footer-links doc-footer-links-grouped" aria-label="Footer links" style="--doc-footer-columns:2;--doc-footer-columns-compact:2"><div class="doc-footer-link-group"><p class="doc-footer-link-group-header">Content</p><div class="doc-footer-link-group-links"><a class="doc-footer-group-link" href="/legacy-personal-site/v5/articles"><span class="doc-footer-link-label">Articles</span></a><a class="doc-footer-group-link" href="/legacy-personal-site/v5/blogs"><span class="doc-footer-link-label">Blogs</span></a></div></div><div class="doc-footer-link-group"><p class="doc-footer-link-group-header">Profiles</p><div class="doc-footer-link-group-links"><a class="doc-footer-group-link" href="https://github.com/sujeet-pro" target="_blank" rel="noopener noreferrer"><span class="doc-footer-link-label">GitHub</span></a><a class="doc-footer-group-link" href="https://www.linkedin.com/in/sujeetkrjaiswal/" target="_blank" rel="noopener noreferrer"><span class="doc-footer-link-label">LinkedIn</span></a><a class="doc-footer-group-link" href="https://twitter.com/sujeetpro" target="_blank" rel="noopener noreferrer"><span class="doc-footer-link-label">Twitter</span></a></div></div></nav><div class="doc-footer-theme no-js-hidden" data-footer-theme=""><div class="doc-footer-theme-group"><span class="doc-footer-theme-label">Appearance</span><div class="doc-footer-theme-options" data-footer-scheme="" data-ps-footer-scheme=""><button type="button" data-scheme="auto" class="active" aria-pressed="true">Auto</button><button type="button" data-scheme="light" aria-pressed="false">Light</button><button type="button" data-scheme="dark" aria-pressed="false">Dark</button></div></div><div class="doc-footer-theme-group"><span class="doc-footer-theme-label">Theme</span><div class="doc-footer-theme-options" data-footer-theme-type="" data-ps-footer-theme=""><button type="button" data-theme="paper" class="active" aria-pressed="true">Paper</button><button type="button" data-theme="high-contrast" aria-pressed="false">High Contrast</button></div></div><div class="doc-footer-theme-group"><span class="doc-footer-theme-label">Text Size</span><div class="doc-footer-theme-options" data-footer-text-size="" data-ps-footer-text-size=""><button type="button" data-size="small" aria-pressed="false" aria-label="Small text"><span class="doc-text-size-label" data-size="small" aria-hidden="true">A</span></button><button type="button" data-size="base" class="active" aria-pressed="true" aria-label="Default text"><span class="doc-text-size-label" data-size="base" aria-hidden="true">A</span></button><button type="button" data-size="large" aria-pressed="false" aria-label="Large text"><span class="doc-text-size-label" data-size="large" aria-hidden="true">A</span></button></div></div></div><div class="doc-footer-legal"><p class="doc-footer-copyright">© <span class="doc-footer-year-range" data-current-year-range=""><span class="doc-footer-year-start">2024</span><span class="doc-footer-year-separator" aria-hidden="true">–</span><span id="pagesmith-footer-year-end" data-start-year="2024" data-rendered-year="2026" data-auto-update="true">2026</span></span> Sujeet Jaiswal</p><p class="doc-footer-signoff"><span class="doc-footer-legal-separator" aria-hidden="true">|</span>Made with <span aria-hidden="true">❤</span> using <a href="https://projects.sujeet.pro/pagesmith/" target="_blank" rel="noopener noreferrer">Pagesmith</a><span> and is maintained by <a href="https://sujeet.pro" target="_blank" rel="noopener noreferrer">Sujeet Jaiswal</a></span></p></div></footer></div><aside class="doc-aside"><nav class="doc-toc" aria-label="Table of contents" data-ps-toc=""><p class="doc-toc-title">On this page</p><ul class="doc-toc-list"><li class="doc-toc-item depth-2"><a href="#abstract">Abstract</a></li><li class="doc-toc-item depth-2"><a href="#sharding-strategies">Sharding Strategies</a></li><li class="doc-toc-item depth-3"><a href="#hash-partitioning">Hash Partitioning</a></li><li class="doc-toc-item depth-3"><a href="#range-partitioning">Range Partitioning</a></li><li class="doc-toc-item depth-3"><a href="#consistent-hashing">Consistent Hashing</a></li><li class="doc-toc-item depth-3"><a href="#directory-based-sharding">Directory-Based Sharding</a></li><li class="doc-toc-item depth-3"><a href="#sharding-strategy-decision-matrix">Sharding Strategy Decision Matrix</a></li><li class="doc-toc-item depth-2"><a href="#replication-models">Replication Models</a></li><li class="doc-toc-item depth-3"><a href="#single-leader-replication">Single-Leader Replication</a></li><li class="doc-toc-item depth-3"><a href="#multi-leader-replication">Multi-Leader Replication</a></li><li class="doc-toc-item depth-3"><a href="#leaderless-replication">Leaderless Replication</a></li><li class="doc-toc-item depth-3"><a href="#replication-model-decision-matrix">Replication Model Decision Matrix</a></li><li class="doc-toc-item depth-2"><a href="#synchronous-vs-asynchronous-replication">Synchronous vs. Asynchronous Replication</a></li><li class="doc-toc-item depth-3"><a href="#synchronous-replication">Synchronous Replication</a></li><li class="doc-toc-item depth-3"><a href="#asynchronous-replication">Asynchronous Replication</a></li><li class="doc-toc-item depth-3"><a href="#semi-synchronous-replication">Semi-Synchronous Replication</a></li><li class="doc-toc-item depth-2"><a href="#readwrite-routing">Read/Write Routing</a></li><li class="doc-toc-item depth-3"><a href="#write-routing">Write Routing</a></li><li class="doc-toc-item depth-3"><a href="#read-routing-strategies">Read Routing Strategies</a></li><li class="doc-toc-item depth-2"><a href="#consistency-and-replication-lag">Consistency and Replication Lag</a></li><li class="doc-toc-item depth-3"><a href="#sources-of-lag">Sources of Lag</a></li><li class="doc-toc-item depth-3"><a href="#lag-implications">Lag Implications</a></li><li class="doc-toc-item depth-3"><a href="#monitoring-lag">Monitoring Lag</a></li><li class="doc-toc-item depth-2"><a href="#how-to-choose">How to Choose</a></li><li class="doc-toc-item depth-3"><a href="#factors-to-consider">Factors to Consider</a></li><li class="doc-toc-item depth-3"><a href="#decision-tree">Decision Tree</a></li><li class="doc-toc-item depth-3"><a href="#production-benchmarks">Production Benchmarks</a></li><li class="doc-toc-item depth-2"><a href="#resharding-and-data-migration">Resharding and Data Migration</a></li><li class="doc-toc-item depth-3"><a href="#online-resharding-challenges">Online Resharding Challenges</a></li><li class="doc-toc-item depth-3"><a href="#stripes-zero-downtime-migration-docdb">Stripe’s Zero-Downtime Migration (DocDB)</a></li><li class="doc-toc-item depth-3"><a href="#automatic-splitmerge">Automatic Split/Merge</a></li><li class="doc-toc-item depth-2"><a href="#consensus-protocols-in-practice">Consensus Protocols in Practice</a></li><li class="doc-toc-item depth-3"><a href="#raft">Raft</a></li><li class="doc-toc-item depth-3"><a href="#multi-raft">Multi-Raft</a></li><li class="doc-toc-item depth-3"><a href="#paxos-google-spanner">Paxos (Google Spanner)</a></li><li class="doc-toc-item depth-2"><a href="#failure-handling">Failure Handling</a></li><li class="doc-toc-item depth-3"><a href="#failure-detection">Failure Detection</a></li><li class="doc-toc-item depth-3"><a href="#leader-failover-single-leader-systems">Leader Failover (Single-Leader Systems)</a></li><li class="doc-toc-item depth-3"><a href="#quorum-and-split-brain-prevention">Quorum and Split-Brain Prevention</a></li><li class="doc-toc-item depth-3"><a href="#real-world-failure-scenarios">Real-World Failure Scenarios</a></li><li class="doc-toc-item depth-2"><a href="#observability-and-operational-tooling">Observability and Operational Tooling</a></li><li class="doc-toc-item depth-3"><a href="#essential-metrics">Essential Metrics</a></li><li class="doc-toc-item depth-3"><a href="#alerting-thresholds">Alerting Thresholds</a></li><li class="doc-toc-item depth-3"><a href="#operational-runbooks">Operational Runbooks</a></li><li class="doc-toc-item depth-2"><a href="#common-pitfalls">Common Pitfalls</a></li><li class="doc-toc-item depth-3"><a href="#1-choosing-shard-key-without-analyzing-access-patterns">1. Choosing Shard Key Without Analyzing Access Patterns</a></li><li class="doc-toc-item depth-3"><a href="#2-underestimating-replication-lag-impact">2. Underestimating Replication Lag Impact</a></li><li class="doc-toc-item depth-3"><a href="#3-ignoring-hot-partition-problem">3. Ignoring Hot Partition Problem</a></li><li class="doc-toc-item depth-3"><a href="#4-treating-failover-as-instantaneous">4. Treating Failover as Instantaneous</a></li><li class="doc-toc-item depth-2"><a href="#conclusion">Conclusion</a></li><li class="doc-toc-item depth-2"><a href="#appendix">Appendix</a></li><li class="doc-toc-item depth-3"><a href="#prerequisites">Prerequisites</a></li><li class="doc-toc-item depth-3"><a href="#terminology">Terminology</a></li><li class="doc-toc-item depth-3"><a href="#summary">Summary</a></li><li class="doc-toc-item depth-3"><a href="#references">References</a></li></ul></nav></aside></div><dialog class="doc-sidebar-modal" id="sidebar-modal" data-sidebar-modal=""><div class="doc-sidebar-modal-backdrop" data-sidebar-close=""></div><div class="doc-sidebar-modal-panel"><button type="button" class="doc-sidebar-modal-close" data-sidebar-close="" aria-label="Close navigation"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m5 5 10 10M15 5 5 15"/></svg></button><nav class="doc-sidebar-nav" aria-label="Navigation"><div class="doc-sidebar-section"><p class="doc-sidebar-heading">Navigation</p><ul class="doc-sidebar-list "><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles" class="doc-sidebar-link">Articles</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/blogs" class="doc-sidebar-link">Blogs</a></li></ul></div><div class="doc-sidebar-section"><p class="doc-sidebar-heading">Series</p><ul class="doc-sidebar-list "><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-rendering-pipeline-overview" class="doc-sidebar-link">Critical Rendering Path</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-rendering-pipeline-overview" class="doc-sidebar-link">CRP: Pipeline Overview</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-dom-construction" class="doc-sidebar-link">CRP: DOM Construction</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-cssom-construction" class="doc-sidebar-link">CRP: CSSOM Construction</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-style-recalculation" class="doc-sidebar-link">CRP: Style Recalc</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-layout" class="doc-sidebar-link">CRP: Layout</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-prepaint" class="doc-sidebar-link">CRP: Prepaint</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-paint" class="doc-sidebar-link">CRP: Paint</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-commit" class="doc-sidebar-link">CRP: Commit</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-layerize" class="doc-sidebar-link">CRP: Layerize</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-raster" class="doc-sidebar-link">CRP: Raster</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-composit" class="doc-sidebar-link">CRP: Composite</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crp-draw" class="doc-sidebar-link">CRP: Draw</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/v8-engine-architecture" class="doc-sidebar-link">JavaScript Runtime Internals</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/v8-engine-architecture" class="doc-sidebar-link">V8 Engine</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/browser-internals" class="doc-sidebar-link">Browser Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/browser-event-loop" class="doc-sidebar-link">Browser Event Loop</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/nodejs-runtime-architecture" class="doc-sidebar-link">Node.js Runtime</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/libuv-event-loop-internals" class="doc-sidebar-link">libuv Internals</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/nodejs-event-loop" class="doc-sidebar-link">Node.js Event Loop</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/js-event-loop" class="doc-sidebar-link">JS Event Loop</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/auth-foundations-sessions-tokens" class="doc-sidebar-link">Web Security &amp; Authentication</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/auth-foundations-sessions-tokens" class="doc-sidebar-link">Auth Foundations</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-app-security-architecture" class="doc-sidebar-link">Web App Security</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/csrf-and-cors-defense" class="doc-sidebar-link">CSRF &amp; CORS</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/oauth-oidc-flow-guide" class="doc-sidebar-link">OAuth &amp; OIDC</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/csp-violation-reporting-pipeline" class="doc-sidebar-link">CSP Reporting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/owasp-top-10-guide" class="doc-sidebar-link">OWASP Top 10</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-resolution-path" class="doc-sidebar-link">Networking Protocols</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-resolution-path" class="doc-sidebar-link">DNS: Resolution Path</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-records-ttl-and-caching" class="doc-sidebar-link">DNS: Records &amp; TTL</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-security-doh-dot-dnssec" class="doc-sidebar-link">DNS: Security</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-troubleshooting-playbook" class="doc-sidebar-link">DNS: Troubleshooting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/tls-1-3-handshake-and-https" class="doc-sidebar-link">TLS 1.3 &amp; HTTPS</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/http1-1-to-http2-evolution" class="doc-sidebar-link">HTTP/1.1 → HTTP/2</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/http3-quic-and-tls" class="doc-sidebar-link">HTTP/3 &amp; QUIC</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dom-api-essentials" class="doc-sidebar-link">Browser APIs &amp; Accessibility</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dom-api-essentials" class="doc-sidebar-link">DOM API Essentials</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-components" class="doc-sidebar-link">Web Components</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/intersection-observer" class="doc-sidebar-link">Intersection Observer</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-workers-and-worklets" class="doc-sidebar-link">Web Workers &amp; Worklets</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/fetch-and-streaming-apis" class="doc-sidebar-link">Fetch &amp; Streams</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/storage-apis-local-indexeddb" class="doc-sidebar-link">Browser Storage APIs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/service-workers-and-cache-api" class="doc-sidebar-link">Service Workers</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/accessibility-testing-tooling" class="doc-sidebar-link">A11y Testing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/wcag-2-2-practical-guide" class="doc-sidebar-link">WCAG 2.2</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/frontend-architecture-at-scale" class="doc-sidebar-link">Frontend Architecture Patterns</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/frontend-architecture-at-scale" class="doc-sidebar-link">Frontend Arch at Scale</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/micro-frontends-architecture" class="doc-sidebar-link">Micro-Frontends</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rendering-strategies-csr-ssr-ssg-isr" class="doc-sidebar-link">CSR / SSR / SSG / ISR</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/state-management-patterns" class="doc-sidebar-link">State Management</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/data-fetching-patterns" class="doc-sidebar-link">Data Fetching</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/css-architecture-strategies" class="doc-sidebar-link">CSS Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/component-architecture-blueprint" class="doc-sidebar-link">Component Architecture</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-infrastructure-stack" class="doc-sidebar-link">Web Performance Optimization</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-infrastructure-stack" class="doc-sidebar-link">Perf: Infrastructure</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-javascript-optimization" class="doc-sidebar-link">Perf: JavaScript</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-css-typography" class="doc-sidebar-link">Perf: CSS &amp; Typography</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-image-optimization" class="doc-sidebar-link">Perf: Images</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/core-web-vitals-measurement" class="doc-sidebar-link">Core Web Vitals</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-performance-overview" class="doc-sidebar-link">Perf: Overview</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-system-adoption-foundations" class="doc-sidebar-link">Design Systems &amp; React</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-system-adoption-foundations" class="doc-sidebar-link">DS: Adoption</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-tokens-and-theming" class="doc-sidebar-link">Design Tokens</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/component-library-architecture-and-governance" class="doc-sidebar-link">Component Library</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-system-implementation-scaling" class="doc-sidebar-link">DS: Implementation</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-hooks-fundamentals" class="doc-sidebar-link">React Hooks</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-rendering-architecture" class="doc-sidebar-link">React Rendering</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-hooks-advanced-patterns" class="doc-sidebar-link">React Hooks: Advanced</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/react-performance-patterns" class="doc-sidebar-link">React Performance</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rendering-strategies" class="doc-sidebar-link">Frontend System Design</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rendering-strategies" class="doc-sidebar-link">Modern Rendering</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/image-loading-optimization" class="doc-sidebar-link">Image Loading</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/bundle-splitting-strategies" class="doc-sidebar-link">Bundle Splitting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/virtualization-and-windowing" class="doc-sidebar-link">Virtualization</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/performance-monitoring-client" class="doc-sidebar-link">Client Perf Monitoring</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/client-state-management" class="doc-sidebar-link">Client State</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/real-time-sync-client" class="doc-sidebar-link">Real-Time Sync</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/offline-first-architecture" class="doc-sidebar-link">Offline-First</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/widget-framework" class="doc-sidebar-link">Widget Framework</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-rich-text-editor" class="doc-sidebar-link">Rich Text Editor</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-infinite-feed" class="doc-sidebar-link">Infinite Feed</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-drag-drop-system" class="doc-sidebar-link">Drag &amp; Drop</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-form-builder" class="doc-sidebar-link">Form Builder</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-data-grid" class="doc-sidebar-link">Data Grid</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-file-uploader" class="doc-sidebar-link">File Uploader</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/consistency-and-cap-theorem" class="doc-sidebar-link">Distributed Systems Core</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/consistency-and-cap-theorem" class="doc-sidebar-link">CAP Theorem</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-consensus" class="doc-sidebar-link">Distributed Consensus</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/time-and-ordering" class="doc-sidebar-link">Time &amp; Ordering</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/failure-modes-and-resilience" class="doc-sidebar-link">Failure Modes</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rate-limiting-strategies" class="doc-sidebar-link">Rate Limiting</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/circuit-breaker-patterns" class="doc-sidebar-link">Circuit Breakers</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/capacity-planning-and-estimation" class="doc-sidebar-link">Capacity Planning</a></li></ul></li><li class="doc-sidebar-item  expanded"><a href="/legacy-personal-site/v5/articles/storage-choices-sql-vs-nosql" class="doc-sidebar-link">Data Storage &amp; Indexing</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/storage-choices-sql-vs-nosql" class="doc-sidebar-link">SQL vs NoSQL</a></li><li class="doc-sidebar-item active "><a href="/legacy-personal-site/v5/articles/sharding-and-replication" class="doc-sidebar-link">Sharding &amp; Replication</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/indexing-and-query-optimization" class="doc-sidebar-link">Indexing &amp; Queries</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/transactions-and-acid" class="doc-sidebar-link">Transactions &amp; ACID</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/caching-fundamentals-and-strategies" class="doc-sidebar-link">Caching Fundamentals</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/load-balancers-architecture" class="doc-sidebar-link">Infrastructure Components</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/load-balancers-architecture" class="doc-sidebar-link">Load Balancers</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/cdn-architecture-and-caching" class="doc-sidebar-link">CDN Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/api-gateway-patterns" class="doc-sidebar-link">API Gateway</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/service-discovery-and-registry" class="doc-sidebar-link">Service Discovery</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dns-deep-dive" class="doc-sidebar-link">DNS: Deep Dive</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/queues-and-pubsub" class="doc-sidebar-link">Queues &amp; Pub/Sub</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/event-driven-architecture" class="doc-sidebar-link">Event-Driven Arch</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/rpc-and-api-design" class="doc-sidebar-link">RPC &amp; API Design</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crdt-for-collaborative-systems" class="doc-sidebar-link">Core Distributed Patterns</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/crdt-for-collaborative-systems" class="doc-sidebar-link">CRDTs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/operational-transformation" class="doc-sidebar-link">OT</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-locking" class="doc-sidebar-link">Distributed Locking</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/exactly-once-delivery" class="doc-sidebar-link">Exactly-Once</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/event-sourcing-deep-dive" class="doc-sidebar-link">Event Sourcing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/change-data-capture" class="doc-sidebar-link">CDC</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/database-migrations-at-scale" class="doc-sidebar-link">DB Migrations</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/multi-region-architecture" class="doc-sidebar-link">Multi-Region</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/lru-cache-design" class="doc-sidebar-link">System Design Building Blocks</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/lru-cache-design" class="doc-sidebar-link">LRU Cache</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/unique-id-generation" class="doc-sidebar-link">Unique IDs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-cache-design" class="doc-sidebar-link">Distributed Cache</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/blob-storage-design" class="doc-sidebar-link">Blob Storage</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-search-engine" class="doc-sidebar-link">Search Engine</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-logging-system" class="doc-sidebar-link">Logging System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/distributed-monitoring" class="doc-sidebar-link">Monitoring</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/task-scheduler-design" class="doc-sidebar-link">Task Scheduler</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/sharded-counters" class="doc-sidebar-link">Sharded Counters</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/leaderboard-design" class="doc-sidebar-link">Leaderboard</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-key-value-store" class="doc-sidebar-link">System Design Scenarios</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-key-value-store" class="doc-sidebar-link">Key-Value Store</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-distributed-file-system" class="doc-sidebar-link">Distributed File System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-time-series-database" class="doc-sidebar-link">Time-Series DB</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-youtube-video-platform" class="doc-sidebar-link">YouTube</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-netflix-streaming" class="doc-sidebar-link">Netflix</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-instagram-photo-sharing" class="doc-sidebar-link">Instagram</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-spotify-music-streaming" class="doc-sidebar-link">Spotify</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-real-time-chat-messaging" class="doc-sidebar-link">Chat &amp; Messaging</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-social-feed" class="doc-sidebar-link">Social Feed</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-notification-system" class="doc-sidebar-link">Notifications</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-email-system" class="doc-sidebar-link">Email System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-uber-ride-hailing" class="doc-sidebar-link">Uber</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-maps" class="doc-sidebar-link">Google Maps</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-yelp-proximity-service" class="doc-sidebar-link">Yelp / Proximity</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-search-autocomplete" class="doc-sidebar-link">Search Autocomplete</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-web-crawler" class="doc-sidebar-link">Web Crawler</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-search" class="doc-sidebar-link">Google Search</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-docs-collaboration" class="doc-sidebar-link">Google Docs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-dropbox-file-sync" class="doc-sidebar-link">Dropbox Sync</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-google-calendar" class="doc-sidebar-link">Google Calendar</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-issue-tracker" class="doc-sidebar-link">Issue Tracker</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-payment-system" class="doc-sidebar-link">Payment System</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-flash-sale-system" class="doc-sidebar-link">Flash Sale</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-amazon-shopping-cart" class="doc-sidebar-link">Shopping Cart</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/url-shortener-design" class="doc-sidebar-link">URL Shortener</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-pastebin" class="doc-sidebar-link">Pastebin</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-api-rate-limiter" class="doc-sidebar-link">API Rate Limiter</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/design-cookie-consent-service" class="doc-sidebar-link">Cookie Consent</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/facebook-2021-outage-analysis" class="doc-sidebar-link">Case Studies: Outages &amp; Reliability</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/facebook-2021-outage-analysis" class="doc-sidebar-link">Facebook 2021</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/aws-kinesis-2020-outage" class="doc-sidebar-link">AWS Kinesis 2020</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/stripe-idempotency-reliability" class="doc-sidebar-link">Stripe Idempotency</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/discord-rust-read-states" class="doc-sidebar-link">Discord: Go → Rust</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/graceful-degradation" class="doc-sidebar-link">Graceful Degradation</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/shopify-pod-architecture" class="doc-sidebar-link">Case Studies: Architecture</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/shopify-pod-architecture" class="doc-sidebar-link">Shopify Pods</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/netflix-microservices-evolution" class="doc-sidebar-link">Netflix Microservices</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/twitter-timeline-architecture" class="doc-sidebar-link">Twitter Timeline</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/facebook-tao-social-graph" class="doc-sidebar-link">Facebook TAO</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/uber-microservices-journey" class="doc-sidebar-link">Uber Microservices</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/uber-schemaless-datastore" class="doc-sidebar-link">Uber Schemaless</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/slack-distributed-architecture" class="doc-sidebar-link">Slack Architecture</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/linkedin-kafka-origin" class="doc-sidebar-link">LinkedIn → Kafka</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dropbox-magic-pocket" class="doc-sidebar-link">Case Studies: Data &amp; Migrations</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/dropbox-magic-pocket" class="doc-sidebar-link">Dropbox Magic Pocket</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/instagram-cassandra-migration" class="doc-sidebar-link">Instagram → Cassandra</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/youtube-vitess-scaling" class="doc-sidebar-link">YouTube + Vitess</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/github-mysql-migration" class="doc-sidebar-link">GitHub MySQL</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/pinterest-mysql-sharding" class="doc-sidebar-link">Pinterest Sharding</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/discord-message-storage" class="doc-sidebar-link">Discord Messages</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/figma-multiplayer-infrastructure" class="doc-sidebar-link">Figma Multiplayer</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/whatsapp-erlang-scaling" class="doc-sidebar-link">WhatsApp + Erlang</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/edge-delivery-and-cache-invalidation" class="doc-sidebar-link">Platform Delivery &amp; Reliability</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/edge-delivery-and-cache-invalidation" class="doc-sidebar-link">Edge Delivery</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/deployment-strategies-blue-green-canary" class="doc-sidebar-link">Blue-Green &amp; Canary</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/ssg-performance-optimizations" class="doc-sidebar-link">SSG on CloudFront</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/build-pipelines-ci-cd" class="doc-sidebar-link">Build Pipelines</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/ecommerce-ssg-to-ssr-migration" class="doc-sidebar-link">SSG → SSR Migration</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/data-migration-strategies" class="doc-sidebar-link">Data Migrations</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/slos-slis-error-budgets" class="doc-sidebar-link">SLOs &amp; SLIs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/logging-metrics-tracing" class="doc-sidebar-link">Logs / Metrics / Traces</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/drm-basics-for-streaming" class="doc-sidebar-link">Media Systems &amp; Testing</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/drm-basics-for-streaming" class="doc-sidebar-link">DRM Basics</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/video-transcoding-pipeline" class="doc-sidebar-link">Video Transcoding</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/web-video-playback-architecture" class="doc-sidebar-link">Web Video Playback</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/image-processing-service-design" class="doc-sidebar-link">Image Processing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/load-testing-strategy-capacity-planning" class="doc-sidebar-link">Load Testing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/k6-load-testing-overview" class="doc-sidebar-link">k6 Load Testing</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/statsig-experimentation-overview" class="doc-sidebar-link">Statsig</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/arrays-and-hash-maps" class="doc-sidebar-link">Data Structures &amp; Algorithms</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/arrays-and-hash-maps" class="doc-sidebar-link">Arrays &amp; Hash Maps</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/trees-and-graphs" class="doc-sidebar-link">Trees &amp; Graphs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/heaps-and-priority-queues" class="doc-sidebar-link">Heaps &amp; PQs</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/sorting-algorithms-guide" class="doc-sidebar-link">Sorting Algorithms</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/search-algorithms-guide" class="doc-sidebar-link">Search Algorithms</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/k-crystal-balls-problem" class="doc-sidebar-link">K Crystal Balls</a></li></ul></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/publish-subscribe-pattern" class="doc-sidebar-link">JavaScript Patterns</a><ul class="doc-sidebar-list doc-sidebar-nested"><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/publish-subscribe-pattern" class="doc-sidebar-link">Pub/Sub</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/exponential-backoff-retry-strategy" class="doc-sidebar-link">Exponential Backoff</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/async-queue-pattern" class="doc-sidebar-link">Async Queue</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/javascript-error-handling-patterns" class="doc-sidebar-link">JS Error Handling</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles/javascript-string-length" class="doc-sidebar-link">JS String Length</a></li></ul></li></ul></div></nav></div></dialog><pagefind-modal reset-on-close=""><pagefind-modal-header><pagefind-input></pagefind-input></pagefind-modal-header><pagefind-modal-body><pagefind-summary></pagefind-summary><pagefind-results></pagefind-results></pagefind-modal-body><pagefind-modal-footer><pagefind-keyboard-hints></pagefind-keyboard-hints></pagefind-modal-footer></pagefind-modal><script src="/legacy-personal-site/v5/assets/index-DWHO1FvG.ff92fc92.js" type="module"></script></body></html>

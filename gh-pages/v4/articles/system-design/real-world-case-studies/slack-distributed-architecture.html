@@ -1,0 +1,888 @@
+<!DOCTYPE html><html lang="en"> <head><meta name="astro-view-transitions-enabled" content="true"><meta name="astro-view-transitions-fallback" content="animate"><script type="module" src="/legacy-personal-site/v4/_astro/ClientRouter.astro_astro_type_script_index_0_lang.HWuSm9BO.js"></script><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light"><script>
+  ;(function () {
+    var THEMES = ["auto", "light", "dark", "high-contrast-light", "high-contrast-dark", "paper"]
+    var STORAGE_KEY = "site-theme"
+    var THEME_LABELS = {
+      auto: "Auto (system)",
+      light: "Light",
+      dark: "Dark",
+      "high-contrast-light": "High contrast light",
+      "high-contrast-dark": "High contrast dark",
+      paper: "Paper",
+    }
+    var darkQuery = window.matchMedia("(prefers-color-scheme: dark)")
+
+    // Expose shared config for module scripts
+    window.__themeConfig = { THEMES: THEMES, STORAGE_KEY: STORAGE_KEY, THEME_LABELS: THEME_LABELS }
+
+    // BroadcastChannel for cross-tab sync
+    var channel = null
+    try {
+      channel = new BroadcastChannel("site-theme-sync")
+    } catch (e) {
+      // BroadcastChannel not supported
+    }
+
+    function getResolvedTheme(theme) {
+      if (theme === "auto") {
+        return darkQuery.matches ? "dark" : "light"
+      }
+      return theme
+    }
+
+    function getColorScheme(resolved) {
+      if (resolved === "dark" || resolved === "high-contrast-dark") return "dark"
+      return "light"
+    }
+
+    function applyTheme(theme, _fromBroadcast) {
+      if (!theme || THEMES.indexOf(theme) === -1) theme = "auto"
+
+      var resolved = getResolvedTheme(theme)
+      var root = document.documentElement
+      var scheme = getColorScheme(resolved)
+
+      // Remove all theme classes
+      for (var i = 0; i < THEMES.length; i++) {
+        root.classList.remove("theme-" + THEMES[i])
+      }
+
+      // Apply resolved theme class
+      root.classList.add("theme-" + resolved)
+
+      // Set color-scheme
+      root.style.setProperty("--color-scheme", scheme)
+
+      // Update meta tag
+      var meta = document.querySelector('meta[name="color-scheme"]')
+      if (meta) meta.setAttribute("content", scheme)
+
+      // Set color scheme data attribute for CSS/JS consumers
+      root.dataset.colorScheme = scheme
+
+      // Store the user's chosen theme (not the resolved one)
+      try {
+        localStorage.setItem(STORAGE_KEY, theme)
+      } catch (e) {
+        // localStorage may be unavailable
+      }
+
+      // Dispatch event for other scripts to react
+      root.dataset.theme = theme
+      root.dataset.resolvedTheme = resolved
+
+      // Broadcast to other tabs (but not if we received this from another tab)
+      if (!_fromBroadcast && channel) {
+        try {
+          channel.postMessage({ theme: theme })
+        } catch (e) {
+          // Channel may be closed
+        }
+      }
+    }
+
+    // Smart cycling: skip the theme that "auto" resolves to
+    function getNextTheme() {
+      var current = "auto"
+      try {
+        current = localStorage.getItem(STORAGE_KEY) || "auto"
+      } catch (e) {}
+      if (THEMES.indexOf(current) === -1) current = "auto"
+
+      var idx = THEMES.indexOf(current)
+      var next = THEMES[(idx + 1) % THEMES.length]
+
+      // If current is "auto", skip the theme auto resolves to
+      if (current === "auto") {
+        var autoResolved = getResolvedTheme("auto")
+        if (next === autoResolved) {
+          next = THEMES[(idx + 2) % THEMES.length]
+        }
+      }
+
+      return next
+    }
+
+    // Apply on load
+    var saved = "auto"
+    try {
+      saved = localStorage.getItem(STORAGE_KEY) || "auto"
+    } catch (e) {
+      // localStorage may be unavailable
+    }
+    applyTheme(saved)
+
+    // Listen for OS preference changes when in auto mode
+    darkQuery.addEventListener("change", function () {
+      var current = "auto"
+      try {
+        current = localStorage.getItem(STORAGE_KEY) || "auto"
+      } catch (e) {}
+      if (current === "auto") {
+        applyTheme("auto")
+      }
+    })
+
+    // Listen for cross-tab theme changes
+    if (channel) {
+      channel.onmessage = function (event) {
+        if (event.data && event.data.theme) {
+          applyTheme(event.data.theme, true)
+        }
+      }
+    }
+
+    // Expose for runtime use
+    window.applySiteTheme = applyTheme
+    window.getNextTheme = getNextTheme
+  })()
+</script><!-- Inline font-face declarations with base path --><style>
+      @font-face {
+        font-family: "Open Sans";
+        font-style: normal;
+        font-weight: 300 800;
+        font-display: swap;
+        src: url("/legacy-personal-site/v4/fonts/open-sans-latin-wght-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+          U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: "JetBrains Mono";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("/legacy-personal-site/v4/fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+          U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+    </style><!-- Preload local fonts --><link rel="preload" as="font" type="font/woff2" href="/legacy-personal-site/v4/fonts/open-sans-latin-wght-normal.woff2" crossorigin="anonymous"><link rel="preload" as="font" type="font/woff2" href="/legacy-personal-site/v4/fonts/jetbrains-mono-latin-400-normal.woff2" crossorigin="anonymous"><!-- Main favicon --><link rel="icon" type="image/x-icon" href="/legacy-personal-site/v4/favicons/favicon.ico"><!-- Apple Touch Icons --><link rel="apple-touch-icon" sizes="57x57" href="/legacy-personal-site/v4/favicons/apple-icon-57x57.png"><link rel="apple-touch-icon" sizes="60x60" href="/legacy-personal-site/v4/favicons/apple-icon-60x60.png"><link rel="apple-touch-icon" sizes="72x72" href="/legacy-personal-site/v4/favicons/apple-icon-72x72.png"><link rel="apple-touch-icon" sizes="76x76" href="/legacy-personal-site/v4/favicons/apple-icon-76x76.png"><link rel="apple-touch-icon" sizes="114x114" href="/legacy-personal-site/v4/favicons/apple-icon-114x114.png"><link rel="apple-touch-icon" sizes="120x120" href="/legacy-personal-site/v4/favicons/apple-icon-120x120.png"><link rel="apple-touch-icon" sizes="144x144" href="/legacy-personal-site/v4/favicons/apple-icon-144x144.png"><link rel="apple-touch-icon" sizes="152x152" href="/legacy-personal-site/v4/favicons/apple-icon-152x152.png"><link rel="apple-touch-icon" sizes="180x180" href="/legacy-personal-site/v4/favicons/apple-icon-180x180.png"><!-- Apple Touch Icon Precomposed (for older iOS versions) --><link rel="apple-touch-icon-precomposed" href="/legacy-personal-site/v4/favicons/apple-icon-precomposed.png"><!-- Standard Icons --><link rel="icon" type="image/png" sizes="192x192" href="/legacy-personal-site/v4/favicons/android-icon-192x192.png"><link rel="icon" type="image/png" sizes="144x144" href="/legacy-personal-site/v4/favicons/android-icon-144x144.png"><link rel="icon" type="image/png" sizes="96x96" href="/legacy-personal-site/v4/favicons/android-icon-96x96.png"><link rel="icon" type="image/png" sizes="72x72" href="/legacy-personal-site/v4/favicons/android-icon-72x72.png"><link rel="icon" type="image/png" sizes="48x48" href="/legacy-personal-site/v4/favicons/android-icon-48x48.png"><link rel="icon" type="image/png" sizes="36x36" href="/legacy-personal-site/v4/favicons/android-icon-36x36.png"><link rel="icon" type="image/png" sizes="32x32" href="/legacy-personal-site/v4/favicons/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/legacy-personal-site/v4/favicons/favicon-16x16.png"><!-- Web App Manifest --><link rel="manifest" href="/legacy-personal-site/v4/manifest.json"><!-- Microsoft Tiles --><meta name="msapplication-config" content="/legacy-personal-site/v4/browserconfig.xml"><meta name="msapplication-TileImage" content="/legacy-personal-site/v4/favicons/ms-icon-144x144.png"><meta name="msapplication-TileColor" content="#f8fafc"><!-- Theme Colors --><meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#020617" media="(prefers-color-scheme: dark)"><meta name="msapplication-TileColor" content="#f8fafc"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="docsearch:language" content="en"><!-- Canonical URL --><link rel="canonical" href="https://sujeet.pro/legacy-personal-site/v4/articles/system-design/real-world-case-studies/slack-distributed-architecture.html"><!-- Primary Meta Tags --><title>Slack: Scaling a Real-Time Messaging Platform from Monolith to Distributed Architecture - Sujeet Jaiswal</title><meta name="title" content="Slack: Scaling a Real-Time Messaging Platform from Monolith to Distributed Architecture - Sujeet Jaiswal"><meta name="description" content="How Slack evolved from a PHP monolith with workspace-sharded MySQL into a distributed system handling 2.3 million queries per second (QPS) across Vitess-managed databases, 4 million concurrent WebSocket connections through a global edge cache, and a cellular infrastructure design achieving 99.99% availability—all without a single big-bang rewrite. This case study traces the architectural decisions behind each layer: data storage, real-time messaging, edge caching, and reliability infrastructure."><!-- Open Graph / Facebook --><meta property="og:type" content="website"><meta property="og:url" content="https://sujeet.pro/legacy-personal-site/v4/articles/system-design/real-world-case-studies/slack-distributed-architecture.html"><meta property="og:title" content="Slack: Scaling a Real-Time Messaging Platform from Monolith to Distributed Architecture - Sujeet Jaiswal"><meta property="og:description" content="How Slack evolved from a PHP monolith with workspace-sharded MySQL into a distributed system handling 2.3 million queries per second (QPS) across Vitess-managed databases, 4 million concurrent WebSocket connections through a global edge cache, and a cellular infrastructure design achieving 99.99% availability—all without a single big-bang rewrite. This case study traces the architectural decisions behind each layer: data storage, real-time messaging, edge caching, and reliability infrastructure."><!-- Twitter / X --><meta name="twitter:site" content="@sujeetpro"><meta name="twitter:card" content="summary_large_image"><!-- DocSearch facets --><meta name="docsearch:category" content="System Design"><meta name="docsearch:topic" content="Real-World Case Studies"><link rel="alternate" type="application/rss+xml" href="/legacy-personal-site/v4/rss.xml"><link rel="sitemap" href="/legacy-personal-site/v4/sitemap-index.xml"><!-- LLM-friendly content --><link rel="alternate" type="text/plain" href="/legacy-personal-site/v4/llms.txt" title="LLM Index"><link rel="alternate" type="text/plain" href="/legacy-personal-site/v4/llms-full.txt" title="LLM Full Content"><link rel="stylesheet" href="/legacy-personal-site/v4/_astro/docsearch.CgGoh9IB.css">
+<style>/*! tailwindcss v4.2.1 | MIT License | https://tailwindcss.com */.sidebar-toc-list{gap:calc(var(--spacing,.25rem) * .5);flex-direction:column;display:flex}
+@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) and (not (color:rgb(from red r g b)))){*,:before,:after,::backdrop{--tw-border-style:solid;--tw-font-weight:initial;--tw-ordinal:initial;--tw-slashed-zero:initial;--tw-numeric-figure:initial;--tw-numeric-spacing:initial;--tw-numeric-fraction:initial}}}.article-nav-category{margin-bottom:calc(var(--spacing,.25rem) * 5)}.article-nav-category+.article-nav-category{border-top-style:var(--tw-border-style);padding-top:calc(var(--spacing,.25rem) * 2);border-top-width:1px;border-color:var(--color-border)}.article-nav-category-name{margin-bottom:calc(var(--spacing,.25rem) * 1.5);padding-inline:calc(var(--spacing,.25rem) * 1);font-family:var(--font-mono,ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);--tw-font-weight:var(--font-weight-semibold,600);font-weight:var(--font-weight-semibold,600);text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-muted);font-size:11px;display:block}.article-nav-category-name.is-current{color:var(--color-text)}.article-nav-topics{flex-direction:column;display:flex}.article-nav-topic{list-style:none}.article-nav-topic-toggle{cursor:pointer;border-radius:var(--radius-md,.375rem);width:100%;padding-inline:calc(var(--spacing,.25rem) * 2);padding-block:calc(var(--spacing,.25rem) * 1.5);color:var(--color-text-muted);transition:all var(--transition-fast);justify-content:space-between;align-items:center;font-size:13px;list-style:none;display:flex}.article-nav-topic-toggle::-webkit-details-marker{display:none}.article-nav-topic-toggle::marker{content:"";display:none}.article-nav-topic-toggle:hover{color:var(--color-text);background:var(--color-bg-alt)}.article-nav-topic-toggle.is-active{color:var(--color-text);font-weight:500}.article-nav-topic-name{min-width:calc(var(--spacing,.25rem) * 0);flex:1}.article-nav-topic-count{--tw-numeric-spacing:tabular-nums;font-variant-numeric:var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);color:var(--color-text-muted);opacity:.6;flex-shrink:0;font-size:11px}.article-nav-chevron{opacity:.4;width:12px;height:12px;transition:transform var(--transition-fast);flex-shrink:0;margin-left:.5rem}.article-nav-topic-toggle:hover .article-nav-chevron{opacity:.7}details[open]>.article-nav-topic-toggle .article-nav-chevron{transform:rotate(90deg)}.article-nav-articles{margin-left:calc(var(--spacing,.25rem) * 3);border-left-style:var(--tw-border-style);padding-left:calc(var(--spacing,.25rem) * 2);border-left-width:1px;border-color:var(--color-border)}.article-nav-article-link{border-radius:var(--radius-md,.375rem);padding-inline:calc(var(--spacing,.25rem) * 2);padding-block:calc(var(--spacing,.25rem) * 1);color:var(--color-text-muted);transition:all var(--transition-fast);font-size:13px;line-height:1.4;text-decoration-line:none;display:block}.article-nav-article-link:hover{color:var(--color-text);background:var(--color-bg-alt)}.article-nav-article-link.is-active{color:var(--color-text);background:var(--color-bg-alt);font-weight:500}@property --tw-border-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-font-weight{syntax:"*";inherits:false}@property --tw-ordinal{syntax:"*";inherits:false}@property --tw-slashed-zero{syntax:"*";inherits:false}@property --tw-numeric-figure{syntax:"*";inherits:false}@property --tw-numeric-spacing{syntax:"*";inherits:false}@property --tw-numeric-fraction{syntax:"*";inherits:false}/*! tailwindcss v4.2.1 | MIT License | https://tailwindcss.com */.article-frontmatter{margin-bottom:calc(var(--spacing,.25rem) * 8)}.article-navigation{margin-top:calc(var(--spacing,.25rem) * 16)}
+</style>
+<link rel="stylesheet" href="/legacy-personal-site/v4/_astro/_slug_.u3hNe2gV.css"><script type="module" src="/legacy-personal-site/v4/_astro/page.CLJIuoFF.js"></script></head> <body> <a href="#main" class="skip-link">Skip to main content</a> <header class="site-header"> <div class="header-container"> <nav class="header-nav"> <!-- Left side: sidebar toggle + logo --> <div class="header-left"> <button id="left-sidebar-toggle" class="sidebar-toggle-btn" aria-label="Toggle navigation sidebar" aria-expanded="true" title="Hide navigation sidebar" aria-hidden="false"> <svg width="1em" height="1em" class="icon-md" data-icon="carbon:side-panel-open">   <symbol id="ai:carbon:side-panel-open" viewBox="0 0 32 32"><path fill="currentColor" d="M28 4H4c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h24c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2M10 26H4V6h6zm18 0H12v-9h10.2l-3.6 3.6L20 22l6-6l-6-6l-1.4 1.4l3.6 3.6H12V6h16z"/></symbol><use href="#ai:carbon:side-panel-open"></use>  </svg> </button> <a href="/legacy-personal-site/v4/" class="header-logo">   <span class="header-logo-name">sujeet.pro</span>  </a> </div> <!-- Center: Nav links - hidden on mobile --> <div class="header-nav-links"> <a href="/legacy-personal-site/v4/articles" class="nav-link">  Articles </a><a href="/legacy-personal-site/v4/blogs" class="nav-link">  Blogs </a><a href="/legacy-personal-site/v4/projects" class="nav-link">  Projects </a> </div> <!-- Right side: search + sidebar toggle + hamburger --> <div class="header-actions"> <!-- DocSearch --> <div id="docsearch-container"></div> <!-- Theme Toggle --> <button id="theme-toggle-btn" class="sidebar-toggle-btn" aria-label="Toggle theme" title="Switch theme"> <!-- Auto (monitor) --> <svg data-theme-icon="auto" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M28 4H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h8v4H8v2h16v-2h-4v-4h8a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 18H4V6h24Z"></path> </svg> <!-- Light (sun) --> <svg data-theme-icon="light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 12.005a4 4 0 1 1-4 4 4.005 4.005 0 0 1 4-4m0-2a6 6 0 1 0 6 6 6 6 0 0 0-6-6ZM5.394 6.813 6.81 5.399l3.505 3.506L8.9 10.319ZM2 15.005h5v2H2ZM5.394 25.197l3.505-3.506 1.414 1.414-3.505 3.506ZM15 25.005h2v5h-2ZM21.687 23.106l1.414-1.414 3.506 3.505-1.414 1.414ZM25 15.005h5v2h-5ZM21.69 8.904l3.505-3.505 1.414 1.415-3.505 3.505ZM15 2.005h2v5h-2Z"></path> </svg> <!-- Dark (moon) --> <svg data-theme-icon="dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M13.502 5.414a15.075 15.075 0 0 0 11.594 18.194 11.113 11.113 0 0 1-7.975 3.39c-.138 0-.278.005-.418 0a11.094 11.094 0 0 1-3.2-21.584M14.98 3a1.002 1.002 0 0 0-.175.016 13.096 13.096 0 0 0 1.825 25.981c.164.006.328 0 .49 0a13.072 13.072 0 0 0 10.703-5.555 1.01 1.01 0 0 0-.783-1.565A13.08 13.08 0 0 1 15.89 4.38 1.015 1.015 0 0 0 14.98 3Z"></path> </svg> <!-- High contrast light --> <svg data-theme-icon="high-contrast-light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26V4a12 12 0 0 1 0 24Z"></path> </svg> <!-- High contrast dark --> <svg data-theme-icon="high-contrast-dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 2a12 12 0 0 1 0 24Z"></path> </svg> <!-- Paper (document) --> <svg data-theme-icon="paper" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M19 10h7v2h-7zM19 6h7v2h-7zM19 14h7v2h-7zM19 18h7v2h-7z"></path> <path d="M28 2H10a2.002 2.002 0 0 0-2 2v6H4a2.002 2.002 0 0 0-2 2v18a2 2 0 0 0 2 2h14a2.002 2.002 0 0 0 2-2v-6h8a2.002 2.002 0 0 0 2-2V4a2.002 2.002 0 0 0-2-2Zm-10 28H4V12h14Zm10-8H20V12a2.002 2.002 0 0 0-2-2h-8V4h18Z"></path> <path d="M6 16h10v2H6zM6 20h10v2H6zM6 24h7v2H6z"></path> </svg> </button> <button id="right-sidebar-toggle" class="sidebar-toggle-btn" aria-label="Toggle table of contents" aria-expanded="true" title="Hide table of contents" aria-hidden="false"> <svg width="1em" height="1em" class="icon-md" data-icon="carbon:side-panel-close">   <symbol id="ai:carbon:side-panel-close" viewBox="0 0 32 32"><path fill="currentColor" d="M28 4H4c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h24c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2M10 26H4V6h6zm18-11H17.8l3.6-3.6L20 10l-6 6l6 6l1.4-1.4l-3.6-3.6H28v9H12V6h16z"/></symbol><use href="#ai:carbon:side-panel-close"></use>  </svg> </button> <!-- Hamburger Menu - visible on mobile only --> <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu" title="Open menu"> <svg width="1em" height="1em" class="icon-lg" data-icon="carbon:menu">   <symbol id="ai:carbon:menu" viewBox="0 0 32 32"><path fill="currentColor" d="M4 6h24v2H4zm0 18h24v2H4zm0-12h24v2H4zm0 6h24v2H4z"/></symbol><use href="#ai:carbon:menu"></use>  </svg> </button> </div> </nav> </div> </header> <div id="mobile-menu-overlay" class="mobile-menu-overlay is-hidden"></div> <aside id="mobile-menu" class="mobile-menu" aria-hidden="true"> <div class="mobile-menu-header"> <a href="/legacy-personal-site/v4/" class="nav-link nav-logo">   sujeet.pro  </a> <button id="mobile-menu-close" class="mobile-menu-close" aria-label="Close menu"> <svg width="1em" height="1em" class="icon-lg" data-icon="carbon:close">   <symbol id="ai:carbon:close" viewBox="0 0 32 32"><path fill="currentColor" d="M17.414 16L24 9.414L22.586 8L16 14.586L9.414 8L8 9.414L14.586 16L8 22.586L9.414 24L16 17.414L22.586 24L24 22.586z"/></symbol><use href="#ai:carbon:close"></use>  </svg> </button> </div> <nav class="mobile-menu-nav"> <a href="/legacy-personal-site/v4/articles" class="mobile-menu-link">  Articles </a><a href="/legacy-personal-site/v4/blogs" class="mobile-menu-link">  Blogs </a><a href="/legacy-personal-site/v4/projects" class="mobile-menu-link">  Projects </a> </nav> </aside> <script type="module" src="/legacy-personal-site/v4/_astro/mobile-menu.astro_astro_type_script_index_0_lang.AuCdxukU.js"></script>  <div class="zen-layout"> <aside id="left-sidebar" class="zen-sidebar zen-sidebar-left" aria-label="Navigation sidebar"> <div class="zen-sidebar-header"> <span class="zen-sidebar-header-title">Navigation</span> <button class="zen-sidebar-close" data-sidebar-close="left" aria-label="Close navigation sidebar"> <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5"> <path d="M8 8l16 16M24 8L8 24"></path> </svg> </button> </div> <div class="zen-sidebar-content"> <nav aria-label="Article navigation" class="article-nav"> <div class="article-nav-category"> <span class="article-nav-category-name">Browser &amp; Runtime Internals</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Critical Rendering Path</span> <span class="article-nav-topic-count">(12)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-rendering-pipeline-overview" class="article-nav-article-link">  Critical Rendering Path: Rendering Pipeline Overview </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-dom-construction" class="article-nav-article-link">  Critical Rendering Path: DOM Construction </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-cssom-construction" class="article-nav-article-link">  Critical Rendering Path: CSSOM Construction </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-style-recalculation" class="article-nav-article-link">  Critical Rendering Path: Style Recalculation </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-layout" class="article-nav-article-link">  Critical Rendering Path: Layout Stage </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-prepaint" class="article-nav-article-link">  Critical Rendering Path: Prepaint </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-paint" class="article-nav-article-link">  Critical Rendering Path: Paint Stage </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-commit" class="article-nav-article-link">  Critical Rendering Path: Commit </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-layerize" class="article-nav-article-link">  Critical Rendering Path: Layerize </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-raster" class="article-nav-article-link">  Critical Rendering Path: Rasterization </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-composit" class="article-nav-article-link">  Critical Rendering Path: Compositing </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-draw" class="article-nav-article-link">  Critical Rendering Path: Draw </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">JavaScript Runtime Internals</span> <span class="article-nav-topic-count">(7)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/v8-engine-architecture" class="article-nav-article-link">  V8 Engine Architecture: Parsing, Optimization, and JIT </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/browser-internals" class="article-nav-article-link">  Browser Architecture: Processes, Caching, and Extensions </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/browser-event-loop" class="article-nav-article-link">  Browser Event Loop: Tasks, Microtasks, Rendering, and Idle Time </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/nodejs-runtime-architecture" class="article-nav-article-link">  Node.js Runtime Architecture: Event Loop, Streams, and APIs </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/libuv-event-loop-internals" class="article-nav-article-link">  libuv Internals: Event Loop and Async I/O </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/nodejs-event-loop" class="article-nav-article-link">  Node.js Event Loop: Phases, Queues, and Process Exit </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/js-event-loop" class="article-nav-article-link">  JS Event Loop: Tasks, Microtasks, and Rendering (For Browser &amp; Node.js) </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name is-current">System Design</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">System Design Fundamentals</span> <span class="article-nav-topic-count">(20)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/consistency-and-cap-theorem" class="article-nav-article-link">  Consistency Models and the CAP Theorem </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/distributed-consensus" class="article-nav-article-link">  Distributed Consensus </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/time-and-ordering" class="article-nav-article-link">  Time and Ordering in Distributed Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/failure-modes-and-resilience" class="article-nav-article-link">  Failure Modes and Resilience Patterns </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/storage-choices-sql-vs-nosql" class="article-nav-article-link">  Storage Choices: SQL vs NoSQL </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/sharding-and-replication" class="article-nav-article-link">  Sharding and Replication </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/indexing-and-query-optimization" class="article-nav-article-link">  Indexing and Query Optimization </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/transactions-and-acid" class="article-nav-article-link">  Transactions and ACID Properties </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/load-balancers-architecture" class="article-nav-article-link">  Load Balancer Architecture: L4 vs L7 and Routing </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/cdn-architecture-and-caching" class="article-nav-article-link">  CDN Architecture and Edge Caching </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/caching-fundamentals-and-strategies" class="article-nav-article-link">  Caching Fundamentals and Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/api-gateway-patterns" class="article-nav-article-link">  API Gateway Patterns: Routing, Auth, and Policies </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/service-discovery-and-registry" class="article-nav-article-link">  Service Discovery and Registry Patterns </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/dns-deep-dive" class="article-nav-article-link">  DNS Deep Dive </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/queues-and-pubsub" class="article-nav-article-link">  Queues and Pub/Sub: Decoupling and Backpressure </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/event-driven-architecture" class="article-nav-article-link">  Event-Driven Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/rpc-and-api-design" class="article-nav-article-link">  RPC and API Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/rate-limiting-strategies" class="article-nav-article-link">  Rate Limiting Strategies: Token Bucket, Leaky Bucket, and Sliding Window </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/circuit-breaker-patterns" class="article-nav-article-link">  Circuit Breaker Patterns for Resilient Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/capacity-planning-and-estimation" class="article-nav-article-link">  Capacity Planning and Back-of-the-Envelope Estimates </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">System Design Building Blocks</span> <span class="article-nav-topic-count">(10)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/lru-cache-design" class="article-nav-article-link">  LRU Cache Design: Eviction Strategies and Trade-offs </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/unique-id-generation" class="article-nav-article-link">  Unique ID Generation in Distributed Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-cache-design" class="article-nav-article-link">  Distributed Cache Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/blob-storage-design" class="article-nav-article-link">  Blob Storage Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-search-engine" class="article-nav-article-link">  Distributed Search Engine </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-logging-system" class="article-nav-article-link">  Distributed Logging System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-monitoring" class="article-nav-article-link">  Distributed Monitoring Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/task-scheduler-design" class="article-nav-article-link">  Task Scheduler Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/sharded-counters" class="article-nav-article-link">  Sharded Counters </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/leaderboard-design" class="article-nav-article-link">  Leaderboard Design </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">System Design Problems</span> <span class="article-nav-topic-count">(28)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-key-value-store" class="article-nav-article-link">  Design a Distributed Key-Value Store </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-distributed-file-system" class="article-nav-article-link">  Design a Distributed File System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-time-series-database" class="article-nav-article-link">  Design a Time Series Database </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-youtube-video-platform" class="article-nav-article-link">  Design a YouTube-Style Video Platform </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-netflix-streaming" class="article-nav-article-link">  Design Netflix Video Streaming </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-instagram-photo-sharing" class="article-nav-article-link">  Design Instagram: Photo Sharing at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-spotify-music-streaming" class="article-nav-article-link">  Design Spotify Music Streaming </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-real-time-chat-messaging" class="article-nav-article-link">  Design Real-Time Chat and Messaging </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-social-feed" class="article-nav-article-link">  Design a Social Feed (Facebook/Instagram) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-notification-system" class="article-nav-article-link">  Design a Notification System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-email-system" class="article-nav-article-link">  Design an Email System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-uber-ride-hailing" class="article-nav-article-link">  Design Uber-Style Ride Hailing </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-maps" class="article-nav-article-link">  Design Google Maps </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-yelp-proximity-service" class="article-nav-article-link">  Design Yelp: Location-Based Business Discovery Platform </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-search-autocomplete" class="article-nav-article-link">  Design Search Autocomplete: Prefix Matching at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-web-crawler" class="article-nav-article-link">  Design a Web Crawler </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-search" class="article-nav-article-link">  Design Google Search </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-docs-collaboration" class="article-nav-article-link">  Design Collaborative Document Editing (Google Docs) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-dropbox-file-sync" class="article-nav-article-link">  Design Dropbox File Sync </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-calendar" class="article-nav-article-link">  Design Google Calendar </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-issue-tracker" class="article-nav-article-link">  Design an Issue Tracker (Jira/Linear) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-payment-system" class="article-nav-article-link">  Design a Payment System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-flash-sale-system" class="article-nav-article-link">  Design a Flash Sale System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-amazon-shopping-cart" class="article-nav-article-link">  Design Amazon Shopping Cart </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/url-shortener-design" class="article-nav-article-link">  Design a URL Shortener: IDs, Storage, and Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-pastebin" class="article-nav-article-link">  Design Pastebin: Text Sharing, Expiration, and Abuse Prevention </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-api-rate-limiter" class="article-nav-article-link">  Design an API Rate Limiter: Distributed Throttling, Multi-Tenant Quotas, and Graceful Degradation </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-cookie-consent-service" class="article-nav-article-link">  Design a Cookie Consent Service </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Core Distributed Patterns</span> <span class="article-nav-topic-count">(9)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/crdt-for-collaborative-systems" class="article-nav-article-link">  CRDTs for Collaborative Systems </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/operational-transformation" class="article-nav-article-link">  Operational Transformation </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/distributed-locking" class="article-nav-article-link">  Distributed Locking </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/exactly-once-delivery" class="article-nav-article-link">  Exactly-Once Delivery </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/event-sourcing-deep-dive" class="article-nav-article-link">  Event Sourcing </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/change-data-capture" class="article-nav-article-link">  Change Data Capture </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/database-migrations-at-scale" class="article-nav-article-link">  Database Migrations at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/multi-region-architecture" class="article-nav-article-link">  Multi-Region Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/graceful-degradation" class="article-nav-article-link">  Graceful Degradation </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Frontend System Design</span> <span class="article-nav-topic-count">(15)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/virtualization-and-windowing" class="article-nav-article-link">  Virtualization and Windowing </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/offline-first-architecture" class="article-nav-article-link">  Offline-First Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/client-state-management" class="article-nav-article-link">  Client State Management </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/real-time-sync-client" class="article-nav-article-link">  Real-Time Sync Client </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/widget-framework" class="article-nav-article-link">  Multi-Tenant Pluggable Widget Framework </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/bundle-splitting-strategies" class="article-nav-article-link">  Bundle Splitting Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/rendering-strategies" class="article-nav-article-link">  Rendering Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/image-loading-optimization" class="article-nav-article-link">  Image Loading Optimization </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/performance-monitoring-client" class="article-nav-article-link">  Client Performance Monitoring </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-rich-text-editor" class="article-nav-article-link">  Design a Rich Text Editor </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-infinite-feed" class="article-nav-article-link">  Design an Infinite Feed </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-drag-drop-system" class="article-nav-article-link">  Design a Drag and Drop System </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-form-builder" class="article-nav-article-link">  Design a Form Builder </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-data-grid" class="article-nav-article-link">  Design a Data Grid </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-file-uploader" class="article-nav-article-link">  Design a File Uploader </a> </div> </details><details class="article-nav-topic" open> <summary class="article-nav-topic-toggle is-active"> <span class="article-nav-topic-name">Real-World Case Studies</span> <span class="article-nav-topic-count">(20)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/facebook-2021-outage-analysis" class="article-nav-article-link">  Facebook 2021 Outage: BGP Withdrawal, DNS Collapse, and the Backbone That Disappeared </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/aws-kinesis-2020-outage" class="article-nav-article-link">  AWS Kinesis 2020 Outage: Thread Limits, Thundering Herds, and Hidden Dependencies </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/shopify-pod-architecture" class="article-nav-article-link">  Shopify: Pod Architecture for Multi-Tenant Isolation at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/netflix-microservices-evolution" class="article-nav-article-link">  Netflix: From Monolith to Microservices — A 7-Year Architecture Evolution </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/twitter-timeline-architecture" class="article-nav-article-link">  Twitter/X: Timeline Architecture and the Recommendation Algorithm </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/facebook-tao-social-graph" class="article-nav-article-link">  Facebook TAO: The Social Graph’s Distributed Cache </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/uber-microservices-journey" class="article-nav-article-link">  Uber: From Monolith to Domain-Oriented Microservices </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/uber-schemaless-datastore" class="article-nav-article-link">  Uber Schemaless: Building a Scalable Datastore on MySQL </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/slack-distributed-architecture" class="article-nav-article-link is-active">  Slack: Scaling a Real-Time Messaging Platform from Monolith to Distributed Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/linkedin-kafka-origin" class="article-nav-article-link">  LinkedIn and the Birth of Apache Kafka: Solving the O(N²) Data Integration Problem </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/dropbox-magic-pocket" class="article-nav-article-link">  Dropbox Magic Pocket: Building Exabyte-Scale Blob Storage </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/instagram-cassandra-migration" class="article-nav-article-link">  Instagram: From Redis to Cassandra and the Rocksandra Storage Engine </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/youtube-vitess-scaling" class="article-nav-article-link">  YouTube: Scaling MySQL to Serve Billions with Vitess </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/github-mysql-migration" class="article-nav-article-link">  GitHub: Scaling MySQL from One Database to 1,200+ Hosts </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/pinterest-mysql-sharding" class="article-nav-article-link">  Pinterest: MySQL Sharding from Zero to Billions of Objects </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/stripe-idempotency-reliability" class="article-nav-article-link">  Stripe: Idempotency for Payment Reliability </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/discord-rust-read-states" class="article-nav-article-link">  Discord: Rewriting Read States from Go to Rust </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/discord-message-storage" class="article-nav-article-link">  Discord: From Billions to Trillions of Messages — A Three-Database Journey </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/figma-multiplayer-infrastructure" class="article-nav-article-link">  Figma: Building Multiplayer Infrastructure for Real-Time Design Collaboration </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/whatsapp-erlang-scaling" class="article-nav-article-link">  WhatsApp: 2 Million Connections Per Server with Erlang </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Platform Engineering</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Media Systems</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/drm-basics-for-streaming" class="article-nav-article-link">  DRM Fundamentals for Streaming Media </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/video-transcoding-pipeline" class="article-nav-article-link">  Video Transcoding Pipeline Design </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/web-video-playback-architecture" class="article-nav-article-link">  Web Video Playback Architecture: HLS, DASH, and Low Latency </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/image-processing-service-design" class="article-nav-article-link">  Image Processing Service Design: CDN, Transforms, and APIs </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Observability &amp; Reliability</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/slos-slis-error-budgets" class="article-nav-article-link">  SLOs, SLIs, and Error Budgets </a><a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/csp-violation-reporting-pipeline" class="article-nav-article-link">  CSP Violation Reporting Pipeline at Scale </a><a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/logging-metrics-tracing" class="article-nav-article-link">  Logging, Metrics, and Tracing Fundamentals </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Infrastructure &amp; Delivery</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/edge-delivery-and-cache-invalidation" class="article-nav-article-link">  Edge Delivery and Cache Invalidation </a><a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/deployment-strategies-blue-green-canary" class="article-nav-article-link">  Deployment Strategies: Blue-Green, Canary, and Rolling </a><a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/ssg-performance-optimizations" class="article-nav-article-link">  SSG Performance Optimizations: Build, Cache, and Delivery </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Experimentation &amp; Testing</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/experimentation-testing/k6-load-testing-overview" class="article-nav-article-link">  k6 Load Testing Overview: Smoke, Spike, Soak, Stress </a><a href="/legacy-personal-site/v4/articles/platform-engineering/experimentation-testing/statsig-experimentation-overview" class="article-nav-article-link">  Statsig Experimentation Platform: Architecture and Rollouts </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Platform Migrations</span> <span class="article-nav-topic-count">(1)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/platform-migrations/ecommerce-ssg-to-ssr-migration" class="article-nav-article-link">  E-commerce SSG to SSR Migration: Strategy and Pitfalls </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Frontend Engineering</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Frontend Architecture &amp; Patterns</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/micro-frontends-architecture" class="article-nav-article-link">  Micro-Frontends Architecture: Composition, Isolation, and Delivery </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/rendering-strategies-csr-ssr-ssg-isr" class="article-nav-article-link">  Rendering Strategies: CSR, SSR, SSG, and ISR </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/data-fetching-patterns" class="article-nav-article-link">  Frontend Data Fetching Patterns and Caching </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/css-architecture-strategies" class="article-nav-article-link">  CSS Architecture Strategies: BEM, Utility-First, and CSS-in-JS </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/component-architecture-blueprint" class="article-nav-article-link">  Component Architecture Blueprint for Scalable UI </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Web Performance Optimization</span> <span class="article-nav-topic-count">(6)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-infrastructure-stack" class="article-nav-article-link">  Web Performance Infrastructure: DNS, CDN, Caching, and Edge </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-javascript-optimization" class="article-nav-article-link">  JavaScript Performance Optimization for the Web </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-css-typography" class="article-nav-article-link">  CSS and Typography Performance Optimization </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-image-optimization" class="article-nav-article-link">  Image Performance Optimization for the Web </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/core-web-vitals-measurement" class="article-nav-article-link">  Core Web Vitals Measurement: Lab vs Field Data </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-overview" class="article-nav-article-link">  Web Performance Optimization: Overview and Playbook </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Design Systems</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-system-implementation-scaling" class="article-nav-article-link">  Design System Implementation and Scaling </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/component-library-architecture-and-governance" class="article-nav-article-link">  Component Library Architecture and Governance </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-tokens-and-theming" class="article-nav-article-link">  Design Tokens and Theming Architecture </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-system-adoption-foundations" class="article-nav-article-link">  Design System Adoption: Foundations and Governance </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">React Architecture</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-performance-patterns" class="article-nav-article-link">  React Performance Patterns: Rendering, Memoization, and Scheduling </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-hooks-advanced-patterns" class="article-nav-article-link">  React Hooks Advanced Patterns: Specialized Hooks and Composition </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-rendering-architecture" class="article-nav-article-link">  React Rendering Architecture: Fiber, SSR, and RSC </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-hooks-fundamentals" class="article-nav-article-link">  React Hooks Fundamentals: Rules, Core Hooks, and Custom Hooks </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Web Foundations</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Security &amp; Auth</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/csrf-and-cors-defense" class="article-nav-article-link">  CSRF and CORS Defense for Modern Web Applications </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/oauth-oidc-flow-guide" class="article-nav-article-link">  OAuth 2.0 and OIDC Flows: Authorization Code to PKCE </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/web-app-security-architecture" class="article-nav-article-link">  Web Application Security Architecture </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/auth-foundations-sessions-tokens" class="article-nav-article-link">  Authentication Foundations: Sessions, Tokens, and Trust </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/owasp-top-10-guide" class="article-nav-article-link">  OWASP Top 10: Web Application Security Risks </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Networking &amp; Protocols</span> <span class="article-nav-topic-count">(7)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/http3-quic-and-tls" class="article-nav-article-link">  HTTP/3 and QUIC: Transport Layer Revolution </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/http1-1-to-http2-evolution" class="article-nav-article-link">  HTTP/1.1 to HTTP/2: Bottlenecks and Multiplexing </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/tls-1-3-handshake-and-https" class="article-nav-article-link">  TLS 1.3 Handshake and HTTPS Hardening </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-security-doh-dot-dnssec" class="article-nav-article-link">  DNS Security and Privacy: DNSSEC, DoH, and DoT </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-troubleshooting-playbook" class="article-nav-article-link">  DNS Troubleshooting Playbook </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-records-ttl-and-caching" class="article-nav-article-link">  DNS Records, TTL Strategy, and Cache Behavior </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-resolution-path" class="article-nav-article-link">  DNS Resolution Path: Stub to Recursive to Authoritative </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Browser APIs</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/web-workers-and-worklets" class="article-nav-article-link">  Web Workers and Worklets for Off-Main-Thread Work </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/service-workers-and-cache-api" class="article-nav-article-link">  Service Workers and Cache API </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/fetch-and-streaming-apis" class="article-nav-article-link">  Fetch, Streams, and AbortController </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/storage-apis-local-indexeddb" class="article-nav-article-link">  Browser Storage APIs: localStorage, IndexedDB, and Beyond </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/dom-api-essentials" class="article-nav-article-link">  DOM API Essentials: Structure, Traversal, and Mutation </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Accessibility Standards</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/accessibility-standards/accessibility-testing-tooling" class="article-nav-article-link">  Accessibility Testing and Tooling Workflow </a><a href="/legacy-personal-site/v4/articles/web-foundations/accessibility-standards/wcag-2-2-practical-guide" class="article-nav-article-link">  WCAG 2.2: Practical Accessibility Guide </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Programming &amp; Patterns</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Data Structures</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/heaps-and-priority-queues" class="article-nav-article-link">  Heaps and Priority Queues: Internals, Trade-offs, and When Theory Breaks Down </a><a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/trees-and-graphs" class="article-nav-article-link">  Trees and Graphs: Traversals and Applications </a><a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/arrays-and-hash-maps" class="article-nav-article-link">  Arrays and Hash Maps: Engine Internals and Performance Reality </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Algorithms Foundations</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/k-crystal-balls-problem" class="article-nav-article-link">  K-Crystal Balls Problem: Jump Search Pattern </a><a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/sorting-algorithms-guide" class="article-nav-article-link">  Sorting Algorithms: Complexity, Stability, and Use Cases </a><a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/search-algorithms-guide" class="article-nav-article-link">  Search Algorithms: Linear, Binary, and Graph Traversal </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">JavaScript Patterns</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/publish-subscribe-pattern" class="article-nav-article-link">  Publish-Subscribe Pattern in JavaScript </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/exponential-backoff-retry-strategy" class="article-nav-article-link">  Exponential Backoff and Retry Strategy </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/async-queue-pattern" class="article-nav-article-link">  Async Queue Pattern in JavaScript </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/javascript-error-handling-patterns" class="article-nav-article-link">  JavaScript Error Handling Patterns </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/javascript-string-length" class="article-nav-article-link">  JavaScript String Length: Graphemes, UTF-16, and Unicode </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Developer Experience</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Productivity &amp; Workflows</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/developer-experience/productivity-workflows/chrome-developer-setup" class="article-nav-article-link">  Chrome Developer Setup: Extensions, Profiles, and Shortcuts </a><a href="/legacy-personal-site/v4/articles/developer-experience/productivity-workflows/editor-terminal-setup" class="article-nav-article-link">  macOS Developer Environment Setup </a> </div> </details> </div> </div> </nav> <script type="module">function e(){document.querySelector("#left-sidebar .article-nav-article-link.is-active")?.scrollIntoView({block:"nearest",behavior:"instant"})}e();document.addEventListener("astro:page-load",e);</script>  </div> </aside> <main id="main" class="zen-main"> <div class="page-content"> <nav class="breadcrumb" aria-label="Breadcrumb"><a title="Home" aria-label="Home" href="/legacy-personal-site/v4/" class="nav-link">  <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:home">   <symbol id="ai:carbon:home" viewBox="0 0 32 32"><path fill="currentColor" d="M16.612 2.214a1.01 1.01 0 0 0-1.242 0L1 13.419l1.243 1.572L4 13.621V26a2.004 2.004 0 0 0 2 2h20a2.004 2.004 0 0 0 2-2V13.63L29.757 15L31 13.428ZM18 26h-4v-8h4Zm2 0v-8a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v8H6V12.062l10-7.79l10 7.8V26Z"/></symbol><use href="#ai:carbon:home"></use>  </svg> </a><svg width="1em" height="1em" viewBox="0 0 32 32" class="breadcrumb-separator icon-sm" data-icon="carbon:chevron-right">   <use href="#ai:carbon:chevron-right"></use>  </svg><a href="/legacy-personal-site/v4/articles/system-design" class="nav-link">  System Design </a><svg width="1em" height="1em" class="breadcrumb-separator icon-sm" data-icon="carbon:chevron-right">   <symbol id="ai:carbon:chevron-right" viewBox="0 0 32 32"><path fill="currentColor" d="M22 16L12 26l-1.4-1.4l8.6-8.6l-8.6-8.6L12 6z"/></symbol><use href="#ai:carbon:chevron-right"></use>  </svg><a title="Real-World Case Studies" href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies" class="nav-link">  Real-World Case Studies </a></nav>    <div id="reading-progress" class="reading-progress" style="width: 0%"></div> <script type="module">function l(){const e=document.getElementById("reading-progress");if(!e)return;const t=document.querySelector("article")||document.querySelector(".prose");if(!t){e.style.display="none";return}function r(){if(!t||!e)return;const i=t.getBoundingClientRect(),s=i.top+window.scrollY,u=i.height,c=window.innerHeight,g=window.scrollY,o=s-c/2,w=s+u-c/2,d=g;let a=0;d>o&&(a=Math.min(100,(d-o)/(w-o)*100)),e.style.width=`${Math.max(0,a)}%`}let n=!1;window.addEventListener("scroll",()=>{n||(requestAnimationFrame(()=>{r(),n=!1}),n=!0)}),r()}document.addEventListener("DOMContentLoaded",l);document.addEventListener("astro:page-load",l);</script>  <div class="frontmatter article-frontmatter">    <span class="frontmatter-item"> <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:time">   <symbol id="ai:carbon:time" viewBox="0 0 32 32"><path fill="currentColor" d="M16 30a14 14 0 1 1 14-14a14 14 0 0 1-14 14m0-26a12 12 0 1 0 12 12A12 12 0 0 0 16 4"/><path fill="currentColor" d="M20.59 22L15 16.41V7h2v8.58l5 5.01z"/></symbol><use href="#ai:carbon:time"></use>  </svg> 22 min read </span> <span class="frontmatter-item"> <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:calendar">   <symbol id="ai:carbon:calendar" viewBox="0 0 32 32"><path fill="currentColor" d="M26 4h-4V2h-2v2h-8V2h-2v2H6c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2m0 22H6V12h20zm0-16H6V6h4v2h2V6h8v2h2V6h4z"/></symbol><use href="#ai:carbon:calendar"></use>  </svg>
+Last updated on Feb 16, 2026 </span> </div>  <article id="article-content" class="article-prose-content DocSearch-content"> <h1 id="slack-scaling-a-real-time-messaging-platform-from-monolith-to-distributed-architecture" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#slack-scaling-a-real-time-messaging-platform-from-monolith-to-distributed-architecture">Slack: Scaling a Real-Time Messaging Platform from Monolith to Distributed Architecture</a></h1>
+<p>How Slack evolved from a PHP monolith with workspace-sharded MySQL into a distributed system handling 2.3 million queries per second (QPS) across Vitess-managed databases, 4 million concurrent WebSocket connections through a global edge cache, and a cellular infrastructure design achieving 99.99% availability—all without a single big-bang rewrite. This case study traces the architectural decisions behind each layer: data storage, real-time messaging, edge caching, and reliability infrastructure.</p>
+<figure>
+<p><img alt="Slack&amp;#x27;s distributed architecture as of ~2023. Traffic enters through Envoy, hits the Flannel edge cache, and flows into either the real-time messaging layer (Channel/Gateway Servers) or the webapp monolith. The data layer is anchored by Vitess-managed MySQL with memcached caching and Kafka for event streaming." loading="lazy" decoding="async" fetchpriority="auto" width="1452" height="1288" src="/legacy-personal-site/v4/_astro/slack-s-distributed-architecture-as-of-2023-traffic-enters-through-envoy-hits-th.DigRQyej_Z98hJf.svg" ></p>
+<figcaption>Slack's distributed architecture as of ~2023. Traffic enters through Envoy, hits the Flannel edge cache, and flows into either the real-time messaging layer (Channel/Gateway Servers) or the webapp monolith. The data layer is anchored by Vitess-managed MySQL with memcached caching and Kafka for event streaming.</figcaption>
+</figure>
+<h2 id="abstract" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#abstract">Abstract</a></h2>
+<p>Slack’s architecture tells the story of pragmatic scaling—keeping a PHP monolith productive while surgically extracting the subsystems that couldn’t scale within it.</p>
+<p>The core mental model has four layers:</p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Layer</th><th>Component</th><th>Design Choice</th><th>Trade-off</th></tr></thead><tbody><tr><td><strong>Edge</strong></td><td>Flannel + Envoy</td><td>Application-level edge cache with consistent hashing per workspace</td><td>Reduces backend load 7–44x but adds a stateful layer to manage</td></tr><tr><td><strong>Real-Time</strong></td><td>Channel Servers + Gateway Servers</td><td>Stateful servers with consistent hash rings; ~16M channels per host</td><td>Sub-500ms global message delivery but complex failure handling for stateful nodes</td></tr><tr><td><strong>Storage</strong></td><td>Vitess over MySQL</td><td>Workspace-sharded MySQL migrated to flexible Vitess keyspaces</td><td>Horizontal scaling and data residency support but 4+ year migration effort</td></tr><tr><td><strong>Reliability</strong></td><td>Cellular architecture via Envoy/Rotor</td><td>AZ-level isolation with 1% granularity traffic draining</td><td>5-minute failover with 99.99% SLA but requires full stack duplication per AZ</td></tr></tbody></table></div>
+<p>The transferable insight: Slack did not pursue the “rewrite everything as microservices” path. Instead, they kept the monolith as the coordination layer and invested in infrastructure systems around it—Vitess for flexible sharding, Flannel for edge caching, cellular architecture for blast radius containment. The monolith receives 30–40 deploys daily. The surrounding distributed systems evolve independently. This “thin monolith with specialized satellites” pattern scales both the system and the organization.</p>
+<h2 id="context" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#context">Context</a></h2>
+<h3 id="the-system" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-system">The System</a></h3>
+<p>Slack is a channel-based messaging platform where workspaces (organizations) contain channels, and users send messages in real-time. Every architectural decision is shaped by three properties:</p>
+<ol>
+<li><strong>Workspace isolation</strong> — each customer’s data lives in a logical partition</li>
+<li><strong>Real-time delivery</strong> — messages must reach all connected clients within 500 ms globally</li>
+<li><strong>Persistent history</strong> — every message is stored, searchable, and paginated</li>
+</ol>
+<h3 id="scale-as-of-20202023" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#scale-as-of-20202023">Scale (as of 2020–2023)</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Metric</th><th>Value</th><th>Source</th></tr></thead><tbody><tr><td>Daily Active Users (DAU)</td><td>10+ million</td><td>Disasterpiece Theater blog post (2019)</td></tr><tr><td>Concurrent WebSocket connections</td><td>4 million (peak)</td><td>Flannel blog post (2019)</td></tr><tr><td>MySQL queries per second (peak)</td><td>2.3 million (2M reads, 300K writes)</td><td>Vitess blog post (2020)</td></tr><tr><td>Median query latency</td><td>2 ms</td><td>Vitess blog post (2020)</td></tr><tr><td>P99 query latency</td><td>11 ms</td><td>Vitess blog post (2020)</td></tr><tr><td>MySQL hosts</td><td>Thousands (sharded)</td><td>Vitess blog post (2020)</td></tr><tr><td>Async jobs per day</td><td>9 billion</td><td>Cron blog post (2022)</td></tr><tr><td>Production deploys per day</td><td>30–40</td><td>ReleaseBot blog post (2020)</td></tr></tbody></table></div>
+<h3 id="the-tech-stack" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-tech-stack">The Tech Stack</a></h3>
+<ul>
+<li><strong>Application server</strong>: PHP monolith (“The Webapp”), migrated incrementally to Hack running on HHVM (HipHop Virtual Machine)</li>
+<li><strong>Database</strong>: MySQL, originally workspace-sharded, migrated to Vitess (2016–2020)</li>
+<li><strong>Caching</strong>: Memcached with Mcrouter for horizontal scaling</li>
+<li><strong>Real-time</strong>: Custom Channel Servers (pub/sub) + Gateway Servers (WebSocket termination)</li>
+<li><strong>Load balancing</strong>: HAProxy (migrated to Envoy, 2019–2020)</li>
+<li><strong>Edge caching</strong>: Flannel (custom application-level cache)</li>
+<li><strong>Search</strong>: Apache Solr with ML re-ranking</li>
+<li><strong>Service discovery</strong>: Consul</li>
+<li><strong>Event streaming</strong>: Kafka to S3 (Parquet format via Secor)</li>
+<li><strong>Analytics</strong>: Presto, Hive, and Spark on AWS EMR (Elastic MapReduce)</li>
+</ul>
+<h3 id="the-trigger" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-trigger">The Trigger</a></h3>
+<p>Slack launched in 2014 and grew from zero to millions of daily users within two years. By 2016, three scaling limits converged:</p>
+<ol>
+<li><strong>Single workspace exceeding shard capacity</strong> — the largest customers’ data outgrew the biggest MySQL shards</li>
+<li><strong>Rigid workspace-based sharding</strong> — new products like Enterprise Grid (multi-workspace organizations) and Slack Connect (cross-organization channels) required data to span workspace boundaries, which the sharding model couldn’t express</li>
+<li><strong>Database hotspots</strong> — some shards were overloaded while others sat underutilized, with no ability to rebalance without downtime</li>
+</ol>
+<h2 id="the-problem" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-problem">The Problem</a></h2>
+<h3 id="pre-vitess-database-architecture" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#pre-vitess-database-architecture">Pre-Vitess Database Architecture</a></h3>
+<p>Slack’s original MySQL deployment had three cluster types:</p>
+<ol>
+<li><strong>Shards cluster</strong> — customer data (messages, channels, DMs) partitioned by workspace ID. Each shard held multiple workspaces.</li>
+<li><strong>Metadata cluster</strong> — workspace-to-shard lookup mappings. Every query started here.</li>
+<li><strong>Kitchen sink cluster</strong> — non-workspace data (app directory, shared metadata)</li>
+</ol>
+<p>Replication used asynchronous cross-datacenter replication with at least two MySQL instances per shard in different datacenters.</p>
+<h3 id="why-this-architecture-hit-its-limits" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#why-this-architecture-hit-its-limits">Why This Architecture Hit Its Limits</a></h3>
+<p><strong>Single-workspace hotspots</strong>: When a large enterprise customer joined Slack, their workspace could exceed the capacity of the shard it landed on. Moving a workspace between shards required downtime.</p>
+<p><strong>Cross-workspace queries impossible</strong>: Enterprise Grid needed to query across multiple workspaces owned by the same organization. The workspace-sharded model had no mechanism for this—you’d need to scatter queries across every shard.</p>
+<p><strong>Operational burden</strong>: Thousands of MySQL hosts ran non-standard configurations requiring extensive custom tooling. Adding capacity meant provisioning new physical shards, not simply splitting existing ones.</p>
+<p><strong>Feature velocity impact</strong>: Product engineers couldn’t build features that required data to cross workspace boundaries, directly constraining Slack’s enterprise strategy.</p>
+<h3 id="why-it-wasnt-obvious" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#why-it-wasnt-obvious">Why It Wasn’t Obvious</a></h3>
+<p>The workspace-sharded model worked well for Slack’s original design: small-to-medium teams with independent workspaces. The limits only appeared when enterprise customers arrived (large workspaces) and product requirements changed (cross-workspace features). The database was scaling fine on traditional metrics—the problem was structural inflexibility.</p>
+<h2 id="options-considered" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#options-considered">Options Considered</a></h2>
+<h3 id="option-1-custom-resharding-tooling" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#option-1-custom-resharding-tooling">Option 1: Custom Resharding Tooling</a></h3>
+<p><strong>Approach</strong>: Build in-house tooling to split and rebalance workspace-sharded MySQL.</p>
+<p><strong>Pros</strong>:</p>
+<ul>
+<li>Minimal change to application code</li>
+<li>Well-understood technology (MySQL)</li>
+</ul>
+<p><strong>Cons</strong>:</p>
+<ul>
+<li>Still workspace-locked sharding—doesn’t solve Enterprise Grid requirements</li>
+<li>Each rebalance operation carries downtime risk</li>
+<li>Doesn’t address the operational burden of non-standard MySQL configurations</li>
+</ul>
+<p><strong>Why not chosen</strong>: Solves the hotspot problem but not the structural inflexibility. Enterprise Grid and Slack Connect still couldn’t work.</p>
+<h3 id="option-2-migrate-to-a-different-database" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#option-2-migrate-to-a-different-database">Option 2: Migrate to a Different Database</a></h3>
+<p><strong>Approach</strong>: Move to a natively distributed database (e.g., CockroachDB, Spanner, or Cassandra).</p>
+<p><strong>Pros</strong>:</p>
+<ul>
+<li>Built-in horizontal scaling</li>
+<li>Automatic rebalancing</li>
+</ul>
+<p><strong>Cons</strong>:</p>
+<ul>
+<li>Massive migration effort for thousands of MySQL hosts</li>
+<li>Application code assumes MySQL semantics (transactions, joins, query patterns)</li>
+<li>Risk of subtle behavioral differences causing data issues</li>
+<li>Team had deep MySQL expertise, not distributed DB expertise</li>
+</ul>
+<p><strong>Estimated effort</strong>: 2+ years with high risk</p>
+<p><strong>Why not chosen</strong>: Too much behavioral change too fast. Slack’s entire data access layer assumed MySQL.</p>
+<h3 id="option-3-vitess-chosen" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#option-3-vitess-chosen">Option 3: Vitess (Chosen)</a></h3>
+<p><strong>Approach</strong>: Deploy Vitess as a sharding middleware over MySQL—keeping MySQL as the storage engine while gaining flexible sharding, online resharding, and connection pooling.</p>
+<p><strong>Pros</strong>:</p>
+<ul>
+<li>Preserves MySQL semantics—application queries mostly unchanged</li>
+<li>Online resharding without downtime</li>
+<li>Connection pooling reduces MySQL connection overhead</li>
+<li>Flexible keyspace design supports non-workspace sharding schemes</li>
+<li>Active open-source community (YouTube origin, CNCF project)</li>
+</ul>
+<p><strong>Cons</strong>:</p>
+<ul>
+<li>Some MySQL query patterns unsupported through VTGate (Vitess’s query router)</li>
+<li>Additional operational complexity (VTGate, VTTablet, topology service)</li>
+<li>Migration of thousands of shards is a multi-year project</li>
+<li>Team needed to build Vitess expertise</li>
+</ul>
+<p><strong>Why chosen</strong>: Preserves MySQL compatibility while solving all three problems—hotspots (online resharding), structural inflexibility (flexible keyspaces), and operational burden (standardized deployment).</p>
+<h3 id="decision-factors" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#decision-factors">Decision Factors</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Factor</th><th>Custom Resharding</th><th>New Database</th><th>Vitess</th></tr></thead><tbody><tr><td>Application code changes</td><td>Minimal</td><td>Extensive</td><td>Moderate</td></tr><tr><td>Solves Enterprise Grid</td><td>No</td><td>Yes</td><td>Yes</td></tr><tr><td>Online resharding</td><td>No</td><td>Built-in</td><td>Yes</td></tr><tr><td>Team expertise required</td><td>MySQL</td><td>New DB</td><td>MySQL + Vitess</td></tr><tr><td>Migration risk</td><td>Medium</td><td>Very High</td><td>High</td></tr><tr><td>Time to production value</td><td>6 months</td><td>2+ years</td><td>1+ year</td></tr></tbody></table></div>
+<h2 id="implementation" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#implementation">Implementation</a></h2>
+<h3 id="phase-1-vitess-adoption-20162017" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#phase-1-vitess-adoption-20162017">Phase 1: Vitess Adoption (2016–2017)</a></h3>
+<p>Slack began the Vitess evaluation in fall 2016. Rather than attempting a wholesale migration, they started with a low-risk workload: an RSS feed feature.</p>
+<p><strong>Initial prototype approach</strong>:</p>
+<ol>
+<li>Deploy Vitess cluster alongside existing MySQL</li>
+<li>Route RSS feed reads and writes through VTGate</li>
+<li>Validate query compatibility and performance</li>
+<li>Build confidence in operational patterns (backup, failover, monitoring)</li>
+</ol>
+<p>This gave the team hands-on experience without risking core messaging data.</p>
+<h3 id="phase-2-migration-infrastructure-20172019" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#phase-2-migration-infrastructure-20172019">Phase 2: Migration Infrastructure (2017–2019)</a></h3>
+<p>The team built three critical pieces of migration infrastructure:</p>
+<p><strong>Application routing layer</strong>: A query router in the webapp that could direct traffic to either legacy MySQL or Vitess on a per-table basis. This enabled table-by-table migration with instant rollback.</p>
+<p><strong>Generic backfill system</strong>: Tooling to copy data from legacy shards into Vitess keyspaces with consistent state verification. The system handled the complexity of migrating from workspace-sharded MySQL (where shard boundaries were fixed) to Vitess keyspaces (where shard boundaries are flexible).</p>
+<p><strong>Double-write / double-read diffing</strong>: During migration, writes went to both legacy MySQL and Vitess. Reads were compared between both systems, and any differences flagged for investigation. This caught query compatibility issues that unit tests missed—subtle differences in sort ordering, NULL handling, and transaction boundaries.</p>
+<p><strong>Strategy evolution</strong>: Slack initially migrated table-by-table but found this created a long tail of edge cases where cross-table queries broke when tables lived in different systems. They shifted to whole-shard migrations—moving entire workspace shards at once—which was operationally simpler despite moving more data per batch.</p>
+<h3 id="phase-3-production-migration-20192020" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#phase-3-production-migration-20192020">Phase 3: Production Migration (2019–2020)</a></h3>
+<p>By the end of 2020, 99% of MySQL query traffic was running through Vitess.</p>
+<p><strong>Post-migration architecture</strong>:</p>
+<ul>
+<li>Multiple Vitess clusters across geographic regions</li>
+<li>Dozens of keyspaces with flexible sharding (channel-based, user-based, and workspace-based depending on access patterns)</li>
+<li>Vitess clusters in six regions supporting International Data Residency requirements</li>
+<li>The webapp monolith and additional services all route through VTGate</li>
+</ul>
+<h3 id="covid-19-stress-test-march-2020" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#covid-19-stress-test-march-2020">COVID-19 Stress Test (March 2020)</a></h3>
+<p>The migration’s value was proven dramatically when COVID-19 drove remote work adoption. Slack’s query rates increased 50% in a single week. A single keyspace was horizontally scaled using Vitess’s splitting workflows without any downtime—an operation that would have required provisioning new physical shards and migrating workspaces under the old architecture.</p>
+<h3 id="slacks-contributions-back-to-vitess" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#slacks-contributions-back-to-vitess">Slack’s Contributions Back to Vitess</a></h3>
+<p>Slack didn’t just consume Vitess—they contributed significantly to the project:</p>
+<ul>
+<li>Topology metadata service scalability refactoring</li>
+<li>MySQL query compatibility improvements (fixing VTGate query translation gaps)</li>
+<li>Data migration tooling</li>
+<li>Load testing and introspection tools</li>
+<li>Integrations with Prometheus (metrics), Orchestrator (MySQL failover), and Percona Xtrabackup (backups)</li>
+</ul>
+<h2 id="real-time-messaging-architecture" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#real-time-messaging-architecture">Real-Time Messaging Architecture</a></h2>
+<p>The real-time layer is separate from the data layer and is where Slack’s architecture most diverges from a standard web application.</p>
+<h3 id="component-architecture" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#component-architecture">Component Architecture</a></h3>
+<p>Four server types form the real-time messaging pipeline:</p>
+<p><strong>Gateway Servers (GS)</strong> — stateful services that terminate WebSocket connections. Each GS maintains a map of connected users and their channel subscriptions. Deployed across multiple geographic regions so clients connect to the nearest point of presence. A user’s connection to a GS is long-lived (hours to days).</p>
+<p><strong>Channel Servers (CS)</strong> — stateful, in-memory servers that own channels via consistent hashing. At peak, each Channel Server manages approximately 16 million channels. When a message is sent to a channel, the responsible CS broadcasts the event to every GS that has a subscriber in that channel.</p>
+<p><strong>Admin Servers (AS)</strong> — stateless intermediaries that route messages from the webapp to the correct Channel Server. The AS uses the consistent hash ring to locate which CS owns a given channel.</p>
+<p><strong>Presence Servers (PS)</strong> — track online/offline status for users and distribute presence events.</p>
+<h3 id="message-flow" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#message-flow">Message Flow</a></h3>
+<p>When a user sends a message:</p>
+<ol>
+<li>Client sends HTTP POST to the webapp API</li>
+<li>Webapp persists the message to Vitess</li>
+<li>Webapp forwards the event to an Admin Server</li>
+<li>AS hashes the channel ID to locate the responsible Channel Server</li>
+<li>CS broadcasts the event to all subscribed Gateway Servers globally</li>
+<li>Each GS pushes the event over WebSocket to connected clients in that channel</li>
+</ol>
+<p><strong>Latency target</strong>: messages delivered across the world within 500 ms.</p>
+<p>Transient events (typing indicators, reactions) follow the same routing path but skip database persistence.</p>
+<h3 id="connection-flow" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#connection-flow">Connection Flow</a></h3>
+<ol>
+<li>Client fetches a user token and connection URL from the webapp</li>
+<li>Client connects to the nearest edge region via Envoy load balancer</li>
+<li>Gateway Server retrieves the user’s channel subscriptions</li>
+<li>GS asynchronously subscribes to the relevant Channel Servers for each channel</li>
+</ol>
+<h3 id="the-consistent-hashing-trade-off" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-consistent-hashing-trade-off">The Consistent Hashing Trade-off</a></h3>
+<p>Using consistent hashing to map channels to Channel Servers means:</p>
+<ul>
+<li><strong>Fast routing</strong>: O(1) lookup for which CS owns a channel</li>
+<li><strong>Balanced load</strong>: channels distribute across the CS fleet roughly evenly</li>
+<li><strong>Stateful failure impact</strong>: when a CS dies, all 16M channels it owns must be reassigned and their in-memory state reconstructed</li>
+</ul>
+<p>Slack validated this failure mode through their Disasterpiece Theater chaos engineering program, deliberately partitioning 25% of Channel Servers and confirming that Consul re-routed traffic correctly.</p>
+<h2 id="flannel-the-edge-cache" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#flannel-the-edge-cache">Flannel: The Edge Cache</a></h2>
+<p>Flannel is Slack’s application-level caching layer deployed at edge points of presence. It sits between clients and the backend, intercepting the startup data that every client needs when connecting.</p>
+<h3 id="the-problem-flannel-solves" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-problem-flannel-solves">The Problem Flannel Solves</a></h3>
+<p>When a Slack client boots, it historically called <code>rtm.start</code>—an API that returned a complete model of the workspace: every channel, every member, every emoji, every preference. For a 32,000-user workspace, this payload was enormous and every connected client needed it.</p>
+<h3 id="how-flannel-works" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#how-flannel-works">How Flannel Works</a></h3>
+<ol>
+<li>Clients connect to Flannel instead of directly to backend servers</li>
+<li>Flannel uses <strong>consistent hashing</strong> to route users from the same workspace to the same Flannel host, maximizing cache hit rates</li>
+<li>Flannel maintains its own WebSocket connection to Slack’s backend, consuming real-time events to keep its cache fresh</li>
+<li>On client boot, Flannel returns a slimmed-down startup dataset</li>
+<li>Additional data loads lazily as the user navigates</li>
+</ol>
+<p><strong>Proactive prefetching</strong>: Flannel predicts what data clients will need next. When a user @mentions a colleague, Flannel proactively pushes that user’s profile to clients that don’t have recent data, eliminating a round-trip.</p>
+<h3 id="performance-impact" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#performance-impact">Performance Impact</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Workspace Size</th><th>Payload Reduction</th></tr></thead><tbody><tr><td>1,500 users</td><td>7x smaller</td></tr><tr><td>32,000 users</td><td>44x smaller</td></tr></tbody></table></div>
+<p>At peak, Flannel handles:</p>
+<ul>
+<li><strong>4 million</strong> simultaneous connections</li>
+<li><strong>600,000</strong> client queries per second</li>
+</ul>
+<h3 id="presence-event-optimization" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#presence-event-optimization">Presence Event Optimization</a></h3>
+<p>Flannel also optimized presence events (online/offline status updates). By implementing a pub/sub model at the edge, Flannel achieved a <strong>5x reduction</strong> in presence events reaching backend servers—clients only receive presence updates for users they’re actively viewing.</p>
+<h2 id="load-balancing-haproxy-to-envoy-migration" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#load-balancing-haproxy-to-envoy-migration">Load Balancing: HAProxy to Envoy Migration</a></h2>
+<p>In 2019–2020, Slack migrated from HAProxy to Envoy as their edge load balancer. The migration took 6 months with zero customer impact.</p>
+<h3 id="why-haproxy-was-replaced" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#why-haproxy-was-replaced">Why HAProxy Was Replaced</a></h3>
+<p><strong>Hot restart problem</strong>: HAProxy doesn’t support dynamic configuration reloads. Every configuration change spawned a new set of HAProxy processes while old processes drained existing connections. With millions of long-lived WebSocket connections, old processes persisted for hours, creating memory pressure and operational complexity.</p>
+<p><strong>Missing capabilities</strong>: Envoy offered dynamic configuration (xDS APIs), zone-aware routing, passive health checking (Outlier Detection), and panic routing—none available in HAProxy without custom tooling.</p>
+<h3 id="migration-strategy" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#migration-strategy">Migration Strategy</a></h3>
+<p>Rather than an in-place cutover, Slack deployed a parallel Envoy stack and used DNS-weighted routing (via NS1) to shift traffic gradually: 10% → 25% → 50% → 75% → 100% per region. Final regions completed in 2 days as confidence increased.</p>
+<p><strong>Key challenge</strong>: Extracting intentional behavior from organically-grown HAProxy configs proved difficult. Some services relied on undocumented HAProxy behaviors that had to be replicated in Envoy. The team temporarily broke their Daily Active User metric during migration due to a routing misconfiguration.</p>
+<h2 id="cellular-architecture-20222023" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#cellular-architecture-20222023">Cellular Architecture (2022–2023)</a></h2>
+<p>Slack’s most recent major infrastructure evolution is a cellular architecture that isolates failures to individual Availability Zones (AZs).</p>
+<h3 id="design" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#design">Design</a></h3>
+<p>Each AZ operates as an independent service cluster—a “cell.” Services within a cell only receive traffic from within their AZ and only send traffic upstream to servers in their AZ. This creates N virtual copies of each service, one per AZ.</p>
+<h3 id="traffic-routing" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#traffic-routing">Traffic Routing</a></h3>
+<p>The system leverages Slack’s Envoy/xDS infrastructure:</p>
+<ul>
+<li><strong>Rotor</strong> (Slack’s custom xDS control plane) manages dynamic weight assignment per AZ</li>
+<li><strong>RTDS</strong> (Runtime Discovery Service) enables weight changes without Envoy restarts</li>
+<li>Weights provide <strong>1% granularity</strong> for traffic shifting</li>
+</ul>
+<h3 id="az-drain-process" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#az-drain-process">AZ Drain Process</a></h3>
+<p>When an AZ experiences issues:</p>
+<ol>
+<li>Rotor sends a signal to edge Envoy load balancers</li>
+<li>Envoy reweights per-AZ target clusters</li>
+<li>Traffic drains from the affected AZ within <strong>5 minutes</strong></li>
+<li>Propagation through the control plane takes <strong>seconds</strong></li>
+</ol>
+<h3 id="why-this-matters" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#why-this-matters">Why This Matters</a></h3>
+<p>The cellular architecture directly supports Slack’s <strong>99.99% availability SLA</strong> (Service Level Agreement). Before cells, a failure in one AZ’s service could cascade through shared infrastructure. Now, failures are contained within a single cell, and traffic redirects automatically.</p>
+<h2 id="the-webapp-why-a-monolith-still-works" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-webapp-why-a-monolith-still-works">The Webapp: Why a Monolith Still Works</a></h2>
+<p>Unlike many scaling stories, Slack deliberately kept its PHP/Hack monolith as the central application server.</p>
+<h3 id="why-php" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#why-php">Why PHP</a></h3>
+<p>Slack chose PHP (later migrated to Hack/HHVM) for three properties:</p>
+<ol>
+<li><strong>State isolation</strong>: every request starts from a blank slate. Bugs in request <em>t</em> cannot affect request <em>t+1</em>. This provides organic fault isolation without the complexity of process supervisors.</li>
+<li><strong>Safe concurrency</strong>: individual requests run single-threaded with shared-nothing semantics. Parallelism comes from running many processes, not from shared-state concurrency.</li>
+<li><strong>Developer velocity</strong>: the edit-reload-test cycle has zero compilation or restart delay. With 150–190 changes merged per day and 30–40 deploys, this velocity matters.</li>
+</ol>
+<p>HHVM’s JIT (Just-In-Time) compilation provided significant CPU efficiency gains. Facebook reported 11.6x CPU efficiency improvement over standard PHP; Wikipedia reported 6x.</p>
+<h3 id="the-thin-monolith-pattern" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-thin-monolith-pattern">The “Thin Monolith” Pattern</a></h3>
+<p>Slack’s approach is to keep the monolith as an orchestration and business logic layer while extracting infrastructure concerns into specialized systems:</p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Concern</th><th>Extracted To</th></tr></thead><tbody><tr><td>Sharding and query routing</td><td>Vitess</td></tr><tr><td>Edge caching and boot optimization</td><td>Flannel</td></tr><tr><td>Real-time message delivery</td><td>Channel/Gateway Servers</td></tr><tr><td>Load balancing and AZ routing</td><td>Envoy + Rotor</td></tr><tr><td>Service discovery</td><td>Consul</td></tr><tr><td>Async job processing</td><td>Job Queue (9B jobs/day)</td></tr><tr><td>Search</td><td>Solr</td></tr></tbody></table></div>
+<p>The monolith itself deploys via an automated ReleaseBot that runs 24/7, using z-score anomaly detection (flagging data points exceeding 3 standard deviations from historical mean) to automatically halt deploys when metrics deviate.</p>
+<h2 id="incident-february-22-2022" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#incident-february-22-2022">Incident: February 22, 2022</a></h2>
+<p>This incident illustrates how Slack’s layered architecture can fail at the boundaries between layers.</p>
+<h3 id="root-cause" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#root-cause">Root Cause</a></h3>
+<p>A Consul agent fleet upgrade was being rolled out, replacing 25% of the fleet. During the upgrade, memcached nodes were sequentially removed and replaced with empty cache nodes (new instances with cold caches). This caused cache hit rates to plummet.</p>
+<h3 id="cascade" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#cascade">Cascade</a></h3>
+<ol>
+<li><strong>Cache layer degradation</strong>: Empty memcached nodes drastically reduced hit rates</li>
+<li><strong>Database overload</strong>: Uncached requests flooded Vitess, particularly a keyspace storing channel membership data sharded by user ID</li>
+<li><strong>Scatter query amplification</strong>: Queries for group DM (Direct Message) membership required querying every shard of the user-sharded keyspace—a scatter query that’s normally fast when most results come from cache, but devastating at full database fan-out</li>
+<li><strong>Self-reinforcing failure</strong>: High database load prevented cache refills, keeping hit rates low</li>
+</ol>
+<h3 id="resolution" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#resolution">Resolution</a></h3>
+<ul>
+<li>Immediate: throttled client boot requests to reduce database pressure</li>
+<li>Short-term: modified scatter queries to read from a channel-sharded table instead (co-located data, no scatter needed)</li>
+<li>Changed queries to read from Vitess replicas for missing data</li>
+<li>Gradually increased boot rate as the cache warmed</li>
+</ul>
+<h3 id="lesson" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#lesson">Lesson</a></h3>
+<p>The incident exposed a coupling between the caching layer (Consul-managed memcached) and the database layer (Vitess). A routine infrastructure operation (Consul upgrade) triggered a catastrophic database load pattern. Slack’s mitigation—throttling client boots—traded availability for stability, the correct choice under cascading failure.</p>
+<h2 id="search-architecture" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#search-architecture">Search Architecture</a></h2>
+<p>Slack’s search uses Apache Solr with a two-stage ranking system.</p>
+<h3 id="indexing" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#indexing">Indexing</a></h3>
+<p>Messages flow through Kafka into Solr indexes. The search system supports two modes:</p>
+<ul>
+<li><strong>Recent Search</strong>: returns messages matching all query terms in reverse chronological order</li>
+<li><strong>Relevant Search</strong>: relaxes temporal constraints and incorporates Lucene scoring with ML re-ranking</li>
+</ul>
+<h3 id="ml-re-ranking" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#ml-re-ranking">ML Re-Ranking</a></h3>
+<p>A two-stage pipeline:</p>
+<ol>
+<li><strong>Stage 1 (Solr)</strong>: retrieves candidate messages using computationally cheap features (term matching, recency)</li>
+<li><strong>Stage 2 (Application)</strong>: re-ranks using a SparkML SVM (Support Vector Machine) model trained on pairwise click behavior</li>
+</ol>
+<p>Top ranking signals include message age, Lucene match score, user affinity to message author, channel priority, engagement metrics, and message formatting characteristics.</p>
+<p><strong>Results</strong> (November 2016 deployment): 9% increase in clicked searches and 27% increase in position-1 click-through rates.</p>
+<h2 id="outcome" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#outcome">Outcome</a></h2>
+<h3 id="metrics-comparison" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#metrics-comparison">Metrics Comparison</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Metric</th><th>Before (~2016)</th><th>After (~2023)</th><th>Improvement</th></tr></thead><tbody><tr><td>Database scaling</td><td>Manual shard provisioning</td><td>Online resharding via Vitess</td><td>Zero-downtime capacity changes</td></tr><tr><td>Query routing flexibility</td><td>Workspace-only sharding</td><td>Dozens of keyspaces (channel, user, workspace)</td><td>Enterprise Grid and Slack Connect enabled</td></tr><tr><td>Client boot payload (32K users)</td><td>Full workspace model</td><td>Flannel lazy-loaded</td><td>44x reduction</td></tr><tr><td>Concurrent connections (edge)</td><td>Direct to backend</td><td>4M via Flannel</td><td>5x presence event reduction</td></tr><tr><td>Load balancer config changes</td><td>HAProxy restart (minutes, process leak)</td><td>Envoy xDS (seconds, no restart)</td><td>Operational simplicity</td></tr><tr><td>Failure blast radius</td><td>Cross-AZ cascade possible</td><td>AZ-isolated cells, 5-min drain</td><td>99.99% SLA achieved</td></tr><tr><td>Data residency</td><td>Single-region</td><td>6 Vitess regions</td><td>International compliance</td></tr></tbody></table></div>
+<h3 id="timeline" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#timeline">Timeline</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Year</th><th>Milestone</th></tr></thead><tbody><tr><td>2014</td><td>Slack launches with PHP monolith, workspace-sharded MySQL</td></tr><tr><td>2016</td><td>Vitess evaluation begins; Enterprise Grid requirements emerge</td></tr><tr><td>2017</td><td>First Vitess workloads in production (RSS feed)</td></tr><tr><td>2018</td><td>Disasterpiece Theater chaos engineering program starts</td></tr><tr><td>2019</td><td>Flannel deployed; HAProxy-to-Envoy migration begins</td></tr><tr><td>2020</td><td>99% of MySQL traffic on Vitess; COVID-19 surge handled via online resharding</td></tr><tr><td>2022</td><td>Cellular architecture rollout begins</td></tr><tr><td>2023</td><td>Cellular architecture complete; AZ-level isolation operational</td></tr></tbody></table></div>
+<h3 id="unexpected-benefits" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#unexpected-benefits">Unexpected Benefits</a></h3>
+<ul>
+<li><strong>Vitess community leverage</strong>: Slack’s contributions to Vitess (query compatibility, tooling) improved the platform for all users, and community improvements flowed back to Slack</li>
+<li><strong>Data residency for free</strong>: Vitess’s multi-region keyspace support enabled international data residency without a separate architecture</li>
+<li><strong>Operational standardization</strong>: Vitess replaced non-standard MySQL configurations with a standardized deployment, reducing operational toil</li>
+</ul>
+<h3 id="remaining-limitations" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#remaining-limitations">Remaining Limitations</a></h3>
+<ul>
+<li>The monolith remains the bottleneck for certain product features that require tight cross-concern coordination</li>
+<li>Channel Servers are stateful, making them harder to scale and recover than stateless services</li>
+<li>The “last 1%” of Vitess migration (complex tables with unusual query patterns) required disproportionate effort</li>
+</ul>
+<h2 id="lessons-learned" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#lessons-learned">Lessons Learned</a></h2>
+<h3 id="technical-lessons" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#technical-lessons">Technical Lessons</a></h3>
+<h4 id="1-middleware-preserves-investments" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#1-middleware-preserves-investments">1. Middleware Preserves Investments</a></h4>
+<p><strong>The insight</strong>: Vitess let Slack keep MySQL—their team’s deepest expertise—while gaining the scaling properties of a distributed database. The 4-year migration timeline was manageable because application code required only moderate changes.</p>
+<p><strong>How it applies elsewhere</strong>: When your database is hitting limits, consider middleware (Vitess, ProxySQL, PgBouncer, Citus) before abandoning the storage engine. The application-level compatibility is often worth more than the distributed database’s native features.</p>
+<p><strong>Warning signs</strong>: You might need this when single tenants exceed shard capacity, or when product requirements demand data to cross your current partition boundaries.</p>
+<h4 id="2-edge-caching-buys-more-than-backend-optimization" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#2-edge-caching-buys-more-than-backend-optimization">2. Edge Caching Buys More Than Backend Optimization</a></h4>
+<p><strong>The insight</strong>: Flannel’s 7–44x payload reduction had a larger impact than any backend optimization could achieve. Moving computation (cache warming, lazy loading, proactive prefetching) to the edge solved the startup performance problem structurally.</p>
+<p><strong>How it applies elsewhere</strong>: If your clients all request the same large dataset at connection time, an application-aware edge cache with consistent hashing (so same-tenant clients hit the same cache node) can eliminate the backend bottleneck entirely.</p>
+<p><strong>Warning signs</strong>: Boot/startup latency grows linearly with workspace/tenant size; backend load spikes correlate with user login patterns rather than usage patterns.</p>
+<h4 id="3-stateful-services-need-chaos-testing" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#3-stateful-services-need-chaos-testing">3. Stateful Services Need Chaos Testing</a></h4>
+<p><strong>The insight</strong>: Channel Servers hold 16M channels in memory per host. Slack’s Disasterpiece Theater program deliberately killed Channel Servers, partitioned them, and degraded their dependencies to validate recovery paths. It took three attempts to correctly partition 25% of Channel Servers.</p>
+<p><strong>How it applies elsewhere</strong>: Any system with consistent hashing, in-memory state, or leader election needs regular failure injection—not just for the service itself, but for its dependencies (Consul, ZooKeeper, etcd).</p>
+<p><strong>Warning signs</strong>: You haven’t tested what happens when a stateful node dies and its hash ring segments are reassigned under load.</p>
+<h3 id="process-lessons" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#process-lessons">Process Lessons</a></h3>
+<h4 id="1-table-by-table-migration-creates-a-long-tail" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#1-table-by-table-migration-creates-a-long-tail">1. Table-by-Table Migration Creates a Long Tail</a></h4>
+<p><strong>The insight</strong>: Slack initially migrated Vitess tables one at a time but found that cross-table queries broke when tables lived in different systems. Shifting to whole-shard migrations was operationally simpler.</p>
+<p><strong>What they’d do differently</strong>: Start with whole-shard migration from the beginning, accepting the larger per-batch data movement in exchange for fewer edge cases.</p>
+<h4 id="2-the-sigmoid-adoption-curve" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#2-the-sigmoid-adoption-curve">2. The Sigmoid Adoption Curve</a></h4>
+<p><strong>The insight</strong>: Slack explicitly uses a three-phase adoption model—Exploration (low friction, most experiments fail), Expansion (persuasive demos, internal marketing), Migration (addressing holdouts). The Vitess migration followed this exactly: low-risk RSS workload → gradual table migration → final “hard tables.”</p>
+<p><strong>What they’d do differently</strong>: Internal platform teams should be “client-centric,” treating product teams as customers who can choose whether to adopt—with few exceptions.</p>
+<h3 id="organizational-lessons" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#organizational-lessons">Organizational Lessons</a></h3>
+<h4 id="1-keep-the-monolith-when-it-works" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#1-keep-the-monolith-when-it-works">1. Keep the Monolith When It Works</a></h4>
+<p><strong>The insight</strong>: Slack’s monolith handles 30–40 deploys daily with 150–190 changes merged per day. PHP/Hack’s state isolation provides organic fault tolerance. Rather than a costly decomposition, Slack extracted infrastructure concerns (sharding, caching, real-time) into specialized systems while keeping business logic centralized.</p>
+<p><strong>How organization structure affected the outcome</strong>: A monolith lets any product engineer modify any business flow without cross-team coordination. Extracting infrastructure (Vitess, Flannel, Envoy) into platform teams provided scaling benefits without fragmenting product development velocity.</p>
+<h2 id="applying-this-to-your-system" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#applying-this-to-your-system">Applying This to Your System</a></h2>
+<h3 id="when-this-pattern-applies" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#when-this-pattern-applies">When This Pattern Applies</a></h3>
+<p>You might face similar challenges if:</p>
+<ul>
+<li>Your tenants vary dramatically in size (some 100x larger than average)</li>
+<li>Product requirements are pushing data across your current partition boundaries</li>
+<li>Your real-time requirements demand sub-second delivery to millions of concurrent connections</li>
+<li>You have deep expertise in your current database and can’t afford a full migration</li>
+</ul>
+<h3 id="checklist-for-evaluation" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#checklist-for-evaluation">Checklist for Evaluation</a></h3>
+<ul class="contains-task-list">
+<li class="task-list-item"><input type="checkbox" disabled> Are single tenants exceeding shard capacity?</li>
+<li class="task-list-item"><input type="checkbox" disabled> Do new product features require cross-tenant or cross-partition data access?</li>
+<li class="task-list-item"><input type="checkbox" disabled> Is your database operationally non-standard (custom configs, no online resharding)?</li>
+<li class="task-list-item"><input type="checkbox" disabled> Does client startup latency grow with tenant size?</li>
+<li class="task-list-item"><input type="checkbox" disabled> Could a failure in one availability zone cascade to others?</li>
+</ul>
+<h3 id="starting-points" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#starting-points">Starting Points</a></h3>
+<ol>
+<li><strong>Database middleware</strong>: Evaluate Vitess (MySQL), Citus (PostgreSQL), or ProxySQL as a sharding layer before considering a database change</li>
+<li><strong>Edge caching</strong>: Prototype an application-aware edge cache for your most common client bootstrap query. Measure the payload reduction for your largest tenants.</li>
+<li><strong>Cellular isolation</strong>: Map your service dependencies per AZ. Identify which cross-AZ calls exist and whether they can be eliminated.</li>
+<li><strong>Chaos testing</strong>: Run a tabletop exercise for your stateful services: what happens when one node dies? What about 25% of nodes simultaneously?</li>
+</ol>
+<h2 id="conclusion" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#conclusion">Conclusion</a></h2>
+<p>Slack’s architecture evolution demonstrates that scaling doesn’t require abandoning what works. The PHP monolith still serves as the central coordination point. The distributed systems around it—Vitess for flexible sharding, Flannel for edge caching, Channel/Gateway Servers for real-time delivery, and cellular infrastructure for reliability—each solve a specific scaling limit without imposing a system-wide rewrite.</p>
+<p>The key architectural decisions were: keep MySQL but add Vitess middleware for flexibility; keep the monolith but extract infrastructure concerns; keep stateful real-time servers but validate them with chaos engineering; keep multi-AZ deployment but add cellular isolation for blast radius containment. Each decision preserved existing investments while removing the specific bottleneck that was blocking growth.</p>
+<h2 id="appendix" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#appendix">Appendix</a></h2>
+<h3 id="prerequisites" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#prerequisites">Prerequisites</a></h3>
+<ul>
+<li>Familiarity with database sharding concepts (hash-based partitioning, shard routing)</li>
+<li>Understanding of WebSocket protocols and persistent connections</li>
+<li>Basic knowledge of consistent hashing and its failure properties</li>
+<li>Experience with load balancer architectures (L4/L7, connection draining)</li>
+</ul>
+<h3 id="terminology" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#terminology">Terminology</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Term</th><th>Definition</th></tr></thead><tbody><tr><td><strong>Vitess</strong></td><td>Open-source database clustering system for horizontal scaling of MySQL, originally built at YouTube</td></tr><tr><td><strong>VTGate</strong></td><td>Vitess’s query routing proxy that sits between applications and MySQL</td></tr><tr><td><strong>Keyspace</strong></td><td>Vitess’s logical database unit; maps to one or more MySQL shards with a chosen sharding scheme</td></tr><tr><td><strong>Flannel</strong></td><td>Slack’s custom application-level edge cache for reducing client boot payload</td></tr><tr><td><strong>Channel Server (CS)</strong></td><td>Stateful server managing real-time pub/sub for channels via consistent hashing</td></tr><tr><td><strong>Gateway Server (GS)</strong></td><td>Stateful server terminating WebSocket connections and delivering events to clients</td></tr><tr><td><strong>Mcrouter</strong></td><td>Facebook’s memcached protocol router for horizontal scaling of memcached pools</td></tr><tr><td><strong>Rotor</strong></td><td>Slack’s custom xDS control plane for Envoy configuration</td></tr><tr><td><strong>HHVM</strong></td><td>HipHop Virtual Machine—Facebook’s JIT compiler for PHP and Hack</td></tr><tr><td><strong>Disasterpiece Theater</strong></td><td>Slack’s chaos engineering program for testing failure resilience</td></tr></tbody></table></div>
+<h3 id="summary" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#summary">Summary</a></h3>
+<ul>
+<li>Slack kept its PHP/Hack monolith as the business logic layer while extracting infrastructure concerns (sharding, caching, real-time, load balancing) into specialized distributed systems</li>
+<li>Vitess migration (2016–2020) moved 99% of MySQL traffic to flexible keyspaces, enabling online resharding, Enterprise Grid, Slack Connect, and international data residency across 6 regions</li>
+<li>Flannel edge cache reduced client boot payloads by 7–44x and handles 4M concurrent connections with proactive prefetching</li>
+<li>Real-time messaging uses stateful Channel Servers (~16M channels/host) with consistent hashing, delivering messages globally within 500 ms</li>
+<li>Cellular architecture (2022–2023) isolates failures to individual AZs with 1% granularity traffic draining and 5-minute failover, supporting a 99.99% SLA</li>
+<li>The February 2022 incident demonstrated how coupling between infrastructure layers (Consul upgrades → cache invalidation → database overload) can cascade despite individually sound designs</li>
+</ul>
+<h3 id="references" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#references">References</a></h3>
+<ol>
+<li><a href="https://slack.engineering/scaling-datastores-at-slack-with-vitess/">Scaling Datastores at Slack with Vitess</a> — Slack Engineering (2020). Primary source for Vitess migration details, scale numbers, and architecture evolution.</li>
+<li><a href="https://slack.engineering/flannel-an-application-level-edge-cache-to-make-slack-scale/">Flannel: An Application-Level Edge Cache to Make Slack Scale</a> — Slack Engineering (2019). Flannel architecture, lazy loading, payload reduction numbers.</li>
+<li><a href="https://slack.engineering/real-time-messaging/">Real-Time Messaging</a> — Slack Engineering. Channel Server, Gateway Server, Admin Server, and Presence Server architecture.</li>
+<li><a href="https://slack.engineering/migrating-millions-of-concurrent-websockets-to-envoy/">Migrating Millions of Concurrent WebSockets to Envoy</a> — Slack Engineering. HAProxy-to-Envoy migration strategy and challenges.</li>
+<li><a href="https://slack.engineering/slacks-migration-to-a-cellular-architecture/">Slack’s Migration to a Cellular Architecture</a> — Slack Engineering (2023). AZ isolation, Rotor control plane, traffic draining.</li>
+<li><a href="https://slack.engineering/slacks-incident-on-2-22-22/">Slack’s Incident on 2-22-22</a> — Slack Engineering (2022). Consul upgrade cascade, scatter query amplification, resolution.</li>
+<li><a href="https://slack.engineering/disasterpiece-theater-slacks-process-for-approachable-chaos-engineering/">Disasterpiece Theater: Slack’s Process for Approachable Chaos Engineering</a> — Slack Engineering (2019). Chaos testing methodology, Channel Server partition testing.</li>
+<li><a href="https://slack.engineering/taking-php-seriously/">Taking PHP Seriously</a> — Slack Engineering (2016). PHP/Hack design rationale, HHVM performance.</li>
+<li><a href="https://slack.engineering/the-scary-thing-about-automating-deploys/">The Scary Thing About Automating Deploys</a> — Slack Engineering (2020). ReleaseBot, anomaly detection, deploy frequency.</li>
+<li><a href="https://slack.engineering/how-big-technical-changes-happen-at-slack/">How Big Technical Changes Happen at Slack</a> — Slack Engineering. Sigmoid adoption model, React/Vitess/Hack migration strategies.</li>
+<li><a href="https://slack.engineering/getting-to-slack-faster-with-incremental-boot/">Getting to Slack Faster with Incremental Boot</a> — Slack Engineering. Two-phase boot, rtm.start optimization.</li>
+<li><a href="https://slack.engineering/search-at-slack/">Search at Slack</a> — Slack Engineering (2016). Solr architecture, ML re-ranking, ranking signals.</li>
+<li><a href="https://slack.engineering/reducing-slacks-memory-footprint/">Reducing Slack’s Memory Footprint</a> — Slack Engineering. Dual-client architecture, tiny client design.</li>
+<li><a href="https://slack.engineering/infrastructure-observability-for-changing-the-spend-curve/">Infrastructure Observability for Changing the Spend Curve</a> — Slack Engineering. CI infrastructure, cost optimization.</li>
+<li><a href="https://slack.engineering/how-we-design-our-apis-at-slack/">How We Design Our APIs at Slack</a> — Slack Engineering. API design principles, rtm.start deprecation.</li>
+<li><a href="https://vitess.io/">Vitess</a> — Official Vitess documentation. Architecture, VTGate, keyspaces, resharding workflows.</li>
+</ol> </article>  <section class="article-navigation"> <div class="section-divider"> <span class="section-divider-text">Continue Reading</span> </div> <ul class="article-list"> <li class="article-card"> <p class="article-card-label">Previous</p> <h3 class="article-card-title"> <a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/uber-schemaless-datastore" class="article-card-link">  Uber Schemaless: Building a Scalable Datastore on MySQL </a> </h3> <div class="frontmatter article-card-frontmatter">   <span class="frontmatter-item"> <a title="Category - System Design" href="/legacy-personal-site/v4/articles/system-design" class="frontmatter-link">  System Design </a>  <span class="text-muted">/</span> <a title="Topic - Real-World Case Studies" href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies" class="frontmatter-link">  Real-World Case Studies </a>  </span> <span class="frontmatter-item"> <svg width="1em" height="1em" viewBox="0 0 32 32" class="icon-sm" data-icon="carbon:time">   <use href="#ai:carbon:time"></use>  </svg> 12 min read </span>  </div> <p class="article-card-excerpt"> In early 2014, Uber faced an infrastructure crisis: trip data growth was consuming database capacity so rapidly that their systems would fail by year’s end without intervention. Rather than adopting an existing NoSQL solution, Uber built Schemaless—a thin, horizontally scalable layer on top of MySQL that prioritized operational simplicity over feature richness. This case study examines the architectural decisions that enabled Schemaless to scale from crisis point to billions of trips, the trade-offs inherent in its append-only cell model, and the design patterns that made MySQL work as a distributed datastore. </p> </li> <li class="article-card"> <p class="article-card-label">Next</p> <h3 class="article-card-title"> <a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/linkedin-kafka-origin" class="article-card-link">  LinkedIn and the Birth of Apache Kafka: Solving the O(N²) Data Integration Problem </a> </h3> <div class="frontmatter article-card-frontmatter">   <span class="frontmatter-item"> <a title="Category - System Design" href="/legacy-personal-site/v4/articles/system-design" class="frontmatter-link">  System Design </a>  <span class="text-muted">/</span> <a title="Topic - Real-World Case Studies" href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies" class="frontmatter-link">  Real-World Case Studies </a>  </span> <span class="frontmatter-item"> <svg width="1em" height="1em" viewBox="0 0 32 32" class="icon-sm" data-icon="carbon:time">   <use href="#ai:carbon:time"></use>  </svg> 16 min read </span>  </div> <p class="article-card-excerpt"> In 2010, LinkedIn faced a data infrastructure crisis: connecting 10 specialized data systems required 90 custom pipelines, each prone to failure. Oracle SQL*Loader jobs took 2-3 days with manual babysitting. Despite significant engineering effort, only 14% of their data reached Hadoop. Traditional messaging systems like ActiveMQ required a full TCP/IP roundtrip per message—unacceptable for billions of daily events. Jay Kreps, Neha Narkhede, and Jun Rao built Kafka to solve this: a distributed commit log that decoupled data producers from consumers, enabling any-to-any data flow through a single, scalable pipeline. This case study examines the architectural decisions that made Kafka the backbone of modern data infrastructure. </p> </li> </ul> </section> </div> <footer class="site-footer"> <div class="site-footer-inner">  <nav class="site-footer-categories"> <a title="Browser &#38; Runtime Internals" href="/legacy-personal-site/v4/articles/browser-runtime-internals" class="nav-link">  Browser &amp; Runtime Internals </a><a title="System Design" href="/legacy-personal-site/v4/articles/system-design" class="nav-link">  System Design </a><a title="Platform Engineering" href="/legacy-personal-site/v4/articles/platform-engineering" class="nav-link">  Platform Engineering </a><a title="Frontend Engineering" href="/legacy-personal-site/v4/articles/frontend-engineering" class="nav-link">  Frontend Engineering </a><a title="Web Foundations" href="/legacy-personal-site/v4/articles/web-foundations" class="nav-link">  Web Foundations </a><a title="Programming &#38; Patterns" href="/legacy-personal-site/v4/articles/programming-patterns" class="nav-link">  Programming &amp; Patterns </a><a title="Developer Experience" href="/legacy-personal-site/v4/articles/developer-experience" class="nav-link">  Developer Experience </a> </nav>  <div class="site-footer-bar"> <div class="site-footer-links"> <a href="https://docs.google.com/document/d/1pazXBfzuL9O1wCjPdKb7IS-7nXz_ZzI7EvNL1r_KKRc/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="nav-link">  Resume </a><a href="/legacy-personal-site/v4/tags" class="nav-link">  Tags </a><a href="/legacy-personal-site/v4/articles/drafts" class="nav-link">  Drafts </a> </div> <div class="site-footer-controls">  <div class="site-footer-theme"> <svg width="1em" height="1em" class="site-footer-theme-icon" data-icon="carbon:paint-brush">   <symbol id="ai:carbon:paint-brush" viewBox="0 0 32 32"><path fill="currentColor" d="M28.83 23.17L23 17.33V13a1 1 0 0 0-.29-.71l-10-10a1 1 0 0 0-1.42 0l-9 9a1 1 0 0 0 0 1.42l10 10A1 1 0 0 0 13 23h4.34l5.83 5.84a4 4 0 0 0 5.66-5.66ZM6 10.41l2.29 2.3l1.42-1.42L7.41 9L9 7.41l4.29 4.3l1.42-1.42L10.41 6L12 4.41L18.59 11L11 18.59L4.41 12Zm21.41 17a2 2 0 0 1-2.82 0l-6.13-6.12a1.8 1.8 0 0 0-.71-.29h-4.34l-1-1L20 12.41l1 1v4.34a1 1 0 0 0 .29.7l6.12 6.14a2 2 0 0 1 0 2.82"/></symbol><use href="#ai:carbon:paint-brush"></use>  </svg> <select id="theme-select" class="site-footer-theme-select" aria-label="Select theme"> <option value="auto">Auto</option> <option value="light">Light</option> <option value="dark">Dark</option> <option value="high-contrast-light">High contrast light</option> <option value="high-contrast-dark">High contrast dark</option> <option value="paper">Paper</option> </select> </div>  <div class="site-footer-social"> <a aria-label="GitHub" title="GitHub" href="https://github.com/sujeet-pro" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-github">   <symbol id="ai:carbon:logo-github" viewBox="0 0 32 32"><path fill="currentColor" fill-rule="evenodd" d="M16 2a14 14 0 0 0-4.43 27.28c.7.13 1-.3 1-.67v-2.38c-3.89.84-4.71-1.88-4.71-1.88a3.7 3.7 0 0 0-1.62-2.05c-1.27-.86.1-.85.1-.85a2.94 2.94 0 0 1 2.14 1.45a3 3 0 0 0 4.08 1.16a2.93 2.93 0 0 1 .88-1.87c-3.1-.36-6.37-1.56-6.37-6.92a5.4 5.4 0 0 1 1.44-3.76a5 5 0 0 1 .14-3.7s1.17-.38 3.85 1.43a13.3 13.3 0 0 1 7 0c2.67-1.81 3.84-1.43 3.84-1.43a5 5 0 0 1 .14 3.7a5.4 5.4 0 0 1 1.44 3.76c0 5.38-3.27 6.56-6.39 6.91a3.33 3.33 0 0 1 .95 2.59v3.84c0 .46.25.81 1 .67A14 14 0 0 0 16 2"/></symbol><use href="#ai:carbon:logo-github"></use>  </svg>  </a> <a aria-label="LinkedIn" title="LinkedIn" href="https://www.linkedin.com/in/sujeetkrjaiswal/" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-linkedin">   <symbol id="ai:carbon:logo-linkedin" viewBox="0 0 32 32"><path fill="currentColor" d="M26.2 4H5.8C4.8 4 4 4.8 4 5.7v20.5c0 .9.8 1.7 1.8 1.7h20.4c1 0 1.8-.8 1.8-1.7V5.7c0-.9-.8-1.7-1.8-1.7M11.1 24.4H7.6V13h3.5zm-1.7-13c-1.1 0-2.1-.9-2.1-2.1s.9-2.1 2.1-2.1c1.1 0 2.1.9 2.1 2.1s-1 2.1-2.1 2.1m15.1 12.9H21v-5.6c0-1.3 0-3.1-1.9-3.1S17 17.1 17 18.5v5.7h-3.5V13h3.3v1.5h.1c.5-.9 1.7-1.9 3.4-1.9c3.6 0 4.3 2.4 4.3 5.5v6.2z"/></symbol><use href="#ai:carbon:logo-linkedin"></use>  </svg>  </a> <a aria-label="Twitter" title="Twitter" href="https://twitter.com/sujeetpro" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-twitter">   <symbol id="ai:carbon:logo-twitter" viewBox="0 0 32 32"><path fill="currentColor" d="M11.548 25.752c9.056 0 14.01-7.503 14.01-14.01c0-.213 0-.425-.015-.636A10 10 0 0 0 28 8.556a9.8 9.8 0 0 1-2.828.776a4.94 4.94 0 0 0 2.164-2.724a9.9 9.9 0 0 1-3.126 1.195a4.929 4.929 0 0 0-8.392 4.491A13.98 13.98 0 0 1 5.67 7.15a4.93 4.93 0 0 0 1.525 6.573a4.9 4.9 0 0 1-2.235-.617v.063a4.926 4.926 0 0 0 3.95 4.827a4.9 4.9 0 0 1-2.223.084a4.93 4.93 0 0 0 4.6 3.42A9.88 9.88 0 0 1 4 23.54a13.94 13.94 0 0 0 7.547 2.209"/></symbol><use href="#ai:carbon:logo-twitter"></use>  </svg>  </a> </div> </div> </div>  <p class="site-footer-copyright">
+&copy; 2024-2026 Sujeet Jaiswal </p> </div> </footer> </main> <aside id="right-sidebar" class="zen-sidebar zen-sidebar-right" aria-label="Table of contents"> <div class="zen-sidebar-header"> <span class="zen-sidebar-header-title">On This Page</span> <button class="zen-sidebar-close" data-sidebar-close="right" aria-label="Close table of contents"> <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5"> <path d="M8 8l16 16M24 8L8 24"></path> </svg> </button> </div> <div class="zen-sidebar-content"> <nav aria-label="Table of contents"><h2 class="sidebar-nav-title">On this page</h2><ul class="sidebar-toc-list"><li><a href="#abstract" class="sidebar-toc-item">Abstract</a></li><li><a href="#context" class="sidebar-toc-item">Context</a></li><li><a href="#the-system" class="sidebar-toc-item sidebar-toc-item--h3">The System</a></li><li><a href="#scale-as-of-20202023" class="sidebar-toc-item sidebar-toc-item--h3">Scale (as of 2020–2023)</a></li><li><a href="#the-tech-stack" class="sidebar-toc-item sidebar-toc-item--h3">The Tech Stack</a></li><li><a href="#the-trigger" class="sidebar-toc-item sidebar-toc-item--h3">The Trigger</a></li><li><a href="#the-problem" class="sidebar-toc-item">The Problem</a></li><li><a href="#pre-vitess-database-architecture" class="sidebar-toc-item sidebar-toc-item--h3">Pre-Vitess Database Architecture</a></li><li><a href="#why-this-architecture-hit-its-limits" class="sidebar-toc-item sidebar-toc-item--h3">Why This Architecture Hit Its Limits</a></li><li><a href="#why-it-wasnt-obvious" class="sidebar-toc-item sidebar-toc-item--h3">Why It Wasn’t Obvious</a></li><li><a href="#options-considered" class="sidebar-toc-item">Options Considered</a></li><li><a href="#option-1-custom-resharding-tooling" class="sidebar-toc-item sidebar-toc-item--h3">Option 1: Custom Resharding Tooling</a></li><li><a href="#option-2-migrate-to-a-different-database" class="sidebar-toc-item sidebar-toc-item--h3">Option 2: Migrate to a Different Database</a></li><li><a href="#option-3-vitess-chosen" class="sidebar-toc-item sidebar-toc-item--h3">Option 3: Vitess (Chosen)</a></li><li><a href="#decision-factors" class="sidebar-toc-item sidebar-toc-item--h3">Decision Factors</a></li><li><a href="#implementation" class="sidebar-toc-item">Implementation</a></li><li><a href="#phase-1-vitess-adoption-20162017" class="sidebar-toc-item sidebar-toc-item--h3">Phase 1: Vitess Adoption (2016–2017)</a></li><li><a href="#phase-2-migration-infrastructure-20172019" class="sidebar-toc-item sidebar-toc-item--h3">Phase 2: Migration Infrastructure (2017–2019)</a></li><li><a href="#phase-3-production-migration-20192020" class="sidebar-toc-item sidebar-toc-item--h3">Phase 3: Production Migration (2019–2020)</a></li><li><a href="#covid-19-stress-test-march-2020" class="sidebar-toc-item sidebar-toc-item--h3">COVID-19 Stress Test (March 2020)</a></li><li><a href="#slacks-contributions-back-to-vitess" class="sidebar-toc-item sidebar-toc-item--h3">Slack’s Contributions Back to Vitess</a></li><li><a href="#real-time-messaging-architecture" class="sidebar-toc-item">Real-Time Messaging Architecture</a></li><li><a href="#component-architecture" class="sidebar-toc-item sidebar-toc-item--h3">Component Architecture</a></li><li><a href="#message-flow" class="sidebar-toc-item sidebar-toc-item--h3">Message Flow</a></li><li><a href="#connection-flow" class="sidebar-toc-item sidebar-toc-item--h3">Connection Flow</a></li><li><a href="#the-consistent-hashing-trade-off" class="sidebar-toc-item sidebar-toc-item--h3">The Consistent Hashing Trade-off</a></li><li><a href="#flannel-the-edge-cache" class="sidebar-toc-item">Flannel: The Edge Cache</a></li><li><a href="#the-problem-flannel-solves" class="sidebar-toc-item sidebar-toc-item--h3">The Problem Flannel Solves</a></li><li><a href="#how-flannel-works" class="sidebar-toc-item sidebar-toc-item--h3">How Flannel Works</a></li><li><a href="#performance-impact" class="sidebar-toc-item sidebar-toc-item--h3">Performance Impact</a></li><li><a href="#presence-event-optimization" class="sidebar-toc-item sidebar-toc-item--h3">Presence Event Optimization</a></li><li><a href="#load-balancing-haproxy-to-envoy-migration" class="sidebar-toc-item">Load Balancing: HAProxy to Envoy Migration</a></li><li><a href="#why-haproxy-was-replaced" class="sidebar-toc-item sidebar-toc-item--h3">Why HAProxy Was Replaced</a></li><li><a href="#migration-strategy" class="sidebar-toc-item sidebar-toc-item--h3">Migration Strategy</a></li><li><a href="#cellular-architecture-20222023" class="sidebar-toc-item">Cellular Architecture (2022–2023)</a></li><li><a href="#design" class="sidebar-toc-item sidebar-toc-item--h3">Design</a></li><li><a href="#traffic-routing" class="sidebar-toc-item sidebar-toc-item--h3">Traffic Routing</a></li><li><a href="#az-drain-process" class="sidebar-toc-item sidebar-toc-item--h3">AZ Drain Process</a></li><li><a href="#why-this-matters" class="sidebar-toc-item sidebar-toc-item--h3">Why This Matters</a></li><li><a href="#the-webapp-why-a-monolith-still-works" class="sidebar-toc-item">The Webapp: Why a Monolith Still Works</a></li><li><a href="#why-php" class="sidebar-toc-item sidebar-toc-item--h3">Why PHP</a></li><li><a href="#the-thin-monolith-pattern" class="sidebar-toc-item sidebar-toc-item--h3">The “Thin Monolith” Pattern</a></li><li><a href="#incident-february-22-2022" class="sidebar-toc-item">Incident: February 22, 2022</a></li><li><a href="#root-cause" class="sidebar-toc-item sidebar-toc-item--h3">Root Cause</a></li><li><a href="#cascade" class="sidebar-toc-item sidebar-toc-item--h3">Cascade</a></li><li><a href="#resolution" class="sidebar-toc-item sidebar-toc-item--h3">Resolution</a></li><li><a href="#lesson" class="sidebar-toc-item sidebar-toc-item--h3">Lesson</a></li><li><a href="#search-architecture" class="sidebar-toc-item">Search Architecture</a></li><li><a href="#indexing" class="sidebar-toc-item sidebar-toc-item--h3">Indexing</a></li><li><a href="#ml-re-ranking" class="sidebar-toc-item sidebar-toc-item--h3">ML Re-Ranking</a></li><li><a href="#outcome" class="sidebar-toc-item">Outcome</a></li><li><a href="#metrics-comparison" class="sidebar-toc-item sidebar-toc-item--h3">Metrics Comparison</a></li><li><a href="#timeline" class="sidebar-toc-item sidebar-toc-item--h3">Timeline</a></li><li><a href="#unexpected-benefits" class="sidebar-toc-item sidebar-toc-item--h3">Unexpected Benefits</a></li><li><a href="#remaining-limitations" class="sidebar-toc-item sidebar-toc-item--h3">Remaining Limitations</a></li><li><a href="#lessons-learned" class="sidebar-toc-item">Lessons Learned</a></li><li><a href="#technical-lessons" class="sidebar-toc-item sidebar-toc-item--h3">Technical Lessons</a></li><li><a href="#process-lessons" class="sidebar-toc-item sidebar-toc-item--h3">Process Lessons</a></li><li><a href="#organizational-lessons" class="sidebar-toc-item sidebar-toc-item--h3">Organizational Lessons</a></li><li><a href="#applying-this-to-your-system" class="sidebar-toc-item">Applying This to Your System</a></li><li><a href="#when-this-pattern-applies" class="sidebar-toc-item sidebar-toc-item--h3">When This Pattern Applies</a></li><li><a href="#checklist-for-evaluation" class="sidebar-toc-item sidebar-toc-item--h3">Checklist for Evaluation</a></li><li><a href="#starting-points" class="sidebar-toc-item sidebar-toc-item--h3">Starting Points</a></li><li><a href="#conclusion" class="sidebar-toc-item">Conclusion</a></li><li><a href="#appendix" class="sidebar-toc-item">Appendix</a></li><li><a href="#prerequisites" class="sidebar-toc-item sidebar-toc-item--h3">Prerequisites</a></li><li><a href="#terminology" class="sidebar-toc-item sidebar-toc-item--h3">Terminology</a></li><li><a href="#summary" class="sidebar-toc-item sidebar-toc-item--h3">Summary</a></li><li><a href="#references" class="sidebar-toc-item sidebar-toc-item--h3">References</a></li></ul></nav> </div> </aside> </div>  <div id="sidebar-backdrop" class="zen-sidebar-backdrop"></div>  <!-- Image Modal --><div id="image-modal" class="image-modal" role="dialog" aria-modal="true" aria-label="Image viewer"> <div class="image-modal-backdrop"></div> <div class="image-modal-content"> <div class="image-modal-header"> <div class="image-modal-controls"> <button type="button" id="image-zoom-out" class="image-modal-btn" aria-label="Zoom out" title="Zoom out"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <circle cx="11" cy="11" r="8"></circle> <line x1="21" y1="21" x2="16.65" y2="16.65"></line> <line x1="8" y1="11" x2="14" y2="11"></line> </svg> </button> <span id="image-zoom-level" class="image-zoom-level">1.0X</span> <button type="button" id="image-zoom-in" class="image-modal-btn" aria-label="Zoom in" title="Zoom in"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <circle cx="11" cy="11" r="8"></circle> <line x1="21" y1="21" x2="16.65" y2="16.65"></line> <line x1="11" y1="8" x2="11" y2="14"></line> <line x1="8" y1="11" x2="14" y2="11"></line> </svg> </button> <button type="button" id="image-zoom-reset" class="image-modal-btn" aria-label="Reset zoom" title="Reset zoom"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path> <path d="M3 3v5h5"></path> </svg> </button> </div> <button type="button" id="image-modal-close" class="image-modal-btn image-modal-close" aria-label="Close image viewer"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <line x1="18" y1="6" x2="6" y2="18"></line> <line x1="6" y1="6" x2="18" y2="18"></line> </svg> </button> </div> <div class="image-modal-body" id="image-modal-body"> <!-- Cloned image will be inserted here --> </div> </div> </div> <script type="module" src="/legacy-personal-site/v4/_astro/image-modal.astro_astro_type_script_index_0_lang.DaIybCtt.js"></script>  <!-- Google Analytics 4 --><script async src="https://www.googletagmanager.com/gtag/js?id=G-1Z2TP5LG65"></script> <script>(function(){const GA_MEASUREMENT_ID = "G-1Z2TP5LG65";
+
+  window.dataLayer = window.dataLayer || []
+  function gtag() {
+    dataLayer.push(arguments)
+  }
+  gtag("js", new Date())
+  gtag("config", GA_MEASUREMENT_ID)
+})();</script> <script type="module" src="/legacy-personal-site/v4/_astro/sidebar-toggle.astro_astro_type_script_index_0_lang.BjmuyXEJ.js"></script> <script type="module">function l(){const s=document.getElementById("main");if(!s)return;const n=Array.from(s.querySelectorAll("h2[id], h3[id]"));if(n.length===0)return;const o=document.querySelectorAll("#right-sidebar .sidebar-toc-item");if(o.length===0)return;const c=new Map;o.forEach(t=>{const e=t.getAttribute("href");e?.startsWith("#")&&c.set(e.slice(1),t)});let r=null;const i=new Set;function f(t){const e=c.get(t);!e||e===r||(r?.classList.remove("is-active"),e.classList.add("is-active"),r=e,e.scrollIntoView({block:"nearest",behavior:"smooth"}))}const a=new IntersectionObserver(t=>{if(t.forEach(e=>{const d=e.target.id;e.isIntersecting?i.add(d):i.delete(d)}),i.size>0){for(const e of n)if(i.has(e.id)){f(e.id);break}}},{rootMargin:"-80px 0px -75% 0px"});n.forEach(t=>a.observe(t)),document.addEventListener("astro:before-swap",()=>{a.disconnect()},{once:!0})}l();document.addEventListener("astro:page-load",l);</script> <script type="module">function c(e,t){const n=window.__themeConfig.THEME_LABELS,o=window.getNextTheme();e.setAttribute("aria-label",`Theme: ${n[t]}. Click to cycle.`),e.title=`Switch to ${n[o]}`,e.dataset.theme=t,e.querySelectorAll("[data-theme-icon]").forEach(a=>{a.style.display=a.dataset.themeIcon===t?"block":"none"})}function s(e,t){e.value!==t&&(e.value=t)}function m(e){e.dataset.themeInit||(e.dataset.themeInit="true",e.addEventListener("click",()=>{const t=window.getNextTheme();window.applySiteTheme(t)}))}function r(e){e.dataset.themeInit||(e.dataset.themeInit="true",e.addEventListener("change",()=>{const t=e.value;window.__themeConfig.THEMES.includes(t)&&window.applySiteTheme(t)}))}function u(){const e=document.documentElement;if(e.dataset.themeObserverInit)return;e.dataset.themeObserverInit="true",new MutationObserver(()=>{const n=e.dataset.theme||"auto",o=document.getElementById("theme-toggle-btn");o&&c(o,n);const i=document.getElementById("theme-select");i&&s(i,n)}).observe(e,{attributes:!0,attributeFilter:["data-theme"]})}function d(){const e=document.documentElement.dataset.theme||"auto",t=document.getElementById("theme-toggle-btn");t&&(c(t,e),m(t));const n=document.getElementById("theme-select");n&&(s(n,e),r(n)),u()}d();document.addEventListener("astro:page-load",d);</script> <script type="module" src="/legacy-personal-site/v4/_astro/docsearch.astro_astro_type_script_index_0_lang.B0uJCub6.js"></script> <script type="module">function a(){function r(){const n=document.documentElement.dataset.colorScheme==="dark";document.querySelectorAll(".mermaid-diagram").forEach(e=>{const t=n?e.dataset.srcDark:e.dataset.srcLight;t&&e.src!==new URL(t,location.origin).href&&(e.src=t)})}r(),new MutationObserver(()=>r()).observe(document.documentElement,{attributes:!0,attributeFilter:["data-color-scheme"]})}document.addEventListener("DOMContentLoaded",a);document.addEventListener("astro:page-load",a);</script> </body> </html> 

@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en-US" class="no-js color-scheme-auto theme-paper"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light dark"><script>(function(){try{var p=JSON.parse(localStorage.getItem('pagesmith-theme'));if(p){var d=document.documentElement;if(p.colorScheme)d.className=d.className.replace(/color-scheme-\w+/,'color-scheme-'+p.colorScheme);if(p.theme)d.className=d.className.replace(/theme-\w[\w-]*/,'theme-'+p.theme);if(p.textSize&&p.textSize!=='base')d.dataset.textSize=p.textSize}}catch(e){}})();</script><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://www.google-analytics.com https://analytics.google.com; object-src 'none'; base-uri 'self'; form-action 'self'"><meta name="referrer" content="strict-origin-when-cross-origin"><title>Chrome Developer Setup: Extensions, Profiles, and Shortcuts — Sujeet Jaiswal - Principal Software Engineer</title><meta name="description" content="Omnibox keyword shortcuts for instant Jira, Confluence, and AI tool access; profile isolation for multi-account workflows; browser-agnostic extensions; and what Manifest V3 changed for ad blockers — a Chrome configuration tuned for developer productivity in 2026."><link rel="canonical" href="https://projects.sujeet.pro/legacy-personal-site/v5/blogs/chrome-developer-setup"><meta property="og:type" content="article"><meta property="og:url" content="https://projects.sujeet.pro/legacy-personal-site/v5/blogs/chrome-developer-setup"><meta property="og:title" content="Chrome Developer Setup: Extensions, Profiles, and Shortcuts — Sujeet Jaiswal - Principal Software Engineer"><meta property="og:description" content="Omnibox keyword shortcuts for instant Jira, Confluence, and AI tool access; profile isolation for multi-account workflows; browser-agnostic extensions; and what Manifest V3 changed for ad blockers — a Chrome configuration tuned for developer productivity in 2026."><meta property="og:locale" content="en_US"><meta property="og:site_name" content="Sujeet Jaiswal"><meta property="article:author" content="Sujeet Jaiswal"><meta property="article:published_time" content="2026-02-03T00:00:00.000Z"><meta property="article:modified_time" content="Tue Apr 21 2026 05:30:00 GMT+0530 (India Standard Time)"><meta property="article:tag" content="Productivity"><meta property="article:tag" content="Developer Experience"><meta property="article:tag" content="Browser"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="Chrome Developer Setup: Extensions, Profiles, and Shortcuts — Sujeet Jaiswal - Principal Software Engineer"><meta name="twitter:description" content="Omnibox keyword shortcuts for instant Jira, Confluence, and AI tool access; profile isolation for multi-account workflows; browser-agnostic extensions; and what Manifest V3 changed for ad blockers — a Chrome configuration tuned for developer productivity in 2026."><meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#020617" media="(prefers-color-scheme: dark)"><link rel="preload" href="/legacy-personal-site/v5/assets/fonts/open-sans-variable.63a65b9b.woff2" as="font" type="font/woff2" crossorigin=""><link rel="preconnect" href="https://www.googletagmanager.com" crossorigin=""><link rel="stylesheet" href="/legacy-personal-site/v5/pagefind/pagefind-component-ui.css"><link rel="stylesheet" href="/legacy-personal-site/v5/assets/index-BlmQN5MU.d5ff1cea.css"><script>document.documentElement.classList.remove('no-js')</script><script src="/legacy-personal-site/v5/pagefind/pagefind-component-ui.js" type="module"></script><script async src="https://www.googletagmanager.com/gtag/js?id=G-1Z2TP5LG65"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-1Z2TP5LG65');</script></head><body><header class="doc-header"><a href="#doc-main-content" class="doc-skip-link" data-skip-link="" onclick="document.getElementById('doc-main-content')?.focus()">Skip to main content</a><div class="doc-header-inner"><div class="doc-header-left"><button type="button" class="doc-sidebar-toggle" aria-label="Toggle navigation" aria-controls="sidebar-modal" aria-expanded="false" data-sidebar-toggle=""><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 5h14M3 10h14M3 15h14"/></svg></button><a href="/legacy-personal-site/v5" class="doc-logo">Sujeet Jaiswal</a></div><nav class="doc-nav" aria-label="Primary navigation"><a href="/legacy-personal-site/v5/articles">Articles</a><a href="/legacy-personal-site/v5/blogs" class="active">Blogs</a></nav><div class="doc-header-right"><pagefind-modal-trigger class="doc-search-trigger"></pagefind-modal-trigger><div class="doc-theme-toggle no-js-hidden" data-theme-toggle="" data-ps-theme-controls=""><button type="button" class="doc-theme-toggle-btn" aria-label="Change theme" aria-expanded="false" aria-haspopup="true" aria-controls="doc-theme-dropdown" data-theme-toggle-btn="" data-ps-theme-toggle-button=""><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="10" cy="10" r="4"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.93 4.93l1.41 1.41M13.66 13.66l1.41 1.41M4.93 15.07l1.41-1.41M13.66 6.34l1.41-1.41"/></svg></button><div id="doc-theme-dropdown" class="doc-theme-dropdown" data-theme-dropdown="" data-ps-theme-dropdown="" hidden><fieldset class="doc-theme-group"><legend>Appearance</legend><label class="doc-theme-option" data-scheme="auto"><input type="radio" name="colorScheme" value="auto" checked>Auto</label><label class="doc-theme-option" data-scheme="light"><input type="radio" name="colorScheme" value="light">Light</label><label class="doc-theme-option" data-scheme="dark"><input type="radio" name="colorScheme" value="dark">Dark</label></fieldset><fieldset class="doc-theme-group"><legend>Theme</legend><label class="doc-theme-option" data-theme="paper"><input type="radio" name="theme" value="paper" checked>Paper</label><label class="doc-theme-option" data-theme="high-contrast"><input type="radio" name="theme" value="high-contrast">High Contrast</label></fieldset><fieldset class="doc-theme-group"><legend>Text Size</legend><div class="doc-text-size-options"><label class="doc-text-size-option" title="Small"><input class="sr-only" type="radio" name="textSize" value="small"><span class="doc-text-size-label" data-size="small" aria-hidden="true">A</span><span class="sr-only">Small text size</span></label><label class="doc-text-size-option" title="Default"><input class="sr-only" type="radio" name="textSize" value="base" checked><span class="doc-text-size-label" data-size="base" aria-hidden="true">A</span><span class="sr-only">Default text size</span></label><label class="doc-text-size-option" title="Large"><input class="sr-only" type="radio" name="textSize" value="large"><span class="doc-text-size-label" data-size="large" aria-hidden="true">A</span><span class="sr-only">Large text size</span></label></div></fieldset></div></div></div></div></header><div class="doc-layout"><aside class="doc-sidebar"><nav class="doc-sidebar-nav" aria-label="Documentation navigation"><div class="doc-sidebar-section"><p class="doc-sidebar-heading">Blogs</p><ul class="doc-sidebar-list "><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/blogs/system-setup" class="doc-sidebar-link">macOS System Setup</a></li><li class="doc-sidebar-item active "><a href="/legacy-personal-site/v5/blogs/chrome-developer-setup" class="doc-sidebar-link">Chrome Developer Setup: Extensions, Profiles, and Shortcuts</a></li></ul></div></nav></aside><div class="doc-content"><nav class="doc-breadcrumbs" aria-label="Breadcrumbs"><a href="/legacy-personal-site/v5/blogs">Blogs</a><span class="doc-breadcrumb-sep" aria-hidden="true">/</span><span aria-current="page">Chrome Developer Setup: Extensions, Profiles, and Shortcuts</span></nav><details class="doc-toc-mobile"><summary>On this page</summary><nav class="doc-toc" aria-label="Table of contents" data-ps-toc=""><p class="doc-toc-title">On this page</p><ul class="doc-toc-list"><li class="doc-toc-item depth-2"><a href="#the-mental-model">The mental model</a></li><li class="doc-toc-item depth-2"><a href="#address-bar-keywords">Address bar keywords</a></li><li class="doc-toc-item depth-3"><a href="#development--work-tools">Development &amp; work tools</a></li><li class="doc-toc-item depth-3"><a href="#ai-tools">AI tools</a></li><li class="doc-toc-item depth-3"><a href="#google-workspace">Google Workspace</a></li><li class="doc-toc-item depth-3"><a href="#entertainment--shopping">Entertainment &amp; shopping</a></li><li class="doc-toc-item depth-3"><a href="#utilities">Utilities</a></li><li class="doc-toc-item depth-2"><a href="#chrome-profiles">Chrome profiles</a></li><li class="doc-toc-item depth-2"><a href="#essential-extensions">Essential extensions</a></li><li class="doc-toc-item depth-3"><a href="#cross-browser-sync">Cross-browser sync</a></li><li class="doc-toc-item depth-3"><a href="#development">Development</a></li><li class="doc-toc-item depth-3"><a href="#ai-integration">AI integration</a></li><li class="doc-toc-item depth-2"><a href="#conclusion">Conclusion</a></li><li class="doc-toc-item depth-2"><a href="#appendix">Appendix</a></li><li class="doc-toc-item depth-3"><a href="#prerequisites">Prerequisites</a></li><li class="doc-toc-item depth-3"><a href="#terminology">Terminology</a></li><li class="doc-toc-item depth-3"><a href="#summary">Summary</a></li><li class="doc-toc-item depth-3"><a href="#references">References</a></li><li class="doc-toc-item depth-2"><a href="#footnote-label">Footnotes</a></li></ul></nav></details><main><article id="doc-main-content" tabindex="-1" data-pagefind-body=""><div class="site-content-meta"><div class="site-content-meta-row"><span>Published Feb 3, 2026</span><span>Updated Apr 21, 2026</span></div><div class="site-tag-list" aria-label="Tags"><span class="site-pill site-pill-subtle">Productivity</span><span class="site-pill site-pill-subtle">Developer Experience</span><span class="site-pill site-pill-subtle">Browser</span></div></div><div class="prose"><h1 id="chrome-developer-setup-extensions-profiles-and-shortcuts"><a href="#chrome-developer-setup-extensions-profiles-and-shortcuts">Chrome Developer Setup: Extensions, Profiles, and Shortcuts</a></h1>
+<p>A Chrome configuration optimized for senior developers: omnibox keywords for instant navigation, browser-agnostic tooling for cross-browser testing, and profile isolation for multi-account workflows.</p>
+<p><figure class="ps-figure ps-figure-themed ps-figure-zoomable"><picture><source srcset="/legacy-personal-site/v5/assets/omnibox-keyword-expansion-dark.950ebc9b.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" data-scheme="dark"><source srcset="/legacy-personal-site/v5/assets/omnibox-keyword-expansion-light.64000918.svg" type="image/svg+xml" data-scheme="light"><img src="/legacy-personal-site/v5/assets/omnibox-keyword-expansion-light.64000918.svg" alt="Sequence: typing a keyword in the omnibox triggers site search lookup, template expansion, and navigation" width="692" height="583" style="max-width:min(692px,100%)"></picture><figcaption>How a keyword like j 123 turns into a Jira URL — Chrome looks up the keyword, switches the omnibox into search mode, substitutes %s, and navigates.</figcaption><button type="button" class="ps-img-zoom-btn" hidden aria-label="Zoom image" data-ps-img-zoom-btn=""><svg class="ps-img-zoom-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6"></path></svg></button></figure></p>
+<h2 id="the-mental-model"><a href="#the-mental-model">The mental model</a></h2>
+<p>Chrome’s omnibox functions as a command-line dispatcher when you wire it up with custom site search shortcuts. Each shortcut binds a keyword to a URL template containing <code>%s</code> as a query placeholder — typing <code>j 123</code> expands to <code>https://company.atlassian.net/secure/QuickSearch.jspa?searchString=123</code> and navigates there directly<sup><a href="#user-content-fn-chrome-site-search" id="user-content-fnref-chrome-site-search" data-footnote-ref aria-describedby="footnote-label">1</a></sup>.</p>
+<p>The full setup boils down to five ideas:</p>
+<ol>
+<li><strong>Omnibox = dispatch layer.</strong> Keywords match a registry, the template expands, and the browser navigates without ever touching a search results page.</li>
+<li><strong>AI tool URL parameters are uneven.</strong> As of April 2026, only Perplexity’s <code>?q=</code> reliably auto-submits; Claude’s <code>?q=</code> stopped working in October 2025 and ChatGPT’s was hardened in July 2025 after a <a href="https://www.tenable.com/security/research/tra-2025-22" rel="noopener noreferrer" target="_blank">Tenable prompt-injection disclosure</a>.</li>
+<li><strong>Browser-agnostic tools = portability.</strong> Raindrop.io and Bitwarden sync across Chrome, Firefox, Arc, and Brave so testing in another engine never costs you bookmarks or credentials.</li>
+<li><strong>Profile isolation = context separation.</strong> Each Chrome profile keeps its own cookies, extensions, and search engines, which is what makes work/personal/testing separation tractable.</li>
+<li><strong>Manifest V3 is the floor, not the ceiling.</strong> Chrome 139 (June 2025) removed Manifest V2 entirely<sup><a href="#user-content-fn-mv2-timeline" id="user-content-fnref-mv2-timeline" data-footnote-ref aria-describedby="footnote-label">2</a></sup>. uBlock Origin Lite operates inside the <a href="https://developer.chrome.com/docs/extensions/reference/api/declarativeNetRequest" rel="noopener noreferrer" target="_blank"><code>declarativeNetRequest</code></a> (DNR) limits; the original uBlock Origin survives only on Firefox and on Brave’s MV2 backend.</li>
+</ol>
+<p>The payoff: developers context-switch constantly between Jira, Confluence, AI tools, and Google Workspace. Omnibox shortcuts collapse each lookup to a single keyboard action; the rest of this post is the catalogue I actually use, plus the trade-offs that come with the platform shifts of the last year.</p>
+<hr>
+<h2 id="address-bar-keywords"><a href="#address-bar-keywords">Address bar keywords</a></h2>
+<p>Chrome’s site search shortcuts (Settings → Search engine → Manage search engines and site search) let you define custom URL templates. Type the keyword followed by a space (or Tab), and Chrome enters “search mode” for that shortcut — your query replaces <code>%s</code> in the template<sup><a href="#user-content-fn-chrome-site-search" id="user-content-fnref-chrome-site-search-2" data-footnote-ref aria-describedby="footnote-label">1</a></sup>.</p>
+<p><strong>Setup:</strong> Navigate to <code>chrome://settings/searchEngines</code>, scroll to <strong>Site search</strong>, click <strong>Add</strong>.</p>
+<p>Each shortcut stores three fields:</p>
+<ul>
+<li><strong>Name</strong> — display label (for example, “Jira Quick Search”).</li>
+<li><strong>Shortcut</strong> — the keyword you type (<code>j</code>).</li>
+<li><strong>URL</strong> — template with <code>%s</code> placeholder (<code>https://company.atlassian.net/secure/QuickSearch.jspa?searchString=%s</code>).</li>
+</ul>
+<p>When you type <code>j 123</code> and press Enter, Chrome substitutes <code>123</code> for <code>%s</code> and navigates directly. The space after the keyword triggers search mode; Tab is an explicit alternative when the keyword overlaps with a domain.</p>
+<div class="markdown-alert markdown-alert-note">
+<p class="markdown-alert-title"><span class="octicon octicon-note" style="--oct-icon: url(&#x22;data:image/svg+xml;utf8,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; class=&#x27;octicon octicon-info mr-2&#x27; viewBox=&#x27;0 0 16 16&#x27; version=&#x27;1.1&#x27; width=&#x27;16&#x27; height=&#x27;16&#x27; aria-hidden=&#x27;true&#x27;%3E%3Cpath d=&#x27;M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z&#x27;%3E%3C/path%3E%3C/svg%3E&#x22;)"></span>Note</p>
+<p><strong>Site search shortcuts do not sync across devices.</strong> Chrome syncs bookmarks, history, passwords, and extensions, but custom search engines remain device-local — this has been the case for years and was still true in Chrome 147<sup><a href="#user-content-fn-chrome-sync" id="user-content-fnref-chrome-sync" data-footnote-ref aria-describedby="footnote-label">3</a></sup>. There’s no native export/import; recreate them per device, or use a third-party shortcuts manager that supports JSON export.</p>
+</div>
+<h3 id="development--work-tools"><a href="#development--work-tools">Development &#x26; work tools</a></h3>
+<blockquote>
+<p>Replace <code>&#x3C;your-company-name></code> and <code>&#x3C;your-project-code></code> with your actual Jira/Atlassian values.</p>
+</blockquote>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th align="left">Tool</th>
+<th align="left">Keyword</th>
+<th align="left">URL template</th>
+<th align="left">Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><strong>Jira (Smart Search)</strong></td>
+<td align="left"><code>j</code></td>
+<td align="left"><code>https://&#x3C;your-company-name>.atlassian.net/secure/QuickSearch.jspa?searchString=%s</code></td>
+<td align="left"><code>j 123</code> (jumps to ticket) or <code>j login bug</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Jira (Project)</strong></td>
+<td align="left"><code>jp</code></td>
+<td align="left"><code>https://&#x3C;your-company-name>.atlassian.net/issues?jql=textfields~"%s" AND project="&#x3C;your-project-code>"</code></td>
+<td align="left"><code>jp checkout</code> (searches only this project)</td>
+</tr>
+<tr>
+<td align="left"><strong>Jira Ticket</strong></td>
+<td align="left"><code>jt</code></td>
+<td align="left"><code>https://&#x3C;your-company-name>.atlassian.net/browse/&#x3C;your-project-code>-%s</code></td>
+<td align="left"><code>jt 125</code> (opens ticket <code>&#x3C;project-code>-125</code>)</td>
+</tr>
+<tr>
+<td align="left"><strong>Confluence</strong></td>
+<td align="left"><code>cf</code></td>
+<td align="left"><code>https://&#x3C;your-company-name>.atlassian.net/wiki/search?text=%s</code></td>
+<td align="left"><code>cf onboarding</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Bitbucket</strong></td>
+<td align="left"><code>bb</code></td>
+<td align="left"><code>https://bitbucket.org/search?q=%s</code></td>
+<td align="left"><code>bb repo_name</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Chrome Web Store</strong></td>
+<td align="left"><code>ext</code></td>
+<td align="left"><code>https://chrome.google.com/webstore/search/%s</code></td>
+<td align="left"><code>ext json viewer</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Jira’s Smart Search (<code>QuickSearch.jspa</code>) is the high-leverage one: it accepts ticket numbers, free text, and JQL fragments, so <code>j PROJ-123</code> opens a ticket and <code>j login bug</code> searches across projects. The project-scoped <code>jp</code> shortcut adds a JQL <code>project="..."</code> filter to constrain results when you’re heads-down on one codebase.</p>
+<h3 id="ai-tools"><a href="#ai-tools">AI tools</a></h3>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th align="left">Tool</th>
+<th align="left">Keyword</th>
+<th align="left">URL template</th>
+<th align="left">Status (April 2026)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><strong>Perplexity</strong></td>
+<td align="left"><code>p</code></td>
+<td align="left"><code>https://www.perplexity.ai/search?q=%s</code></td>
+<td align="left">Works; auto-submits</td>
+</tr>
+<tr>
+<td align="left"><strong>Claude</strong></td>
+<td align="left"><code>c</code></td>
+<td align="left"><code>https://claude.ai/new?q=%s</code></td>
+<td align="left">Broken since early October 2025<sup><a href="#user-content-fn-claude-q-broken" id="user-content-fnref-claude-q-broken" data-footnote-ref aria-describedby="footnote-label">4</a></sup></td>
+</tr>
+<tr>
+<td align="left"><strong>ChatGPT</strong></td>
+<td align="left"><code>gpt</code></td>
+<td align="left"><code>https://chatgpt.com/?q=%s</code></td>
+<td align="left">Restricted by <code>sec-fetch-site</code> after July 2025 hardening</td>
+</tr>
+<tr>
+<td align="left"><strong>Gemini</strong></td>
+<td align="left"><code>gemini</code></td>
+<td align="left">Use <code>@gemini</code> in omnibox</td>
+<td align="left">Native shortcut uses an internal header, not a URL parameter</td>
+</tr>
+</tbody>
+</table></div>
+<p>The fragmentation matters because each tool has a different reason for being where it is:</p>
+<ul>
+<li><strong>Perplexity</strong> still works as a one-shot research command — the <code>?q=</code> parameter both prefills <em>and</em> submits the query, so the result page renders without further interaction. This is the only mainstream AI surface where omnibox-style queries land cleanly today.</li>
+<li><strong>Claude.</strong> Anthropic’s <code>claude.ai/new?q=</code> quietly stopped processing the parameter in early October 2025; users surfaced the regression in a <a href="https://github.com/anthropics/claude-code/issues/8827" rel="noopener noreferrer" target="_blank">GitHub bug report</a> and Anthropic has not restored it. The shortcut still works as plain navigation; the prompt just won’t pre-fill.</li>
+<li><strong>ChatGPT.</strong> Tenable disclosed <a href="https://www.tenable.com/security/research/tra-2025-22" rel="noopener noreferrer" target="_blank">TRA-2025-22</a> in July 2025: an attacker-controlled URL with <code>?q=</code> could one-click hijack a logged-in ChatGPT session via prompt injection. OpenAI’s fix gates auto-submission on the <code>sec-fetch-site</code> header, so requests originating from elsewhere on the web (including the omnibox in many cases) no longer trigger the model. Native URL parameters are now unreliable enough that I treat them as broken.</li>
+<li><strong>Gemini.</strong> <code>gemini.google.com</code> does not honour <code>?q=</code> directly<sup><a href="#user-content-fn-gemini-no-q" id="user-content-fnref-gemini-no-q" data-footnote-ref aria-describedby="footnote-label">5</a></sup>. Chrome’s built-in <code>@gemini</code> shortcut works because the browser injects an internal <code>x-omnibox-gemini</code> header that the Gemini frontend respects; you trigger it by typing <code>@gemini</code>, then space or Tab. If you really want <code>?q=</code> semantics, the <a href="https://chromewebstore.google.com/detail/gemini-url-prompt-auto-prefill/gcooahlbfkojbacclfbofkcknbiopjan" rel="noopener noreferrer" target="_blank">Gemini URL Prompt extension</a> injects the prompt into the input field client-side.</li>
+</ul>
+<div class="markdown-alert markdown-alert-tip">
+<p class="markdown-alert-title"><span class="octicon octicon-tip" style="--oct-icon: url(&#x22;data:image/svg+xml;utf8,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; class=&#x27;octicon octicon-light-bulb mr-2&#x27; viewBox=&#x27;0 0 16 16&#x27; version=&#x27;1.1&#x27; width=&#x27;16&#x27; height=&#x27;16&#x27; aria-hidden=&#x27;true&#x27;%3E%3Cpath d=&#x27;M8 1.5c-2.363 0-4 1.69-4 3.75 0 .984.424 1.625.984 2.304l.214.253c.223.264.47.556.673.848.284.411.537.896.621 1.49a.75.75 0 0 1-1.484.211c-.04-.282-.163-.547-.37-.847a8.456 8.456 0 0 0-.542-.68c-.084-.1-.173-.205-.268-.32C3.201 7.75 2.5 6.766 2.5 5.25 2.5 2.31 4.863 0 8 0s5.5 2.31 5.5 5.25c0 1.516-.701 2.5-1.328 3.259-.095.115-.184.22-.268.319-.207.245-.383.453-.541.681-.208.3-.33.565-.37.847a.751.751 0 0 1-1.485-.212c.084-.593.337-1.078.621-1.489.203-.292.45-.584.673-.848.075-.088.147-.173.213-.253.561-.679.985-1.32.985-2.304 0-2.06-1.637-3.75-4-3.75ZM5.75 12h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1 0-1.5ZM6 15.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z&#x27;%3E%3C/path%3E%3C/svg%3E&#x22;)"></span>Tip</p>
+<p>Given the URL-parameter restrictions, I keep Perplexity as the default search engine on my personal profile and reach for <code>@gemini</code> or the Claude desktop app for everything else. The single omnibox is still the right interface — it’s just that “auto-submit on <code>?q=</code>” is no longer a portable contract.</p>
+</div>
+<h3 id="google-workspace"><a href="#google-workspace">Google Workspace</a></h3>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th align="left">Tool</th>
+<th align="left">Keyword</th>
+<th align="left">URL template</th>
+<th align="left">Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><strong>Google Sheets</strong></td>
+<td align="left"><code>sheet</code></td>
+<td align="left"><code>https://docs.google.com/spreadsheets/u/0/?q=%s</code></td>
+<td align="left"><code>sheet Q1 budget</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Google Docs</strong></td>
+<td align="left"><code>doc</code></td>
+<td align="left"><code>https://docs.google.com/document/u/0/?q=%s</code></td>
+<td align="left"><code>doc meeting notes</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Google Drive</strong></td>
+<td align="left"><code>dr</code></td>
+<td align="left"><code>https://drive.google.com/drive/search?q=%s</code></td>
+<td align="left"><code>dr project proposal</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Gmail</strong></td>
+<td align="left"><code>gm</code></td>
+<td align="left"><code>https://mail.google.com/mail/u/0/#search/%s</code></td>
+<td align="left"><code>gm invoice from apple</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>The <code>/u/0/</code> segment selects the first logged-in Google account. <code>/u/1/</code> is the second, <code>/u/2/</code> the third, and so on; for multi-account workflows, create one shortcut per account index rather than swapping accounts in-app.</p>
+<p><strong>Instant creation shortcuts:</strong> Chrome recognises Google’s <code>.new</code> TLDs natively. Type <code>sheet.new</code>, <code>doc.new</code>, <code>slides.new</code>, or <code>meet.new</code> directly in the omnibox to create a blank file or start a meeting — no custom shortcut required.</p>
+<h3 id="entertainment--shopping"><a href="#entertainment--shopping">Entertainment &#x26; shopping</a></h3>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th align="left">Tool</th>
+<th align="left">Keyword</th>
+<th align="left">URL template</th>
+<th align="left">Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><strong>YouTube</strong></td>
+<td align="left"><code>yt</code></td>
+<td align="left"><code>https://www.youtube.com/results?search_query=%s</code></td>
+<td align="left"><code>yt coding tutorial</code></td>
+</tr>
+<tr>
+<td align="left"><strong>YouTube Music</strong></td>
+<td align="left"><code>ym</code></td>
+<td align="left"><code>https://music.youtube.com/search?q=%s</code></td>
+<td align="left"><code>ym lo-fi beats</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Amazon</strong></td>
+<td align="left"><code>az</code></td>
+<td align="left"><code>https://www.amazon.com/s?k=%s</code></td>
+<td align="left"><code>az running shoes</code></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="utilities"><a href="#utilities">Utilities</a></h3>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th align="left">Tool</th>
+<th align="left">Keyword</th>
+<th align="left">URL template</th>
+<th align="left">Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><strong>Google Maps</strong></td>
+<td align="left"><code>map</code></td>
+<td align="left"><code>https://www.google.com/maps/search/%s</code></td>
+<td align="left"><code>map coffee near me</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Google Calendar</strong></td>
+<td align="left"><code>cal</code></td>
+<td align="left"><code>https://calendar.google.com/calendar/r/search?q=%s</code></td>
+<td align="left"><code>cal standup</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Google Images</strong></td>
+<td align="left"><code>img</code></td>
+<td align="left"><code>https://www.google.com/search?tbm=isch&#x26;q=%s</code></td>
+<td align="left"><code>img transparent logo</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Define (Google)</strong></td>
+<td align="left"><code>def</code></td>
+<td align="left"><code>https://www.google.com/search?q=define+%s</code></td>
+<td align="left"><code>def esoteric</code></td>
+</tr>
+</tbody>
+</table></div>
+<p><code>cal.new</code> creates a new calendar event; <code>meet.new</code> starts a Google Meet.</p>
+<hr>
+<h2 id="chrome-profiles"><a href="#chrome-profiles">Chrome profiles</a></h2>
+<p>Chrome profiles provide isolated browser environments — each profile carries its own cookies, history, extensions, bookmarks, and site search shortcuts. The isolation is what makes the rest of this setup work in practice for developers who:</p>
+<ul>
+<li><strong>Manage multiple accounts</strong> — separate profiles for work Google account, personal account, and client accounts avoid the constant sign-in/sign-out churn that web apps inflict on shared sessions.</li>
+<li><strong>Test in clean environments</strong> — a “testing” profile without extensions reveals how real users experience your site.</li>
+<li><strong>Maintain context boundaries</strong> — work bookmarks, search engines, and extensions stay out of personal browsing.</li>
+</ul>
+<p><strong>Creating profiles:</strong> Click your profile avatar (top-right) → <strong>Add</strong> → sign in with a Google account, or use without an account for local-only profiles.</p>
+<p><strong>Visual identification:</strong> Assign distinct colours and names to each profile. Chrome paints the profile colour into the title bar so the active context is always visible.</p>
+<p><strong>Profile sync:</strong> When signed into a Google account, Chrome syncs bookmarks, history, passwords, and extensions across devices. Each profile syncs independently — work to work, personal to personal — with the carve-out from the <a href="#address-bar-keywords">omnibox shortcut warning</a> above.</p>
+<hr>
+<h2 id="essential-extensions"><a href="#essential-extensions">Essential extensions</a></h2>
+<p>Browser-agnostic tools matter for anyone who tests across Chrome, Firefox, Arc, and Brave. The goal is to avoid lock-in while keeping a single workflow.</p>
+<h3 id="cross-browser-sync"><a href="#cross-browser-sync">Cross-browser sync</a></h3>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th align="left">Extension</th>
+<th align="left">Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><strong><a href="https://raindrop.io/" rel="noopener noreferrer" target="_blank">Raindrop.io</a></strong></td>
+<td align="left">Bookmark manager with browser extensions for Chrome, Firefox, Safari, and Edge. Syncs through Raindrop’s servers (not browser-native sync), supports nested collections, tags, and full-text search.</td>
+</tr>
+<tr>
+<td align="left"><strong><a href="https://bitwarden.com/" rel="noopener noreferrer" target="_blank">Bitwarden</a></strong></td>
+<td align="left">Open-source password manager with passkey storage. The desktop app provides system-wide autofill (works in all browsers and native apps); the browser extensions connect to the desktop app or to Bitwarden’s servers.</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Why Raindrop.io over browser bookmarks:</strong> native bookmarks only sync within one browser ecosystem. Raindrop.io maintains a single library accessible from any browser — useful when you switch to Firefox to keep the original uBlock Origin or to Arc for its workspace features. The Chrome extension also supports Chrome’s side panel, which keeps bookmarks one click away without leaving the current page.</p>
+<p><strong>Important limitation:</strong> Raindrop.io does not hook into the browser’s built-in “Add bookmark” dialog; you save through Raindrop’s own button or keyboard shortcut.</p>
+<p><strong>Bitwarden passkey login (November 2025):</strong> Bitwarden browser extensions for Chromium-based browsers can authenticate via WebAuthn PRF (Pseudo-Random Function), enabling phishing-resistant, passwordless login with a hardware key or platform authenticator. The PRF passkey extends to vault decryption, which makes “log in and unlock the vault in one tap” a real workflow. Up to five PRF-compatible passkeys per account, available on the free tier<sup><a href="#user-content-fn-bw-passkey-login" id="user-content-fnref-bw-passkey-login" data-footnote-ref aria-describedby="footnote-label">6</a></sup>. As of February 5, 2026, passkey vault unlock is generally available across the web app and Chromium-based browser extensions<sup><a href="#user-content-fn-bw-passkey-unlock" id="user-content-fnref-bw-passkey-unlock" data-footnote-ref aria-describedby="footnote-label">7</a></sup>. The Windows 11 desktop app additionally registers as a native passkey provider, so passkeys created or used outside the browser route through Bitwarden too.</p>
+<h3 id="development"><a href="#development">Development</a></h3>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th align="left">Extension</th>
+<th align="left">Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><strong><a href="https://chromewebstore.google.com/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi" rel="noopener noreferrer" target="_blank">React Developer Tools</a></strong></td>
+<td align="left">Adds <strong>Components</strong> and <strong>Profiler</strong> tabs to DevTools. Inspect the component hierarchy, props and state; profile render performance. The 7.0 line (October 2025) added React 19 hook inspection — <code>useActionState</code>, <code>useOptimistic</code>, <code>useFormStatus</code>, and the <code>use</code> hook<sup><a href="#user-content-fn-react-devtools-changelog" id="user-content-fnref-react-devtools-changelog" data-footnote-ref aria-describedby="footnote-label">8</a></sup>.</td>
+</tr>
+<tr>
+<td align="left"><strong><a href="https://chromewebstore.google.com/detail/ublock-origin-lite/ddkjiahejlhfcafbddmgiahcphecmpfh" rel="noopener noreferrer" target="_blank">uBlock Origin Lite</a></strong></td>
+<td align="left">MV3-compliant content blocker built on the <a href="https://developer.chrome.com/docs/extensions/reference/api/declarativeNetRequest" rel="noopener noreferrer" target="_blank"><code>declarativeNetRequest</code></a> (DNR) API. Each extension is guaranteed 30,000 enabled static rules with additional rules drawn from a global pool. Effective for mainstream ads; less effective than the full uBlock Origin against advanced trackers.</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>React Developer Tools — what you actually use:</strong></p>
+<ul>
+<li><strong>Components tab</strong> — browse the component tree, inspect props/state, edit values in real time.</li>
+<li><strong>Profiler tab</strong> — record render sessions, view flamegraphs showing which components rendered and how long each took.</li>
+<li><strong>Element sync</strong> — selecting an element in the Elements panel highlights the corresponding React component.</li>
+<li><strong>Suspense / Server Components</strong> — a “Suspended by” surface in the experimental Suspense tab makes Next.js / RSC suspension causes legible.</li>
+<li><strong>React 19 hooks</strong> — full inspection support for <code>useActionState</code>, <code>useOptimistic</code>, <code>useFormStatus</code>, and the <code>use</code> hook. Hydration-mismatch reporting is also better in the 7.0 line<sup><a href="#user-content-fn-react-devtools-changelog" id="user-content-fnref-react-devtools-changelog-2" data-footnote-ref aria-describedby="footnote-label">8</a></sup>.</li>
+</ul>
+<h4 id="manifest-v3-changed-what-an-ad-blocker-can-do"><a href="#manifest-v3-changed-what-an-ad-blocker-can-do">Manifest V3 changed what an ad blocker can do</a></h4>
+<p><figure class="ps-figure ps-figure-themed ps-figure-zoomable"><picture><source srcset="/legacy-personal-site/v5/assets/mv2-vs-mv3-capabilities-dark.c823a6db.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" data-scheme="dark"><source srcset="/legacy-personal-site/v5/assets/mv2-vs-mv3-capabilities-light.54b13438.svg" type="image/svg+xml" data-scheme="light"><img src="/legacy-personal-site/v5/assets/mv2-vs-mv3-capabilities-light.54b13438.svg" alt="Comparison of Manifest V2 vs Manifest V3 capabilities for content blockers" width="828" height="441" style="max-width:min(828px,100%)"></picture><figcaption>Why uBlock Origin Lite is structurally weaker than the original — MV3 trades dynamic webRequest decisions for static DNR rules with a hard ceiling.</figcaption><button type="button" class="ps-img-zoom-btn" hidden aria-label="Zoom image" data-ps-img-zoom-btn=""><svg class="ps-img-zoom-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V3h6 M21 9V3h-6 M3 15v6h6 M21 15v6h-6"></path></svg></button></figure></p>
+<p>Chrome 139 (June 2025) removed Manifest V2 (MV2) support entirely, including the <code>ExtensionManifestV2Availability</code> enterprise policy that had previously kept MV2 alive<sup><a href="#user-content-fn-mv2-timeline" id="user-content-fnref-mv2-timeline-2" data-footnote-ref aria-describedby="footnote-label">2</a></sup>. MV2 extensions on Chrome stable are now disabled and cannot be re-enabled.</p>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th align="left">Timeline</th>
+<th align="left">Event</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left">2020</td>
+<td align="left">Manifest V3 introduced</td>
+</tr>
+<tr>
+<td align="left">October 2024</td>
+<td align="left">Gradual MV2 disabling begins in Chrome stable</td>
+</tr>
+<tr>
+<td align="left">Chrome 138 (May 2025)</td>
+<td align="left">Final version supporting MV2 with the <code>ExtensionManifestV2Availability</code> policy</td>
+</tr>
+<tr>
+<td align="left">Chrome 139 (June 2025)</td>
+<td align="left">MV2 support and the enterprise policy removed; MV2 extensions disabled for everyone</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Why MV3 limits ad blockers.</strong> MV2’s <a href="https://developer.chrome.com/docs/extensions/reference/api/webRequest" rel="noopener noreferrer" target="_blank"><code>webRequest</code></a> API let extensions intercept and modify network requests dynamically — that’s how the original uBlock Origin made context-aware blocking decisions. MV3’s <a href="https://developer.chrome.com/docs/extensions/reference/api/declarativeNetRequest" rel="noopener noreferrer" target="_blank"><code>declarativeNetRequest</code></a> requires extensions to declare static filtering rules in advance: each extension is guaranteed 30,000 enabled static rules (<code>GUARANTEED_MINIMUM_STATIC_RULES</code>), with anything beyond that drawn from a shared global pool whose remaining capacity depends on what other installed extensions have already enabled. The result, as uBlock Origin’s own docs put it, is that uBlock Origin Lite “cannot rely on a strict superset of the technologies and capabilities” the full version uses<sup><a href="#user-content-fn-ubo-lite-limits" id="user-content-fnref-ubo-lite-limits" data-footnote-ref aria-describedby="footnote-label">9</a></sup>.</p>
+<p><strong>Alternatives for full-fat blocking:</strong></p>
+<ul>
+<li><strong>Firefox</strong> — Mozilla has stated it has no plans to deprecate MV2 and will give at least 12 months’ notice if that ever changes; the original uBlock Origin still ships there<sup><a href="#user-content-fn-firefox-mv2" id="user-content-fnref-firefox-mv2" data-footnote-ref aria-describedby="footnote-label">10</a></sup>.</li>
+<li><strong>Brave</strong> — since v1.81, Brave hosts MV2 builds of uBlock Origin, AdGuard, NoScript, and uMatrix on its own backend, installable from <code>brave://settings/extensions/v2</code><sup><a href="#user-content-fn-brave-mv2" id="user-content-fnref-brave-mv2" data-footnote-ref aria-describedby="footnote-label">11</a></sup>. Brave Shields (the built-in Rust ad blocker) also runs independently of any extension API.</li>
+<li><strong>Opera and Vivaldi</strong> — actively maintaining MV2 support at time of writing.</li>
+</ul>
+<div class="markdown-alert markdown-alert-caution">
+<p class="markdown-alert-title"><span class="octicon octicon-caution" style="--oct-icon: url(&#x22;data:image/svg+xml;utf8,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; class=&#x27;octicon octicon-stop mr-2&#x27; viewBox=&#x27;0 0 16 16&#x27; version=&#x27;1.1&#x27; width=&#x27;16&#x27; height=&#x27;16&#x27; aria-hidden=&#x27;true&#x27;%3E%3Cpath d=&#x27;M4.47.22A.749.749 0 0 1 5 0h6c.199 0 .389.079.53.22l4.25 4.25c.141.14.22.331.22.53v6a.749.749 0 0 1-.22.53l-4.25 4.25A.749.749 0 0 1 11 16H5a.749.749 0 0 1-.53-.22L.22 11.53A.749.749 0 0 1 0 11V5c0-.199.079-.389.22-.53Zm.84 1.28L1.5 5.31v5.38l3.81 3.81h5.38l3.81-3.81V5.31L10.69 1.5ZM8 4a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 8 4Zm0 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z&#x27;%3E%3C/path%3E%3C/svg%3E&#x22;)"></span>Caution</p>
+<p>“MV3 is fine for me” is a defensible position for casual browsing, but if your work depends on cosmetic filtering, scriptlet injection, or large custom rule sets (mainstream ad blockers ship lists in the hundreds of thousands), uBlock Origin Lite is structurally weaker. Plan for a second browser if you actually rely on those features.</p>
+</div>
+<h3 id="ai-integration"><a href="#ai-integration">AI integration</a></h3>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th align="left">Extension</th>
+<th align="left">Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><strong><a href="https://claude.com/chrome" rel="noopener noreferrer" target="_blank">Claude in Chrome</a></strong></td>
+<td align="left">Browser automation in a side panel: Claude can navigate pages, click elements, fill forms, read the DOM and console, manage tabs, and execute multi-step workflows. Paid plans only.</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Claude in Chrome</strong> launched as a research preview limited to ~1,000 Max subscribers on August 25, 2025 (“<a href="https://claude.com/blog/claude-for-chrome" rel="noopener noreferrer" target="_blank">Piloting Claude for Chrome</a>”) and rolled out to all paid plans (Pro, Max, Team, Enterprise) in mid-December 2025. As of April 2026 the extension supports:</p>
+<ul>
+<li><strong>Direct browser control</strong> — navigate, click, type, scroll, read DOM and console logs.</li>
+<li><strong>Multi-tab workflows</strong> — group tabs for Claude to interact with multiple pages simultaneously.</li>
+<li><strong>Scheduled tasks</strong> — configure shortcuts to run automatically on a schedule.</li>
+<li><strong>Workflow recording</strong> — record manual actions to teach Claude repeatable workflows.</li>
+<li><strong>Planning mode</strong> — “Ask before acting” has Claude propose a plan for approval, then execute autonomously within approved boundaries.</li>
+<li><strong>Claude Code integration</strong> — Claude Code can drive the same Chrome instance via Native Messaging, so you can build in the terminal and have Claude verify behaviour in the browser; requires Claude Code ≥ 2.0.73 and the extension ≥ 1.0.36<sup><a href="#user-content-fn-claude-code-chrome" id="user-content-fnref-claude-code-chrome" data-footnote-ref aria-describedby="footnote-label">12</a></sup>.</li>
+</ul>
+<p><strong>Model availability (April 2026):</strong> model access in the side panel depends on the plan, not the extension itself<sup><a href="#user-content-fn-claude-chrome-models" id="user-content-fnref-claude-chrome-models" data-footnote-ref aria-describedby="footnote-label">13</a></sup>.</p>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th align="left">Plan</th>
+<th align="left">Models available in Claude in Chrome</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><strong>Free</strong></td>
+<td align="left">Extension not available</td>
+</tr>
+<tr>
+<td align="left"><strong>Pro</strong> ($20/month)</td>
+<td align="left">Haiku 4.5</td>
+</tr>
+<tr>
+<td align="left"><strong>Max</strong> (<mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.566ex;" xmlns="http://www.w3.org/2000/svg" width="4.525ex" height="2.262ex" role="img" focusable="false" viewBox="0 -750 2000 1000" xmlns:xlink="http://www.w3.org/1999/xlink" aria-label="Math equation"><defs><path id="MJX-1-TEX-N-31" d="M213 578L200 573Q186 568 160 563T102 556H83V602H102Q149 604 189 617T245 641T273 663Q275 666 285 666Q294 666 302 660V361L303 61Q310 54 315 52T339 48T401 46H427V0H416Q395 3 257 3Q121 3 100 0H88V46H114Q136 46 152 46T177 47T193 50T201 52T207 57T213 61V578Z"></path><path id="MJX-1-TEX-N-30" d="M96 585Q152 666 249 666Q297 666 345 640T423 548Q460 465 460 320Q460 165 417 83Q397 41 362 16T301 -15T250 -22Q224 -22 198 -16T137 16T82 83Q39 165 39 320Q39 494 96 585ZM321 597Q291 629 250 629Q208 629 178 597Q153 571 145 525T137 333Q137 175 145 125T181 46Q209 16 250 16Q290 16 318 46Q347 76 354 130T362 333Q362 478 354 524T321 597Z"></path><path id="MJX-1-TEX-N-2F" d="M423 750Q432 750 438 744T444 730Q444 725 271 248T92 -240Q85 -250 75 -250Q68 -250 62 -245T56 -231Q56 -221 230 257T407 740Q411 750 423 750Z"></path></defs><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mn"><use data-c="31" xlink:href="#MJX-1-TEX-N-31"></use><use data-c="30" xlink:href="#MJX-1-TEX-N-30" transform="translate(500,0)"></use><use data-c="30" xlink:href="#MJX-1-TEX-N-30" transform="translate(1000,0)"></use></g><g data-mml-node="TeXAtom" data-mjx-texclass="ORD" transform="translate(1500,0)"><g data-mml-node="mo"><use data-c="2F" xlink:href="#MJX-1-TEX-N-2F"></use></g></g></g></g></svg></mjx-container>200/month)</td>
+<td align="left">Opus 4.6, Sonnet 4.6, Haiku 4.5</td>
+</tr>
+<tr>
+<td align="left"><strong>Team, Enterprise</strong></td>
+<td align="left">Opus 4.6, Sonnet 4.6, Haiku 4.5; admin controls</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Model-lifecycle context:</strong> Anthropic’s flagship has churned hard since the article was first published. Claude 3.5 Sonnet (<code>claude-3-5-sonnet-20240620</code> and <code>-20241022</code>) was retired October 28, 2025; Claude 3 Opus (<code>claude-3-opus-20240229</code>) was retired January 5, 2026<sup><a href="#user-content-fn-claude-deprecations" id="user-content-fnref-claude-deprecations" data-footnote-ref aria-describedby="footnote-label">14</a></sup>. Opus 4.5 shipped November 24, 2025<sup><a href="#user-content-fn-opus-4-5" id="user-content-fnref-opus-4-5" data-footnote-ref aria-describedby="footnote-label">15</a></sup>, Opus 4.6 on February 5, 2026<sup><a href="#user-content-fn-opus-4-6" id="user-content-fnref-opus-4-6" data-footnote-ref aria-describedby="footnote-label">16</a></sup>, and Opus 4.7 — the current frontier model — on April 16, 2026<sup><a href="#user-content-fn-opus-4-7" id="user-content-fnref-opus-4-7" data-footnote-ref aria-describedby="footnote-label">17</a></sup>. Sonnet 4.6 (February 17, 2026) is now the default Claude.ai model on Free and Pro tiers.</p>
+<div class="markdown-alert markdown-alert-important">
+<p class="markdown-alert-title"><span class="octicon octicon-important" style="--oct-icon: url(&#x22;data:image/svg+xml;utf8,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; class=&#x27;octicon octicon-report mr-2&#x27; viewBox=&#x27;0 0 16 16&#x27; version=&#x27;1.1&#x27; width=&#x27;16&#x27; height=&#x27;16&#x27; aria-hidden=&#x27;true&#x27;%3E%3Cpath d=&#x27;M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v9.5A1.75 1.75 0 0 1 14.25 13H8.06l-2.573 2.573A1.458 1.458 0 0 1 3 14.543V13H1.75A1.75 1.75 0 0 1 0 11.25Zm1.75-.25a.25.25 0 0 0-.25.25v9.5c0 .138.112.25.25.25h2a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h6.5a.25.25 0 0 0 .25-.25v-9.5a.25.25 0 0 0-.25-.25Zm7 2.25v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 9a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z&#x27;%3E%3C/path%3E%3C/svg%3E&#x22;)"></span>Important</p>
+<p>Claude in Chrome runs with your live browser session. Anthropic’s guidance is to limit it to trusted sites and to leave “Ask before acting” enabled until you’ve built up a sense for how a given site behaves. Prompt injection from third-party page content is a real risk surface for any browser-controlling agent.</p>
+</div>
+<p><strong>My Claude workflow:</strong></p>
+<div class="ps-table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>
+<thead>
+<tr>
+<th align="left">Surface</th>
+<th align="left">Use case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left"><strong>Desktop app</strong> (<code>⌥ Space</code>)</td>
+<td align="left">Quick questions without context-switching</td>
+</tr>
+<tr>
+<td align="left"><strong>Claude Code CLI + IDE</strong></td>
+<td align="left">Coding tasks: debugging, refactoring, generation</td>
+</tr>
+<tr>
+<td align="left"><strong>Browser extension</strong></td>
+<td align="left">Automation: filling forms, navigating sites, extracting data</td>
+</tr>
+</tbody>
+</table></div>
+<p>The split eliminates tool-switching: quick lookups in the desktop app, coding in the terminal, browser automation in Chrome.</p>
+<h2 id="conclusion"><a href="#conclusion">Conclusion</a></h2>
+<p>Chrome’s productivity comes from treating the omnibox as a command dispatcher, not a search bar. Site search shortcuts collapse the navigate-then-search pattern into a single keyboard action; profile isolation lets the same browser hold work, personal, and testing contexts without bleed; and browser-agnostic tools like Raindrop.io and Bitwarden mean the workflow survives a switch to Firefox or Brave.</p>
+<p>The sharper edges are platform shifts that landed in the last year:</p>
+<ul>
+<li><strong>Manifest V3 is the floor.</strong> Chrome 139 sealed the MV2 deprecation in June 2025; serious ad blocking now requires Firefox or Brave’s MV2 backend.</li>
+<li><strong>AI tool URL parameters are uneven.</strong> Perplexity’s <code>?q=</code> still auto-submits; Claude’s broke in October 2025; ChatGPT’s was hardened in July 2025 after Tenable’s <a href="https://www.tenable.com/security/research/tra-2025-22" rel="noopener noreferrer" target="_blank">TRA-2025-22</a>; Gemini relies on Chrome’s <code>@gemini</code> shortcut and an internal header rather than a URL parameter.</li>
+<li><strong>Browser-native AI agents are real.</strong> Claude in Chrome ships to every paid Anthropic plan; the model you actually get inside the side panel is Pro = Haiku 4.5, Max+ = Opus / Sonnet / Haiku.</li>
+</ul>
+<p>The key insight: invest the configuration time once, then benefit from the reduced friction on every subsequent interaction.</p>
+<h2 id="appendix"><a href="#appendix">Appendix</a></h2>
+<h3 id="prerequisites"><a href="#prerequisites">Prerequisites</a></h3>
+<ul>
+<li>Chrome (or a Chromium-based browser) installed.</li>
+<li>Familiarity with Chrome DevTools basics.</li>
+<li>For Claude in Chrome: a paid Claude subscription (Pro, Max, Team, or Enterprise).</li>
+</ul>
+<h3 id="terminology"><a href="#terminology">Terminology</a></h3>
+<ul>
+<li><strong>Omnibox</strong> — Chrome’s address bar, which functions as both URL input and search box.</li>
+<li><strong>Site search shortcut</strong> — Chrome’s term for custom search engine keywords.</li>
+<li><strong>Manifest V3 (MV3)</strong> — Chrome’s extension platform introduced in 2020; uses declarative APIs with reduced dynamic capabilities. MV2 support was removed in Chrome 139 (June 2025).</li>
+<li><strong><code>declarativeNetRequest</code> (DNR)</strong> — MV3’s network filtering API; rules are declared statically up front. Each extension is guaranteed 30,000 enabled static rules with additional rules drawn from a shared global pool.</li>
+<li><strong>WebAuthn PRF</strong> — the Pseudo-Random Function extension to WebAuthn, which lets a passkey derive a stable secret usable for vault decryption (and not just authentication).</li>
+<li><strong>Native Messaging</strong> — Chrome extension API that lets an extension communicate with a co-installed native binary; Claude Code uses it to drive the Claude in Chrome extension from the terminal.</li>
+</ul>
+<h3 id="summary"><a href="#summary">Summary</a></h3>
+<ul>
+<li><strong>Omnibox shortcuts</strong> map keywords to URL templates; <code>j 123</code> becomes direct Jira navigation. Shortcuts do not sync across devices.</li>
+<li><strong>AI tool URL parameters</strong> are uneven: only Perplexity’s <code>?q=</code> works reliably; Claude’s broke in October 2025; ChatGPT’s was hardened in July 2025; Gemini uses <code>@gemini</code> plus an internal header.</li>
+<li><strong>Chrome profiles</strong> provide isolated environments for work, personal, and testing contexts.</li>
+<li><strong>Raindrop.io</strong> syncs bookmarks across browsers and supports Chrome’s side panel.</li>
+<li><strong>Bitwarden</strong> supports passkey login on Chromium browser extensions (November 2025) and passkey vault unlock (February 2026); free tier included.</li>
+<li><strong>Manifest V3</strong> completed in June 2025 (Chrome 139); uBlock Origin Lite is bounded by DNR’s static-rule model. For full-fat blocking, use Firefox or Brave’s MV2 backend.</li>
+<li><strong>Claude in Chrome</strong> automates browser tasks; Pro gets Haiku 4.5 in the side panel, Max/Team/Enterprise get Opus 4.6, Sonnet 4.6, and Haiku 4.5.</li>
+</ul>
+<h3 id="references"><a href="#references">References</a></h3>
+<p><strong>Official documentation</strong></p>
+<ul>
+<li><a href="https://support.google.com/chrome/answer/95426" rel="noopener noreferrer" target="_blank">Set default search engine and site search shortcuts</a> — Chrome Help Center.</li>
+<li><a href="https://support.google.com/chrome/answer/2364824" rel="noopener noreferrer" target="_blank">Manage Chrome with multiple profiles</a> — Chrome Help Center.</li>
+<li><a href="https://developer.chrome.com/docs/extensions/reference/api/declarativeNetRequest" rel="noopener noreferrer" target="_blank"><code>chrome.declarativeNetRequest</code> API reference</a> — Chrome for Developers.</li>
+<li><a href="https://developer.chrome.com/docs/extensions/develop/migrate/mv2-deprecation-timeline" rel="noopener noreferrer" target="_blank">Manifest V2 support timeline</a> — Chrome for Developers.</li>
+<li><a href="https://developer.chrome.com/blog/resuming-the-transition-to-mv3" rel="noopener noreferrer" target="_blank">Resuming the transition to Manifest V3</a> — Chrome for Developers.</li>
+<li><a href="https://react.dev/learn/react-developer-tools" rel="noopener noreferrer" target="_blank">React Developer Tools</a> — React documentation.</li>
+<li><a href="https://chromereleases.googleblog.com/" rel="noopener noreferrer" target="_blank">Chrome Releases blog</a> — version announcements.</li>
+</ul>
+<p><strong>Vendor pages</strong></p>
+<ul>
+<li><a href="https://claude.com/blog/claude-for-chrome" rel="noopener noreferrer" target="_blank">Piloting Claude for Chrome</a> — Anthropic (August 25, 2025; updated December 2025).</li>
+<li><a href="https://code.claude.com/docs/en/chrome" rel="noopener noreferrer" target="_blank">Use Claude Code with Chrome</a> — Claude Code docs.</li>
+<li><a href="https://support.claude.com/en/articles/12012173-get-started-with-claude-in-chrome" rel="noopener noreferrer" target="_blank">Get started with Claude in Chrome</a> — Claude help centre.</li>
+<li><a href="https://www.anthropic.com/news/claude-opus-4-7" rel="noopener noreferrer" target="_blank">Introducing Claude Opus 4.7</a> — Anthropic (April 16, 2026).</li>
+<li><a href="https://platform.claude.com/docs/en/about-claude/model-deprecations" rel="noopener noreferrer" target="_blank">Model deprecations</a> — Claude API docs.</li>
+<li><a href="https://raindrop.io/" rel="noopener noreferrer" target="_blank">Raindrop.io</a> — bookmark manager.</li>
+<li><a href="https://help.raindrop.io/changelog" rel="noopener noreferrer" target="_blank">Raindrop.io changelog</a>.</li>
+<li><a href="https://bitwarden.com/" rel="noopener noreferrer" target="_blank">Bitwarden</a> — password manager.</li>
+<li><a href="https://bitwarden.com/blog/log-into-bitwarden-with-a-passkey/" rel="noopener noreferrer" target="_blank">Bitwarden passkey login for browser extensions</a> — Bitwarden blog.</li>
+<li><a href="https://bitwarden.com/help/login-with-passkeys/" rel="noopener noreferrer" target="_blank">Log in with passkeys</a> — Bitwarden help docs.</li>
+</ul>
+<p><strong>Technical analysis</strong></p>
+<ul>
+<li><a href="https://brave.com/blog/brave-shields-manifest-v3/" rel="noopener noreferrer" target="_blank">What Manifest V3 means for Brave Shields</a> — Brave (MV2 hosting and <code>brave://settings/extensions/v2</code>).</li>
+<li><a href="https://www.bleepingcomputer.com/news/security/firefox-continues-manifest-v2-support-as-chrome-disables-mv2-ad-blockers/" rel="noopener noreferrer" target="_blank">Firefox continues Manifest V2 support</a> — BleepingComputer.</li>
+<li><a href="https://ublockorigin.com/" rel="noopener noreferrer" target="_blank">uBlock Origin home page</a> — current state of MV3 limitations.</li>
+<li><a href="https://github.com/gorhill/uBlock/wiki/About-Google-Chrome&#x27;s-%22This-extension-may-soon-no-longer-be-supported%22" rel="noopener noreferrer" target="_blank">About Chrome’s MV3 extension warnings</a> — uBlock Origin wiki.</li>
+</ul>
+<p><strong>AI tool URL parameters</strong></p>
+<ul>
+<li><a href="https://www.tenable.com/security/research/tra-2025-22" rel="noopener noreferrer" target="_blank">OpenAI ChatGPT prompt injection via <code>?q=</code> parameter</a> — Tenable Research, July 2025.</li>
+<li><a href="https://github.com/anthropics/claude-code/issues/8827" rel="noopener noreferrer" target="_blank">Submission of prompt via URL parameter stopped working (Claude)</a> — anthropics/claude-code GitHub issue.</li>
+<li><a href="https://discuss.ai.google.dev/t/set-prompt-to-aistudio-via-url-query-parameter/77309" rel="noopener noreferrer" target="_blank">Set prompt to AI Studio via URL query parameter</a> — Google AI Developers forum (Gemini header behaviour).</li>
+<li><a href="https://chromewebstore.google.com/detail/gemini-url-prompt-auto-prefill/gcooahlbfkojbacclfbofkcknbiopjan" rel="noopener noreferrer" target="_blank">Gemini URL Prompt extension</a> — Chrome Web Store.</li>
+</ul>
+<section data-footnotes class="footnotes"><h2 class="sr-only" id="footnote-label"><a href="#footnote-label">Footnotes</a></h2>
+<ol>
+<li id="user-content-fn-chrome-site-search">
+<p><a href="https://support.google.com/chrome/answer/95426" rel="noopener noreferrer" target="_blank">Set default search engine and site search shortcuts</a> — Chrome Help Center. <a href="#user-content-fnref-chrome-site-search" data-footnote-backref="" aria-label="Back to reference 1" class="data-footnote-backref">↩</a> <a href="#user-content-fnref-chrome-site-search-2" data-footnote-backref="" aria-label="Back to reference 1-2" class="data-footnote-backref">↩<sup>2</sup></a></p>
+</li>
+<li id="user-content-fn-mv2-timeline">
+<p><a href="https://developer.chrome.com/docs/extensions/develop/migrate/mv2-deprecation-timeline" rel="noopener noreferrer" target="_blank">Manifest V2 support timeline</a> — Chrome for Developers; Chrome 138 was the final MV2-supporting version, Chrome 139 removed both runtime support and the <code>ExtensionManifestV2Availability</code> enterprise policy. <a href="#user-content-fnref-mv2-timeline" data-footnote-backref="" aria-label="Back to reference 2" class="data-footnote-backref">↩</a> <a href="#user-content-fnref-mv2-timeline-2" data-footnote-backref="" aria-label="Back to reference 2-2" class="data-footnote-backref">↩<sup>2</sup></a></p>
+</li>
+<li id="user-content-fn-chrome-sync">
+<p><a href="https://support.google.com/chrome/thread/154354527/sync-search-engines-settings?hl=en" rel="noopener noreferrer" target="_blank">sync “Search engines” settings</a> — Google Chrome Community thread; Chrome’s syncable data list does not include site search shortcuts. <a href="#user-content-fnref-chrome-sync" data-footnote-backref="" aria-label="Back to reference 3" class="data-footnote-backref">↩</a></p>
+</li>
+<li id="user-content-fn-claude-q-broken">
+<p><a href="https://github.com/anthropics/claude-code/issues/8827" rel="noopener noreferrer" target="_blank">BUG: Submission of prompt via URL parameter stopped working</a> — anthropics/claude-code; reported regression of <code>claude.ai/new?q=</code> in early October 2025. <a href="#user-content-fnref-claude-q-broken" data-footnote-backref="" aria-label="Back to reference 4" class="data-footnote-backref">↩</a></p>
+</li>
+<li id="user-content-fn-gemini-no-q">
+<p><a href="https://discuss.ai.google.dev/t/set-prompt-to-aistudio-via-url-query-parameter/77309" rel="noopener noreferrer" target="_blank">Set prompt to AI Studio via URL query parameter</a> — Google AI Developers forum; Gemini relies on the <code>x-omnibox-gemini</code> header that Chrome injects when you trigger <code>@gemini</code>. <a href="#user-content-fnref-gemini-no-q" data-footnote-backref="" aria-label="Back to reference 5" class="data-footnote-backref">↩</a></p>
+</li>
+<li id="user-content-fn-bw-passkey-login">
+<p><a href="https://www.businesswire.com/news/home/20251118890517/en/Bitwarden-Expands-Passkey-Login-to-Browser-Extensions-for-Secure-Passwordless-Authentication" rel="noopener noreferrer" target="_blank">Bitwarden expands passkey login to browser extensions</a> — November 18, 2025; and <a href="https://bitwarden.com/help/login-with-passkeys/" rel="noopener noreferrer" target="_blank">Log in with passkeys</a> — Bitwarden help docs (five-passkey limit, free tier inclusion). <a href="#user-content-fnref-bw-passkey-login" data-footnote-backref="" aria-label="Back to reference 6" class="data-footnote-backref">↩</a></p>
+</li>
+<li id="user-content-fn-bw-passkey-unlock">
+<p><a href="https://community.bitwarden.com/t/you-can-now-unlock-your-vault-with-a-passkey/93556" rel="noopener noreferrer" target="_blank">You can now unlock your vault with a passkey</a> — Bitwarden community announcement, February 5, 2026. <a href="#user-content-fnref-bw-passkey-unlock" data-footnote-backref="" aria-label="Back to reference 7" class="data-footnote-backref">↩</a></p>
+</li>
+<li id="user-content-fn-react-devtools-changelog">
+<p><a href="https://github.com/facebook/react/blob/main/packages/react-devtools/CHANGELOG.md" rel="noopener noreferrer" target="_blank">react-devtools CHANGELOG</a> — React 19 hook inspection (<code>useActionState</code>, <code>useOptimistic</code>, <code>useFormStatus</code>, <code>use</code>) added in v7.0.0; v7.0.1 (October 2025) shipped UI fixes for the experimental Suspense tab. <a href="#user-content-fnref-react-devtools-changelog" data-footnote-backref="" aria-label="Back to reference 8" class="data-footnote-backref">↩</a> <a href="#user-content-fnref-react-devtools-changelog-2" data-footnote-backref="" aria-label="Back to reference 8-2" class="data-footnote-backref">↩<sup>2</sup></a></p>
+</li>
+<li id="user-content-fn-ubo-lite-limits">
+<p><a href="https://ublockorigin.com/" rel="noopener noreferrer" target="_blank">uBlock Origin home page</a> — quotes the constraints DNR places on MV3 content blockers and contrasts them with the dynamic webRequest model used by the original. <a href="#user-content-fnref-ubo-lite-limits" data-footnote-backref="" aria-label="Back to reference 9" class="data-footnote-backref">↩</a></p>
+</li>
+<li id="user-content-fn-firefox-mv2">
+<p><a href="https://blog.mozilla.org/addons/2024/03/13/manifest-v3-manifest-v2-march-2024-update/" rel="noopener noreferrer" target="_blank">Manifest V3 &#x26; Manifest V2 (March 2024 update)</a> — Mozilla Add-ons blog; reaffirmed indefinite MV2 support with at least 12 months’ notice before any change. <a href="#user-content-fnref-firefox-mv2" data-footnote-backref="" aria-label="Back to reference 10" class="data-footnote-backref">↩</a></p>
+</li>
+<li id="user-content-fn-brave-mv2">
+<p><a href="https://brave.com/blog/brave-shields-manifest-v3/" rel="noopener noreferrer" target="_blank">What Manifest V3 means for Brave Shields and the use of extensions in the Brave browser</a> — Brave; lists MV2 hosting for uBlock Origin, AdGuard, uMatrix, and NoScript, available at <code>brave://settings/extensions/v2</code> since v1.81. <a href="#user-content-fnref-brave-mv2" data-footnote-backref="" aria-label="Back to reference 11" class="data-footnote-backref">↩</a></p>
+</li>
+<li id="user-content-fn-claude-code-chrome">
+<p><a href="https://code.claude.com/docs/en/chrome" rel="noopener noreferrer" target="_blank">Use Claude Code with Chrome (beta)</a> — Claude Code docs; Native Messaging integration with version requirements. <a href="#user-content-fnref-claude-code-chrome" data-footnote-backref="" aria-label="Back to reference 12" class="data-footnote-backref">↩</a></p>
+</li>
+<li id="user-content-fn-claude-chrome-models">
+<p><a href="https://support.claude.com/en/articles/12012173-get-started-with-claude-in-chrome" rel="noopener noreferrer" target="_blank">Get started with Claude in Chrome</a> — Anthropic help centre; Pro plans see Haiku 4.5 only, Max/Team/Enterprise see Opus 4.6, Sonnet 4.6, and Haiku 4.5. <a href="#user-content-fnref-claude-chrome-models" data-footnote-backref="" aria-label="Back to reference 13" class="data-footnote-backref">↩</a></p>
+</li>
+<li id="user-content-fn-claude-deprecations">
+<p><a href="https://platform.claude.com/docs/en/about-claude/model-deprecations" rel="noopener noreferrer" target="_blank">Model deprecations</a> — Claude API docs; Claude 3.5 Sonnet retired October 28, 2025, Claude 3 Opus retired January 5, 2026. <a href="#user-content-fnref-claude-deprecations" data-footnote-backref="" aria-label="Back to reference 14" class="data-footnote-backref">↩</a></p>
+</li>
+<li id="user-content-fn-opus-4-5">
+<p><a href="https://www.anthropic.com/news/claude-opus-4-5" rel="noopener noreferrer" target="_blank">Introducing Claude Opus 4.5</a> — Anthropic, November 24, 2025. <a href="#user-content-fnref-opus-4-5" data-footnote-backref="" aria-label="Back to reference 15" class="data-footnote-backref">↩</a></p>
+</li>
+<li id="user-content-fn-opus-4-6">
+<p><a href="https://www.anthropic.com/news/claude-opus-4-6" rel="noopener noreferrer" target="_blank">Introducing Claude Opus 4.6</a> — Anthropic, February 5, 2026. <a href="#user-content-fnref-opus-4-6" data-footnote-backref="" aria-label="Back to reference 16" class="data-footnote-backref">↩</a></p>
+</li>
+<li id="user-content-fn-opus-4-7">
+<p><a href="https://www.anthropic.com/news/claude-opus-4-7" rel="noopener noreferrer" target="_blank">Introducing Claude Opus 4.7</a> — Anthropic, April 16, 2026; current Anthropic flagship. <a href="#user-content-fnref-opus-4-7" data-footnote-backref="" aria-label="Back to reference 17" class="data-footnote-backref">↩</a></p>
+</li>
+</ol>
+</section><style>
+mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+  min-height: 1px;
+  min-width: 1px;
+}
+
+mjx-container[jax="SVG"] > svg a {
+  fill: blue;
+  stroke: blue;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][display="true"][width="full"] {
+  display: flex;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line], svg[data-table] > g > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame], svg[data-table] > g > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed, svg[data-table] > g > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted, svg[data-table] > g > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > g > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"] path[data-c], mjx-container[jax="SVG"] use[data-c] {
+  stroke-width: 3;
+}
+</style></div></article></main><footer class="doc-footer"><div class="doc-page-meta"><a href="https://github.com/sujeet-pro/v5.sujeet.pro/blob/main/content/blogs/chrome-developer-setup/README.md" class="doc-edit-link" target="_blank" rel="noopener noreferrer">Edit this page</a><span class="doc-last-updated">Last updated: <time datetime="Tue Apr 21 2026 05:30:00 GMT+0530 (India Standard Time)">April 21, 2026</time></span></div><nav class="doc-article-nav" aria-label="Page navigation"><a href="/legacy-personal-site/v5/blogs/system-setup" class="doc-article-link doc-article-prev"><span class="doc-article-label">Previous</span><span class="doc-article-title">macOS System Setup</span></a><span></span></nav><nav class="doc-footer-links doc-footer-links-grouped" aria-label="Footer links" style="--doc-footer-columns:2;--doc-footer-columns-compact:2"><div class="doc-footer-link-group"><p class="doc-footer-link-group-header">Content</p><div class="doc-footer-link-group-links"><a class="doc-footer-group-link" href="/legacy-personal-site/v5/articles"><span class="doc-footer-link-label">Articles</span></a><a class="doc-footer-group-link" href="/legacy-personal-site/v5/blogs"><span class="doc-footer-link-label">Blogs</span></a></div></div><div class="doc-footer-link-group"><p class="doc-footer-link-group-header">Profiles</p><div class="doc-footer-link-group-links"><a class="doc-footer-group-link" href="https://github.com/sujeet-pro" target="_blank" rel="noopener noreferrer"><span class="doc-footer-link-label">GitHub</span></a><a class="doc-footer-group-link" href="https://www.linkedin.com/in/sujeetkrjaiswal/" target="_blank" rel="noopener noreferrer"><span class="doc-footer-link-label">LinkedIn</span></a><a class="doc-footer-group-link" href="https://twitter.com/sujeetpro" target="_blank" rel="noopener noreferrer"><span class="doc-footer-link-label">Twitter</span></a></div></div></nav><div class="doc-footer-theme no-js-hidden" data-footer-theme=""><div class="doc-footer-theme-group"><span class="doc-footer-theme-label">Appearance</span><div class="doc-footer-theme-options" data-footer-scheme="" data-ps-footer-scheme=""><button type="button" data-scheme="auto" class="active" aria-pressed="true">Auto</button><button type="button" data-scheme="light" aria-pressed="false">Light</button><button type="button" data-scheme="dark" aria-pressed="false">Dark</button></div></div><div class="doc-footer-theme-group"><span class="doc-footer-theme-label">Theme</span><div class="doc-footer-theme-options" data-footer-theme-type="" data-ps-footer-theme=""><button type="button" data-theme="paper" class="active" aria-pressed="true">Paper</button><button type="button" data-theme="high-contrast" aria-pressed="false">High Contrast</button></div></div><div class="doc-footer-theme-group"><span class="doc-footer-theme-label">Text Size</span><div class="doc-footer-theme-options" data-footer-text-size="" data-ps-footer-text-size=""><button type="button" data-size="small" aria-pressed="false" aria-label="Small text"><span class="doc-text-size-label" data-size="small" aria-hidden="true">A</span></button><button type="button" data-size="base" class="active" aria-pressed="true" aria-label="Default text"><span class="doc-text-size-label" data-size="base" aria-hidden="true">A</span></button><button type="button" data-size="large" aria-pressed="false" aria-label="Large text"><span class="doc-text-size-label" data-size="large" aria-hidden="true">A</span></button></div></div></div><div class="doc-footer-legal"><p class="doc-footer-copyright">© <span class="doc-footer-year-range" data-current-year-range=""><span class="doc-footer-year-start">2024</span><span class="doc-footer-year-separator" aria-hidden="true">–</span><span id="pagesmith-footer-year-end" data-start-year="2024" data-rendered-year="2026" data-auto-update="true">2026</span></span> Sujeet Jaiswal</p><p class="doc-footer-signoff"><span class="doc-footer-legal-separator" aria-hidden="true">|</span>Made with <span aria-hidden="true">❤</span> using <a href="https://projects.sujeet.pro/pagesmith/" target="_blank" rel="noopener noreferrer">Pagesmith</a><span> and is maintained by <a href="https://sujeet.pro" target="_blank" rel="noopener noreferrer">Sujeet Jaiswal</a></span></p></div></footer></div><aside class="doc-aside"><nav class="doc-toc" aria-label="Table of contents" data-ps-toc=""><p class="doc-toc-title">On this page</p><ul class="doc-toc-list"><li class="doc-toc-item depth-2"><a href="#the-mental-model">The mental model</a></li><li class="doc-toc-item depth-2"><a href="#address-bar-keywords">Address bar keywords</a></li><li class="doc-toc-item depth-3"><a href="#development--work-tools">Development &amp; work tools</a></li><li class="doc-toc-item depth-3"><a href="#ai-tools">AI tools</a></li><li class="doc-toc-item depth-3"><a href="#google-workspace">Google Workspace</a></li><li class="doc-toc-item depth-3"><a href="#entertainment--shopping">Entertainment &amp; shopping</a></li><li class="doc-toc-item depth-3"><a href="#utilities">Utilities</a></li><li class="doc-toc-item depth-2"><a href="#chrome-profiles">Chrome profiles</a></li><li class="doc-toc-item depth-2"><a href="#essential-extensions">Essential extensions</a></li><li class="doc-toc-item depth-3"><a href="#cross-browser-sync">Cross-browser sync</a></li><li class="doc-toc-item depth-3"><a href="#development">Development</a></li><li class="doc-toc-item depth-3"><a href="#ai-integration">AI integration</a></li><li class="doc-toc-item depth-2"><a href="#conclusion">Conclusion</a></li><li class="doc-toc-item depth-2"><a href="#appendix">Appendix</a></li><li class="doc-toc-item depth-3"><a href="#prerequisites">Prerequisites</a></li><li class="doc-toc-item depth-3"><a href="#terminology">Terminology</a></li><li class="doc-toc-item depth-3"><a href="#summary">Summary</a></li><li class="doc-toc-item depth-3"><a href="#references">References</a></li><li class="doc-toc-item depth-2"><a href="#footnote-label">Footnotes</a></li></ul></nav></aside></div><dialog class="doc-sidebar-modal" id="sidebar-modal" data-sidebar-modal=""><div class="doc-sidebar-modal-backdrop" data-sidebar-close=""></div><div class="doc-sidebar-modal-panel"><button type="button" class="doc-sidebar-modal-close" data-sidebar-close="" aria-label="Close navigation"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m5 5 10 10M15 5 5 15"/></svg></button><nav class="doc-sidebar-nav" aria-label="Navigation"><div class="doc-sidebar-section"><p class="doc-sidebar-heading">Navigation</p><ul class="doc-sidebar-list "><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/articles" class="doc-sidebar-link">Articles</a></li><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/blogs" class="doc-sidebar-link">Blogs</a></li></ul></div><div class="doc-sidebar-section"><p class="doc-sidebar-heading">Blogs</p><ul class="doc-sidebar-list "><li class="doc-sidebar-item  "><a href="/legacy-personal-site/v5/blogs/system-setup" class="doc-sidebar-link">macOS System Setup</a></li><li class="doc-sidebar-item active "><a href="/legacy-personal-site/v5/blogs/chrome-developer-setup" class="doc-sidebar-link">Chrome Developer Setup: Extensions, Profiles, and Shortcuts</a></li></ul></div></nav></div></dialog><pagefind-modal reset-on-close=""><pagefind-modal-header><pagefind-input></pagefind-input></pagefind-modal-header><pagefind-modal-body><pagefind-summary></pagefind-summary><pagefind-results></pagefind-results></pagefind-modal-body><pagefind-modal-footer><pagefind-keyboard-hints></pagefind-keyboard-hints></pagefind-modal-footer></pagefind-modal><script src="/legacy-personal-site/v5/assets/index-DWHO1FvG.ff92fc92.js" type="module"></script></body></html>

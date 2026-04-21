@@ -1,0 +1,921 @@
+<!DOCTYPE html><html lang="en"> <head><meta name="astro-view-transitions-enabled" content="true"><meta name="astro-view-transitions-fallback" content="animate"><script type="module" src="/legacy-personal-site/v4/_astro/ClientRouter.astro_astro_type_script_index_0_lang.HWuSm9BO.js"></script><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light"><script>
+  ;(function () {
+    var THEMES = ["auto", "light", "dark", "high-contrast-light", "high-contrast-dark", "paper"]
+    var STORAGE_KEY = "site-theme"
+    var THEME_LABELS = {
+      auto: "Auto (system)",
+      light: "Light",
+      dark: "Dark",
+      "high-contrast-light": "High contrast light",
+      "high-contrast-dark": "High contrast dark",
+      paper: "Paper",
+    }
+    var darkQuery = window.matchMedia("(prefers-color-scheme: dark)")
+
+    // Expose shared config for module scripts
+    window.__themeConfig = { THEMES: THEMES, STORAGE_KEY: STORAGE_KEY, THEME_LABELS: THEME_LABELS }
+
+    // BroadcastChannel for cross-tab sync
+    var channel = null
+    try {
+      channel = new BroadcastChannel("site-theme-sync")
+    } catch (e) {
+      // BroadcastChannel not supported
+    }
+
+    function getResolvedTheme(theme) {
+      if (theme === "auto") {
+        return darkQuery.matches ? "dark" : "light"
+      }
+      return theme
+    }
+
+    function getColorScheme(resolved) {
+      if (resolved === "dark" || resolved === "high-contrast-dark") return "dark"
+      return "light"
+    }
+
+    function applyTheme(theme, _fromBroadcast) {
+      if (!theme || THEMES.indexOf(theme) === -1) theme = "auto"
+
+      var resolved = getResolvedTheme(theme)
+      var root = document.documentElement
+      var scheme = getColorScheme(resolved)
+
+      // Remove all theme classes
+      for (var i = 0; i < THEMES.length; i++) {
+        root.classList.remove("theme-" + THEMES[i])
+      }
+
+      // Apply resolved theme class
+      root.classList.add("theme-" + resolved)
+
+      // Set color-scheme
+      root.style.setProperty("--color-scheme", scheme)
+
+      // Update meta tag
+      var meta = document.querySelector('meta[name="color-scheme"]')
+      if (meta) meta.setAttribute("content", scheme)
+
+      // Set color scheme data attribute for CSS/JS consumers
+      root.dataset.colorScheme = scheme
+
+      // Store the user's chosen theme (not the resolved one)
+      try {
+        localStorage.setItem(STORAGE_KEY, theme)
+      } catch (e) {
+        // localStorage may be unavailable
+      }
+
+      // Dispatch event for other scripts to react
+      root.dataset.theme = theme
+      root.dataset.resolvedTheme = resolved
+
+      // Broadcast to other tabs (but not if we received this from another tab)
+      if (!_fromBroadcast && channel) {
+        try {
+          channel.postMessage({ theme: theme })
+        } catch (e) {
+          // Channel may be closed
+        }
+      }
+    }
+
+    // Smart cycling: skip the theme that "auto" resolves to
+    function getNextTheme() {
+      var current = "auto"
+      try {
+        current = localStorage.getItem(STORAGE_KEY) || "auto"
+      } catch (e) {}
+      if (THEMES.indexOf(current) === -1) current = "auto"
+
+      var idx = THEMES.indexOf(current)
+      var next = THEMES[(idx + 1) % THEMES.length]
+
+      // If current is "auto", skip the theme auto resolves to
+      if (current === "auto") {
+        var autoResolved = getResolvedTheme("auto")
+        if (next === autoResolved) {
+          next = THEMES[(idx + 2) % THEMES.length]
+        }
+      }
+
+      return next
+    }
+
+    // Apply on load
+    var saved = "auto"
+    try {
+      saved = localStorage.getItem(STORAGE_KEY) || "auto"
+    } catch (e) {
+      // localStorage may be unavailable
+    }
+    applyTheme(saved)
+
+    // Listen for OS preference changes when in auto mode
+    darkQuery.addEventListener("change", function () {
+      var current = "auto"
+      try {
+        current = localStorage.getItem(STORAGE_KEY) || "auto"
+      } catch (e) {}
+      if (current === "auto") {
+        applyTheme("auto")
+      }
+    })
+
+    // Listen for cross-tab theme changes
+    if (channel) {
+      channel.onmessage = function (event) {
+        if (event.data && event.data.theme) {
+          applyTheme(event.data.theme, true)
+        }
+      }
+    }
+
+    // Expose for runtime use
+    window.applySiteTheme = applyTheme
+    window.getNextTheme = getNextTheme
+  })()
+</script><!-- Inline font-face declarations with base path --><style>
+      @font-face {
+        font-family: "Open Sans";
+        font-style: normal;
+        font-weight: 300 800;
+        font-display: swap;
+        src: url("/legacy-personal-site/v4/fonts/open-sans-latin-wght-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+          U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: "JetBrains Mono";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("/legacy-personal-site/v4/fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+          U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+    </style><!-- Preload local fonts --><link rel="preload" as="font" type="font/woff2" href="/legacy-personal-site/v4/fonts/open-sans-latin-wght-normal.woff2" crossorigin="anonymous"><link rel="preload" as="font" type="font/woff2" href="/legacy-personal-site/v4/fonts/jetbrains-mono-latin-400-normal.woff2" crossorigin="anonymous"><!-- Main favicon --><link rel="icon" type="image/x-icon" href="/legacy-personal-site/v4/favicons/favicon.ico"><!-- Apple Touch Icons --><link rel="apple-touch-icon" sizes="57x57" href="/legacy-personal-site/v4/favicons/apple-icon-57x57.png"><link rel="apple-touch-icon" sizes="60x60" href="/legacy-personal-site/v4/favicons/apple-icon-60x60.png"><link rel="apple-touch-icon" sizes="72x72" href="/legacy-personal-site/v4/favicons/apple-icon-72x72.png"><link rel="apple-touch-icon" sizes="76x76" href="/legacy-personal-site/v4/favicons/apple-icon-76x76.png"><link rel="apple-touch-icon" sizes="114x114" href="/legacy-personal-site/v4/favicons/apple-icon-114x114.png"><link rel="apple-touch-icon" sizes="120x120" href="/legacy-personal-site/v4/favicons/apple-icon-120x120.png"><link rel="apple-touch-icon" sizes="144x144" href="/legacy-personal-site/v4/favicons/apple-icon-144x144.png"><link rel="apple-touch-icon" sizes="152x152" href="/legacy-personal-site/v4/favicons/apple-icon-152x152.png"><link rel="apple-touch-icon" sizes="180x180" href="/legacy-personal-site/v4/favicons/apple-icon-180x180.png"><!-- Apple Touch Icon Precomposed (for older iOS versions) --><link rel="apple-touch-icon-precomposed" href="/legacy-personal-site/v4/favicons/apple-icon-precomposed.png"><!-- Standard Icons --><link rel="icon" type="image/png" sizes="192x192" href="/legacy-personal-site/v4/favicons/android-icon-192x192.png"><link rel="icon" type="image/png" sizes="144x144" href="/legacy-personal-site/v4/favicons/android-icon-144x144.png"><link rel="icon" type="image/png" sizes="96x96" href="/legacy-personal-site/v4/favicons/android-icon-96x96.png"><link rel="icon" type="image/png" sizes="72x72" href="/legacy-personal-site/v4/favicons/android-icon-72x72.png"><link rel="icon" type="image/png" sizes="48x48" href="/legacy-personal-site/v4/favicons/android-icon-48x48.png"><link rel="icon" type="image/png" sizes="36x36" href="/legacy-personal-site/v4/favicons/android-icon-36x36.png"><link rel="icon" type="image/png" sizes="32x32" href="/legacy-personal-site/v4/favicons/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/legacy-personal-site/v4/favicons/favicon-16x16.png"><!-- Web App Manifest --><link rel="manifest" href="/legacy-personal-site/v4/manifest.json"><!-- Microsoft Tiles --><meta name="msapplication-config" content="/legacy-personal-site/v4/browserconfig.xml"><meta name="msapplication-TileImage" content="/legacy-personal-site/v4/favicons/ms-icon-144x144.png"><meta name="msapplication-TileColor" content="#f8fafc"><!-- Theme Colors --><meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#020617" media="(prefers-color-scheme: dark)"><meta name="msapplication-TileColor" content="#f8fafc"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="docsearch:language" content="en"><!-- Canonical URL --><link rel="canonical" href="https://sujeet.pro/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/blob-storage-design.html"><!-- Primary Meta Tags --><title>Blob Storage Design - Sujeet Jaiswal</title><meta name="title" content="Blob Storage Design - Sujeet Jaiswal"><meta name="description" content="Designing scalable object storage systems requires understanding the fundamental trade-offs between storage efficiency, durability, and access performance. This article covers the core building blocks—chunking, deduplication, metadata management, redundancy, and tiered storage—with design reasoning for each architectural choice."><!-- Open Graph / Facebook --><meta property="og:type" content="website"><meta property="og:url" content="https://sujeet.pro/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/blob-storage-design.html"><meta property="og:title" content="Blob Storage Design - Sujeet Jaiswal"><meta property="og:description" content="Designing scalable object storage systems requires understanding the fundamental trade-offs between storage efficiency, durability, and access performance. This article covers the core building blocks—chunking, deduplication, metadata management, redundancy, and tiered storage—with design reasoning for each architectural choice."><!-- Twitter / X --><meta name="twitter:site" content="@sujeetpro"><meta name="twitter:card" content="summary_large_image"><!-- DocSearch facets --><meta name="docsearch:category" content="System Design"><meta name="docsearch:topic" content="System Design Building Blocks"><link rel="alternate" type="application/rss+xml" href="/legacy-personal-site/v4/rss.xml"><link rel="sitemap" href="/legacy-personal-site/v4/sitemap-index.xml"><!-- LLM-friendly content --><link rel="alternate" type="text/plain" href="/legacy-personal-site/v4/llms.txt" title="LLM Index"><link rel="alternate" type="text/plain" href="/legacy-personal-site/v4/llms-full.txt" title="LLM Full Content"><link rel="stylesheet" href="/legacy-personal-site/v4/_astro/docsearch.CgGoh9IB.css">
+<style>/*! tailwindcss v4.2.1 | MIT License | https://tailwindcss.com */.sidebar-toc-list{gap:calc(var(--spacing,.25rem) * .5);flex-direction:column;display:flex}
+@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) and (not (color:rgb(from red r g b)))){*,:before,:after,::backdrop{--tw-border-style:solid;--tw-font-weight:initial;--tw-ordinal:initial;--tw-slashed-zero:initial;--tw-numeric-figure:initial;--tw-numeric-spacing:initial;--tw-numeric-fraction:initial}}}.article-nav-category{margin-bottom:calc(var(--spacing,.25rem) * 5)}.article-nav-category+.article-nav-category{border-top-style:var(--tw-border-style);padding-top:calc(var(--spacing,.25rem) * 2);border-top-width:1px;border-color:var(--color-border)}.article-nav-category-name{margin-bottom:calc(var(--spacing,.25rem) * 1.5);padding-inline:calc(var(--spacing,.25rem) * 1);font-family:var(--font-mono,ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);--tw-font-weight:var(--font-weight-semibold,600);font-weight:var(--font-weight-semibold,600);text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-muted);font-size:11px;display:block}.article-nav-category-name.is-current{color:var(--color-text)}.article-nav-topics{flex-direction:column;display:flex}.article-nav-topic{list-style:none}.article-nav-topic-toggle{cursor:pointer;border-radius:var(--radius-md,.375rem);width:100%;padding-inline:calc(var(--spacing,.25rem) * 2);padding-block:calc(var(--spacing,.25rem) * 1.5);color:var(--color-text-muted);transition:all var(--transition-fast);justify-content:space-between;align-items:center;font-size:13px;list-style:none;display:flex}.article-nav-topic-toggle::-webkit-details-marker{display:none}.article-nav-topic-toggle::marker{content:"";display:none}.article-nav-topic-toggle:hover{color:var(--color-text);background:var(--color-bg-alt)}.article-nav-topic-toggle.is-active{color:var(--color-text);font-weight:500}.article-nav-topic-name{min-width:calc(var(--spacing,.25rem) * 0);flex:1}.article-nav-topic-count{--tw-numeric-spacing:tabular-nums;font-variant-numeric:var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);color:var(--color-text-muted);opacity:.6;flex-shrink:0;font-size:11px}.article-nav-chevron{opacity:.4;width:12px;height:12px;transition:transform var(--transition-fast);flex-shrink:0;margin-left:.5rem}.article-nav-topic-toggle:hover .article-nav-chevron{opacity:.7}details[open]>.article-nav-topic-toggle .article-nav-chevron{transform:rotate(90deg)}.article-nav-articles{margin-left:calc(var(--spacing,.25rem) * 3);border-left-style:var(--tw-border-style);padding-left:calc(var(--spacing,.25rem) * 2);border-left-width:1px;border-color:var(--color-border)}.article-nav-article-link{border-radius:var(--radius-md,.375rem);padding-inline:calc(var(--spacing,.25rem) * 2);padding-block:calc(var(--spacing,.25rem) * 1);color:var(--color-text-muted);transition:all var(--transition-fast);font-size:13px;line-height:1.4;text-decoration-line:none;display:block}.article-nav-article-link:hover{color:var(--color-text);background:var(--color-bg-alt)}.article-nav-article-link.is-active{color:var(--color-text);background:var(--color-bg-alt);font-weight:500}@property --tw-border-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-font-weight{syntax:"*";inherits:false}@property --tw-ordinal{syntax:"*";inherits:false}@property --tw-slashed-zero{syntax:"*";inherits:false}@property --tw-numeric-figure{syntax:"*";inherits:false}@property --tw-numeric-spacing{syntax:"*";inherits:false}@property --tw-numeric-fraction{syntax:"*";inherits:false}/*! tailwindcss v4.2.1 | MIT License | https://tailwindcss.com */.article-frontmatter{margin-bottom:calc(var(--spacing,.25rem) * 8)}.article-navigation{margin-top:calc(var(--spacing,.25rem) * 16)}
+</style>
+<link rel="stylesheet" href="/legacy-personal-site/v4/_astro/_slug_.u3hNe2gV.css"><script type="module" src="/legacy-personal-site/v4/_astro/page.CLJIuoFF.js"></script></head> <body> <a href="#main" class="skip-link">Skip to main content</a> <header class="site-header"> <div class="header-container"> <nav class="header-nav"> <!-- Left side: sidebar toggle + logo --> <div class="header-left"> <button id="left-sidebar-toggle" class="sidebar-toggle-btn" aria-label="Toggle navigation sidebar" aria-expanded="true" title="Hide navigation sidebar" aria-hidden="false"> <svg width="1em" height="1em" class="icon-md" data-icon="carbon:side-panel-open">   <symbol id="ai:carbon:side-panel-open" viewBox="0 0 32 32"><path fill="currentColor" d="M28 4H4c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h24c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2M10 26H4V6h6zm18 0H12v-9h10.2l-3.6 3.6L20 22l6-6l-6-6l-1.4 1.4l3.6 3.6H12V6h16z"/></symbol><use href="#ai:carbon:side-panel-open"></use>  </svg> </button> <a href="/legacy-personal-site/v4/" class="header-logo">   <span class="header-logo-name">sujeet.pro</span>  </a> </div> <!-- Center: Nav links - hidden on mobile --> <div class="header-nav-links"> <a href="/legacy-personal-site/v4/articles" class="nav-link">  Articles </a><a href="/legacy-personal-site/v4/blogs" class="nav-link">  Blogs </a><a href="/legacy-personal-site/v4/projects" class="nav-link">  Projects </a> </div> <!-- Right side: search + sidebar toggle + hamburger --> <div class="header-actions"> <!-- DocSearch --> <div id="docsearch-container"></div> <!-- Theme Toggle --> <button id="theme-toggle-btn" class="sidebar-toggle-btn" aria-label="Toggle theme" title="Switch theme"> <!-- Auto (monitor) --> <svg data-theme-icon="auto" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M28 4H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h8v4H8v2h16v-2h-4v-4h8a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 18H4V6h24Z"></path> </svg> <!-- Light (sun) --> <svg data-theme-icon="light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 12.005a4 4 0 1 1-4 4 4.005 4.005 0 0 1 4-4m0-2a6 6 0 1 0 6 6 6 6 0 0 0-6-6ZM5.394 6.813 6.81 5.399l3.505 3.506L8.9 10.319ZM2 15.005h5v2H2ZM5.394 25.197l3.505-3.506 1.414 1.414-3.505 3.506ZM15 25.005h2v5h-2ZM21.687 23.106l1.414-1.414 3.506 3.505-1.414 1.414ZM25 15.005h5v2h-5ZM21.69 8.904l3.505-3.505 1.414 1.415-3.505 3.505ZM15 2.005h2v5h-2Z"></path> </svg> <!-- Dark (moon) --> <svg data-theme-icon="dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M13.502 5.414a15.075 15.075 0 0 0 11.594 18.194 11.113 11.113 0 0 1-7.975 3.39c-.138 0-.278.005-.418 0a11.094 11.094 0 0 1-3.2-21.584M14.98 3a1.002 1.002 0 0 0-.175.016 13.096 13.096 0 0 0 1.825 25.981c.164.006.328 0 .49 0a13.072 13.072 0 0 0 10.703-5.555 1.01 1.01 0 0 0-.783-1.565A13.08 13.08 0 0 1 15.89 4.38 1.015 1.015 0 0 0 14.98 3Z"></path> </svg> <!-- High contrast light --> <svg data-theme-icon="high-contrast-light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26V4a12 12 0 0 1 0 24Z"></path> </svg> <!-- High contrast dark --> <svg data-theme-icon="high-contrast-dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 2a12 12 0 0 1 0 24Z"></path> </svg> <!-- Paper (document) --> <svg data-theme-icon="paper" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M19 10h7v2h-7zM19 6h7v2h-7zM19 14h7v2h-7zM19 18h7v2h-7z"></path> <path d="M28 2H10a2.002 2.002 0 0 0-2 2v6H4a2.002 2.002 0 0 0-2 2v18a2 2 0 0 0 2 2h14a2.002 2.002 0 0 0 2-2v-6h8a2.002 2.002 0 0 0 2-2V4a2.002 2.002 0 0 0-2-2Zm-10 28H4V12h14Zm10-8H20V12a2.002 2.002 0 0 0-2-2h-8V4h18Z"></path> <path d="M6 16h10v2H6zM6 20h10v2H6zM6 24h7v2H6z"></path> </svg> </button> <button id="right-sidebar-toggle" class="sidebar-toggle-btn" aria-label="Toggle table of contents" aria-expanded="true" title="Hide table of contents" aria-hidden="false"> <svg width="1em" height="1em" class="icon-md" data-icon="carbon:side-panel-close">   <symbol id="ai:carbon:side-panel-close" viewBox="0 0 32 32"><path fill="currentColor" d="M28 4H4c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h24c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2M10 26H4V6h6zm18-11H17.8l3.6-3.6L20 10l-6 6l6 6l1.4-1.4l-3.6-3.6H28v9H12V6h16z"/></symbol><use href="#ai:carbon:side-panel-close"></use>  </svg> </button> <!-- Hamburger Menu - visible on mobile only --> <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu" title="Open menu"> <svg width="1em" height="1em" class="icon-lg" data-icon="carbon:menu">   <symbol id="ai:carbon:menu" viewBox="0 0 32 32"><path fill="currentColor" d="M4 6h24v2H4zm0 18h24v2H4zm0-12h24v2H4zm0 6h24v2H4z"/></symbol><use href="#ai:carbon:menu"></use>  </svg> </button> </div> </nav> </div> </header> <div id="mobile-menu-overlay" class="mobile-menu-overlay is-hidden"></div> <aside id="mobile-menu" class="mobile-menu" aria-hidden="true"> <div class="mobile-menu-header"> <a href="/legacy-personal-site/v4/" class="nav-link nav-logo">   sujeet.pro  </a> <button id="mobile-menu-close" class="mobile-menu-close" aria-label="Close menu"> <svg width="1em" height="1em" class="icon-lg" data-icon="carbon:close">   <symbol id="ai:carbon:close" viewBox="0 0 32 32"><path fill="currentColor" d="M17.414 16L24 9.414L22.586 8L16 14.586L9.414 8L8 9.414L14.586 16L8 22.586L9.414 24L16 17.414L22.586 24L24 22.586z"/></symbol><use href="#ai:carbon:close"></use>  </svg> </button> </div> <nav class="mobile-menu-nav"> <a href="/legacy-personal-site/v4/articles" class="mobile-menu-link">  Articles </a><a href="/legacy-personal-site/v4/blogs" class="mobile-menu-link">  Blogs </a><a href="/legacy-personal-site/v4/projects" class="mobile-menu-link">  Projects </a> </nav> </aside> <script type="module" src="/legacy-personal-site/v4/_astro/mobile-menu.astro_astro_type_script_index_0_lang.AuCdxukU.js"></script>  <div class="zen-layout"> <aside id="left-sidebar" class="zen-sidebar zen-sidebar-left" aria-label="Navigation sidebar"> <div class="zen-sidebar-header"> <span class="zen-sidebar-header-title">Navigation</span> <button class="zen-sidebar-close" data-sidebar-close="left" aria-label="Close navigation sidebar"> <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5"> <path d="M8 8l16 16M24 8L8 24"></path> </svg> </button> </div> <div class="zen-sidebar-content"> <nav aria-label="Article navigation" class="article-nav"> <div class="article-nav-category"> <span class="article-nav-category-name">Browser &amp; Runtime Internals</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Critical Rendering Path</span> <span class="article-nav-topic-count">(12)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-rendering-pipeline-overview" class="article-nav-article-link">  Critical Rendering Path: Rendering Pipeline Overview </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-dom-construction" class="article-nav-article-link">  Critical Rendering Path: DOM Construction </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-cssom-construction" class="article-nav-article-link">  Critical Rendering Path: CSSOM Construction </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-style-recalculation" class="article-nav-article-link">  Critical Rendering Path: Style Recalculation </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-layout" class="article-nav-article-link">  Critical Rendering Path: Layout Stage </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-prepaint" class="article-nav-article-link">  Critical Rendering Path: Prepaint </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-paint" class="article-nav-article-link">  Critical Rendering Path: Paint Stage </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-commit" class="article-nav-article-link">  Critical Rendering Path: Commit </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-layerize" class="article-nav-article-link">  Critical Rendering Path: Layerize </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-raster" class="article-nav-article-link">  Critical Rendering Path: Rasterization </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-composit" class="article-nav-article-link">  Critical Rendering Path: Compositing </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-draw" class="article-nav-article-link">  Critical Rendering Path: Draw </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">JavaScript Runtime Internals</span> <span class="article-nav-topic-count">(7)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/v8-engine-architecture" class="article-nav-article-link">  V8 Engine Architecture: Parsing, Optimization, and JIT </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/browser-internals" class="article-nav-article-link">  Browser Architecture: Processes, Caching, and Extensions </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/browser-event-loop" class="article-nav-article-link">  Browser Event Loop: Tasks, Microtasks, Rendering, and Idle Time </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/nodejs-runtime-architecture" class="article-nav-article-link">  Node.js Runtime Architecture: Event Loop, Streams, and APIs </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/libuv-event-loop-internals" class="article-nav-article-link">  libuv Internals: Event Loop and Async I/O </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/nodejs-event-loop" class="article-nav-article-link">  Node.js Event Loop: Phases, Queues, and Process Exit </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/js-event-loop" class="article-nav-article-link">  JS Event Loop: Tasks, Microtasks, and Rendering (For Browser &amp; Node.js) </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name is-current">System Design</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">System Design Fundamentals</span> <span class="article-nav-topic-count">(20)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/consistency-and-cap-theorem" class="article-nav-article-link">  Consistency Models and the CAP Theorem </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/distributed-consensus" class="article-nav-article-link">  Distributed Consensus </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/time-and-ordering" class="article-nav-article-link">  Time and Ordering in Distributed Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/failure-modes-and-resilience" class="article-nav-article-link">  Failure Modes and Resilience Patterns </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/storage-choices-sql-vs-nosql" class="article-nav-article-link">  Storage Choices: SQL vs NoSQL </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/sharding-and-replication" class="article-nav-article-link">  Sharding and Replication </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/indexing-and-query-optimization" class="article-nav-article-link">  Indexing and Query Optimization </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/transactions-and-acid" class="article-nav-article-link">  Transactions and ACID Properties </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/load-balancers-architecture" class="article-nav-article-link">  Load Balancer Architecture: L4 vs L7 and Routing </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/cdn-architecture-and-caching" class="article-nav-article-link">  CDN Architecture and Edge Caching </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/caching-fundamentals-and-strategies" class="article-nav-article-link">  Caching Fundamentals and Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/api-gateway-patterns" class="article-nav-article-link">  API Gateway Patterns: Routing, Auth, and Policies </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/service-discovery-and-registry" class="article-nav-article-link">  Service Discovery and Registry Patterns </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/dns-deep-dive" class="article-nav-article-link">  DNS Deep Dive </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/queues-and-pubsub" class="article-nav-article-link">  Queues and Pub/Sub: Decoupling and Backpressure </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/event-driven-architecture" class="article-nav-article-link">  Event-Driven Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/rpc-and-api-design" class="article-nav-article-link">  RPC and API Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/rate-limiting-strategies" class="article-nav-article-link">  Rate Limiting Strategies: Token Bucket, Leaky Bucket, and Sliding Window </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/circuit-breaker-patterns" class="article-nav-article-link">  Circuit Breaker Patterns for Resilient Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/capacity-planning-and-estimation" class="article-nav-article-link">  Capacity Planning and Back-of-the-Envelope Estimates </a> </div> </details><details class="article-nav-topic" open> <summary class="article-nav-topic-toggle is-active"> <span class="article-nav-topic-name">System Design Building Blocks</span> <span class="article-nav-topic-count">(10)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/lru-cache-design" class="article-nav-article-link">  LRU Cache Design: Eviction Strategies and Trade-offs </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/unique-id-generation" class="article-nav-article-link">  Unique ID Generation in Distributed Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-cache-design" class="article-nav-article-link">  Distributed Cache Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/blob-storage-design" class="article-nav-article-link is-active">  Blob Storage Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-search-engine" class="article-nav-article-link">  Distributed Search Engine </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-logging-system" class="article-nav-article-link">  Distributed Logging System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-monitoring" class="article-nav-article-link">  Distributed Monitoring Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/task-scheduler-design" class="article-nav-article-link">  Task Scheduler Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/sharded-counters" class="article-nav-article-link">  Sharded Counters </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/leaderboard-design" class="article-nav-article-link">  Leaderboard Design </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">System Design Problems</span> <span class="article-nav-topic-count">(28)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-key-value-store" class="article-nav-article-link">  Design a Distributed Key-Value Store </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-distributed-file-system" class="article-nav-article-link">  Design a Distributed File System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-time-series-database" class="article-nav-article-link">  Design a Time Series Database </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-youtube-video-platform" class="article-nav-article-link">  Design a YouTube-Style Video Platform </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-netflix-streaming" class="article-nav-article-link">  Design Netflix Video Streaming </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-instagram-photo-sharing" class="article-nav-article-link">  Design Instagram: Photo Sharing at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-spotify-music-streaming" class="article-nav-article-link">  Design Spotify Music Streaming </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-real-time-chat-messaging" class="article-nav-article-link">  Design Real-Time Chat and Messaging </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-social-feed" class="article-nav-article-link">  Design a Social Feed (Facebook/Instagram) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-notification-system" class="article-nav-article-link">  Design a Notification System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-email-system" class="article-nav-article-link">  Design an Email System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-uber-ride-hailing" class="article-nav-article-link">  Design Uber-Style Ride Hailing </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-maps" class="article-nav-article-link">  Design Google Maps </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-yelp-proximity-service" class="article-nav-article-link">  Design Yelp: Location-Based Business Discovery Platform </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-search-autocomplete" class="article-nav-article-link">  Design Search Autocomplete: Prefix Matching at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-web-crawler" class="article-nav-article-link">  Design a Web Crawler </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-search" class="article-nav-article-link">  Design Google Search </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-docs-collaboration" class="article-nav-article-link">  Design Collaborative Document Editing (Google Docs) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-dropbox-file-sync" class="article-nav-article-link">  Design Dropbox File Sync </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-calendar" class="article-nav-article-link">  Design Google Calendar </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-issue-tracker" class="article-nav-article-link">  Design an Issue Tracker (Jira/Linear) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-payment-system" class="article-nav-article-link">  Design a Payment System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-flash-sale-system" class="article-nav-article-link">  Design a Flash Sale System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-amazon-shopping-cart" class="article-nav-article-link">  Design Amazon Shopping Cart </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/url-shortener-design" class="article-nav-article-link">  Design a URL Shortener: IDs, Storage, and Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-pastebin" class="article-nav-article-link">  Design Pastebin: Text Sharing, Expiration, and Abuse Prevention </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-api-rate-limiter" class="article-nav-article-link">  Design an API Rate Limiter: Distributed Throttling, Multi-Tenant Quotas, and Graceful Degradation </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-cookie-consent-service" class="article-nav-article-link">  Design a Cookie Consent Service </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Core Distributed Patterns</span> <span class="article-nav-topic-count">(9)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/crdt-for-collaborative-systems" class="article-nav-article-link">  CRDTs for Collaborative Systems </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/operational-transformation" class="article-nav-article-link">  Operational Transformation </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/distributed-locking" class="article-nav-article-link">  Distributed Locking </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/exactly-once-delivery" class="article-nav-article-link">  Exactly-Once Delivery </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/event-sourcing-deep-dive" class="article-nav-article-link">  Event Sourcing </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/change-data-capture" class="article-nav-article-link">  Change Data Capture </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/database-migrations-at-scale" class="article-nav-article-link">  Database Migrations at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/multi-region-architecture" class="article-nav-article-link">  Multi-Region Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/graceful-degradation" class="article-nav-article-link">  Graceful Degradation </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Frontend System Design</span> <span class="article-nav-topic-count">(15)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/virtualization-and-windowing" class="article-nav-article-link">  Virtualization and Windowing </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/offline-first-architecture" class="article-nav-article-link">  Offline-First Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/client-state-management" class="article-nav-article-link">  Client State Management </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/real-time-sync-client" class="article-nav-article-link">  Real-Time Sync Client </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/widget-framework" class="article-nav-article-link">  Multi-Tenant Pluggable Widget Framework </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/bundle-splitting-strategies" class="article-nav-article-link">  Bundle Splitting Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/rendering-strategies" class="article-nav-article-link">  Rendering Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/image-loading-optimization" class="article-nav-article-link">  Image Loading Optimization </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/performance-monitoring-client" class="article-nav-article-link">  Client Performance Monitoring </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-rich-text-editor" class="article-nav-article-link">  Design a Rich Text Editor </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-infinite-feed" class="article-nav-article-link">  Design an Infinite Feed </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-drag-drop-system" class="article-nav-article-link">  Design a Drag and Drop System </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-form-builder" class="article-nav-article-link">  Design a Form Builder </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-data-grid" class="article-nav-article-link">  Design a Data Grid </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-file-uploader" class="article-nav-article-link">  Design a File Uploader </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Real-World Case Studies</span> <span class="article-nav-topic-count">(20)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/facebook-2021-outage-analysis" class="article-nav-article-link">  Facebook 2021 Outage: BGP Withdrawal, DNS Collapse, and the Backbone That Disappeared </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/aws-kinesis-2020-outage" class="article-nav-article-link">  AWS Kinesis 2020 Outage: Thread Limits, Thundering Herds, and Hidden Dependencies </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/shopify-pod-architecture" class="article-nav-article-link">  Shopify: Pod Architecture for Multi-Tenant Isolation at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/netflix-microservices-evolution" class="article-nav-article-link">  Netflix: From Monolith to Microservices — A 7-Year Architecture Evolution </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/twitter-timeline-architecture" class="article-nav-article-link">  Twitter/X: Timeline Architecture and the Recommendation Algorithm </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/facebook-tao-social-graph" class="article-nav-article-link">  Facebook TAO: The Social Graph’s Distributed Cache </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/uber-microservices-journey" class="article-nav-article-link">  Uber: From Monolith to Domain-Oriented Microservices </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/uber-schemaless-datastore" class="article-nav-article-link">  Uber Schemaless: Building a Scalable Datastore on MySQL </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/slack-distributed-architecture" class="article-nav-article-link">  Slack: Scaling a Real-Time Messaging Platform from Monolith to Distributed Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/linkedin-kafka-origin" class="article-nav-article-link">  LinkedIn and the Birth of Apache Kafka: Solving the O(N²) Data Integration Problem </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/dropbox-magic-pocket" class="article-nav-article-link">  Dropbox Magic Pocket: Building Exabyte-Scale Blob Storage </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/instagram-cassandra-migration" class="article-nav-article-link">  Instagram: From Redis to Cassandra and the Rocksandra Storage Engine </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/youtube-vitess-scaling" class="article-nav-article-link">  YouTube: Scaling MySQL to Serve Billions with Vitess </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/github-mysql-migration" class="article-nav-article-link">  GitHub: Scaling MySQL from One Database to 1,200+ Hosts </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/pinterest-mysql-sharding" class="article-nav-article-link">  Pinterest: MySQL Sharding from Zero to Billions of Objects </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/stripe-idempotency-reliability" class="article-nav-article-link">  Stripe: Idempotency for Payment Reliability </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/discord-rust-read-states" class="article-nav-article-link">  Discord: Rewriting Read States from Go to Rust </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/discord-message-storage" class="article-nav-article-link">  Discord: From Billions to Trillions of Messages — A Three-Database Journey </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/figma-multiplayer-infrastructure" class="article-nav-article-link">  Figma: Building Multiplayer Infrastructure for Real-Time Design Collaboration </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/whatsapp-erlang-scaling" class="article-nav-article-link">  WhatsApp: 2 Million Connections Per Server with Erlang </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Platform Engineering</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Media Systems</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/drm-basics-for-streaming" class="article-nav-article-link">  DRM Fundamentals for Streaming Media </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/video-transcoding-pipeline" class="article-nav-article-link">  Video Transcoding Pipeline Design </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/web-video-playback-architecture" class="article-nav-article-link">  Web Video Playback Architecture: HLS, DASH, and Low Latency </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/image-processing-service-design" class="article-nav-article-link">  Image Processing Service Design: CDN, Transforms, and APIs </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Observability &amp; Reliability</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/slos-slis-error-budgets" class="article-nav-article-link">  SLOs, SLIs, and Error Budgets </a><a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/csp-violation-reporting-pipeline" class="article-nav-article-link">  CSP Violation Reporting Pipeline at Scale </a><a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/logging-metrics-tracing" class="article-nav-article-link">  Logging, Metrics, and Tracing Fundamentals </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Infrastructure &amp; Delivery</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/edge-delivery-and-cache-invalidation" class="article-nav-article-link">  Edge Delivery and Cache Invalidation </a><a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/deployment-strategies-blue-green-canary" class="article-nav-article-link">  Deployment Strategies: Blue-Green, Canary, and Rolling </a><a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/ssg-performance-optimizations" class="article-nav-article-link">  SSG Performance Optimizations: Build, Cache, and Delivery </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Experimentation &amp; Testing</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/experimentation-testing/k6-load-testing-overview" class="article-nav-article-link">  k6 Load Testing Overview: Smoke, Spike, Soak, Stress </a><a href="/legacy-personal-site/v4/articles/platform-engineering/experimentation-testing/statsig-experimentation-overview" class="article-nav-article-link">  Statsig Experimentation Platform: Architecture and Rollouts </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Platform Migrations</span> <span class="article-nav-topic-count">(1)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/platform-migrations/ecommerce-ssg-to-ssr-migration" class="article-nav-article-link">  E-commerce SSG to SSR Migration: Strategy and Pitfalls </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Frontend Engineering</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Frontend Architecture &amp; Patterns</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/micro-frontends-architecture" class="article-nav-article-link">  Micro-Frontends Architecture: Composition, Isolation, and Delivery </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/rendering-strategies-csr-ssr-ssg-isr" class="article-nav-article-link">  Rendering Strategies: CSR, SSR, SSG, and ISR </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/data-fetching-patterns" class="article-nav-article-link">  Frontend Data Fetching Patterns and Caching </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/css-architecture-strategies" class="article-nav-article-link">  CSS Architecture Strategies: BEM, Utility-First, and CSS-in-JS </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/component-architecture-blueprint" class="article-nav-article-link">  Component Architecture Blueprint for Scalable UI </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Web Performance Optimization</span> <span class="article-nav-topic-count">(6)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-infrastructure-stack" class="article-nav-article-link">  Web Performance Infrastructure: DNS, CDN, Caching, and Edge </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-javascript-optimization" class="article-nav-article-link">  JavaScript Performance Optimization for the Web </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-css-typography" class="article-nav-article-link">  CSS and Typography Performance Optimization </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-image-optimization" class="article-nav-article-link">  Image Performance Optimization for the Web </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/core-web-vitals-measurement" class="article-nav-article-link">  Core Web Vitals Measurement: Lab vs Field Data </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-overview" class="article-nav-article-link">  Web Performance Optimization: Overview and Playbook </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Design Systems</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-system-implementation-scaling" class="article-nav-article-link">  Design System Implementation and Scaling </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/component-library-architecture-and-governance" class="article-nav-article-link">  Component Library Architecture and Governance </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-tokens-and-theming" class="article-nav-article-link">  Design Tokens and Theming Architecture </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-system-adoption-foundations" class="article-nav-article-link">  Design System Adoption: Foundations and Governance </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">React Architecture</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-performance-patterns" class="article-nav-article-link">  React Performance Patterns: Rendering, Memoization, and Scheduling </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-hooks-advanced-patterns" class="article-nav-article-link">  React Hooks Advanced Patterns: Specialized Hooks and Composition </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-rendering-architecture" class="article-nav-article-link">  React Rendering Architecture: Fiber, SSR, and RSC </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-hooks-fundamentals" class="article-nav-article-link">  React Hooks Fundamentals: Rules, Core Hooks, and Custom Hooks </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Web Foundations</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Security &amp; Auth</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/csrf-and-cors-defense" class="article-nav-article-link">  CSRF and CORS Defense for Modern Web Applications </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/oauth-oidc-flow-guide" class="article-nav-article-link">  OAuth 2.0 and OIDC Flows: Authorization Code to PKCE </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/web-app-security-architecture" class="article-nav-article-link">  Web Application Security Architecture </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/auth-foundations-sessions-tokens" class="article-nav-article-link">  Authentication Foundations: Sessions, Tokens, and Trust </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/owasp-top-10-guide" class="article-nav-article-link">  OWASP Top 10: Web Application Security Risks </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Networking &amp; Protocols</span> <span class="article-nav-topic-count">(7)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/http3-quic-and-tls" class="article-nav-article-link">  HTTP/3 and QUIC: Transport Layer Revolution </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/http1-1-to-http2-evolution" class="article-nav-article-link">  HTTP/1.1 to HTTP/2: Bottlenecks and Multiplexing </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/tls-1-3-handshake-and-https" class="article-nav-article-link">  TLS 1.3 Handshake and HTTPS Hardening </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-security-doh-dot-dnssec" class="article-nav-article-link">  DNS Security and Privacy: DNSSEC, DoH, and DoT </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-troubleshooting-playbook" class="article-nav-article-link">  DNS Troubleshooting Playbook </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-records-ttl-and-caching" class="article-nav-article-link">  DNS Records, TTL Strategy, and Cache Behavior </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-resolution-path" class="article-nav-article-link">  DNS Resolution Path: Stub to Recursive to Authoritative </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Browser APIs</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/web-workers-and-worklets" class="article-nav-article-link">  Web Workers and Worklets for Off-Main-Thread Work </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/service-workers-and-cache-api" class="article-nav-article-link">  Service Workers and Cache API </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/fetch-and-streaming-apis" class="article-nav-article-link">  Fetch, Streams, and AbortController </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/storage-apis-local-indexeddb" class="article-nav-article-link">  Browser Storage APIs: localStorage, IndexedDB, and Beyond </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/dom-api-essentials" class="article-nav-article-link">  DOM API Essentials: Structure, Traversal, and Mutation </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Accessibility Standards</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/accessibility-standards/accessibility-testing-tooling" class="article-nav-article-link">  Accessibility Testing and Tooling Workflow </a><a href="/legacy-personal-site/v4/articles/web-foundations/accessibility-standards/wcag-2-2-practical-guide" class="article-nav-article-link">  WCAG 2.2: Practical Accessibility Guide </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Programming &amp; Patterns</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Data Structures</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/heaps-and-priority-queues" class="article-nav-article-link">  Heaps and Priority Queues: Internals, Trade-offs, and When Theory Breaks Down </a><a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/trees-and-graphs" class="article-nav-article-link">  Trees and Graphs: Traversals and Applications </a><a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/arrays-and-hash-maps" class="article-nav-article-link">  Arrays and Hash Maps: Engine Internals and Performance Reality </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Algorithms Foundations</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/k-crystal-balls-problem" class="article-nav-article-link">  K-Crystal Balls Problem: Jump Search Pattern </a><a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/sorting-algorithms-guide" class="article-nav-article-link">  Sorting Algorithms: Complexity, Stability, and Use Cases </a><a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/search-algorithms-guide" class="article-nav-article-link">  Search Algorithms: Linear, Binary, and Graph Traversal </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">JavaScript Patterns</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/publish-subscribe-pattern" class="article-nav-article-link">  Publish-Subscribe Pattern in JavaScript </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/exponential-backoff-retry-strategy" class="article-nav-article-link">  Exponential Backoff and Retry Strategy </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/async-queue-pattern" class="article-nav-article-link">  Async Queue Pattern in JavaScript </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/javascript-error-handling-patterns" class="article-nav-article-link">  JavaScript Error Handling Patterns </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/javascript-string-length" class="article-nav-article-link">  JavaScript String Length: Graphemes, UTF-16, and Unicode </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Developer Experience</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Productivity &amp; Workflows</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/developer-experience/productivity-workflows/chrome-developer-setup" class="article-nav-article-link">  Chrome Developer Setup: Extensions, Profiles, and Shortcuts </a><a href="/legacy-personal-site/v4/articles/developer-experience/productivity-workflows/editor-terminal-setup" class="article-nav-article-link">  macOS Developer Environment Setup </a> </div> </details> </div> </div> </nav> <script type="module">function e(){document.querySelector("#left-sidebar .article-nav-article-link.is-active")?.scrollIntoView({block:"nearest",behavior:"instant"})}e();document.addEventListener("astro:page-load",e);</script>  </div> </aside> <main id="main" class="zen-main"> <div class="page-content"> <nav class="breadcrumb" aria-label="Breadcrumb"><a title="Home" aria-label="Home" href="/legacy-personal-site/v4/" class="nav-link">  <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:home">   <symbol id="ai:carbon:home" viewBox="0 0 32 32"><path fill="currentColor" d="M16.612 2.214a1.01 1.01 0 0 0-1.242 0L1 13.419l1.243 1.572L4 13.621V26a2.004 2.004 0 0 0 2 2h20a2.004 2.004 0 0 0 2-2V13.63L29.757 15L31 13.428ZM18 26h-4v-8h4Zm2 0v-8a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v8H6V12.062l10-7.79l10 7.8V26Z"/></symbol><use href="#ai:carbon:home"></use>  </svg> </a><svg width="1em" height="1em" viewBox="0 0 32 32" class="breadcrumb-separator icon-sm" data-icon="carbon:chevron-right">   <use href="#ai:carbon:chevron-right"></use>  </svg><a href="/legacy-personal-site/v4/articles/system-design" class="nav-link">  System Design </a><svg width="1em" height="1em" class="breadcrumb-separator icon-sm" data-icon="carbon:chevron-right">   <symbol id="ai:carbon:chevron-right" viewBox="0 0 32 32"><path fill="currentColor" d="M22 16L12 26l-1.4-1.4l8.6-8.6l-8.6-8.6L12 6z"/></symbol><use href="#ai:carbon:chevron-right"></use>  </svg><a title="System Design Building Blocks" href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks" class="nav-link">  System Design Building Blocks </a></nav>    <div id="reading-progress" class="reading-progress" style="width: 0%"></div> <script type="module">function l(){const e=document.getElementById("reading-progress");if(!e)return;const t=document.querySelector("article")||document.querySelector(".prose");if(!t){e.style.display="none";return}function r(){if(!t||!e)return;const i=t.getBoundingClientRect(),s=i.top+window.scrollY,u=i.height,c=window.innerHeight,g=window.scrollY,o=s-c/2,w=s+u-c/2,d=g;let a=0;d>o&&(a=Math.min(100,(d-o)/(w-o)*100)),e.style.width=`${Math.max(0,a)}%`}let n=!1;window.addEventListener("scroll",()=>{n||(requestAnimationFrame(()=>{r(),n=!1}),n=!0)}),r()}document.addEventListener("DOMContentLoaded",l);document.addEventListener("astro:page-load",l);</script>  <div class="frontmatter article-frontmatter">    <span class="frontmatter-item"> <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:time">   <symbol id="ai:carbon:time" viewBox="0 0 32 32"><path fill="currentColor" d="M16 30a14 14 0 1 1 14-14a14 14 0 0 1-14 14m0-26a12 12 0 1 0 12 12A12 12 0 0 0 16 4"/><path fill="currentColor" d="M20.59 22L15 16.41V7h2v8.58l5 5.01z"/></symbol><use href="#ai:carbon:time"></use>  </svg> 16 min read </span> <span class="frontmatter-item"> <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:calendar">   <symbol id="ai:carbon:calendar" viewBox="0 0 32 32"><path fill="currentColor" d="M26 4h-4V2h-2v2h-8V2h-2v2H6c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2m0 22H6V12h20zm0-16H6V6h4v2h2V6h8v2h2V6h4z"/></symbol><use href="#ai:carbon:calendar"></use>  </svg>
+Last updated on Feb 3, 2026 </span> </div>  <article id="article-content" class="article-prose-content DocSearch-content"> <h1 id="blob-storage-design" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#blob-storage-design">Blob Storage Design</a></h1>
+<p>Designing scalable object storage systems requires understanding the fundamental trade-offs between storage efficiency, durability, and access performance. This article covers the core building blocks—chunking, deduplication, metadata management, redundancy, and tiered storage—with design reasoning for each architectural choice.</p>
+<figure>
+<p><img alt="Blob storage architecture: clients interact through an API gateway; metadata and deduplication index are managed separately from the data layer, which uses erasure coding across distributed storage nodes." loading="lazy" decoding="async" fetchpriority="auto" width="535" height="1029" src="/legacy-personal-site/v4/_astro/blob-storage-architecture-clients-interact-through-an-api-gateway-metadata-and-d.ChTevbuc_111F3h.svg" ></p>
+<figcaption>Blob storage architecture: clients interact through an API gateway; metadata and deduplication index are managed separately from the data layer, which uses erasure coding across distributed storage nodes.</figcaption>
+</figure>
+<h2 id="abstract" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#abstract">Abstract</a></h2>
+<p>Blob storage trades complexity for scale by treating large files as collections of immutable chunks. The core design decisions are:</p>
+<ul>
+<li><strong>Chunking</strong>: Fixed-size (simple, fast) vs. content-defined (CDC, better deduplication)—determines deduplication effectiveness and CPU overhead</li>
+<li><strong>Deduplication</strong>: File-level (low overhead, coarse) vs. block-level (high dedup ratio, memory-intensive)—determines storage efficiency and index memory requirements</li>
+<li><strong>Metadata separation</strong>: Decoupling metadata from data enables independent scaling—metadata needs high IOPS, data needs high throughput</li>
+<li><strong>Redundancy</strong>: 3-way replication (3× overhead, simple) vs. erasure coding (1.2-1.5× overhead, CPU cost)—determines storage cost and repair bandwidth</li>
+<li><strong>Tiering</strong>: Hot/warm/cold/archive tiers optimize cost for access patterns—determines retrieval latency and storage cost</li>
+</ul>
+<p>The fundamental trade-off: <strong>storage overhead vs. durability vs. access latency</strong>. Higher durability requires more redundancy (storage cost). Faster access requires keeping data on high-performance media (cost). Design for the access pattern—most data is write-once, read-rarely.</p>
+<h2 id="object-storage-fundamentals" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#object-storage-fundamentals">Object Storage Fundamentals</a></h2>
+<h3 id="object-vs-block-vs-file-storage" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#object-vs-block-vs-file-storage">Object vs. Block vs. File Storage</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Characteristic</th><th>Object Storage</th><th>Block Storage</th><th>File Storage</th></tr></thead><tbody><tr><td><strong>Data model</strong></td><td>Objects (key → binary data + metadata)</td><td>Fixed-size blocks with unique IDs</td><td>Hierarchical files and directories</td></tr><tr><td><strong>Access</strong></td><td>REST API (HTTP)</td><td>iSCSI / Fibre Channel</td><td>NFS / SMB</td></tr><tr><td><strong>Namespace</strong></td><td>Flat (bucket + key)</td><td>Volume + block address</td><td>Directory tree</td></tr><tr><td><strong>Best for</strong></td><td>Unstructured data, backups, media</td><td>Databases, VMs, transactional</td><td>Shared filesystems, content management</td></tr><tr><td><strong>Latency</strong></td><td>Milliseconds</td><td>Sub-millisecond</td><td>Milliseconds</td></tr><tr><td><strong>Scalability</strong></td><td>Exabytes</td><td>Petabytes</td><td>Petabytes</td></tr><tr><td><strong>Modification</strong></td><td>Replace entire object</td><td>In-place block update</td><td>In-place file update</td></tr></tbody></table></div>
+<p><strong>Design reasoning:</strong> Object storage chose a flat namespace and immutable objects specifically to simplify distribution. Without directory hierarchies, there’s no need to maintain tree consistency across nodes. Without in-place updates, writes are append-only—eliminating write conflicts and enabling aggressive caching.</p>
+<h3 id="the-object-model" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-object-model">The Object Model</a></h3>
+<p>An object consists of:</p>
+<ol>
+<li><strong>Key</strong>: Unique identifier within a bucket (e.g., <code>photos/2024/vacation.jpg</code>)</li>
+<li><strong>Data</strong>: Binary content (bytes to terabytes)</li>
+<li><strong>Metadata</strong>: System metadata (size, ETag, timestamps) + custom key-value pairs</li>
+<li><strong>Version ID</strong>: Optional, for versioned buckets</li>
+</ol>
+<p><strong>Flat namespace illusion:</strong> Keys like <code>photos/2024/vacation.jpg</code> are not directory paths—they’re opaque strings. The <code>/</code> delimiter is a convention; listing operations with <code>prefix=photos/</code> and <code>delimiter=/</code> simulate directory listing, but no directory structure exists.</p>
+<p><strong>Bucket model:</strong> Buckets provide namespace isolation and policy boundaries (access control, lifecycle rules, versioning). A single storage system may support trillions of objects across millions of buckets.</p>
+<p><strong>Real-world scale:</strong> AWS S3 stores 500+ trillion objects across hundreds of exabytes, serving 200 million requests/second at peak.</p>
+<h2 id="chunking-strategies" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#chunking-strategies">Chunking Strategies</a></h2>
+<h3 id="design-choices" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#design-choices">Design Choices</a></h3>
+<h4 id="fixed-size-chunking" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#fixed-size-chunking">Fixed-Size Chunking</a></h4>
+<p><strong>How it works:</strong> Split files into equal-sized chunks at fixed byte boundaries. Each chunk assigned a content hash (SHA-256) as its identifier.</p>
+<p><strong>Best when:</strong></p>
+<ul>
+<li>Simple implementation required</li>
+<li>File modifications are rare (write-once workloads)</li>
+<li>CPU overhead must be minimized</li>
+<li>Sequential access patterns dominate</li>
+</ul>
+<p><strong>Trade-offs:</strong></p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Deterministic boundaries—identical files produce identical chunks</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Low CPU overhead (no content analysis)</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Predictable chunk counts for capacity planning</li>
+<li><span role="img" aria-label="cross mark">❌</span> Poor deduplication on modified files (insertion shifts all subsequent boundaries)</li>
+<li><span role="img" aria-label="cross mark">❌</span> Chunk size forces trade-off between metadata overhead and dedup granularity</li>
+</ul>
+<p><strong>Real-world example:</strong> GFS used 64 MB chunks. This large size reduces metadata overhead (64 bytes per 64 MB chunk) and client-master interactions. The trade-off: 64 MB is too large for small files, leading to internal fragmentation.</p>
+<p><strong>Chunk size trade-offs:</strong></p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Chunk Size</th><th>Metadata Overhead</th><th>Dedup Potential</th><th>Network Efficiency</th><th>Use Case</th></tr></thead><tbody><tr><td>4 KB</td><td>Very high</td><td>Maximum</td><td>Poor (high overhead per transfer)</td><td>Databases</td></tr><tr><td>64 KB - 1 MB</td><td>Moderate</td><td>High</td><td>Good</td><td>General purpose</td></tr><tr><td>4-8 MB</td><td>Low</td><td>Moderate</td><td>Optimal for large files</td><td>Backups, media</td></tr><tr><td>64 MB</td><td>Very low</td><td>Low</td><td>Best throughput</td><td>Analytics, logs</td></tr></tbody></table></div>
+<h4 id="content-defined-chunking-cdc" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#content-defined-chunking-cdc">Content-Defined Chunking (CDC)</a></h4>
+<p><strong>How it works:</strong> Use a rolling hash function to identify chunk boundaries based on content patterns. When the hash matches a predefined pattern (e.g., low N bits are zero), declare a chunk boundary.</p>
+<p><strong>Best when:</strong></p>
+<ul>
+<li>Deduplication is critical (backup systems, versioned storage)</li>
+<li>Files are frequently modified</li>
+<li>Storage cost savings justify CPU overhead</li>
+<li>Similar files are stored (code repositories, documents)</li>
+</ul>
+<p><strong>Trade-offs:</strong></p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Insertions/deletions only affect neighboring chunks (boundaries shift minimally)</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> 10× better deduplication than fixed-size on modified files</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Natural chunk size distribution matches content structure</li>
+<li><span role="img" aria-label="cross mark">❌</span> Higher CPU overhead (rolling hash computation)</li>
+<li><span role="img" aria-label="cross mark">❌</span> Variable chunk sizes complicate capacity planning</li>
+<li><span role="img" aria-label="cross mark">❌</span> More complex implementation</li>
+</ul>
+<p><strong>CDC Algorithms:</strong></p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Algorithm</th><th>Speed</th><th>Dedup Ratio</th><th>Implementation</th></tr></thead><tbody><tr><td>Rabin Fingerprinting</td><td>Baseline</td><td>Best</td><td>Polynomial division, complex</td></tr><tr><td>Gear-based</td><td>2× Rabin</td><td>Near-Rabin</td><td>Bit operations, simpler</td></tr><tr><td>FastCDC</td><td>10× Rabin</td><td>Near-Rabin</td><td>Optimized hash judgment</td></tr></tbody></table></div>
+<p><strong>FastCDC innovations (USENIX ATC 2016):</strong></p>
+<ol>
+<li><strong>Simplified hash judgment:</strong> Faster pattern matching than Rabin</li>
+<li><strong>Skip minimum chunk boundaries:</strong> Avoid tiny chunks (minimum size enforced)</li>
+<li><strong>Normalized chunk distribution:</strong> Avoid extreme sizes (target average with bounds)</li>
+</ol>
+<p>Result: 10× faster than Rabin-based CDC with near-identical deduplication ratios.</p>
+<p><strong>Real-world example:</strong> Dropbox evolved from 4 MB fixed chunks to CDC for better deduplication. When users edit a document, only changed sections create new chunks—reducing upload bandwidth and storage consumption.</p>
+<h3 id="chunk-size-selection" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#chunk-size-selection">Chunk Size Selection</a></h3>
+<p><strong>Network considerations:</strong></p>
+<ul>
+<li>TCP buffer sizes range 4 KB to 4 MB (Linux default: 85 KB)</li>
+<li>Below 4 KB: Minimal benefit from smaller chunks</li>
+<li>4-8 MB: Optimal for keeping network buffers utilized</li>
+</ul>
+<p><strong>Storage considerations:</strong></p>
+<ul>
+<li>IDE drives: Optimal bandwidth at 4 MB chunks</li>
+<li>SCSI/SAS drives: Optimal at 8 MB chunks</li>
+<li>NVMe: Smaller chunks viable (low random read penalty)</li>
+</ul>
+<p><strong>IOPS vs. throughput trade-off:</strong></p>
+<ul>
+<li>Larger chunks: Higher throughput, fewer IOPS, higher per-operation latency</li>
+<li>Smaller chunks: Lower throughput, more IOPS, lower per-operation latency</li>
+</ul>
+<p><strong>Recommendation:</strong> 4-8 MB for general blob storage, 64-128 KB for dedup-heavy workloads, 64 MB for append-only analytics data.</p>
+<h2 id="deduplication" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#deduplication">Deduplication</a></h2>
+<h3 id="design-choices-1" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#design-choices-1">Design Choices</a></h3>
+<h4 id="file-level-deduplication" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#file-level-deduplication">File-Level Deduplication</a></h4>
+<p><strong>How it works:</strong> Hash the entire file. If hash matches existing file, store only a reference. No new data written.</p>
+<p><strong>Best when:</strong></p>
+<ul>
+<li>Identical file copies are common (email attachments, shared documents)</li>
+<li>Memory is constrained (index size = O(file count))</li>
+<li>Processing overhead must be minimal</li>
+</ul>
+<p><strong>Trade-offs:</strong></p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Low memory footprint (one entry per file)</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Simple implementation</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Fast (single hash per file)</li>
+<li><span role="img" aria-label="cross mark">❌</span> Cannot deduplicate within files</li>
+<li><span role="img" aria-label="cross mark">❌</span> Any modification creates a new file (no dedup benefit)</li>
+<li><span role="img" aria-label="cross mark">❌</span> Coarse granularity limits savings</li>
+</ul>
+<h4 id="block-level-deduplication" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#block-level-deduplication">Block-Level Deduplication</a></h4>
+<p><strong>How it works:</strong> Hash each chunk. If chunk hash matches existing chunk, store only a reference. Different files can share common chunks.</p>
+<p><strong>Best when:</strong></p>
+<ul>
+<li>Similar files are stored (VMs, containers, backups)</li>
+<li>Maximizing deduplication ratio is critical</li>
+<li>Memory/storage for dedup index is available</li>
+<li>Content-defined chunking is used</li>
+</ul>
+<p><strong>Trade-offs:</strong></p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Maximum deduplication (sub-file granularity)</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Handles partial file changes well</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Cross-file deduplication</li>
+<li><span role="img" aria-label="cross mark">❌</span> High memory requirements (one entry per chunk)</li>
+<li><span role="img" aria-label="cross mark">❌</span> More complex reference management</li>
+<li><span role="img" aria-label="cross mark">❌</span> Higher CPU overhead</li>
+</ul>
+<p><strong>Memory requirements comparison:</strong></p>
+<p>For 1 PB data with 8 KB average chunks:</p>
+<ul>
+<li>Block-level: ~125 billion chunks × 48 bytes/entry ≈ 6 TB index</li>
+<li>File-level (1 KB avg file): ~1 trillion files × 48 bytes/entry ≈ 48 TB index</li>
+<li>File-level (1 MB avg file): ~1 billion files × 48 bytes/entry ≈ 48 GB index</li>
+</ul>
+<p>Block-level wins when chunk count &#x3C; file count (large files), loses when files are small.</p>
+<h4 id="inline-vs-post-process-deduplication" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#inline-vs-post-process-deduplication">Inline vs. Post-Process Deduplication</a></h4>
+<p><strong>Inline deduplication:</strong></p>
+<ul>
+<li>Check for duplicates during write</li>
+<li>Prevents redundant data from ever being stored</li>
+<li>Higher write latency (hash + lookup on hot path)</li>
+<li>Immediate storage savings</li>
+</ul>
+<p><strong>Post-process deduplication:</strong></p>
+<ul>
+<li>Write data immediately, deduplicate later</li>
+<li>Lower write latency</li>
+<li>Temporary storage overhead</li>
+<li>Background processing load</li>
+</ul>
+<p><strong>Design reasoning:</strong> High-throughput ingestion systems prefer post-process (minimize write latency). Storage-constrained systems prefer inline (maximize savings immediately).</p>
+<h3 id="deduplication-index-design" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#deduplication-index-design">Deduplication Index Design</a></h3>
+<p><strong>Challenge:</strong> The dedup index must be fast (in-memory for inline) but stores billions of entries.</p>
+<p><strong>Bloom filter optimization:</strong></p>
+<p>Bloom filters are space-efficient probabilistic structures that answer “is this chunk possibly new?” with:</p>
+<ul>
+<li>False positives: May incorrectly indicate “exists” → unnecessary disk lookup</li>
+<li>False negatives: Never → guarantees new chunks are detected</li>
+</ul>
+<p><strong>Index tiering:</strong></p>
+<ol>
+<li><strong>Hot index (RAM):</strong> Recently accessed/written chunks</li>
+<li><strong>Warm index (SSD):</strong> Less frequent chunks</li>
+<li><strong>Cold index (HDD):</strong> Archival lookup</li>
+</ol>
+<p>Bloom filter in RAM filters 99%+ of lookups before hitting disk.</p>
+<p><strong>Real-world:</strong> ZFS uses 256-bit cryptographic checksums as block signatures. The pool-wide Deduplication Table (DDT) maps checksums to block locations. When a block’s checksum matches an existing entry, ZFS increments the reference count and skips the write.</p>
+<h2 id="metadata-management" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#metadata-management">Metadata Management</a></h2>
+<h3 id="why-separate-metadata" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#why-separate-metadata">Why Separate Metadata?</a></h3>
+<p>Data and metadata have fundamentally different access patterns:</p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Characteristic</th><th>Metadata</th><th>Data</th></tr></thead><tbody><tr><td><strong>Access pattern</strong></td><td>Random, high IOPS</td><td>Sequential, high throughput</td></tr><tr><td><strong>Size per operation</strong></td><td>Bytes to kilobytes</td><td>Kilobytes to megabytes</td></tr><tr><td><strong>Consistency</strong></td><td>Strong (must be correct)</td><td>Eventually consistent (okay)</td></tr><tr><td><strong>Update frequency</strong></td><td>High (listings, stats)</td><td>Low (write-once)</td></tr><tr><td><strong>Scaling dimension</strong></td><td>IOPS</td><td>Bandwidth</td></tr></tbody></table></div>
+<p>Separating them enables independent optimization and scaling.</p>
+<h3 id="architecture-patterns" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#architecture-patterns">Architecture Patterns</a></h3>
+<h4 id="single-metadata-master-gfs-model" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#single-metadata-master-gfs-model">Single Metadata Master (GFS Model)</a></h4>
+<p><strong>How it works:</strong> One master node holds entire namespace in memory. Clients contact master for metadata, then access data nodes directly.</p>
+<p><strong>GFS specifications:</strong></p>
+<ul>
+<li>Entire namespace in RAM (compact representation)</li>
+<li>64 bytes metadata per 64 MB chunk → 4 GB RAM supports petabytes</li>
+<li>Two persistence files: FsImage (checkpoint) + EditLog (journal)</li>
+<li>On startup: merge FsImage + EditLog to reconstruct state</li>
+</ul>
+<p><strong>Trade-offs:</strong></p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Simple consistency (single source of truth)</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Fast lookups (in-memory)</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Low operational complexity</li>
+<li><span role="img" aria-label="cross mark">❌</span> Single point of failure (mitigated by shadow masters)</li>
+<li><span role="img" aria-label="cross mark">❌</span> Memory-bound scaling limit</li>
+<li><span role="img" aria-label="cross mark">❌</span> Master becomes bottleneck at extreme scale</li>
+</ul>
+<p><strong>Limitation discovered:</strong> GFS master couldn’t scale beyond ~100 million files. File count, not storage size, was the bottleneck.</p>
+<h4 id="distributed-metadata-colossusazure-model" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#distributed-metadata-colossusazure-model">Distributed Metadata (Colossus/Azure Model)</a></h4>
+<p><strong>How it works:</strong> Metadata stored in a distributed database (e.g., BigTable, Azure partition layer). Multiple metadata servers handle requests.</p>
+<p><strong>Colossus (Google’s GFS successor):</strong></p>
+<ul>
+<li>Metadata stored in BigTable (Google’s distributed database)</li>
+<li>Curators handle metadata operations</li>
+<li>Custodians manage data recovery</li>
+<li>Scales 100× beyond largest GFS clusters</li>
+<li>Powers YouTube, Gmail, BigQuery, Cloud Storage</li>
+</ul>
+<p><strong>Azure Storage architecture:</strong></p>
+<ol>
+<li><strong>Front-End Layer:</strong> API gateway, auth, routing</li>
+<li><strong>Partition Layer:</strong> Semantic abstraction (Blobs, Tables, Queues), transaction ordering, strong consistency</li>
+<li><strong>Stream Layer:</strong> Distributed file system, stores extents (large immutable chunks), 3-way replication</li>
+</ol>
+<p><strong>Trade-offs:</strong></p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Horizontal scaling (add metadata nodes)</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> No single point of failure</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Scales to exabytes</li>
+<li><span role="img" aria-label="cross mark">❌</span> Higher operational complexity</li>
+<li><span role="img" aria-label="cross mark">❌</span> Distributed consistency challenges</li>
+<li><span role="img" aria-label="cross mark">❌</span> Higher latency per operation</li>
+</ul>
+<h3 id="consistency-models" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#consistency-models">Consistency Models</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>System</th><th>Consistency Model</th><th>Guarantee</th></tr></thead><tbody><tr><td>AWS S3</td><td>Read-after-write (new objects), eventual (overwrites/deletes)</td><td>New object immediately visible; overwrites may show old value briefly</td></tr><tr><td>Azure Blob</td><td>Strong consistency</td><td>Write immediately visible to all subsequent reads</td></tr><tr><td>Google Cloud Storage</td><td>Strong consistency</td><td>Write immediately visible after success response</td></tr></tbody></table></div>
+<p><strong>Design reasoning:</strong> Strong consistency simplifies application logic (no retry loops checking if write succeeded). The cost is coordination overhead. S3’s weaker guarantee for overwrites enables higher throughput.</p>
+<h2 id="replication-and-durability" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#replication-and-durability">Replication and Durability</a></h2>
+<h3 id="design-choices-2" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#design-choices-2">Design Choices</a></h3>
+<h4 id="3-way-replication" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#3-way-replication">3-Way Replication</a></h4>
+<p><strong>How it works:</strong> Store 3 identical copies of each chunk on different storage nodes.</p>
+<p><strong>Best when:</strong></p>
+<ul>
+<li>Read latency is critical (read from any replica)</li>
+<li>Simplicity is valued over storage efficiency</li>
+<li>Repair must be fast (copy, not reconstruct)</li>
+<li>Dataset fits within 3× storage budget</li>
+</ul>
+<p><strong>Trade-offs:</strong></p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Simple implementation</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Fast reads (any replica)</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Fast repair (copy from surviving replica)</li>
+<li><span role="img" aria-label="cross mark">❌</span> 3× storage overhead (200% redundancy)</li>
+<li><span role="img" aria-label="cross mark">❌</span> High repair bandwidth (full chunk copy)</li>
+</ul>
+<p><strong>Placement strategy (HDFS/GFS model):</strong></p>
+<ul>
+<li>Replica 1: Writer’s node (or random)</li>
+<li>Replica 2: Different node, same rack</li>
+<li>Replica 3: Different rack</li>
+</ul>
+<p><strong>Design reasoning:</strong></p>
+<ul>
+<li>Same-rack replica: Low network cost (intra-rack bandwidth is cheap)</li>
+<li>Different-rack replica: Survive rack failure (power, switch)</li>
+<li>Max 1 replica per node: Survive node failure</li>
+<li>Max 2 replicas per rack: Survive rack failure</li>
+</ul>
+<p><strong>Why 3 replicas, not 2?</strong> With 2 replicas and thousands of disks, the probability of both replicas failing before repair completes is uncomfortably high. The window between first failure detection and completing re-replication is the danger zone. 3 replicas provide margin.</p>
+<h4 id="erasure-coding" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#erasure-coding">Erasure Coding</a></h4>
+<p><strong>How it works:</strong> Split data into k data chunks, compute m parity chunks. Any k of the k+m chunks can reconstruct the original data.</p>
+<p><strong>Best when:</strong></p>
+<ul>
+<li>Storage cost is critical</li>
+<li>Data is cold (infrequent reads)</li>
+<li>Read latency can tolerate reconstruction</li>
+<li>CPU for encoding/decoding is available</li>
+</ul>
+<p><strong>Reed-Solomon coding:</strong></p>
+<ul>
+<li>Classic erasure code</li>
+<li>k data chunks + m parity chunks</li>
+<li>Tolerates loss of any m chunks</li>
+<li>Example: (10,4) = 10 data + 4 parity = 1.4× overhead (vs. 3×)</li>
+</ul>
+<p><strong>Trade-offs:</strong></p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> 1.2-1.5× storage overhead (vs. 3×)</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Configurable durability (adjust m)</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Lower repair bandwidth per chunk</li>
+<li><span role="img" aria-label="cross mark">❌</span> Read requires reconstruction (CPU cost)</li>
+<li><span role="img" aria-label="cross mark">❌</span> Repair requires reading k chunks</li>
+<li><span role="img" aria-label="cross mark">❌</span> More complex implementation</li>
+</ul>
+<p><strong>Local Reconstruction Codes (LRC):</strong></p>
+<p>Azure innovation (USENIX ATC 2012) optimizing for common single-failure case.</p>
+<p>Standard Reed-Solomon (12,4): Reconstruct 1 failed chunk → read 12 chunks.</p>
+<p>LRC (12,4,2):</p>
+<ul>
+<li>12 data + 4 parity = 16 total</li>
+<li>Data split into 2 local groups of 6</li>
+<li>Each group has 1 local parity</li>
+<li>2 global parity chunks</li>
+</ul>
+<p>Single-failure reconstruction: Read only 6 chunks (local group), not 12. 50% bandwidth reduction for common case.</p>
+<p><strong>Trade-off:</strong> Slightly higher storage overhead (1.33× vs 1.33×) for dramatically lower repair bandwidth.</p>
+<h3 id="durability-guarantees" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#durability-guarantees">Durability Guarantees</a></h3>
+<p><strong>AWS S3: 11 nines (99.999999999%)</strong></p>
+<p>This means: 1 object lost per 10 billion objects over 10,000 years.</p>
+<p><strong>How achieved:</strong></p>
+<ol>
+<li><strong>Erasure coding:</strong> Data + parity distributed across many disks</li>
+<li><strong>Multi-level distribution:</strong> Shards on different disks → different servers → different racks → different data centers</li>
+<li><strong>Checksums:</strong> Every shard has embedded checksum; corruption detected on read</li>
+<li><strong>Continuous verification:</strong> Background processes scan and verify data integrity</li>
+<li><strong>Automatic repair:</strong> Corrupted/lost shards reconstructed from healthy shards</li>
+</ol>
+<p><strong>Probabilistic design:</strong> The probability of losing all k+m locations before repair completes is astronomically low when failures are independent and repair is fast.</p>
+<h2 id="garbage-collection" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#garbage-collection">Garbage Collection</a></h2>
+<h3 id="the-challenge" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-challenge">The Challenge</a></h3>
+<p>When an object is deleted:</p>
+<ol>
+<li>Metadata reference removed immediately</li>
+<li>Physical chunks may be shared with other objects</li>
+<li>Must not delete chunks still referenced elsewhere</li>
+<li>Orphaned chunks accumulate, wasting storage</li>
+<li>In-flight operations may still hold chunk references</li>
+</ol>
+<h3 id="design-choices-3" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#design-choices-3">Design Choices</a></h3>
+<h4 id="reference-counting" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#reference-counting">Reference Counting</a></h4>
+<p><strong>How it works:</strong> Track reference count per chunk. On object delete, decrement counts. When count reaches 0, mark chunk for deletion.</p>
+<p><strong>Trade-offs:</strong></p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Immediate cleanup when last reference removed</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Incremental (no long pauses)</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Fine-grained control</li>
+<li><span role="img" aria-label="cross mark">❌</span> Circular references prevent count reaching 0 (less relevant for blob storage)</li>
+<li><span role="img" aria-label="cross mark">❌</span> Counter update on every reference change</li>
+<li><span role="img" aria-label="cross mark">❌</span> Counter must survive crashes (persistent, atomic)</li>
+</ul>
+<h4 id="mark-and-sweep" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#mark-and-sweep">Mark-and-Sweep</a></h4>
+<p><strong>How it works:</strong></p>
+<ol>
+<li><strong>Mark phase:</strong> Traverse all object metadata, record referenced chunks</li>
+<li><strong>Sweep phase:</strong> Scan all chunks, delete unreferenced ones</li>
+</ol>
+<p><strong>Trade-offs:</strong></p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Handles complex reference patterns</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> No overhead on write path</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Can defer to off-peak hours</li>
+<li><span role="img" aria-label="cross mark">❌</span> Long pauses during GC (or complex incremental implementation)</li>
+<li><span role="img" aria-label="cross mark">❌</span> Must prevent modifications during sweep (or handle race)</li>
+<li><span role="img" aria-label="cross mark">❌</span> Full scan required (scales with total chunks)</li>
+</ul>
+<p><strong>Safety consideration:</strong> Only delete chunks older than threshold (e.g., 24 hours). Prevents deleting chunks from in-flight uploads not yet committed to metadata.</p>
+<h3 id="real-world-approaches" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#real-world-approaches">Real-World Approaches</a></h3>
+<p><strong>Lazy deletion (common pattern):</strong></p>
+<ol>
+<li>Object delete removes metadata immediately</li>
+<li>Chunk deletion deferred to background GC</li>
+<li>GC runs periodically (e.g., daily)</li>
+<li>Reclaims storage when no references remain</li>
+</ol>
+<p><strong>Lifecycle policies:</strong></p>
+<ul>
+<li>Auto-delete objects after TTL (e.g., “delete objects older than 90 days”)</li>
+<li>Simpler than reference tracking</li>
+<li>Imprecise (all-or-nothing based on age)</li>
+</ul>
+<p><strong>Multipart upload cleanup:</strong></p>
+<p>Incomplete multipart uploads create orphaned parts. Lifecycle rule <code>AbortIncompleteMultipartUpload</code> auto-deletes after configurable inactivity period (e.g., 7 days).</p>
+<h2 id="tiered-storage" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#tiered-storage">Tiered Storage</a></h2>
+<h3 id="storage-tiers" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#storage-tiers">Storage Tiers</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Tier</th><th>Access Frequency</th><th>Retrieval Time</th><th>Storage Cost</th><th>Retrieval Cost</th><th>Use Case</th></tr></thead><tbody><tr><td><strong>Hot</strong></td><td>Frequent</td><td>Milliseconds</td><td>$$$</td><td>Free</td><td>Active datasets</td></tr><tr><td><strong>Warm</strong></td><td>Monthly</td><td>Milliseconds</td><td>$$</td><td>$</td><td>Quarterly reports</td></tr><tr><td><strong>Cold</strong></td><td>Quarterly</td><td>Minutes</td><td>$</td><td>$$</td><td>Compliance archives</td></tr><tr><td><strong>Archive</strong></td><td>Yearly</td><td>Hours</td><td>¢</td><td>$$$</td><td>Legal holds</td></tr></tbody></table></div>
+<h3 id="automatic-tiering" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#automatic-tiering">Automatic Tiering</a></h3>
+<p><strong>S3 Intelligent-Tiering:</strong></p>
+<ul>
+<li>Objects not accessed for 30 days → Infrequent Access tier (40% savings)</li>
+<li>Objects not accessed for 90 days → Archive Instant Access tier (68% savings)</li>
+<li>Optional: 90+ days → Archive Access, 180+ days → Deep Archive Access</li>
+</ul>
+<p><strong>How it works:</strong> Monitoring tracks object access patterns. Background process migrates objects between tiers. No application code changes required.</p>
+<p><strong>Constraints:</strong></p>
+<ul>
+<li>Objects &#x3C; 128 KB always stay in Frequent Access (overhead not worth it)</li>
+<li>Small monitoring fee per object</li>
+<li>Retrieval from archive tiers has latency</li>
+</ul>
+<h3 id="manual-lifecycle-policies" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#manual-lifecycle-policies">Manual Lifecycle Policies</a></h3>
+<p><strong>Rule-based tiering:</strong></p>
+<div class="expressive-code"><link rel="stylesheet" href="/legacy-personal-site/v4/_astro/ec.g38ze.css"><script type="module" src="/legacy-personal-site/v4/_astro/ec.0vx5m.js"></script><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Rule: Move to Glacier after 90 days</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Rule: Delete after 365 days</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Rule: Move non-current versions to Infrequent Access after 30 days</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="Rule: Move to Glacier after 90 daysRule: Delete after 365 daysRule: Move non-current versions to Infrequent Access after 30 days"><div></div></button></div></figure></div>
+<p><strong>Best when:</strong> Access patterns are predictable (logs always cold after 30 days).</p>
+<p><strong>Design reasoning:</strong> Automatic tiering optimizes for unpredictable patterns at monitoring cost. Manual policies suit predictable patterns with zero monitoring overhead.</p>
+<h2 id="multipart-uploads" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#multipart-uploads">Multipart Uploads</a></h2>
+<h3 id="why-multipart" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#why-multipart">Why Multipart?</a></h3>
+<p>Single-stream upload of large files (GBs+):</p>
+<ul>
+<li>Network hiccup → restart entire upload</li>
+<li>No parallelism → underutilizes bandwidth</li>
+<li>Long request → timeout risk</li>
+<li>High memory → buffer entire file</li>
+</ul>
+<h3 id="multipart-upload-flow" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#multipart-upload-flow">Multipart Upload Flow</a></h3>
+<p><img alt="Diagram" loading="lazy" decoding="async" fetchpriority="auto" width="619" height="578" src="/legacy-personal-site/v4/_astro/diagram-1.BnIr--Ab_2pKjLA.svg" ></p>
+<h3 id="design-decisions" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#design-decisions">Design Decisions</a></h3>
+<p><strong>Part size:</strong> 5 MB minimum, 5 GB maximum (S3). Larger parts = fewer requests, better throughput. Smaller parts = finer retry granularity.</p>
+<p><strong>Part limit:</strong> 10,000 parts maximum. For 5 TB max object size with 10,000 parts → ~500 MB minimum part size for largest files.</p>
+<p><strong>ETag tracking:</strong> Each part returns an ETag. CompleteMultipartUpload requires all ETags in order. Ensures integrity—client proves it received every part acknowledgment.</p>
+<p><strong>Failure handling:</strong></p>
+<ul>
+<li>Individual part failure: Retry that part only</li>
+<li>Upload abandoned: Parts remain (consuming storage) until explicit AbortMultipartUpload or lifecycle cleanup</li>
+<li>Partial completion: ListParts shows which parts succeeded</li>
+</ul>
+<p><strong>Cleanup lifecycle:</strong> Configure <code>AbortIncompleteMultipartUpload</code> rule to auto-delete abandoned uploads after N days.</p>
+<h2 id="real-world-architectures" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#real-world-architectures">Real-World Architectures</a></h2>
+<h3 id="aws-s3" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#aws-s3">AWS S3</a></h3>
+<p><strong>Scale (2025):</strong> 500+ trillion objects, hundreds of exabytes, 200M+ requests/second peak.</p>
+<p><strong>Architecture (inferred from public information):</strong></p>
+<ul>
+<li><strong>Metadata:</strong> Distributed key-value store (likely Dynamo-derived), heavily cached</li>
+<li><strong>Data:</strong> ShardStore (LSM-tree based), erasure-coded storage</li>
+<li><strong>Consistency:</strong> Strong read-after-write for new objects</li>
+<li><strong>Durability:</strong> 11 nines via erasure coding + multi-AZ distribution</li>
+</ul>
+<p><strong>Key design principles:</strong></p>
+<ol>
+<li>Flat namespace (no directories to maintain)</li>
+<li>Metadata/data separation (independent scaling)</li>
+<li>Commodity hardware (fail-in-place design)</li>
+<li>Automatic sharding and rebalancing</li>
+</ol>
+<h3 id="azure-blob-storage" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#azure-blob-storage">Azure Blob Storage</a></h3>
+<p><strong>Architecture:</strong> Three-layer design.</p>
+<ol>
+<li><strong>Front-End:</strong> API gateway, auth, request routing</li>
+<li><strong>Partition Layer:</strong> Object semantics, transaction ordering, strong consistency</li>
+<li><strong>Stream Layer:</strong> Distributed storage, extents (large immutable chunks), LRC erasure coding (12,4,2)</li>
+</ol>
+<p><strong>Key innovations:</strong></p>
+<ul>
+<li>Strong consistency (not eventual)—simplifies application logic</li>
+<li>LRC reduces repair bandwidth by 50% for single failures</li>
+<li>Stream layer provides durable append-only storage</li>
+</ul>
+<h3 id="ceph-rados" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#ceph-rados">Ceph RADOS</a></h3>
+<p><strong>Architecture:</strong></p>
+<ul>
+<li><strong>OSDs (Object Storage Daemons):</strong> Store data, handle replication/recovery</li>
+<li><strong>Monitors:</strong> Paxos cluster managing cluster state</li>
+<li><strong>CRUSH algorithm:</strong> Deterministic placement (no central lookup)</li>
+</ul>
+<p><strong>Key design principle:</strong> Autonomous recovery. OSDs communicate peer-to-peer to detect failures and rebalance. Monitors coordinate but don’t participate in data path.</p>
+<p><strong>CRUSH placement:</strong> Hash-based algorithm computes object location from object ID + cluster map. No central metadata lookup for data path—clients compute placement directly.</p>
+<h3 id="minio" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#minio">MinIO</a></h3>
+<p><strong>Philosophy:</strong> S3-compatible, erasure-coded, horizontally scalable.</p>
+<p><strong>Architecture:</strong></p>
+<ul>
+<li>Minimum 4 nodes (production)</li>
+<li>Erasure sets: Fixed drive count (typically 8-16)</li>
+<li>Example: 12-drive setup = 6 data + 6 parity (50% overhead, 6-drive fault tolerance)</li>
+<li>Metadata stored alongside data (no separate metadata DB)</li>
+</ul>
+<p><strong>Use case:</strong> On-premises S3-compatible storage for Kubernetes, ML pipelines, backups.</p>
+<h2 id="common-pitfalls" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#common-pitfalls">Common Pitfalls</a></h2>
+<h3 id="pitfall-1-under-sizing-chunks-for-deduplication" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#pitfall-1-under-sizing-chunks-for-deduplication">Pitfall 1: Under-Sizing Chunks for Deduplication</a></h3>
+<p><strong>The mistake:</strong> Using tiny chunks (4-16 KB) assuming better deduplication.</p>
+<p><strong>Why it happens:</strong> “Smaller chunks = more dedup opportunities.”</p>
+<p><strong>The consequence:</strong> Metadata explosion. 1 PB with 8 KB chunks = 125 billion metadata entries. Index exceeds memory; lookups become I/O-bound; write throughput collapses.</p>
+<p><strong>The fix:</strong> Profile your workload. Measure actual dedup ratio at different chunk sizes. Often 256 KB-1 MB provides 90% of dedup benefit with 10× less metadata.</p>
+<h3 id="pitfall-2-ignoring-repair-bandwidth-in-erasure-coding" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#pitfall-2-ignoring-repair-bandwidth-in-erasure-coding">Pitfall 2: Ignoring Repair Bandwidth in Erasure Coding</a></h3>
+<p><strong>The mistake:</strong> Choosing high-parity erasure coding (e.g., 10+6) for maximum fault tolerance.</p>
+<p><strong>Why it happens:</strong> “More parity = more durability.”</p>
+<p><strong>The consequence:</strong> When a drive fails, reconstruction reads from 10 drives to rebuild 1 shard. With 1000 drives and 5 failures/day, repair traffic saturates network. Cascading failures follow.</p>
+<p><strong>The fix:</strong> Consider LRC or lower parity ratios. Balance durability against repair bandwidth. Run failure simulations.</p>
+<h3 id="pitfall-3-synchronous-deduplication-on-hot-path" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#pitfall-3-synchronous-deduplication-on-hot-path">Pitfall 3: Synchronous Deduplication on Hot Path</a></h3>
+<p><strong>The mistake:</strong> Inline deduplication with blocking index lookup on every write.</p>
+<p><strong>Why it happens:</strong> “Maximize storage savings immediately.”</p>
+<p><strong>The consequence:</strong> Write latency spikes when dedup index doesn’t fit in memory. P99 latency becomes unpredictable.</p>
+<p><strong>The fix:</strong> Hybrid approach—inline for hot index (memory), post-process for cold. Or accept higher storage temporarily for consistent latency.</p>
+<h3 id="pitfall-4-incomplete-multipart-upload-leaks" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#pitfall-4-incomplete-multipart-upload-leaks">Pitfall 4: Incomplete Multipart Upload Leaks</a></h3>
+<p><strong>The mistake:</strong> Not configuring lifecycle rules for incomplete multipart uploads.</p>
+<p><strong>Why it happens:</strong> “Uploads always complete successfully” (they don’t).</p>
+<p><strong>The consequence:</strong> Failed uploads leave orphaned parts. Over months, orphaned parts consume significant storage (and cost).</p>
+<p><strong>The fix:</strong> Always configure <code>AbortIncompleteMultipartUpload</code> lifecycle rule (e.g., 7 days).</p>
+<h3 id="pitfall-5-single-tier-storage-for-mixed-workloads" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#pitfall-5-single-tier-storage-for-mixed-workloads">Pitfall 5: Single-Tier Storage for Mixed Workloads</a></h3>
+<p><strong>The mistake:</strong> Storing all data on hot tier.</p>
+<p><strong>Why it happens:</strong> “Simplicity” or “we might need fast access.”</p>
+<p><strong>The consequence:</strong> 80%+ of data is rarely accessed but stored at hot-tier prices. Storage costs scale linearly with data volume.</p>
+<p><strong>The fix:</strong> Implement tiering (automatic or policy-based). Even simple “move to cold after 90 days” policies save 60%+ on storage costs for typical workloads.</p>
+<h2 id="conclusion" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#conclusion">Conclusion</a></h2>
+<p>Blob storage design balances storage efficiency, durability, and access performance through careful architectural choices:</p>
+<ol>
+<li><strong>Choose chunking for your workload:</strong> Fixed-size for write-once analytics, CDC for backup/dedup-heavy workloads</li>
+<li><strong>Separate metadata from data:</strong> They have fundamentally different scaling needs</li>
+<li><strong>Match redundancy to access patterns:</strong> 3-way replication for hot data (fast reads), erasure coding for cold data (cost efficient)</li>
+<li><strong>Design for failure:</strong> At scale, failures are constant. Repair bandwidth, GC overhead, and orphan cleanup are not edge cases—they’re steady-state operations</li>
+<li><strong>Tier aggressively:</strong> Most data is write-once, read-rarely. Price it accordingly</li>
+</ol>
+<p>The best blob storage system is invisible—until you look at the bill. Design for cost at scale from day one.</p>
+<h2 id="appendix" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#appendix">Appendix</a></h2>
+<h3 id="prerequisites" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#prerequisites">Prerequisites</a></h3>
+<ul>
+<li>Understanding of hash functions (SHA-256, CRC32)</li>
+<li>Familiarity with distributed systems concepts (replication, consistency)</li>
+<li>Basic knowledge of storage media characteristics (HDD vs SSD vs NVMe)</li>
+</ul>
+<h3 id="summary" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#summary">Summary</a></h3>
+<ul>
+<li><strong>Chunking strategies</strong> split files for parallel upload, deduplication, and redundancy. Fixed-size is simple; content-defined (CDC) enables better deduplication at higher CPU cost.</li>
+<li><strong>Deduplication</strong> eliminates redundant data at file or block level. Block-level maximizes savings but requires significant index memory.</li>
+<li><strong>Metadata separation</strong> enables independent scaling of metadata (IOPS-bound) and data (throughput-bound) layers.</li>
+<li><strong>Redundancy</strong> via 3-way replication (simple, 3× overhead) or erasure coding (complex, 1.2-1.5× overhead) determines durability and cost.</li>
+<li><strong>Tiered storage</strong> optimizes cost by matching storage media to access patterns—hot data on fast storage, cold data on cheap storage.</li>
+<li><strong>Multipart uploads</strong> enable resilient, parallel uploads of large files with per-part retry.</li>
+</ul>
+<h3 id="references" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#references">References</a></h3>
+<ul>
+<li><a href="https://research.google.com/archive/gfs-sosp2003.pdf">The Google File System (GFS) - SOSP 2003</a> - Original chunked distributed storage design</li>
+<li><a href="https://www.cs.purdue.edu/homes/csjgwang/CloudNativeDB/AzureStorageSOSP11.pdf">Windows Azure Storage: A Highly Available Cloud Storage Service with Strong Consistency - SOSP 2011</a> - Three-layer architecture, strong consistency</li>
+<li><a href="https://www.usenix.org/system/files/conference/atc12/atc12-final181_0.pdf">Erasure Coding in Windows Azure Storage - USENIX ATC 2012</a> - Local Reconstruction Codes (LRC)</li>
+<li><a href="https://www.usenix.org/system/files/conference/atc16/atc16-paper-xia.pdf">FastCDC: A Fast and Efficient Content-Defined Chunking Approach - USENIX ATC 2016</a> - Content-defined chunking optimization</li>
+<li><a href="https://ceph.io/assets/pdfs/weil-rados-pdsw07.pdf">RADOS: A Scalable, Reliable Storage Service for Petabyte-scale Storage Clusters</a> - Ceph object storage design</li>
+<li><a href="https://arxiv.org/abs/1406.2294">A Fast, Minimal Memory, Consistent Hash Algorithm (Jump Consistent Hash)</a> - Google’s O(1) memory consistent hashing</li>
+<li><a href="https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HdfsDesign.html">HDFS Architecture Guide</a> - Block placement, rack awareness</li>
+<li><a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/DataDurability.html">How Amazon S3 Achieves 11 Nines Durability</a> - Durability design principles</li>
+<li><a href="https://cloud.google.com/blog/products/storage-data-transfer/a-peek-behind-colossus-googles-file-system">Colossus: Successor to the Google File System</a> - Distributed metadata evolution</li>
+</ul> </article>  <section class="article-navigation"> <div class="section-divider"> <span class="section-divider-text">Continue Reading</span> </div> <ul class="article-list"> <li class="article-card"> <p class="article-card-label">Previous</p> <h3 class="article-card-title"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-cache-design" class="article-card-link">  Distributed Cache Design </a> </h3> <div class="frontmatter article-card-frontmatter">   <span class="frontmatter-item"> <a title="Category - System Design" href="/legacy-personal-site/v4/articles/system-design" class="frontmatter-link">  System Design </a>  <span class="text-muted">/</span> <a title="Topic - System Design Building Blocks" href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks" class="frontmatter-link">  System Design Building Blocks </a>  </span> <span class="frontmatter-item"> <svg width="1em" height="1em" viewBox="0 0 32 32" class="icon-sm" data-icon="carbon:time">   <use href="#ai:carbon:time"></use>  </svg> 17 min read </span>  </div> <p class="article-card-excerpt"> Distributed caching is the backbone of high-throughput systems. This article covers cache topologies, partitioning strategies, consistency trade-offs, and operational patterns—with design reasoning for each architectural choice. </p> </li> <li class="article-card"> <p class="article-card-label">Next</p> <h3 class="article-card-title"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-search-engine" class="article-card-link">  Distributed Search Engine </a> </h3> <div class="frontmatter article-card-frontmatter">   <span class="frontmatter-item"> <a title="Category - System Design" href="/legacy-personal-site/v4/articles/system-design" class="frontmatter-link">  System Design </a>  <span class="text-muted">/</span> <a title="Topic - System Design Building Blocks" href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks" class="frontmatter-link">  System Design Building Blocks </a>  </span> <span class="frontmatter-item"> <svg width="1em" height="1em" viewBox="0 0 32 32" class="icon-sm" data-icon="carbon:time">   <use href="#ai:carbon:time"></use>  </svg> 19 min read </span>  </div> <p class="article-card-excerpt"> Building scalable full-text search systems: inverted index internals, partitioning strategies, ranking algorithms, near-real-time indexing, and distributed query execution. This article covers the design choices that shape modern search infrastructure—from Lucene’s segment architecture to Elasticsearch’s scatter-gather execution model. </p> </li> </ul> </section> </div> <footer class="site-footer"> <div class="site-footer-inner">  <nav class="site-footer-categories"> <a title="Browser &#38; Runtime Internals" href="/legacy-personal-site/v4/articles/browser-runtime-internals" class="nav-link">  Browser &amp; Runtime Internals </a><a title="System Design" href="/legacy-personal-site/v4/articles/system-design" class="nav-link">  System Design </a><a title="Platform Engineering" href="/legacy-personal-site/v4/articles/platform-engineering" class="nav-link">  Platform Engineering </a><a title="Frontend Engineering" href="/legacy-personal-site/v4/articles/frontend-engineering" class="nav-link">  Frontend Engineering </a><a title="Web Foundations" href="/legacy-personal-site/v4/articles/web-foundations" class="nav-link">  Web Foundations </a><a title="Programming &#38; Patterns" href="/legacy-personal-site/v4/articles/programming-patterns" class="nav-link">  Programming &amp; Patterns </a><a title="Developer Experience" href="/legacy-personal-site/v4/articles/developer-experience" class="nav-link">  Developer Experience </a> </nav>  <div class="site-footer-bar"> <div class="site-footer-links"> <a href="https://docs.google.com/document/d/1pazXBfzuL9O1wCjPdKb7IS-7nXz_ZzI7EvNL1r_KKRc/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="nav-link">  Resume </a><a href="/legacy-personal-site/v4/tags" class="nav-link">  Tags </a><a href="/legacy-personal-site/v4/articles/drafts" class="nav-link">  Drafts </a> </div> <div class="site-footer-controls">  <div class="site-footer-theme"> <svg width="1em" height="1em" class="site-footer-theme-icon" data-icon="carbon:paint-brush">   <symbol id="ai:carbon:paint-brush" viewBox="0 0 32 32"><path fill="currentColor" d="M28.83 23.17L23 17.33V13a1 1 0 0 0-.29-.71l-10-10a1 1 0 0 0-1.42 0l-9 9a1 1 0 0 0 0 1.42l10 10A1 1 0 0 0 13 23h4.34l5.83 5.84a4 4 0 0 0 5.66-5.66ZM6 10.41l2.29 2.3l1.42-1.42L7.41 9L9 7.41l4.29 4.3l1.42-1.42L10.41 6L12 4.41L18.59 11L11 18.59L4.41 12Zm21.41 17a2 2 0 0 1-2.82 0l-6.13-6.12a1.8 1.8 0 0 0-.71-.29h-4.34l-1-1L20 12.41l1 1v4.34a1 1 0 0 0 .29.7l6.12 6.14a2 2 0 0 1 0 2.82"/></symbol><use href="#ai:carbon:paint-brush"></use>  </svg> <select id="theme-select" class="site-footer-theme-select" aria-label="Select theme"> <option value="auto">Auto</option> <option value="light">Light</option> <option value="dark">Dark</option> <option value="high-contrast-light">High contrast light</option> <option value="high-contrast-dark">High contrast dark</option> <option value="paper">Paper</option> </select> </div>  <div class="site-footer-social"> <a aria-label="GitHub" title="GitHub" href="https://github.com/sujeet-pro" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-github">   <symbol id="ai:carbon:logo-github" viewBox="0 0 32 32"><path fill="currentColor" fill-rule="evenodd" d="M16 2a14 14 0 0 0-4.43 27.28c.7.13 1-.3 1-.67v-2.38c-3.89.84-4.71-1.88-4.71-1.88a3.7 3.7 0 0 0-1.62-2.05c-1.27-.86.1-.85.1-.85a2.94 2.94 0 0 1 2.14 1.45a3 3 0 0 0 4.08 1.16a2.93 2.93 0 0 1 .88-1.87c-3.1-.36-6.37-1.56-6.37-6.92a5.4 5.4 0 0 1 1.44-3.76a5 5 0 0 1 .14-3.7s1.17-.38 3.85 1.43a13.3 13.3 0 0 1 7 0c2.67-1.81 3.84-1.43 3.84-1.43a5 5 0 0 1 .14 3.7a5.4 5.4 0 0 1 1.44 3.76c0 5.38-3.27 6.56-6.39 6.91a3.33 3.33 0 0 1 .95 2.59v3.84c0 .46.25.81 1 .67A14 14 0 0 0 16 2"/></symbol><use href="#ai:carbon:logo-github"></use>  </svg>  </a> <a aria-label="LinkedIn" title="LinkedIn" href="https://www.linkedin.com/in/sujeetkrjaiswal/" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-linkedin">   <symbol id="ai:carbon:logo-linkedin" viewBox="0 0 32 32"><path fill="currentColor" d="M26.2 4H5.8C4.8 4 4 4.8 4 5.7v20.5c0 .9.8 1.7 1.8 1.7h20.4c1 0 1.8-.8 1.8-1.7V5.7c0-.9-.8-1.7-1.8-1.7M11.1 24.4H7.6V13h3.5zm-1.7-13c-1.1 0-2.1-.9-2.1-2.1s.9-2.1 2.1-2.1c1.1 0 2.1.9 2.1 2.1s-1 2.1-2.1 2.1m15.1 12.9H21v-5.6c0-1.3 0-3.1-1.9-3.1S17 17.1 17 18.5v5.7h-3.5V13h3.3v1.5h.1c.5-.9 1.7-1.9 3.4-1.9c3.6 0 4.3 2.4 4.3 5.5v6.2z"/></symbol><use href="#ai:carbon:logo-linkedin"></use>  </svg>  </a> <a aria-label="Twitter" title="Twitter" href="https://twitter.com/sujeetpro" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-twitter">   <symbol id="ai:carbon:logo-twitter" viewBox="0 0 32 32"><path fill="currentColor" d="M11.548 25.752c9.056 0 14.01-7.503 14.01-14.01c0-.213 0-.425-.015-.636A10 10 0 0 0 28 8.556a9.8 9.8 0 0 1-2.828.776a4.94 4.94 0 0 0 2.164-2.724a9.9 9.9 0 0 1-3.126 1.195a4.929 4.929 0 0 0-8.392 4.491A13.98 13.98 0 0 1 5.67 7.15a4.93 4.93 0 0 0 1.525 6.573a4.9 4.9 0 0 1-2.235-.617v.063a4.926 4.926 0 0 0 3.95 4.827a4.9 4.9 0 0 1-2.223.084a4.93 4.93 0 0 0 4.6 3.42A9.88 9.88 0 0 1 4 23.54a13.94 13.94 0 0 0 7.547 2.209"/></symbol><use href="#ai:carbon:logo-twitter"></use>  </svg>  </a> </div> </div> </div>  <p class="site-footer-copyright">
+&copy; 2024-2026 Sujeet Jaiswal </p> </div> </footer> </main> <aside id="right-sidebar" class="zen-sidebar zen-sidebar-right" aria-label="Table of contents"> <div class="zen-sidebar-header"> <span class="zen-sidebar-header-title">On This Page</span> <button class="zen-sidebar-close" data-sidebar-close="right" aria-label="Close table of contents"> <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5"> <path d="M8 8l16 16M24 8L8 24"></path> </svg> </button> </div> <div class="zen-sidebar-content"> <nav aria-label="Table of contents"><h2 class="sidebar-nav-title">On this page</h2><ul class="sidebar-toc-list"><li><a href="#abstract" class="sidebar-toc-item">Abstract</a></li><li><a href="#object-storage-fundamentals" class="sidebar-toc-item">Object Storage Fundamentals</a></li><li><a href="#object-vs-block-vs-file-storage" class="sidebar-toc-item sidebar-toc-item--h3">Object vs. Block vs. File Storage</a></li><li><a href="#the-object-model" class="sidebar-toc-item sidebar-toc-item--h3">The Object Model</a></li><li><a href="#chunking-strategies" class="sidebar-toc-item">Chunking Strategies</a></li><li><a href="#design-choices" class="sidebar-toc-item sidebar-toc-item--h3">Design Choices</a></li><li><a href="#chunk-size-selection" class="sidebar-toc-item sidebar-toc-item--h3">Chunk Size Selection</a></li><li><a href="#deduplication" class="sidebar-toc-item">Deduplication</a></li><li><a href="#design-choices-1" class="sidebar-toc-item sidebar-toc-item--h3">Design Choices</a></li><li><a href="#deduplication-index-design" class="sidebar-toc-item sidebar-toc-item--h3">Deduplication Index Design</a></li><li><a href="#metadata-management" class="sidebar-toc-item">Metadata Management</a></li><li><a href="#why-separate-metadata" class="sidebar-toc-item sidebar-toc-item--h3">Why Separate Metadata?</a></li><li><a href="#architecture-patterns" class="sidebar-toc-item sidebar-toc-item--h3">Architecture Patterns</a></li><li><a href="#consistency-models" class="sidebar-toc-item sidebar-toc-item--h3">Consistency Models</a></li><li><a href="#replication-and-durability" class="sidebar-toc-item">Replication and Durability</a></li><li><a href="#design-choices-2" class="sidebar-toc-item sidebar-toc-item--h3">Design Choices</a></li><li><a href="#durability-guarantees" class="sidebar-toc-item sidebar-toc-item--h3">Durability Guarantees</a></li><li><a href="#garbage-collection" class="sidebar-toc-item">Garbage Collection</a></li><li><a href="#the-challenge" class="sidebar-toc-item sidebar-toc-item--h3">The Challenge</a></li><li><a href="#design-choices-3" class="sidebar-toc-item sidebar-toc-item--h3">Design Choices</a></li><li><a href="#real-world-approaches" class="sidebar-toc-item sidebar-toc-item--h3">Real-World Approaches</a></li><li><a href="#tiered-storage" class="sidebar-toc-item">Tiered Storage</a></li><li><a href="#storage-tiers" class="sidebar-toc-item sidebar-toc-item--h3">Storage Tiers</a></li><li><a href="#automatic-tiering" class="sidebar-toc-item sidebar-toc-item--h3">Automatic Tiering</a></li><li><a href="#manual-lifecycle-policies" class="sidebar-toc-item sidebar-toc-item--h3">Manual Lifecycle Policies</a></li><li><a href="#multipart-uploads" class="sidebar-toc-item">Multipart Uploads</a></li><li><a href="#why-multipart" class="sidebar-toc-item sidebar-toc-item--h3">Why Multipart?</a></li><li><a href="#multipart-upload-flow" class="sidebar-toc-item sidebar-toc-item--h3">Multipart Upload Flow</a></li><li><a href="#design-decisions" class="sidebar-toc-item sidebar-toc-item--h3">Design Decisions</a></li><li><a href="#real-world-architectures" class="sidebar-toc-item">Real-World Architectures</a></li><li><a href="#aws-s3" class="sidebar-toc-item sidebar-toc-item--h3">AWS S3</a></li><li><a href="#azure-blob-storage" class="sidebar-toc-item sidebar-toc-item--h3">Azure Blob Storage</a></li><li><a href="#ceph-rados" class="sidebar-toc-item sidebar-toc-item--h3">Ceph RADOS</a></li><li><a href="#minio" class="sidebar-toc-item sidebar-toc-item--h3">MinIO</a></li><li><a href="#common-pitfalls" class="sidebar-toc-item">Common Pitfalls</a></li><li><a href="#pitfall-1-under-sizing-chunks-for-deduplication" class="sidebar-toc-item sidebar-toc-item--h3">Pitfall 1: Under-Sizing Chunks for Deduplication</a></li><li><a href="#pitfall-2-ignoring-repair-bandwidth-in-erasure-coding" class="sidebar-toc-item sidebar-toc-item--h3">Pitfall 2: Ignoring Repair Bandwidth in Erasure Coding</a></li><li><a href="#pitfall-3-synchronous-deduplication-on-hot-path" class="sidebar-toc-item sidebar-toc-item--h3">Pitfall 3: Synchronous Deduplication on Hot Path</a></li><li><a href="#pitfall-4-incomplete-multipart-upload-leaks" class="sidebar-toc-item sidebar-toc-item--h3">Pitfall 4: Incomplete Multipart Upload Leaks</a></li><li><a href="#pitfall-5-single-tier-storage-for-mixed-workloads" class="sidebar-toc-item sidebar-toc-item--h3">Pitfall 5: Single-Tier Storage for Mixed Workloads</a></li><li><a href="#conclusion" class="sidebar-toc-item">Conclusion</a></li><li><a href="#appendix" class="sidebar-toc-item">Appendix</a></li><li><a href="#prerequisites" class="sidebar-toc-item sidebar-toc-item--h3">Prerequisites</a></li><li><a href="#summary" class="sidebar-toc-item sidebar-toc-item--h3">Summary</a></li><li><a href="#references" class="sidebar-toc-item sidebar-toc-item--h3">References</a></li></ul></nav> </div> </aside> </div>  <div id="sidebar-backdrop" class="zen-sidebar-backdrop"></div>  <!-- Image Modal --><div id="image-modal" class="image-modal" role="dialog" aria-modal="true" aria-label="Image viewer"> <div class="image-modal-backdrop"></div> <div class="image-modal-content"> <div class="image-modal-header"> <div class="image-modal-controls"> <button type="button" id="image-zoom-out" class="image-modal-btn" aria-label="Zoom out" title="Zoom out"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <circle cx="11" cy="11" r="8"></circle> <line x1="21" y1="21" x2="16.65" y2="16.65"></line> <line x1="8" y1="11" x2="14" y2="11"></line> </svg> </button> <span id="image-zoom-level" class="image-zoom-level">1.0X</span> <button type="button" id="image-zoom-in" class="image-modal-btn" aria-label="Zoom in" title="Zoom in"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <circle cx="11" cy="11" r="8"></circle> <line x1="21" y1="21" x2="16.65" y2="16.65"></line> <line x1="11" y1="8" x2="11" y2="14"></line> <line x1="8" y1="11" x2="14" y2="11"></line> </svg> </button> <button type="button" id="image-zoom-reset" class="image-modal-btn" aria-label="Reset zoom" title="Reset zoom"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path> <path d="M3 3v5h5"></path> </svg> </button> </div> <button type="button" id="image-modal-close" class="image-modal-btn image-modal-close" aria-label="Close image viewer"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <line x1="18" y1="6" x2="6" y2="18"></line> <line x1="6" y1="6" x2="18" y2="18"></line> </svg> </button> </div> <div class="image-modal-body" id="image-modal-body"> <!-- Cloned image will be inserted here --> </div> </div> </div> <script type="module" src="/legacy-personal-site/v4/_astro/image-modal.astro_astro_type_script_index_0_lang.DaIybCtt.js"></script>  <!-- Google Analytics 4 --><script async src="https://www.googletagmanager.com/gtag/js?id=G-1Z2TP5LG65"></script> <script>(function(){const GA_MEASUREMENT_ID = "G-1Z2TP5LG65";
+
+  window.dataLayer = window.dataLayer || []
+  function gtag() {
+    dataLayer.push(arguments)
+  }
+  gtag("js", new Date())
+  gtag("config", GA_MEASUREMENT_ID)
+})();</script> <script type="module" src="/legacy-personal-site/v4/_astro/sidebar-toggle.astro_astro_type_script_index_0_lang.BjmuyXEJ.js"></script> <script type="module">function l(){const s=document.getElementById("main");if(!s)return;const n=Array.from(s.querySelectorAll("h2[id], h3[id]"));if(n.length===0)return;const o=document.querySelectorAll("#right-sidebar .sidebar-toc-item");if(o.length===0)return;const c=new Map;o.forEach(t=>{const e=t.getAttribute("href");e?.startsWith("#")&&c.set(e.slice(1),t)});let r=null;const i=new Set;function f(t){const e=c.get(t);!e||e===r||(r?.classList.remove("is-active"),e.classList.add("is-active"),r=e,e.scrollIntoView({block:"nearest",behavior:"smooth"}))}const a=new IntersectionObserver(t=>{if(t.forEach(e=>{const d=e.target.id;e.isIntersecting?i.add(d):i.delete(d)}),i.size>0){for(const e of n)if(i.has(e.id)){f(e.id);break}}},{rootMargin:"-80px 0px -75% 0px"});n.forEach(t=>a.observe(t)),document.addEventListener("astro:before-swap",()=>{a.disconnect()},{once:!0})}l();document.addEventListener("astro:page-load",l);</script> <script type="module">function c(e,t){const n=window.__themeConfig.THEME_LABELS,o=window.getNextTheme();e.setAttribute("aria-label",`Theme: ${n[t]}. Click to cycle.`),e.title=`Switch to ${n[o]}`,e.dataset.theme=t,e.querySelectorAll("[data-theme-icon]").forEach(a=>{a.style.display=a.dataset.themeIcon===t?"block":"none"})}function s(e,t){e.value!==t&&(e.value=t)}function m(e){e.dataset.themeInit||(e.dataset.themeInit="true",e.addEventListener("click",()=>{const t=window.getNextTheme();window.applySiteTheme(t)}))}function r(e){e.dataset.themeInit||(e.dataset.themeInit="true",e.addEventListener("change",()=>{const t=e.value;window.__themeConfig.THEMES.includes(t)&&window.applySiteTheme(t)}))}function u(){const e=document.documentElement;if(e.dataset.themeObserverInit)return;e.dataset.themeObserverInit="true",new MutationObserver(()=>{const n=e.dataset.theme||"auto",o=document.getElementById("theme-toggle-btn");o&&c(o,n);const i=document.getElementById("theme-select");i&&s(i,n)}).observe(e,{attributes:!0,attributeFilter:["data-theme"]})}function d(){const e=document.documentElement.dataset.theme||"auto",t=document.getElementById("theme-toggle-btn");t&&(c(t,e),m(t));const n=document.getElementById("theme-select");n&&(s(n,e),r(n)),u()}d();document.addEventListener("astro:page-load",d);</script> <script type="module" src="/legacy-personal-site/v4/_astro/docsearch.astro_astro_type_script_index_0_lang.B0uJCub6.js"></script> <script type="module">function a(){function r(){const n=document.documentElement.dataset.colorScheme==="dark";document.querySelectorAll(".mermaid-diagram").forEach(e=>{const t=n?e.dataset.srcDark:e.dataset.srcLight;t&&e.src!==new URL(t,location.origin).href&&(e.src=t)})}r(),new MutationObserver(()=>r()).observe(document.documentElement,{attributes:!0,attributeFilter:["data-color-scheme"]})}document.addEventListener("DOMContentLoaded",a);document.addEventListener("astro:page-load",a);</script> </body> </html> 

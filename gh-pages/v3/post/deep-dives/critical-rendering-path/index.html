@@ -1,0 +1,845 @@
+<!DOCTYPE html><html lang="en" class="scroll-smooth focus:scroll-auto"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Astro v5.9.4"><link rel="preload" as="font" type="font/woff2" href="/legacy-personal-site/v3/_astro/open-sans-latin-wght-normal.BQjZ2nPP.woff2" crossorigin="anonymous"><!-- Canonical URL --><link rel="canonical" href="https://sujeet.pro/post/deep-dives/critical-rendering-path/"><!-- Primary Meta Tags --><title>Critical Rendering Path</title><meta name="title" content="Critical Rendering Path"><meta name="description" content="Understanding the Critical Rendering Path for web performance optimization"><!-- Open Graph / Facebook --><meta property="og:type" content="website"><meta property="og:url" content="https://sujeet.pro/post/deep-dives/critical-rendering-path/"><meta property="og:title" content="Critical Rendering Path"><meta property="og:description" content="Understanding the Critical Rendering Path for web performance optimization"><!-- Twitter / X --><meta property="twitter:card" content="summary_large_image"><meta property="twitter:url" content="https://sujeet.pro/post/deep-dives/critical-rendering-path/"><meta property="twitter:title" content="Critical Rendering Path"><meta property="twitter:description" content="Understanding the Critical Rendering Path for web performance optimization"><link rel="apple-touch-icon" sizes="57x57" href="/legacy-personal-site/v3//favicons/apple-icon-57x57.png"><link rel="apple-touch-icon" sizes="60x60" href="/legacy-personal-site/v3//favicons/apple-icon-60x60.png"><link rel="apple-touch-icon" sizes="72x72" href="/legacy-personal-site/v3//favicons/apple-icon-72x72.png"><link rel="apple-touch-icon" sizes="76x76" href="/legacy-personal-site/v3//favicons/apple-icon-76x76.png"><link rel="apple-touch-icon" sizes="114x114" href="/legacy-personal-site/v3//favicons/apple-icon-114x114.png"><link rel="apple-touch-icon" sizes="120x120" href="/legacy-personal-site/v3//favicons/apple-icon-120x120.png"><link rel="apple-touch-icon" sizes="144x144" href="/legacy-personal-site/v3//favicons/apple-icon-144x144.png"><link rel="apple-touch-icon" sizes="152x152" href="/legacy-personal-site/v3//favicons/apple-icon-152x152.png"><link rel="apple-touch-icon" sizes="180x180" href="/legacy-personal-site/v3//favicons/apple-icon-180x180.png"><link rel="icon" type="image/png" sizes="192x192" href="/legacy-personal-site/v3//favicons/android-icon-192x192.png"><link rel="icon" type="image/png" sizes="32x32" href="/legacy-personal-site/v3//favicons/favicon-32x32.png"><link rel="icon" type="image/png" sizes="96x96" href="/legacy-personal-site/v3//favicons/favicon-96x96.png"><link rel="icon" type="image/png" sizes="16x16" href="/legacy-personal-site/v3//favicons/favicon-16x16.png"><link rel="manifest" href="/legacy-personal-site/v3//favicons/manifest.json"><meta name="msapplication-TileImage" content="/legacy-personal-site/v3//ms-icon-144x144.png"><meta name="msapplication-TileColor" content="#e4e7eb"><meta name="theme-color" content="#e4e7eb"><!-- RSS Feed --><link rel="alternate" type="application/rss+xml" title="Sujeet" href="https://sujeet.pro/rss.xml"><!-- SiteMap --><link rel="sitemap" href="https://sujeet.pro/sitemap-index.xml"><style>details:where(.astro-f6dupcqw) summary:where(.astro-f6dupcqw)::-webkit-details-marker{display:none}details:where(.astro-f6dupcqw)[open] .accordion-icon:where(.astro-f6dupcqw){transform:rotate(0)}details:where(.astro-f6dupcqw):not([open]) .accordion-content:where(.astro-f6dupcqw){display:none}.accordion-icon:where(.astro-f6dupcqw){transform:rotate(180deg);transition:transform .2s}
+</style>
+<link rel="stylesheet" href="/legacy-personal-site/v3/_astro/_slug_.BQrq7bOm.css"><script type="module" src="/legacy-personal-site/v3/_astro/page.DTIbhfSr.js"></script></head> <body class="antialiased break-words font-primary"> <a href="#main-content" class="sr-only focus:not-sr-only">Skip to main content</a> <div class="bg-inherit max-w-3xl mx-auto px-4 md:px-8 flex flex-col gap-y-6 min-h-screen"> <header class="navbar bg-base-200 shadow-sm sticky top-0 z-10"> <div class="navbar-start"> <a href="/legacy-personal-site/v3/" class="btn btn-ghost text-xl link link-hover"> sujeet.pro </a> </div> <div class="navbar-end"> <a href="/legacy-personal-site/v3/search" class="btn btn-ghost md:hidden link link-hover" id="search-input-anchor-element"> <svg width="1em" height="1em" data-icon="carbon:search">   <symbol id="ai:carbon:search" viewBox="0 0 32 32"><path fill="currentColor" d="m29 27.586l-7.552-7.552a11.018 11.018 0 1 0-1.414 1.414L27.586 29ZM4 13a9 9 0 1 1 9 9a9.01 9.01 0 0 1-9-9"/></symbol><use href="#ai:carbon:search"></use>  </svg><span class="sr-only">Search</span> </a> <label class="input hidden md:inline-flex"> <svg width="1em" height="1em" viewBox="0 0 32 32" data-icon="carbon:search">   <use href="#ai:carbon:search"></use>  </svg> <input type="search" class="grow" placeholder="Search" enterkeyhint="search" id="search-input-element"> <kbd class="kbd kbd-sm">⌘</kbd> <kbd class="kbd kbd-sm">K</kbd> </label> <script>
+  ;(function setInitialThemeValueBasedOnUserPreference() {
+    let theme = localStorage.getItem('theme')
+    if (theme && theme !== 'default') {
+      document.documentElement.setAttribute('data-theme', theme)
+    }
+    console.log('theme:', theme)
+  })()
+</script> <div class="dropdown dropdown-end"> <div tabindex="0" role="button" class="btn m-1">
+Theme
+<svg width="1em" height="1em" data-icon="carbon:chevron-down">   <symbol id="ai:carbon:chevron-down" viewBox="0 0 32 32"><path fill="currentColor" d="M16 22L6 12l1.4-1.4l8.6 8.6l8.6-8.6L26 12z"/></symbol><use href="#ai:carbon:chevron-down"></use>  </svg> </div> <ul tabindex="0" class="dropdown-content bg-base-300 rounded-box z-1 w-52 p-2 shadow-2xl"> <li> <input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="Default" value="default"> </li> <li> <input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="Dark Theme" value="dark"> </li> <li> <input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="Light Theme" value="light"> </li> </ul> </div> <script type="module">function l(){const t=document.querySelectorAll(".theme-controller"),n=localStorage.getItem("theme")||"default";t.forEach(e=>{e.value===n?e.checked=!0:e.checked=!1}),t.forEach(e=>{e.addEventListener("change",()=>{console.log(e),e.value==="default"?(document.documentElement.removeAttribute("data-theme"),localStorage.removeItem("theme")):(document.documentElement.setAttribute("data-theme",e.value),localStorage.setItem("theme",e.value))})})}document.addEventListener("astro:after-swap",l);document.addEventListener("DOMContentLoaded",l);</script> </div> </header> <script type="module">document.addEventListener("keydown",e=>{if(e.metaKey&&e.key==="k"){e.preventDefault();const t=document.querySelector(".pagefind-ui__search-input");if(t){t.focus();return}const n=document.querySelector("#search-input-element");if(n?.offsetParent){n.focus();return}const r=document.querySelector("#search-input-anchor-element");if(r?.offsetParent){r.click();return}}});document.querySelector("#search-input-element")?.addEventListener("keyup",e=>{if(e.key==="Enter"){const t=e.target?.value;t&&(window.location.href=`/search?q=${encodeURIComponent(t)}`)}});</script> <div class="grow w-full">  <nav class="breadcrumbs text-sm my-6"> <ul> <li> <a href="/legacy-personal-site/v3/" class="link link-hover">  <svg width="1em" height="1em" data-icon="carbon:home">   <symbol id="ai:carbon:home" viewBox="0 0 32 32"><path fill="currentColor" d="M16.612 2.214a1.01 1.01 0 0 0-1.242 0L1 13.419l1.243 1.572L4 13.621V26a2.004 2.004 0 0 0 2 2h20a2.004 2.004 0 0 0 2-2V13.63L29.757 15L31 13.428ZM18 26h-4v-8h4Zm2 0v-8a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v8H6V12.062l10-7.79l10 7.8V26Z"/></symbol><use href="#ai:carbon:home"></use>  </svg>
+Home
+ </a> </li> <li> <a href="/legacy-personal-site/v3/post" class="link link-hover"> Blogs </a> </li><li> <a href="/legacy-personal-site/v3/category/deep-dives" class="link link-hover"> Deep Dives </a> </li><li>Critical Rendering Path</li> </ul> </nav> <article data-pagefind-body> <h1 class="text-4xl font-light">Critical Rendering Path</h1> <div class="my-2 flex text-sm divide-x divide-base-300"> <span data-pagefind-filter="category" class="pr-2">Deep Dives</span> <time datetime="2023-08-10T00:00:00.000Z" class="px-2"> August 10, 2023 </time> <span class="px-2">
+Last updated: <time datetime="2024-11-29T00:00:00.000Z"> November 29, 2024 </time> </span> </div> <p class="my-8 text-2xl font-light">Understanding the Critical Rendering Path for web performance optimization</p>  <figure> <picture> <source srcset="/legacy-personal-site/v3/_astro/crp.Cl4YGndt_2lLSKR.svg" type="image/svg+xml" sizes="48rem"><source srcset="/legacy-personal-site/v3/_astro/crp.Cl4YGndt_2lLSKR.svg" type="image/svg+xml" sizes="48rem"><source srcset="/legacy-personal-site/v3/_astro/crp.Cl4YGndt_2lLSKR.svg" type="image/svg+xml" sizes="48rem">  <img src="/legacy-personal-site/v3/_astro/crp.Cl4YGndt_2lLSKR.svg" alt="Critical Rendering Path" sizes="48rem" slot="fig" width="771" height="321" loading="lazy" decoding="async" class="block mx-auto"> </picture> <figcaption class="text-center text-xs italic mt-4 mb-5">   <span class="text-center text-xs italic">Critical Rendering Path Components</span>  </figcaption> </figure>  <section class="bg-base-200 my-4"> <details open class="p-4 bg-blend-lighten astro-f6dupcqw"> <summary class="cursor-pointer list-none flex items-center justify-between astro-f6dupcqw"> <span class="font-semibold astro-f6dupcqw">Table of Contents</span> <svg width="1em" height="1em" class="accordion-icon astro-f6dupcqw" data-icon="carbon:chevron-up">   <symbol id="ai:carbon:chevron-up" viewBox="0 0 32 32"><path fill="currentColor" d="m16 10l10 10l-1.4 1.4l-8.6-8.6l-8.6 8.6L6 20z"/></symbol><use href="#ai:carbon:chevron-up"></use>  </svg> </summary> <div class="py-4 accordion-content astro-f6dupcqw">  <nav class="toc"> <ul class="list-disc list-inside"> <li> <a href="/legacy-personal-site/v3/#flow" class="link link-hover"> Flow </a> <ul class="list-[circle] list-inside ml-6">  </ul> </li><li> <a href="/legacy-personal-site/v3/#dom-construction-process" class="link link-hover"> DOM Construction Process </a> <ul class="list-[circle] list-inside ml-6">  </ul> </li><li> <a href="/legacy-personal-site/v3/#cssom-construction-process" class="link link-hover"> CSSOM Construction Process </a> <ul class="list-[circle] list-inside ml-6"> <li> <a href="/legacy-personal-site/v3/#explicitly-mark-css-as-render-blocking" class="link link-hover"> Explicitly mark CSS as render-blocking </a> </li><li> <a href="/legacy-personal-site/v3/#marking-css-as-non-render-blocking" class="link link-hover"> Marking CSS as Non Render Blocking </a> </li> </ul> </li><li> <a href="/legacy-personal-site/v3/#javascript-execution" class="link link-hover"> JavaScript Execution </a> <ul class="list-[circle] list-inside ml-6"> <li> <a href="/legacy-personal-site/v3/#parser-blocking-scripts" class="link link-hover"> Parser Blocking Scripts </a> </li><li> <a href="/legacy-personal-site/v3/#blocked-on-css-why" class="link link-hover"> Blocked on CSS, Why? </a> </li><li> <a href="/legacy-personal-site/v3/#browser-optimization-for-parser-blocking" class="link link-hover"> Browser Optimization for parser blocking </a> </li><li> <a href="/legacy-personal-site/v3/#order-of-execution" class="link link-hover"> Order of execution </a> </li> </ul> </li><li> <a href="/legacy-personal-site/v3/#render-tree-construction" class="link link-hover"> Render Tree Construction </a> <ul class="list-[circle] list-inside ml-6">  </ul> </li><li> <a href="/legacy-personal-site/v3/#resources--crp" class="link link-hover"> Resources &amp; CRP </a> <ul class="list-[circle] list-inside ml-6"> <li> <a href="/legacy-personal-site/v3/#resources-for-initial-render" class="link link-hover"> Resources for Initial Render </a> </li><li> <a href="/legacy-personal-site/v3/#resource-loading" class="link link-hover"> Resource Loading </a> </li><li> <a href="/legacy-personal-site/v3/#basic-html" class="link link-hover"> Basic HTML </a> </li><li> <a href="/legacy-personal-site/v3/#basic-css" class="link link-hover"> Basic CSS </a> </li><li> <a href="/legacy-personal-site/v3/#render-blocking-css-with-async-js" class="link link-hover"> Render Blocking CSS with Async JS </a> </li> </ul> </li><li> <a href="/legacy-personal-site/v3/#optimizing-crp" class="link link-hover"> Optimizing CRP </a> <ul class="list-[circle] list-inside ml-6"> <li> <a href="/legacy-personal-site/v3/#the-preload-scanner" class="link link-hover"> The preload scanner </a> </li><li> <a href="/legacy-personal-site/v3/#best-practices-to-optimize-crp" class="link link-hover"> Best practices to optimize CRP </a> </li><li> <a href="/legacy-personal-site/v3/#action-items" class="link link-hover"> Action Items </a> </li> </ul> </li><li> <a href="/legacy-personal-site/v3/#references" class="link link-hover"> References </a> <ul class="list-[circle] list-inside ml-6">  </ul> </li> </ul> </nav>  </div> </details>  </section> <main class="prose max-w-none prose-headings:font-medium" id="main-content">  <h2 id="flow">Flow</h2>
+<ol>
+<li>Constructing the Document Object Model (DOM) from the HTML.</li>
+<li>Constructing the CSS Object Model (CSSOM) from the CSS.</li>
+<li>Applying any JavaScript that alters the DOM or CSSOM.</li>
+<li>Constructing the render tree from the DOM and CSSOM.</li>
+<li>Perform style and layout operations on the page to see what elements fit where.</li>
+<li>Paint the pixels of the elements in memory.</li>
+<li>Composite the pixels if any of them overlap.</li>
+<li>Physically draw all the resulting pixels to screen.</li>
+</ol>
+<figure class="md-figure"><img src="/legacy-personal-site/v3/_astro/crp-flow.CyUJsjTJ_Z2nMtuu.svg" alt="Critical Rendering Flow Steps" width="406" height="514" loading="lazy" decoding="async"><figcaption>Critical Rendering Flow Steps</figcaption></figure>
+<h2 id="dom-construction-process">DOM Construction Process</h2>
+
+<svg xmlns="http://www.w3.org/2000/svg" width="711" height="201" viewBox="-0.5 -0.5 711 201">
+  <rect fill="transparent" width="100%" height="100%" />
+  <g stroke="currentColor" stroke-miterlimit="10">
+    <path d="M120 40h73.63" fill="none" pointer-events="stroke" />
+    <path d="m198.88 40-7 3.5 1.75-3.5-1.75-3.5Z" pointer-events="all" />
+  </g>
+  <path d="m10 70 20-60h100l-20 60Z" fill="transparent" stroke="currentColor" stroke-miterlimit="10"
+    pointer-events="all" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:118px;height:1px;padding-top:40px;margin-left:11px">
+        <div data-drawio-colors="color: rgb(0, 0, 0);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:currentColor;line-height:1.2;pointer-events:all;white-space:normal;overflow-wrap:normal">
+            Network
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="70" y="44" font-family="Helvetica" font-size="12" text-anchor="middle">Network</text>
+  </switch>
+  <g stroke="currentColor" stroke-miterlimit="10">
+    <path d="M320 40h63.63" fill="none" pointer-events="stroke" />
+    <path d="m388.88 40-7 3.5 1.75-3.5-1.75-3.5Z" pointer-events="all" />
+  </g>
+  <path fill="transparent" stroke="currentColor" pointer-events="all" d="M200 10h120v60H200z" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:118px;height:1px;padding-top:40px;margin-left:201px">
+        <div data-drawio-colors="color: rgb(0, 0, 0);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:currentColor;line-height:1.2;pointer-events:all;white-space:normal;overflow-wrap:normal">
+            Tokenizer
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="260" y="44" font-family="Helvetica" font-size="12" text-anchor="middle">Tokenizer</text>
+  </switch>
+  <g stroke="currentColor" stroke-miterlimit="10">
+    <path d="M450 70v53.63" fill="none" pointer-events="stroke" />
+    <path d="m450 128.88-3.5-7 3.5 1.75 3.5-1.75Z" pointer-events="all" />
+  </g>
+  <g stroke="currentColor" stroke-miterlimit="10">
+    <path d="M510 40h130v13.63" fill="none" pointer-events="stroke" />
+    <path d="m640 58.88-3.5-7 3.5 1.75 3.5-1.75Z" pointer-events="all" />
+  </g>
+  <path fill="transparent" stroke="currentColor" pointer-events="all" d="M390 10h120v60H390z" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:118px;height:1px;padding-top:40px;margin-left:391px">
+        <div data-drawio-colors="color: rgb(0, 0, 0);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:currentColor;line-height:1.2;pointer-events:all;white-space:normal;overflow-wrap:normal">
+            Tree Construction
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="450" y="44" font-family="Helvetica" font-size="12" text-anchor="middle">Tree
+      Construction</text>
+  </switch>
+  <path d="M580 60h120v68q-30-21.6-60 0t-60 0V72Z" fill="transparent" stroke="currentColor"
+    stroke-miterlimit="10" pointer-events="all" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:118px;height:1px;padding-top:88px;margin-left:581px">
+        <div data-drawio-colors="color: rgb(0, 0, 0);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:currentColor;line-height:1.2;pointer-events:all;white-space:normal;overflow-wrap:normal">
+            DOM
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="640" y="92" font-family="Helvetica" font-size="12" text-anchor="middle">DOM</text>
+  </switch>
+  <g stroke="currentColor" stroke-miterlimit="10">
+    <path d="M390 160H260V76.37" fill="none" pointer-events="stroke" />
+    <path d="m260 71.12 3.5 7-3.5-1.75-3.5 1.75Z" pointer-events="all" />
+  </g>
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:1px;height:1px;padding-top:151px;margin-left:311px">
+        <div data-drawio-colors="color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:11px;font-family:Helvetica;color:currentColor;line-height:1.2;pointer-events:all;white-space:nowrap">
+            document.write()
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="311" y="154" font-family="Helvetica" font-size="11" text-anchor="middle">
+      document.write()</text>
+  </switch>
+  <path fill="transparent" stroke="currentColor" pointer-events="all" d="M390 130h120v60H390z" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:118px;height:1px;padding-top:160px;margin-left:391px">
+        <div data-drawio-colors="color: rgb(0, 0, 0);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:currentColor;line-height:1.2;pointer-events:all;white-space:normal;overflow-wrap:normal">
+            Script Execution
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="450" y="164" font-family="Helvetica" font-size="12" text-anchor="middle">Script
+      Execution</text>
+  </switch>
+  <path d="M510 160h134l-.04-30.96" fill="none" stroke="currentColor" stroke-width="2"
+    stroke-miterlimit="10" stroke-dasharray="2 6" pointer-events="stroke" />
+</svg>
+<ul>
+<li><strong>Conversion</strong>: The browser reads the raw bytes of HTML off the disk or network, and translates them to individual characters based on the specified encoding of the file (for example, UTF-8).</li>
+<li><strong>Tokenizing</strong>: The browser converts strings of characters into distinct tokens—as specified by the W3C HTML5 standard, for example, <code>&lt;html&gt;</code>, <code>&lt;body&gt;</code>—and other strings within angle brackets. Each token has a special meaning and its own set of rules.</li>
+<li><strong>Lexing</strong>: The emitted tokens are converted into “objects,” which define their properties and rules.</li>
+<li><strong>DOM construction</strong>: Finally, because the HTML markup defines relationships between different tags (some tags are contained within other tags) the created objects are linked in a tree data structure that also captures the parent-child relationships defined in the original markup: the HTML object is a parent of the body object, the body is a parent of the paragraph object, and so on.</li>
+</ul>
+<div class="expressive-code"><link rel="stylesheet" href="/legacy-personal-site/v3/_astro/ec.303a7.css"/><script type="module" src="/legacy-personal-site/v3/_astro/ec.8zarh.js"></script><figure class="frame"><figcaption class="header"></figcaption><pre data-language="html"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#E1E4E8;--1:#24292E">&lt;!</span><span style="--0:#85E89D;--1:#1E7734">doctype</span><span style="--0:#E1E4E8;--1:#24292E"> </span><span style="--0:#B392F0;--1:#6F42C1">html</span><span style="--0:#E1E4E8;--1:#24292E">&gt;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#E1E4E8;--1:#24292E">&lt;</span><span style="--0:#85E89D;--1:#1E7734">html</span><span style="--0:#E1E4E8;--1:#24292E">&gt;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#24292E">  </span></span><span style="--0:#E1E4E8;--1:#24292E">&lt;</span><span style="--0:#85E89D;--1:#1E7734">head</span><span style="--0:#E1E4E8;--1:#24292E">&gt;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#24292E">    </span></span><span style="--0:#E1E4E8;--1:#24292E">&lt;</span><span style="--0:#85E89D;--1:#1E7734">meta</span><span style="--0:#E1E4E8;--1:#24292E"> </span><span style="--0:#B392F0;--1:#6F42C1">name</span><span style="--0:#E1E4E8;--1:#24292E">=</span><span style="--0:#9ECBFF;--1:#032F62">&quot;viewport&quot;</span><span style="--0:#E1E4E8;--1:#24292E"> </span><span style="--0:#B392F0;--1:#6F42C1">content</span><span style="--0:#E1E4E8;--1:#24292E">=</span><span style="--0:#9ECBFF;--1:#032F62">&quot;width=device-width,initial-scale=1&quot;</span><span style="--0:#E1E4E8;--1:#24292E"> /&gt;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#24292E">    </span></span><span style="--0:#E1E4E8;--1:#24292E">&lt;</span><span style="--0:#85E89D;--1:#1E7734">link</span><span style="--0:#E1E4E8;--1:#24292E"> </span><span style="--0:#B392F0;--1:#6F42C1">href</span><span style="--0:#E1E4E8;--1:#24292E">=</span><span style="--0:#9ECBFF;--1:#032F62">&quot;style.css&quot;</span><span style="--0:#E1E4E8;--1:#24292E"> </span><span style="--0:#B392F0;--1:#6F42C1">rel</span><span style="--0:#E1E4E8;--1:#24292E">=</span><span style="--0:#9ECBFF;--1:#032F62">&quot;stylesheet&quot;</span><span style="--0:#E1E4E8;--1:#24292E"> /&gt;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#24292E">    </span></span><span style="--0:#E1E4E8;--1:#24292E">&lt;</span><span style="--0:#85E89D;--1:#1E7734">title</span><span style="--0:#E1E4E8;--1:#24292E">&gt;Critical Path&lt;/</span><span style="--0:#85E89D;--1:#1E7734">title</span><span style="--0:#E1E4E8;--1:#24292E">&gt;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">7</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#24292E">  </span></span><span style="--0:#E1E4E8;--1:#24292E">&lt;/</span><span style="--0:#85E89D;--1:#1E7734">head</span><span style="--0:#E1E4E8;--1:#24292E">&gt;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">8</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#24292E">  </span></span><span style="--0:#E1E4E8;--1:#24292E">&lt;</span><span style="--0:#85E89D;--1:#1E7734">body</span><span style="--0:#E1E4E8;--1:#24292E">&gt;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">9</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#24292E">    </span></span><span style="--0:#E1E4E8;--1:#24292E">&lt;</span><span style="--0:#85E89D;--1:#1E7734">p</span><span style="--0:#E1E4E8;--1:#24292E">&gt;Hello &lt;</span><span style="--0:#85E89D;--1:#1E7734">span</span><span style="--0:#E1E4E8;--1:#24292E">&gt;web performance&lt;/</span><span style="--0:#85E89D;--1:#1E7734">span</span><span style="--0:#E1E4E8;--1:#24292E">&gt; students!&lt;/</span><span style="--0:#85E89D;--1:#1E7734">p</span><span style="--0:#E1E4E8;--1:#24292E">&gt;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">10</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#24292E">    </span></span><span style="--0:#E1E4E8;--1:#24292E">&lt;</span><span style="--0:#85E89D;--1:#1E7734">div</span><span style="--0:#E1E4E8;--1:#24292E">&gt;&lt;</span><span style="--0:#85E89D;--1:#1E7734">img</span><span style="--0:#E1E4E8;--1:#24292E"> </span><span style="--0:#B392F0;--1:#6F42C1">src</span><span style="--0:#E1E4E8;--1:#24292E">=</span><span style="--0:#9ECBFF;--1:#032F62">&quot;awesome-photo.jpg&quot;</span><span style="--0:#E1E4E8;--1:#24292E"> /&gt;&lt;/</span><span style="--0:#85E89D;--1:#1E7734">div</span><span style="--0:#E1E4E8;--1:#24292E">&gt;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">11</div></div><div class="code"><span class="indent"><span style="--0:#E1E4E8;--1:#24292E">  </span></span><span style="--0:#E1E4E8;--1:#24292E">&lt;/</span><span style="--0:#85E89D;--1:#1E7734">body</span><span style="--0:#E1E4E8;--1:#24292E">&gt;</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">12</div></div><div class="code"><span style="--0:#E1E4E8;--1:#24292E">&lt;/</span><span style="--0:#85E89D;--1:#1E7734">html</span><span style="--0:#E1E4E8;--1:#24292E">&gt;</span></div></div></code></pre><div class="copy"><button title="Copy to clipboard" data-copied="Copied!" data-code="<!doctype html><html>  <head>    <meta name=&#34;viewport&#34; content=&#34;width=device-width,initial-scale=1&#34; />    <link href=&#34;style.css&#34; rel=&#34;stylesheet&#34; />    <title>Critical Path</title>  </head>  <body>    <p>Hello <span>web performance</span> students!</p>    <div><img src=&#34;awesome-photo.jpg&#34; /></div>  </body></html>"><div></div></button></div></figure></div>
+
+<img src="/legacy-personal-site/v3/_astro/dom-construction-example.jprqUr-P_wcX2e.webp" alt="Dom Construction example" width="1123" height="622" loading="lazy" decoding="async" class="bg-img-light">
+<h2 id="cssom-construction-process">CSSOM Construction Process</h2>
+
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="802" height="293" viewBox="-0.5 -0.5 802 293"
+  fill="currentColor">
+  <rect fill="transparent" width="100%" height="100%" />
+  <g stroke="currentColor" stroke-miterlimit="10">
+    <path d="M594 77v33.63" fill="none" pointer-events="stroke" />
+    <path d="m594 115.88-3.5-7 3.5 1.75 3.5-1.75Z" pointer-events="all" />
+  </g>
+  <g stroke="currentColor" stroke-miterlimit="10">
+    <path d="M534 52h-80v63.63" fill="none" pointer-events="stroke" />
+    <path d="m454 120.88-3.5-7 3.5 1.75 3.5-1.75Z" pointer-events="all" />
+  </g>
+  <g stroke="currentColor" stroke-miterlimit="10">
+    <path d="M654 52h77v58.63" fill="none" pointer-events="stroke" />
+    <path d="m731 115.88-3.5-7 3.5 1.75 3.5-1.75Z" pointer-events="all" />
+  </g>
+  <g stroke="currentColor" stroke-miterlimit="10">
+    <path d="M594 27V17H294v13.63" fill="none" pointer-events="stroke" />
+    <path d="m294 35.88-3.5-7 3.5 1.75 3.5-1.75Z" pointer-events="all" />
+  </g>
+  <ellipse cx="594" cy="52" rx="60" ry="25" fill="transparent" stroke="currentColor"
+    pointer-events="all" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:118px;height:1px;padding-top:52px;margin-left:535px">
+        <div data-drawio-colors="color: rgb(0, 0, 0);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:currentColor;line-height:1.2;pointer-events:all;white-space:normal;overflow-wrap:normal">
+            Body
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="594" y="56" font-family="Helvetica" font-size="12" text-anchor="middle">Body</text>
+  </switch>
+  <g stroke="currentColor" stroke-miterlimit="10">
+    <path d="M454 172v20-5 13.63" fill="none" pointer-events="stroke" />
+    <path d="m454 205.88-3.5-7 3.5 1.75 3.5-1.75Z" pointer-events="all" />
+  </g>
+  <g stroke="currentColor" stroke-miterlimit="10">
+    <path d="M394 147h-22l-15.63.36" fill="none" pointer-events="stroke" />
+    <path d="m351.12 147.47 6.92-3.65-1.67 3.54 1.83 3.45Z" pointer-events="all" />
+  </g>
+  <ellipse cx="454" cy="147" rx="60" ry="25" fill="transparent" stroke="currentColor"
+    pointer-events="all" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:118px;height:1px;padding-top:147px;margin-left:395px">
+        <div data-drawio-colors="color: rgb(0, 0, 0);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:currentColor;line-height:1.2;pointer-events:all;white-space:normal;overflow-wrap:normal">
+            p
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="454" y="151" font-family="Helvetica" font-size="12" text-anchor="middle">p</text>
+  </switch>
+  <g stroke="currentColor" stroke-miterlimit="10">
+    <path d="M594 167v20-10 13.63" fill="none" pointer-events="stroke" />
+    <path d="m594 195.88-3.5-7 3.5 1.75 3.5-1.75Z" pointer-events="all" />
+  </g>
+  <ellipse cx="594" cy="142" rx="60" ry="25" fill="transparent" stroke="currentColor"
+    pointer-events="all" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:118px;height:1px;padding-top:142px;margin-left:535px">
+        <div data-drawio-colors="color: rgb(0, 0, 0);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:currentColor;line-height:1.2;pointer-events:all;white-space:normal;overflow-wrap:normal">
+            span
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="594" y="146" font-family="Helvetica" font-size="12" text-anchor="middle">span</text>
+  </switch>
+  <g stroke="currentColor" stroke-miterlimit="10">
+    <path d="M731 167v20-10 13.63" fill="none" pointer-events="stroke" />
+    <path d="m731 195.88-3.5-7 3.5 1.75 3.5-1.75Z" pointer-events="all" />
+  </g>
+  <ellipse cx="731" cy="142" rx="60" ry="25" fill="transparent" stroke="currentColor"
+    pointer-events="all" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:118px;height:1px;padding-top:142px;margin-left:672px">
+        <div data-drawio-colors="color: rgb(0, 0, 0);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:currentColor;line-height:1.2;pointer-events:all;white-space:normal;overflow-wrap:normal">
+            img
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="731" y="146" font-family="Helvetica" font-size="12" text-anchor="middle">img</text>
+  </switch>
+  <g stroke="currentColor" stroke-miterlimit="10">
+    <path d="M394 232h-37.63" fill="none" pointer-events="stroke" />
+    <path d="m351.12 232 7-3.5-1.75 3.5 1.75 3.5Z" pointer-events="all" />
+  </g>
+  <ellipse cx="454" cy="232" rx="60" ry="25" fill="transparent" stroke="currentColor"
+    pointer-events="all" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:118px;height:1px;padding-top:232px;margin-left:395px">
+        <div data-drawio-colors="color: rgb(0, 0, 0);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:currentColor;line-height:1.2;pointer-events:all;white-space:normal;overflow-wrap:normal">
+            p
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="454" y="236" font-family="Helvetica" font-size="12" text-anchor="middle">p</text>
+  </switch>
+  <path d="M230 115h120v55.25q-30-17.55-60 0t-60 0v-45.5Z" fill="transparent" stroke="currentColor"
+    stroke-miterlimit="10" pointer-events="all" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:118px;height:1px;padding-top:138px;margin-left:231px">
+        <div data-drawio-colors="color: rgb(0, 0, 0);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:currentColor;line-height:1.2;pointer-events:all;white-space:normal;overflow-wrap:normal">
+            <i>
+              font-size: 16
+            </i>
+            <br /> font-weight: bold </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="290" y="141" font-family="Helvetica" font-size="12" text-anchor="middle">font-size:
+      16...</text>
+  </switch>
+  <path d="M230 192h120v68q-30-21.6-60 0t-60 0v-56Z" fill="transparent" stroke="currentColor"
+    stroke-miterlimit="10" pointer-events="all" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:118px;height:1px;padding-top:220px;margin-left:231px">
+        <div data-drawio-colors="color: rgb(0, 0, 0);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:currentColor;line-height:1.2;pointer-events:all;white-space:normal;overflow-wrap:normal">
+            <i> font-size: 16 <br /> font-weight: bold </i>
+            <br /> display: none </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="290" y="224" font-family="Helvetica" font-size="12" text-anchor="middle">font-size:
+      16...</text>
+  </switch>
+  <path d="M671 197h120v51q-30-16.2-60 0t-60 0v-42Z" fill="transparent" stroke="currentColor"
+    stroke-miterlimit="10" pointer-events="all" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:118px;height:1px;padding-top:218px;margin-left:672px">
+        <div data-drawio-colors="color: rgb(0, 0, 0);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:currentColor;line-height:1.2;pointer-events:all;white-space:normal;overflow-wrap:normal">
+            <i>
+              font-size: 16
+            </i>
+            <div>
+              float: right
+            </div>
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="731" y="222" font-family="Helvetica" font-size="12" text-anchor="middle">font-size:
+      16...</text>
+  </switch>
+  <path d="M534 197h120v68q-30-21.6-60 0t-60 0v-56Z" fill="transparent" stroke="currentColor"
+    stroke-miterlimit="10" pointer-events="all" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:118px;height:1px;padding-top:225px;margin-left:535px">
+        <div data-drawio-colors="color: rgb(0, 0, 0);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:currentColor;line-height:1.2;pointer-events:all;white-space:normal;overflow-wrap:normal">
+            <i> font-size: 16 <br />
+            </i> color: red </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="594" y="229" font-family="Helvetica" font-size="12" text-anchor="middle">font-size:
+      16...</text>
+  </switch>
+  <path d="M234 37h120v38.25q-30-12.15-60 0t-60 0v-31.5Z" fill="transparent" stroke="currentColor"
+    stroke-miterlimit="10" pointer-events="all" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:118px;height:1px;padding-top:53px;margin-left:235px">
+        <div data-drawio-colors="color: rgb(0, 0, 0);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:currentColor;line-height:1.2;pointer-events:all;white-space:normal;overflow-wrap:normal">
+            font-size: 16px
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="294" y="56" font-family="Helvetica" font-size="12" text-anchor="middle">font-size: 16px</text>
+  </switch>
+  <g stroke="currentColor" stroke-miterlimit="10">
+    <path d="M70 42v20-10 13.63" fill="none" pointer-events="stroke" />
+    <path d="m70 70.88-3.5-7 3.5 1.75 3.5-1.75Z" pointer-events="all" />
+  </g>
+  <path fill="transparent" stroke="currentColor" pointer-events="all" d="M10 12h120v30H10z" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:118px;height:1px;padding-top:27px;margin-left:11px">
+        <div data-drawio-colors="color: rgb(0, 0, 0);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:currentColor;line-height:1.2;pointer-events:all;white-space:normal;overflow-wrap:normal">
+            Bytes
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="70" y="31" font-family="Helvetica" font-size="12" text-anchor="middle">Bytes</text>
+  </switch>
+  <g stroke="currentColor" stroke-miterlimit="10">
+    <path d="M70 102v20-10 13.63" fill="none" pointer-events="stroke" />
+    <path d="m70 130.88-3.5-7 3.5 1.75 3.5-1.75Z" pointer-events="all" />
+  </g>
+  <path fill="transparent" stroke="currentColor" pointer-events="all" d="M10 72h120v30H10z" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:118px;height:1px;padding-top:87px;margin-left:11px">
+        <div data-drawio-colors="color: rgb(0, 0, 0);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:currentColor;line-height:1.2;pointer-events:all;white-space:normal;overflow-wrap:normal">
+            Characters
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="70" y="91" font-family="Helvetica" font-size="12" text-anchor="middle">Characters</text>
+  </switch>
+  <g stroke="currentColor" stroke-miterlimit="10">
+    <path d="M70 162v20-10 13.63" fill="none" pointer-events="stroke" />
+    <path d="m70 190.88-3.5-7 3.5 1.75 3.5-1.75Z" pointer-events="all" />
+  </g>
+  <path fill="transparent" stroke="currentColor" pointer-events="all" d="M10 132h120v30H10z" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:118px;height:1px;padding-top:147px;margin-left:11px">
+        <div data-drawio-colors="color: rgb(0, 0, 0);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:currentColor;line-height:1.2;pointer-events:all;white-space:normal;overflow-wrap:normal">
+            Tokens
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="70" y="151" font-family="Helvetica" font-size="12" text-anchor="middle">Tokens</text>
+  </switch>
+  <g stroke="currentColor" stroke-miterlimit="10">
+    <path d="M70 222v20-10 13.63" fill="none" pointer-events="stroke" />
+    <path d="m70 250.88-3.5-7 3.5 1.75 3.5-1.75Z" pointer-events="all" />
+  </g>
+  <path fill="transparent" stroke="currentColor" pointer-events="all" d="M10 192h120v30H10z" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:118px;height:1px;padding-top:207px;margin-left:11px">
+        <div data-drawio-colors="color: rgb(0, 0, 0);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:currentColor;line-height:1.2;pointer-events:all;white-space:normal;overflow-wrap:normal">
+            Nodes
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="70" y="211" font-family="Helvetica" font-size="12" text-anchor="middle">Nodes</text>
+  </switch>
+  <path fill="transparent" stroke="currentColor" pointer-events="all" d="M10 252h120v30H10z" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:118px;height:1px;padding-top:267px;margin-left:11px">
+        <div data-drawio-colors="color: rgb(0, 0, 0);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:currentColor;line-height:1.2;pointer-events:all;white-space:normal;overflow-wrap:normal">
+            CSS OM
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="70" y="271" font-family="Helvetica" font-size="12" text-anchor="middle">CSS OM</text>
+  </switch>
+</svg>
+<p>CSS is render blocking as it blocks rendering of parsed content until CSS Object Model (CSSOM) is constructed.
+The browser does this to prevent Flash of Unstyled Content (FOUC)</p>
+<ul>
+<li>Render-blocking resources, like CSS, <strong>used to</strong> block all rendering of the page when they were discovered.</li>
+<li>Some browsers (Firefox initially, and now also Chrome) only block rendering of content below the render-blocking resource.</li>
+</ul>
+<h4 id="sample-code-for-the-cssom">Sample Code for the CSSOM</h4>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="css"><code><div class="ec-line"><div class="code"><span style="--0:#85E89D;--1:#1E7734">body</span><span style="--0:#E1E4E8;--1:#24292E"> {</span></div></div><div class="ec-line"><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#005CC5">font-size</span><span style="--0:#E1E4E8;--1:#24292E">: </span><span style="--0:#79B8FF;--1:#005CC5">16</span><span style="--0:#F97583;--1:#BF3441">px</span><span style="--0:#E1E4E8;--1:#24292E">;</span></div></div><div class="ec-line"><div class="code"><span style="--0:#E1E4E8;--1:#24292E">}</span></div></div><div class="ec-line"><div class="code"><span style="--0:#85E89D;--1:#1E7734">p</span><span style="--0:#E1E4E8;--1:#24292E"> {</span></div></div><div class="ec-line"><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#005CC5">font-weight</span><span style="--0:#E1E4E8;--1:#24292E">: </span><span style="--0:#79B8FF;--1:#005CC5">bold</span><span style="--0:#E1E4E8;--1:#24292E">;</span></div></div><div class="ec-line"><div class="code"><span style="--0:#E1E4E8;--1:#24292E">}</span></div></div><div class="ec-line"><div class="code"><span style="--0:#85E89D;--1:#1E7734">span</span><span style="--0:#E1E4E8;--1:#24292E"> {</span></div></div><div class="ec-line"><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#005CC5">color</span><span style="--0:#E1E4E8;--1:#24292E">: </span><span style="--0:#79B8FF;--1:#005CC5">red</span><span style="--0:#E1E4E8;--1:#24292E">;</span></div></div><div class="ec-line"><div class="code"><span style="--0:#E1E4E8;--1:#24292E">}</span></div></div><div class="ec-line"><div class="code"><span style="--0:#85E89D;--1:#1E7734">p</span><span style="--0:#E1E4E8;--1:#24292E"> </span><span style="--0:#85E89D;--1:#1E7734">span</span><span style="--0:#E1E4E8;--1:#24292E"> {</span></div></div><div class="ec-line"><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#005CC5">display</span><span style="--0:#E1E4E8;--1:#24292E">: </span><span style="--0:#79B8FF;--1:#005CC5">none</span><span style="--0:#E1E4E8;--1:#24292E">;</span></div></div><div class="ec-line"><div class="code"><span style="--0:#E1E4E8;--1:#24292E">}</span></div></div><div class="ec-line"><div class="code"><span style="--0:#85E89D;--1:#1E7734">img</span><span style="--0:#E1E4E8;--1:#24292E"> {</span></div></div><div class="ec-line"><div class="code"><span class="indent">  </span><span style="--0:#79B8FF;--1:#005CC5">float</span><span style="--0:#E1E4E8;--1:#24292E">: </span><span style="--0:#79B8FF;--1:#005CC5">right</span><span style="--0:#E1E4E8;--1:#24292E">;</span></div></div><div class="ec-line"><div class="code"><span style="--0:#E1E4E8;--1:#24292E">}</span></div></div></code></pre><div class="copy"><button title="Copy to clipboard" data-copied="Copied!" data-code="body {  font-size: 16px;}p {  font-weight: bold;}span {  color: red;}p span {  display: none;}img {  float: right;}"><div></div></button></div></figure></div>
+<figure class="md-figure"><img src="/legacy-personal-site/v3/_astro/cssom-tree.CttZgghH_UzGG5.webp" alt="CSSOM Constructed Tree" width="582" height="299" loading="lazy" decoding="async"><figcaption>CSSOM Constructed Tree</figcaption></figure>
+<h3 id="explicitly-mark-css-as-render-blocking">Explicitly mark CSS as render-blocking</h3>
+<p><code>blocking=render</code> attribute, added to Chrome 105. This allows developers to explicitly mark a <code>&lt;link&gt;</code>, <code>&lt;script&gt;</code> or <code>&lt;style&gt;</code> element as rendering-blocking until the element is processed, but still allowing the parser to continue processing the document in the meantime.</p>
+<h3 id="marking-css-as-non-render-blocking">Marking CSS as Non Render Blocking</h3>
+<p>Although CSS is render-blocking by default, it can be turned into a non-render-blocking resource by changing the <code>&lt;link&gt;</code> element’s media attribute to specify a value that doesn’t match the current conditions: <code>&lt;link rel=stylesheet href=&quot;...&quot; media=print&gt;</code>. This has been used in the past to allow non-critical CSS to load in a non-render blocking fashion.</p>
+<h2 id="javascript-execution">JavaScript Execution</h2>
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 200">
+  <style><![CDATA[
+    .dividers {
+      stroke: rgb(106, 148, 0);
+      stroke-dasharray: 1, 1;
+    }
+
+    .tag {
+      dominant-baseline: central;
+      font-family: monospace;
+      font-weight: bold;
+      font-size: 13px;
+      fill: currentColor;
+    }
+
+    .label {
+      dominant-baseline: central;
+      font-family: sans-serif;
+      font-size: 10px;
+      fill: currentColor;
+    }
+
+    .parser {
+      stroke: rgb(110, 174, 0);
+      fill: rgb(110, 174, 0);
+    }
+
+    .fetch {
+      stroke: rgb(0, 53, 255);
+      fill: rgb(0, 53, 255);
+    }
+
+    .execution {
+      stroke: rgb(255, 0, 0);
+      fill: rgb(255, 0, 0);
+    }
+
+    .progress {
+      stroke-width: 2;
+    }
+
+    .progress.parser:not(.first) {
+      marker-start: url(#parser-marker);
+    }
+    .progress.parser:not(.last) {
+      marker-end: url(#parser-marker);
+    }
+
+    .progress.fetch:not(.first) {
+      marker-start: url(#fetch-marker);
+    }
+    .progress.fetch:not(.last) {
+      marker-end: url(#fetch-marker);
+    }
+
+    .progress.execution:not(.first) {
+      marker-start: url(#execution-marker);
+    }
+    .progress.execution:not(.last) {
+      marker-end: url(#execution-marker);
+    }
+
+    marker > circle {
+      stroke-width: 0;
+    }
+
+    .connector {
+      stroke: rgb(206, 206, 206);
+      stroke-width: 1;
+    }
+  ]]></style>
+
+  <g class="dividers">
+    <line x1="0" x2="820" y1="33.5" y2="33.5" />
+    <line x1="0" x2="820" y1="66.5" y2="66.5" />
+    <line x1="0" x2="820" y1="99.5" y2="99.5" />
+    <line x1="0" x2="820" y1="132.5" y2="132.5" />
+
+    <line x1="245.5" x2="245.5" y1="1" y2="29" />
+    <line x1="245.5" x2="245.5" y1="38" y2="62" />
+    <line x1="245.5" x2="245.5" y1="68" y2="95" />
+    <line x1="245.5" x2="245.5" y1="104" y2="128" />
+    <line x1="245.5" x2="245.5" y1="137" y2="165" />
+  </g>
+
+  <defs>
+    <marker id="parser-marker" markerWidth="3" markerHeight="3" refX="1.5" refY="1.5">
+      <circle cx="1.5" cy="1.5" r="1.5" class="parser" />
+    </marker>
+    <marker id="fetch-marker" markerWidth="3" markerHeight="3" refX="1.5" refY="1.5">
+      <circle cx="1.5" cy="1.5" r="1.5" class="fetch" />
+    </marker>
+    <marker id="execution-marker" markerWidth="3" markerHeight="3" refX="1.5" refY="1.5">
+      <circle cx="1.5" cy="1.5" r="1.5" class="execution" />
+    </marker>
+  </defs>
+
+  <g>
+    <text x="12" y="16.75" class="tag">&lt;script&gt;</text>
+
+    <g transform="translate(252,0)">
+      <text x="0" y="9" class="label">Scripting:</text>
+      <text x="0" y="24" class="label">HTML Parser:</text>
+      <line x1="257" x2="257" y1="9" y2="24" class="connector" />
+      <line x1="404" x2="404" y1="9" y2="24" class="connector" />
+      <line x1="106" x2="257" y1="24" y2="24" class="parser progress first" />
+      <line x1="257" x2="354" y1="9" y2="9" class="fetch progress" />
+      <line x1="354" x2="404" y1="9" y2="9" class="execution progress" />
+      <line x1="404" x2="532" y1="24" y2="24" class="parser progress last" />
+    </g>
+  </g>
+
+  <g transform="translate(0,33)">
+    <text x="12" y="16.75" class="tag">&lt;script defer&gt;</text>
+
+    <g transform="translate(252,0)">
+      <text x="0" y="9" class="label">Scripting:</text>
+      <text x="0" y="24" class="label">HTML Parser:</text>
+      <line x1="484" x2="484" y1="9" y2="24" class="connector" />
+      <line x1="106" x2="484" y1="24" y2="24" class="parser progress first" />
+      <line x1="257" x2="354" y1="9" y2="9" class="fetch progress" />
+      <line x1="484" x2="532" y1="9" y2="9" class="execution progress last" />
+    </g>
+  </g>
+
+  <g transform="translate(0,66)">
+    <text x="12" y="16.75" class="tag">&lt;script async&gt;</text>
+
+    <g transform="translate(252,0)">
+      <text x="0" y="9" class="label">Scripting:</text>
+      <text x="0" y="24" class="label">HTML Parser:</text>
+      <line x1="354" x2="354" y1="9" y2="24" class="connector" />
+      <line x1="404" x2="404" y1="9" y2="24" class="connector" />
+      <line x1="106" x2="354" y1="24" y2="24" class="parser progress first" />
+      <line x1="257" x2="354" y1="9" y2="9" class="fetch progress" />
+      <line x1="354" x2="404" y1="9" y2="9" class="execution progress" />
+      <line x1="404" x2="532" y1="24" y2="24" class="parser progress last" />
+    </g>
+  </g>
+
+  <g transform="translate(0,99)">
+    <text x="12" y="16.75" class="tag">&lt;script type="module"&gt;</text>
+
+    <g transform="translate(252,0)">
+      <text x="0" y="9" class="label">Scripting:</text>
+      <text x="0" y="24" class="label">HTML Parser:</text>
+      <line x1="484" x2="484" y1="9" y2="24" class="connector" />
+      <line x1="106" x2="484" y1="24" y2="24" class="parser progress first" />
+      <line x1="257" x2="354" y1="9" y2="9" class="fetch progress" />
+      <line x1="354" x2="374" y1="9" y2="9" class="fetch progress" />
+      <line x1="354" x2="374" y1="9" y2="16.5" class="fetch progress" />
+      <line x1="374" x2="394" y1="16.5" y2="16.5" class="fetch progress" />
+      <line x1="394" x2="414" y1="16.5" y2="16.5" class="fetch progress" />
+      <line x1="394" x2="414" y1="16.5" y2="9" class="fetch progress" />
+      <line x1="484" x2="532" y1="9" y2="9" class="execution progress last" />
+    </g>
+  </g>
+
+  <g transform="translate(0,132)">
+    <text x="12" y="16.75" class="tag">&lt;script type="module" async&gt;</text>
+
+    <g transform="translate(252,0)">
+      <text x="0" y="9" class="label">Scripting:</text>
+      <text x="0" y="24" class="label">HTML Parser:</text>
+      <line x1="414" x2="414" y1="9" y2="24" class="connector" />
+      <line x1="464" x2="464" y1="9" y2="24" class="connector" />
+      <line x1="106" x2="414" y1="24" y2="24" class="parser progress first" />
+      <line x1="257" x2="354" y1="9" y2="9" class="fetch progress" />
+      <line x1="354" x2="374" y1="9" y2="9" class="fetch progress" />
+      <line x1="354" x2="374" y1="9" y2="16.5" class="fetch progress" />
+      <line x1="374" x2="394" y1="16.5" y2="16.5" class="fetch progress" />
+      <line x1="394" x2="414" y1="16.5" y2="16.5" class="fetch progress" />
+      <line x1="394" x2="414" y1="16.5" y2="9" class="fetch progress" />
+      <line x1="414" x2="464" y1="9" y2="9" class="execution progress" />
+      <line x1="464" x2="532" y1="24" y2="24" class="parser progress last" />
+    </g>
+  </g>
+
+  <g class="legend" transform="translate(357.5,172)">
+    <circle cx="3" cy="3" r="3" class="parser" />
+    <text x="9" y="3" class="label">parser</text>
+
+    <circle cx="50" cy="3" r="3" class="fetch" />
+    <text x="56" y="3" class="label">fetch</text>
+
+    <circle cx="90" cy="3" r="3" class="execution" />
+    <text x="96" y="3" class="label">execution</text>
+  </g>
+
+  <text x="782" y="175" text-anchor="end" class="label">runtime →</text>
+</svg>
+<ul>
+<li>Script download can be sync or async.</li>
+<li>Script execution is always parser-blocking</li>
+<li>default - Parser Blocking everything - Download + Execution</li>
+<li><code>async</code> - Download in parallel, execute ASAP</li>
+<li><code>defer</code> - Download in parallel, execute after DOM</li>
+<li>JS Execution waits for any in-flight render-blocking CSS (CSSOM Construction)</li>
+</ul>
+<h3 id="parser-blocking-scripts">Parser Blocking Scripts</h3>
+<p>Script tags without <code>async</code> or <code>defer</code> are parser-blocking.</p>
+<p>When the parser encounters a <code>&lt;script&gt;</code> element, the browser needs to evaluate and execute the script before proceeding with parsing the rest of the HTML. This is by design, as scripts may modify or access the DOM during a time while it is still being constructed. (using <code>document.write()</code>)</p>
+<h3 id="blocked-on-css-why">Blocked on CSS, Why?</h3>
+<p>A parser-blocking <code>&lt;script&gt;</code> must also wait for any in-flight render-blocking CSS resources to arrive and be parsed before the browser can execute it. This is also by design, as a script may access styles declared in the render-blocking style sheet (for example, by using <code>element.getComputedStyle()</code>).</p>
+<h3 id="browser-optimization-for-parser-blocking">Browser Optimization for parser blocking</h3>
+<p>Blocking the parser can have a huge performance cost—much more than just blocking rendering. For this reason, browsers will try to reduce this cost by using a secondary HTML parser known as the <strong>preload scanner</strong> to download upcoming resources while the primary HTML parser is blocked.</p>
+<h3 id="order-of-execution">Order of execution</h3>
+<p>Order of execution is guaranteed in blocking scripts and when using defer.
+This is not guaranteed when using <code>async</code>, since these scripts are executed as soon as they are downloaded.</p>
+<h2 id="render-tree-construction">Render Tree Construction</h2>
+<p>The render tree is a subset of the DOM tree that includes only the nodes required to render the page.</p>
+
+
+<img src="/legacy-personal-site/v3/_astro/render-tree.B6kw7eHu_RPbko.webp" alt="Render Tree Construction" width="1150" height="537" loading="lazy" decoding="async" class="bg-img-light">
+<h2 id="resources--crp">Resources &amp; CRP</h2>
+<h3 id="resources-for-initial-render">Resources for Initial Render</h3>
+<ul>
+<li>Part of the HTML.</li>
+<li>Render-blocking CSS in the <code>&lt;head&gt;</code> element.</li>
+<li>Render-blocking JavaScript in the <code>&lt;head&gt;</code> element.</li>
+</ul>
+<p>Importantly, for the initial render, the browser will not typically wait for:</p>
+<ul>
+<li>All of the HTML.</li>
+<li>Fonts.</li>
+<li>Images.</li>
+<li>Non-render-blocking JavaScript outside of the <code>&lt;head&gt;</code> element (for example, <code>&lt;script&gt;</code> elements placed at the end of the HTML).</li>
+<li>Non-render-blocking CSS outside of the <code>&lt;head&gt;</code> element, or CSS with a media attribute value that does not apply to the current viewport.</li>
+</ul>
+<h3 id="resource-loading">Resource Loading</h3>
+<ul>
+<li>CSS is render blocking</li>
+<li>Scripts are parser blocking</li>
+<li>Browsers have a preload scanner, that can continue to download resources, while waiting on blocked resources</li>
+</ul>
+<figure class="md-figure"><img src="/legacy-personal-site/v3/_astro/crp-network.DRcircpd_Z1rSk8x.svg" alt="CRP Network" width="832" height="222" loading="lazy" decoding="async"><figcaption>CRP Network</figcaption></figure>
+<h3 id="basic-html">Basic HTML</h3>
+
+<img src="/legacy-personal-site/v3/_astro/crp-network-basic.BMNiZUKZ_1K7TET.webp" alt="CRP Basic" width="617" height="171" loading="lazy" decoding="async" class="bg-img-light">
+<h3 id="basic-css">Basic CSS</h3>
+
+<img src="/legacy-personal-site/v3/_astro/crp-network-basic-css.CxYdDsFT_4WVKU.webp" alt="CRP with basic CSS" width="850" height="211" loading="lazy" decoding="async" class="bg-img-light">
+<h3 id="render-blocking-css-with-async-js">Render Blocking CSS with Async JS</h3>
+
+<img src="/legacy-personal-site/v3/_astro/crp-network-render-blocking-css-with-async-js.DW6Z1spc_ZKAWqu.webp" alt="CRP with render blocking CSS and async JS" width="925" height="258" loading="lazy" decoding="async" class="bg-img-light">
+<h2 id="optimizing-crp">Optimizing CRP</h2>
+<h3 id="the-preload-scanner">The preload scanner</h3>
+<p>The preload scanner is a browser optimization in the form of a secondary HTML parser that scans the raw HTML response to find and speculatively fetch resources before the primary HTML parser would otherwise discover them. For example, the preload scanner would allow the browser to start downloading a resource specified in an <code>&lt;img&gt;</code> element, even when the HTML parser is blocked while fetching and processing resources such as CSS and JavaScript.</p>
+<h3 id="best-practices-to-optimize-crp">Best practices to optimize CRP</h3>
+<p>The general sequence of steps to optimize the critical rendering path is:</p>
+<ul>
+<li>Analyze and characterize your critical path: number of resources, bytes, length.</li>
+<li>Minimize number of critical resources: eliminate them, defer their download, mark them as async, and so on.</li>
+<li>Optimize the number of critical bytes to reduce the download time (number of roundtrips).</li>
+<li>Optimize the order in which the remaining critical resources are loaded: download all critical assets as early as possible to shorten the critical path length.</li>
+</ul>
+<h3 id="action-items">Action Items</h3>
+<ul>
+<li>Move to Server Side Rendering</li>
+<li>Deferring JavaScript</li>
+<li>Preload fonts and use <code>font-display: swap</code></li>
+<li>Prioritize Above the fold.</li>
+</ul>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/Performance/Critical_rendering_path" rel="noopener noreferrer" target="_blank">MDN</a></li>
+<li><a href="https://web.dev/learn/performance/understanding-the-critical-path" rel="noopener noreferrer" target="_blank">Understanding the critical path</a></li>
+<li><a href="https://web.dev/learn/performance/optimize-resource-loading" rel="noopener noreferrer" target="_blank">Optimizing Resource Loading</a></li>
+<li><a href="https://web.dev/articles/critical-rendering-path/optimizing-critical-rendering-path" rel="noopener noreferrer" target="_blank">Optimizing the Critical Rendering Path</a></li>
+<li><a href="https://web.dev/articles/critical-rendering-path/constructing-the-object-model" rel="noopener noreferrer" target="_blank">Constructing the Object Model</a></li>
+<li><a href="https://thanpol.as/javascript/you-dont-need-dom-ready" rel="noopener noreferrer" target="_blank">You Don’t Need the DOM Ready Event</a></li>
+<li><a href="https://html.spec.whatwg.org/multipage/urls-and-fetching.html#blocking-attributes" rel="noopener noreferrer" target="_blank">HTML Spec - Blocking Attribute</a></li>
+<li><a href="https://html.spec.whatwg.org/multipage/scripting.html" rel="noopener noreferrer" target="_blank">HTML Living Standard</a></li>
+<li><a href="https://web.dev/articles/critical-rendering-path/analyzing-crp?hl=en" rel="noopener noreferrer" target="_blank">Analysing CRP</a></li>
+</ul>
+<h4 id="from-bytebytego">From ByteByteGo</h4>
+<ul>
+<li>Downloaded from <a href="https://twitter.com/alexxubyte/status/1534201523713867777" rel="noopener noreferrer" target="_blank">Alex Xu</a> Twitter post.</li>
+</ul>
+<figure class="md-figure"><img src="/legacy-personal-site/v3/_astro/crp-bytebytego.Cl1vso-J_Z22ghqI.webp" alt="CRP from Bytebytego" width="1896" height="1332" loading="lazy" decoding="async"><figcaption>CRP from Bytebytego</figcaption></figure>
+<iframe width="560" height="315" class="yt-embed" src="https://www.youtube.com/embed/25fkjIIk2_o?si=3cxf1u6rv_7UK_MU" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>  </main> </article> <section class="mt-12"> <h2 class="text-lg italic divider divider-start">Tags</h2> <div class="flex flex-wrap gap-x-5 gap-y-1 text-sm"> <a href="/legacy-personal-site/v3/tag/js" class="link link-hover"> 
+#<span data-pagefind-filter="tag">Javascript</span>  </a><a href="/legacy-personal-site/v3/tag/html" class="link link-hover"> 
+#<span data-pagefind-filter="tag">HTML</span>  </a><a href="/legacy-personal-site/v3/tag/css" class="link link-hover"> 
+#<span data-pagefind-filter="tag">CSS</span>  </a><a href="/legacy-personal-site/v3/tag/web-performance" class="link link-hover"> 
+#<span data-pagefind-filter="tag">Web Performance</span>  </a><a href="/legacy-personal-site/v3/tag/performance" class="link link-hover"> 
+#<span data-pagefind-filter="tag">Performance</span>  </a><a href="/legacy-personal-site/v3/tag/ssg" class="link link-hover"> 
+#<span data-pagefind-filter="tag">Static Site Generation</span>  </a><a href="/legacy-personal-site/v3/tag/ssr" class="link link-hover"> 
+#<span data-pagefind-filter="tag">Server Side Rendering</span>  </a><a href="/legacy-personal-site/v3/tag/spa" class="link link-hover"> 
+#<span data-pagefind-filter="tag">Single Page Application</span>  </a> </div> </section> <nav class="mt-12"> <h2 class="text-lg italic divider divider-start">Read More</h2> <div class="flex w-full flex-col md:flex-row"> <div class="card bg-base-200 rounded-box relative flex flex-col gap-4 p-4 flex-1"> <div class=""> <span class="mr-2">←</span> Read Prev
+</div> <a href="/legacy-personal-site/v3/post/system-design-fundamentals/switching-http-version" class="after:absolute after:top-0 after:left-0 after:right-0 after:bottom-0 after:content-[' '] link link-hover"> Switching HTTP Versions on browser </a> </div> <div class="divider md:divider-horizontal"></div> <div class="card bg-base-200 rounded-box relative flex flex-col gap-4 p-4 flex-1"> <div class="text-right">
+Read Next <span class="ml-2">→</span> </div> <a href="/legacy-personal-site/v3/post/programming/js-implement-lru" class="after:absolute after:top-0 after:left-0 after:right-0 after:bottom-0 after:content-[' '] link link-hover"> LRU Implementation </a>  </div> </div> </nav>  </div> <footer class="bg-base-200 text-base-content p-10"> <div class="footer sm:footer-horizontal"> <nav> <h6 class="footer-title">Writings</h6> <a href="/legacy-personal-site/v3/post" class="link link-hover"> Blogs </a> <a href="/legacy-personal-site/v3/category" class="link link-hover"> Categories </a> <a href="/legacy-personal-site/v3/tag" class="link link-hover"> Tags </a> <a href="/legacy-personal-site/v3/drafts" class="link link-hover"> Drafts </a> </nav> <nav> <h6 class="footer-title">Social</h6> <a href="https://www.linkedin.com/in/sujeetkrjaiswal/" rel="noopener noreferrer" target="_blank" class="flex items-center gap-2 link link-hover"> 
+Connect @ <svg width="1em" height="1em" data-icon="devicon:linkedin">   <symbol id="ai:devicon:linkedin" viewBox="0 0 128 128"><path fill="#0076b2" d="M116 3H12a8.91 8.91 0 0 0-9 8.8v104.42a8.91 8.91 0 0 0 9 8.78h104a8.93 8.93 0 0 0 9-8.81V11.77A8.93 8.93 0 0 0 116 3"/><path fill="#fff" d="M21.06 48.73h18.11V107H21.06zm9.06-29a10.5 10.5 0 1 1-10.5 10.49a10.5 10.5 0 0 1 10.5-10.49m20.41 29h17.36v8h.24c2.42-4.58 8.32-9.41 17.13-9.41C103.6 47.28 107 59.35 107 75v32H88.89V78.65c0-6.75-.12-15.44-9.41-15.44s-10.87 7.36-10.87 15V107H50.53z"/></symbol><use href="#ai:devicon:linkedin"></use>  </svg>  </a> <a href="https://docs.google.com/document/d/1pazXBfzuL9O1wCjPdKb7IS-7nXz_ZzI7EvNL1r_KKRc/edit?usp=sharing" rel="noopener noreferrer" target="_blank" class="flex items-center gap-2 link link-hover"> 
+View My CV @ <svg width="1em" height="1em" data-icon="carbon:document">   <symbol id="ai:carbon:document" viewBox="0 0 32 32"><path fill="currentColor" d="m25.7 9.3l-7-7c-.2-.2-.4-.3-.7-.3H8c-1.1 0-2 .9-2 2v24c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V10c0-.3-.1-.5-.3-.7M18 4.4l5.6 5.6H18zM24 28H8V4h8v6c0 1.1.9 2 2 2h6z"/><path fill="currentColor" d="M10 22h12v2H10zm0-6h12v2H10z"/></symbol><use href="#ai:carbon:document"></use>  </svg>  </a> <a href="https://docs.google.com/document/d/1pazXBfzuL9O1wCjPdKb7IS-7nXz_ZzI7EvNL1r_KKRc/export?format=pdf" rel="noopener noreferrer" target="_blank" class="flex items-center gap-2 link link-hover"> 
+Download My CV PDF
+<svg width="1em" height="1em" data-icon="carbon:document-pdf">   <symbol id="ai:carbon:document-pdf" viewBox="0 0 32 32"><path fill="currentColor" d="M30 18v-2h-6v10h2v-4h3v-2h-3v-2zm-11 8h-4V16h4a3.003 3.003 0 0 1 3 3v4a3.003 3.003 0 0 1-3 3m-2-2h2a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1h-2zm-6-8H6v10h2v-3h3a2.003 2.003 0 0 0 2-2v-3a2 2 0 0 0-2-2m-3 5v-3h3l.001 3z"/><path fill="currentColor" d="M22 14v-4a.91.91 0 0 0-.3-.7l-7-7A.9.9 0 0 0 14 2H4a2.006 2.006 0 0 0-2 2v24a2 2 0 0 0 2 2h16v-2H4V4h8v6a2.006 2.006 0 0 0 2 2h6v2Zm-8-4V4.4l5.6 5.6Z"/></symbol><use href="#ai:carbon:document-pdf"></use>  </svg>  </a> </nav> </div> <aside class="text-center pt-5">
+&copy; 2026 Sujeet Jaiswal. All rights reserved.
+</aside> </footer> </div> <script async src="https://www.googletagmanager.com/gtag/js?id=G-1Z2TP5LG65"></script> <script>
+  window.dataLayer = window.dataLayer || []
+  function gtag() {
+    dataLayer.push(arguments)
+  }
+  gtag('js', new Date())
+
+  gtag('config', 'G-1Z2TP5LG65')
+</script> </body></html>

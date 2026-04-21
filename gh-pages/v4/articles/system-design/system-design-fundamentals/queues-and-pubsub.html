@@ -1,0 +1,1099 @@
+<!DOCTYPE html><html lang="en"> <head><meta name="astro-view-transitions-enabled" content="true"><meta name="astro-view-transitions-fallback" content="animate"><script type="module" src="/legacy-personal-site/v4/_astro/ClientRouter.astro_astro_type_script_index_0_lang.HWuSm9BO.js"></script><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light"><script>
+  ;(function () {
+    var THEMES = ["auto", "light", "dark", "high-contrast-light", "high-contrast-dark", "paper"]
+    var STORAGE_KEY = "site-theme"
+    var THEME_LABELS = {
+      auto: "Auto (system)",
+      light: "Light",
+      dark: "Dark",
+      "high-contrast-light": "High contrast light",
+      "high-contrast-dark": "High contrast dark",
+      paper: "Paper",
+    }
+    var darkQuery = window.matchMedia("(prefers-color-scheme: dark)")
+
+    // Expose shared config for module scripts
+    window.__themeConfig = { THEMES: THEMES, STORAGE_KEY: STORAGE_KEY, THEME_LABELS: THEME_LABELS }
+
+    // BroadcastChannel for cross-tab sync
+    var channel = null
+    try {
+      channel = new BroadcastChannel("site-theme-sync")
+    } catch (e) {
+      // BroadcastChannel not supported
+    }
+
+    function getResolvedTheme(theme) {
+      if (theme === "auto") {
+        return darkQuery.matches ? "dark" : "light"
+      }
+      return theme
+    }
+
+    function getColorScheme(resolved) {
+      if (resolved === "dark" || resolved === "high-contrast-dark") return "dark"
+      return "light"
+    }
+
+    function applyTheme(theme, _fromBroadcast) {
+      if (!theme || THEMES.indexOf(theme) === -1) theme = "auto"
+
+      var resolved = getResolvedTheme(theme)
+      var root = document.documentElement
+      var scheme = getColorScheme(resolved)
+
+      // Remove all theme classes
+      for (var i = 0; i < THEMES.length; i++) {
+        root.classList.remove("theme-" + THEMES[i])
+      }
+
+      // Apply resolved theme class
+      root.classList.add("theme-" + resolved)
+
+      // Set color-scheme
+      root.style.setProperty("--color-scheme", scheme)
+
+      // Update meta tag
+      var meta = document.querySelector('meta[name="color-scheme"]')
+      if (meta) meta.setAttribute("content", scheme)
+
+      // Set color scheme data attribute for CSS/JS consumers
+      root.dataset.colorScheme = scheme
+
+      // Store the user's chosen theme (not the resolved one)
+      try {
+        localStorage.setItem(STORAGE_KEY, theme)
+      } catch (e) {
+        // localStorage may be unavailable
+      }
+
+      // Dispatch event for other scripts to react
+      root.dataset.theme = theme
+      root.dataset.resolvedTheme = resolved
+
+      // Broadcast to other tabs (but not if we received this from another tab)
+      if (!_fromBroadcast && channel) {
+        try {
+          channel.postMessage({ theme: theme })
+        } catch (e) {
+          // Channel may be closed
+        }
+      }
+    }
+
+    // Smart cycling: skip the theme that "auto" resolves to
+    function getNextTheme() {
+      var current = "auto"
+      try {
+        current = localStorage.getItem(STORAGE_KEY) || "auto"
+      } catch (e) {}
+      if (THEMES.indexOf(current) === -1) current = "auto"
+
+      var idx = THEMES.indexOf(current)
+      var next = THEMES[(idx + 1) % THEMES.length]
+
+      // If current is "auto", skip the theme auto resolves to
+      if (current === "auto") {
+        var autoResolved = getResolvedTheme("auto")
+        if (next === autoResolved) {
+          next = THEMES[(idx + 2) % THEMES.length]
+        }
+      }
+
+      return next
+    }
+
+    // Apply on load
+    var saved = "auto"
+    try {
+      saved = localStorage.getItem(STORAGE_KEY) || "auto"
+    } catch (e) {
+      // localStorage may be unavailable
+    }
+    applyTheme(saved)
+
+    // Listen for OS preference changes when in auto mode
+    darkQuery.addEventListener("change", function () {
+      var current = "auto"
+      try {
+        current = localStorage.getItem(STORAGE_KEY) || "auto"
+      } catch (e) {}
+      if (current === "auto") {
+        applyTheme("auto")
+      }
+    })
+
+    // Listen for cross-tab theme changes
+    if (channel) {
+      channel.onmessage = function (event) {
+        if (event.data && event.data.theme) {
+          applyTheme(event.data.theme, true)
+        }
+      }
+    }
+
+    // Expose for runtime use
+    window.applySiteTheme = applyTheme
+    window.getNextTheme = getNextTheme
+  })()
+</script><!-- Inline font-face declarations with base path --><style>
+      @font-face {
+        font-family: "Open Sans";
+        font-style: normal;
+        font-weight: 300 800;
+        font-display: swap;
+        src: url("/legacy-personal-site/v4/fonts/open-sans-latin-wght-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+          U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: "JetBrains Mono";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("/legacy-personal-site/v4/fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+          U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+    </style><!-- Preload local fonts --><link rel="preload" as="font" type="font/woff2" href="/legacy-personal-site/v4/fonts/open-sans-latin-wght-normal.woff2" crossorigin="anonymous"><link rel="preload" as="font" type="font/woff2" href="/legacy-personal-site/v4/fonts/jetbrains-mono-latin-400-normal.woff2" crossorigin="anonymous"><!-- Main favicon --><link rel="icon" type="image/x-icon" href="/legacy-personal-site/v4/favicons/favicon.ico"><!-- Apple Touch Icons --><link rel="apple-touch-icon" sizes="57x57" href="/legacy-personal-site/v4/favicons/apple-icon-57x57.png"><link rel="apple-touch-icon" sizes="60x60" href="/legacy-personal-site/v4/favicons/apple-icon-60x60.png"><link rel="apple-touch-icon" sizes="72x72" href="/legacy-personal-site/v4/favicons/apple-icon-72x72.png"><link rel="apple-touch-icon" sizes="76x76" href="/legacy-personal-site/v4/favicons/apple-icon-76x76.png"><link rel="apple-touch-icon" sizes="114x114" href="/legacy-personal-site/v4/favicons/apple-icon-114x114.png"><link rel="apple-touch-icon" sizes="120x120" href="/legacy-personal-site/v4/favicons/apple-icon-120x120.png"><link rel="apple-touch-icon" sizes="144x144" href="/legacy-personal-site/v4/favicons/apple-icon-144x144.png"><link rel="apple-touch-icon" sizes="152x152" href="/legacy-personal-site/v4/favicons/apple-icon-152x152.png"><link rel="apple-touch-icon" sizes="180x180" href="/legacy-personal-site/v4/favicons/apple-icon-180x180.png"><!-- Apple Touch Icon Precomposed (for older iOS versions) --><link rel="apple-touch-icon-precomposed" href="/legacy-personal-site/v4/favicons/apple-icon-precomposed.png"><!-- Standard Icons --><link rel="icon" type="image/png" sizes="192x192" href="/legacy-personal-site/v4/favicons/android-icon-192x192.png"><link rel="icon" type="image/png" sizes="144x144" href="/legacy-personal-site/v4/favicons/android-icon-144x144.png"><link rel="icon" type="image/png" sizes="96x96" href="/legacy-personal-site/v4/favicons/android-icon-96x96.png"><link rel="icon" type="image/png" sizes="72x72" href="/legacy-personal-site/v4/favicons/android-icon-72x72.png"><link rel="icon" type="image/png" sizes="48x48" href="/legacy-personal-site/v4/favicons/android-icon-48x48.png"><link rel="icon" type="image/png" sizes="36x36" href="/legacy-personal-site/v4/favicons/android-icon-36x36.png"><link rel="icon" type="image/png" sizes="32x32" href="/legacy-personal-site/v4/favicons/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/legacy-personal-site/v4/favicons/favicon-16x16.png"><!-- Web App Manifest --><link rel="manifest" href="/legacy-personal-site/v4/manifest.json"><!-- Microsoft Tiles --><meta name="msapplication-config" content="/legacy-personal-site/v4/browserconfig.xml"><meta name="msapplication-TileImage" content="/legacy-personal-site/v4/favicons/ms-icon-144x144.png"><meta name="msapplication-TileColor" content="#f8fafc"><!-- Theme Colors --><meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#020617" media="(prefers-color-scheme: dark)"><meta name="msapplication-TileColor" content="#f8fafc"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="docsearch:language" content="en"><!-- Canonical URL --><link rel="canonical" href="https://sujeet.pro/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/queues-and-pubsub.html"><!-- Primary Meta Tags --><title>Queues and Pub/Sub: Decoupling and Backpressure - Sujeet Jaiswal</title><meta name="title" content="Queues and Pub/Sub: Decoupling and Backpressure - Sujeet Jaiswal"><meta name="description" content="Message queues and publish-subscribe systems decouple producers from consumers, enabling asynchronous communication, elastic scaling, and fault isolation. The choice between queue-based and pub/sub patterns—and the specific broker implementation—determines delivery guarantees, ordering semantics, and operational complexity. This article covers design choices, trade-offs, and production patterns from systems handling trillions of messages daily."><!-- Open Graph / Facebook --><meta property="og:type" content="website"><meta property="og:url" content="https://sujeet.pro/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/queues-and-pubsub.html"><meta property="og:title" content="Queues and Pub/Sub: Decoupling and Backpressure - Sujeet Jaiswal"><meta property="og:description" content="Message queues and publish-subscribe systems decouple producers from consumers, enabling asynchronous communication, elastic scaling, and fault isolation. The choice between queue-based and pub/sub patterns—and the specific broker implementation—determines delivery guarantees, ordering semantics, and operational complexity. This article covers design choices, trade-offs, and production patterns from systems handling trillions of messages daily."><!-- Twitter / X --><meta name="twitter:site" content="@sujeetpro"><meta name="twitter:card" content="summary_large_image"><!-- DocSearch facets --><meta name="docsearch:category" content="System Design"><meta name="docsearch:topic" content="System Design Fundamentals"><link rel="alternate" type="application/rss+xml" href="/legacy-personal-site/v4/rss.xml"><link rel="sitemap" href="/legacy-personal-site/v4/sitemap-index.xml"><!-- LLM-friendly content --><link rel="alternate" type="text/plain" href="/legacy-personal-site/v4/llms.txt" title="LLM Index"><link rel="alternate" type="text/plain" href="/legacy-personal-site/v4/llms-full.txt" title="LLM Full Content"><link rel="stylesheet" href="/legacy-personal-site/v4/_astro/docsearch.CgGoh9IB.css">
+<style>/*! tailwindcss v4.2.1 | MIT License | https://tailwindcss.com */.sidebar-toc-list{gap:calc(var(--spacing,.25rem) * .5);flex-direction:column;display:flex}
+@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) and (not (color:rgb(from red r g b)))){*,:before,:after,::backdrop{--tw-border-style:solid;--tw-font-weight:initial;--tw-ordinal:initial;--tw-slashed-zero:initial;--tw-numeric-figure:initial;--tw-numeric-spacing:initial;--tw-numeric-fraction:initial}}}.article-nav-category{margin-bottom:calc(var(--spacing,.25rem) * 5)}.article-nav-category+.article-nav-category{border-top-style:var(--tw-border-style);padding-top:calc(var(--spacing,.25rem) * 2);border-top-width:1px;border-color:var(--color-border)}.article-nav-category-name{margin-bottom:calc(var(--spacing,.25rem) * 1.5);padding-inline:calc(var(--spacing,.25rem) * 1);font-family:var(--font-mono,ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);--tw-font-weight:var(--font-weight-semibold,600);font-weight:var(--font-weight-semibold,600);text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-muted);font-size:11px;display:block}.article-nav-category-name.is-current{color:var(--color-text)}.article-nav-topics{flex-direction:column;display:flex}.article-nav-topic{list-style:none}.article-nav-topic-toggle{cursor:pointer;border-radius:var(--radius-md,.375rem);width:100%;padding-inline:calc(var(--spacing,.25rem) * 2);padding-block:calc(var(--spacing,.25rem) * 1.5);color:var(--color-text-muted);transition:all var(--transition-fast);justify-content:space-between;align-items:center;font-size:13px;list-style:none;display:flex}.article-nav-topic-toggle::-webkit-details-marker{display:none}.article-nav-topic-toggle::marker{content:"";display:none}.article-nav-topic-toggle:hover{color:var(--color-text);background:var(--color-bg-alt)}.article-nav-topic-toggle.is-active{color:var(--color-text);font-weight:500}.article-nav-topic-name{min-width:calc(var(--spacing,.25rem) * 0);flex:1}.article-nav-topic-count{--tw-numeric-spacing:tabular-nums;font-variant-numeric:var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);color:var(--color-text-muted);opacity:.6;flex-shrink:0;font-size:11px}.article-nav-chevron{opacity:.4;width:12px;height:12px;transition:transform var(--transition-fast);flex-shrink:0;margin-left:.5rem}.article-nav-topic-toggle:hover .article-nav-chevron{opacity:.7}details[open]>.article-nav-topic-toggle .article-nav-chevron{transform:rotate(90deg)}.article-nav-articles{margin-left:calc(var(--spacing,.25rem) * 3);border-left-style:var(--tw-border-style);padding-left:calc(var(--spacing,.25rem) * 2);border-left-width:1px;border-color:var(--color-border)}.article-nav-article-link{border-radius:var(--radius-md,.375rem);padding-inline:calc(var(--spacing,.25rem) * 2);padding-block:calc(var(--spacing,.25rem) * 1);color:var(--color-text-muted);transition:all var(--transition-fast);font-size:13px;line-height:1.4;text-decoration-line:none;display:block}.article-nav-article-link:hover{color:var(--color-text);background:var(--color-bg-alt)}.article-nav-article-link.is-active{color:var(--color-text);background:var(--color-bg-alt);font-weight:500}@property --tw-border-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-font-weight{syntax:"*";inherits:false}@property --tw-ordinal{syntax:"*";inherits:false}@property --tw-slashed-zero{syntax:"*";inherits:false}@property --tw-numeric-figure{syntax:"*";inherits:false}@property --tw-numeric-spacing{syntax:"*";inherits:false}@property --tw-numeric-fraction{syntax:"*";inherits:false}/*! tailwindcss v4.2.1 | MIT License | https://tailwindcss.com */.article-frontmatter{margin-bottom:calc(var(--spacing,.25rem) * 8)}.article-navigation{margin-top:calc(var(--spacing,.25rem) * 16)}
+</style>
+<link rel="stylesheet" href="/legacy-personal-site/v4/_astro/_slug_.u3hNe2gV.css"><script type="module" src="/legacy-personal-site/v4/_astro/page.CLJIuoFF.js"></script></head> <body> <a href="#main" class="skip-link">Skip to main content</a> <header class="site-header"> <div class="header-container"> <nav class="header-nav"> <!-- Left side: sidebar toggle + logo --> <div class="header-left"> <button id="left-sidebar-toggle" class="sidebar-toggle-btn" aria-label="Toggle navigation sidebar" aria-expanded="true" title="Hide navigation sidebar" aria-hidden="false"> <svg width="1em" height="1em" class="icon-md" data-icon="carbon:side-panel-open">   <symbol id="ai:carbon:side-panel-open" viewBox="0 0 32 32"><path fill="currentColor" d="M28 4H4c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h24c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2M10 26H4V6h6zm18 0H12v-9h10.2l-3.6 3.6L20 22l6-6l-6-6l-1.4 1.4l3.6 3.6H12V6h16z"/></symbol><use href="#ai:carbon:side-panel-open"></use>  </svg> </button> <a href="/legacy-personal-site/v4/" class="header-logo">   <span class="header-logo-name">sujeet.pro</span>  </a> </div> <!-- Center: Nav links - hidden on mobile --> <div class="header-nav-links"> <a href="/legacy-personal-site/v4/articles" class="nav-link">  Articles </a><a href="/legacy-personal-site/v4/blogs" class="nav-link">  Blogs </a><a href="/legacy-personal-site/v4/projects" class="nav-link">  Projects </a> </div> <!-- Right side: search + sidebar toggle + hamburger --> <div class="header-actions"> <!-- DocSearch --> <div id="docsearch-container"></div> <!-- Theme Toggle --> <button id="theme-toggle-btn" class="sidebar-toggle-btn" aria-label="Toggle theme" title="Switch theme"> <!-- Auto (monitor) --> <svg data-theme-icon="auto" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M28 4H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h8v4H8v2h16v-2h-4v-4h8a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 18H4V6h24Z"></path> </svg> <!-- Light (sun) --> <svg data-theme-icon="light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 12.005a4 4 0 1 1-4 4 4.005 4.005 0 0 1 4-4m0-2a6 6 0 1 0 6 6 6 6 0 0 0-6-6ZM5.394 6.813 6.81 5.399l3.505 3.506L8.9 10.319ZM2 15.005h5v2H2ZM5.394 25.197l3.505-3.506 1.414 1.414-3.505 3.506ZM15 25.005h2v5h-2ZM21.687 23.106l1.414-1.414 3.506 3.505-1.414 1.414ZM25 15.005h5v2h-5ZM21.69 8.904l3.505-3.505 1.414 1.415-3.505 3.505ZM15 2.005h2v5h-2Z"></path> </svg> <!-- Dark (moon) --> <svg data-theme-icon="dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M13.502 5.414a15.075 15.075 0 0 0 11.594 18.194 11.113 11.113 0 0 1-7.975 3.39c-.138 0-.278.005-.418 0a11.094 11.094 0 0 1-3.2-21.584M14.98 3a1.002 1.002 0 0 0-.175.016 13.096 13.096 0 0 0 1.825 25.981c.164.006.328 0 .49 0a13.072 13.072 0 0 0 10.703-5.555 1.01 1.01 0 0 0-.783-1.565A13.08 13.08 0 0 1 15.89 4.38 1.015 1.015 0 0 0 14.98 3Z"></path> </svg> <!-- High contrast light --> <svg data-theme-icon="high-contrast-light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26V4a12 12 0 0 1 0 24Z"></path> </svg> <!-- High contrast dark --> <svg data-theme-icon="high-contrast-dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 2a12 12 0 0 1 0 24Z"></path> </svg> <!-- Paper (document) --> <svg data-theme-icon="paper" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M19 10h7v2h-7zM19 6h7v2h-7zM19 14h7v2h-7zM19 18h7v2h-7z"></path> <path d="M28 2H10a2.002 2.002 0 0 0-2 2v6H4a2.002 2.002 0 0 0-2 2v18a2 2 0 0 0 2 2h14a2.002 2.002 0 0 0 2-2v-6h8a2.002 2.002 0 0 0 2-2V4a2.002 2.002 0 0 0-2-2Zm-10 28H4V12h14Zm10-8H20V12a2.002 2.002 0 0 0-2-2h-8V4h18Z"></path> <path d="M6 16h10v2H6zM6 20h10v2H6zM6 24h7v2H6z"></path> </svg> </button> <button id="right-sidebar-toggle" class="sidebar-toggle-btn" aria-label="Toggle table of contents" aria-expanded="true" title="Hide table of contents" aria-hidden="false"> <svg width="1em" height="1em" class="icon-md" data-icon="carbon:side-panel-close">   <symbol id="ai:carbon:side-panel-close" viewBox="0 0 32 32"><path fill="currentColor" d="M28 4H4c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h24c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2M10 26H4V6h6zm18-11H17.8l3.6-3.6L20 10l-6 6l6 6l1.4-1.4l-3.6-3.6H28v9H12V6h16z"/></symbol><use href="#ai:carbon:side-panel-close"></use>  </svg> </button> <!-- Hamburger Menu - visible on mobile only --> <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu" title="Open menu"> <svg width="1em" height="1em" class="icon-lg" data-icon="carbon:menu">   <symbol id="ai:carbon:menu" viewBox="0 0 32 32"><path fill="currentColor" d="M4 6h24v2H4zm0 18h24v2H4zm0-12h24v2H4zm0 6h24v2H4z"/></symbol><use href="#ai:carbon:menu"></use>  </svg> </button> </div> </nav> </div> </header> <div id="mobile-menu-overlay" class="mobile-menu-overlay is-hidden"></div> <aside id="mobile-menu" class="mobile-menu" aria-hidden="true"> <div class="mobile-menu-header"> <a href="/legacy-personal-site/v4/" class="nav-link nav-logo">   sujeet.pro  </a> <button id="mobile-menu-close" class="mobile-menu-close" aria-label="Close menu"> <svg width="1em" height="1em" class="icon-lg" data-icon="carbon:close">   <symbol id="ai:carbon:close" viewBox="0 0 32 32"><path fill="currentColor" d="M17.414 16L24 9.414L22.586 8L16 14.586L9.414 8L8 9.414L14.586 16L8 22.586L9.414 24L16 17.414L22.586 24L24 22.586z"/></symbol><use href="#ai:carbon:close"></use>  </svg> </button> </div> <nav class="mobile-menu-nav"> <a href="/legacy-personal-site/v4/articles" class="mobile-menu-link">  Articles </a><a href="/legacy-personal-site/v4/blogs" class="mobile-menu-link">  Blogs </a><a href="/legacy-personal-site/v4/projects" class="mobile-menu-link">  Projects </a> </nav> </aside> <script type="module" src="/legacy-personal-site/v4/_astro/mobile-menu.astro_astro_type_script_index_0_lang.AuCdxukU.js"></script>  <div class="zen-layout"> <aside id="left-sidebar" class="zen-sidebar zen-sidebar-left" aria-label="Navigation sidebar"> <div class="zen-sidebar-header"> <span class="zen-sidebar-header-title">Navigation</span> <button class="zen-sidebar-close" data-sidebar-close="left" aria-label="Close navigation sidebar"> <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5"> <path d="M8 8l16 16M24 8L8 24"></path> </svg> </button> </div> <div class="zen-sidebar-content"> <nav aria-label="Article navigation" class="article-nav"> <div class="article-nav-category"> <span class="article-nav-category-name">Browser &amp; Runtime Internals</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Critical Rendering Path</span> <span class="article-nav-topic-count">(12)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-rendering-pipeline-overview" class="article-nav-article-link">  Critical Rendering Path: Rendering Pipeline Overview </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-dom-construction" class="article-nav-article-link">  Critical Rendering Path: DOM Construction </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-cssom-construction" class="article-nav-article-link">  Critical Rendering Path: CSSOM Construction </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-style-recalculation" class="article-nav-article-link">  Critical Rendering Path: Style Recalculation </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-layout" class="article-nav-article-link">  Critical Rendering Path: Layout Stage </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-prepaint" class="article-nav-article-link">  Critical Rendering Path: Prepaint </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-paint" class="article-nav-article-link">  Critical Rendering Path: Paint Stage </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-commit" class="article-nav-article-link">  Critical Rendering Path: Commit </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-layerize" class="article-nav-article-link">  Critical Rendering Path: Layerize </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-raster" class="article-nav-article-link">  Critical Rendering Path: Rasterization </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-composit" class="article-nav-article-link">  Critical Rendering Path: Compositing </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-draw" class="article-nav-article-link">  Critical Rendering Path: Draw </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">JavaScript Runtime Internals</span> <span class="article-nav-topic-count">(7)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/v8-engine-architecture" class="article-nav-article-link">  V8 Engine Architecture: Parsing, Optimization, and JIT </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/browser-internals" class="article-nav-article-link">  Browser Architecture: Processes, Caching, and Extensions </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/browser-event-loop" class="article-nav-article-link">  Browser Event Loop: Tasks, Microtasks, Rendering, and Idle Time </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/nodejs-runtime-architecture" class="article-nav-article-link">  Node.js Runtime Architecture: Event Loop, Streams, and APIs </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/libuv-event-loop-internals" class="article-nav-article-link">  libuv Internals: Event Loop and Async I/O </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/nodejs-event-loop" class="article-nav-article-link">  Node.js Event Loop: Phases, Queues, and Process Exit </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/js-event-loop" class="article-nav-article-link">  JS Event Loop: Tasks, Microtasks, and Rendering (For Browser &amp; Node.js) </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name is-current">System Design</span> <div class="article-nav-topics"> <details class="article-nav-topic" open> <summary class="article-nav-topic-toggle is-active"> <span class="article-nav-topic-name">System Design Fundamentals</span> <span class="article-nav-topic-count">(20)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/consistency-and-cap-theorem" class="article-nav-article-link">  Consistency Models and the CAP Theorem </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/distributed-consensus" class="article-nav-article-link">  Distributed Consensus </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/time-and-ordering" class="article-nav-article-link">  Time and Ordering in Distributed Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/failure-modes-and-resilience" class="article-nav-article-link">  Failure Modes and Resilience Patterns </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/storage-choices-sql-vs-nosql" class="article-nav-article-link">  Storage Choices: SQL vs NoSQL </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/sharding-and-replication" class="article-nav-article-link">  Sharding and Replication </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/indexing-and-query-optimization" class="article-nav-article-link">  Indexing and Query Optimization </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/transactions-and-acid" class="article-nav-article-link">  Transactions and ACID Properties </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/load-balancers-architecture" class="article-nav-article-link">  Load Balancer Architecture: L4 vs L7 and Routing </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/cdn-architecture-and-caching" class="article-nav-article-link">  CDN Architecture and Edge Caching </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/caching-fundamentals-and-strategies" class="article-nav-article-link">  Caching Fundamentals and Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/api-gateway-patterns" class="article-nav-article-link">  API Gateway Patterns: Routing, Auth, and Policies </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/service-discovery-and-registry" class="article-nav-article-link">  Service Discovery and Registry Patterns </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/dns-deep-dive" class="article-nav-article-link">  DNS Deep Dive </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/queues-and-pubsub" class="article-nav-article-link is-active">  Queues and Pub/Sub: Decoupling and Backpressure </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/event-driven-architecture" class="article-nav-article-link">  Event-Driven Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/rpc-and-api-design" class="article-nav-article-link">  RPC and API Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/rate-limiting-strategies" class="article-nav-article-link">  Rate Limiting Strategies: Token Bucket, Leaky Bucket, and Sliding Window </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/circuit-breaker-patterns" class="article-nav-article-link">  Circuit Breaker Patterns for Resilient Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/capacity-planning-and-estimation" class="article-nav-article-link">  Capacity Planning and Back-of-the-Envelope Estimates </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">System Design Building Blocks</span> <span class="article-nav-topic-count">(10)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/lru-cache-design" class="article-nav-article-link">  LRU Cache Design: Eviction Strategies and Trade-offs </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/unique-id-generation" class="article-nav-article-link">  Unique ID Generation in Distributed Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-cache-design" class="article-nav-article-link">  Distributed Cache Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/blob-storage-design" class="article-nav-article-link">  Blob Storage Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-search-engine" class="article-nav-article-link">  Distributed Search Engine </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-logging-system" class="article-nav-article-link">  Distributed Logging System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-monitoring" class="article-nav-article-link">  Distributed Monitoring Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/task-scheduler-design" class="article-nav-article-link">  Task Scheduler Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/sharded-counters" class="article-nav-article-link">  Sharded Counters </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/leaderboard-design" class="article-nav-article-link">  Leaderboard Design </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">System Design Problems</span> <span class="article-nav-topic-count">(28)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-key-value-store" class="article-nav-article-link">  Design a Distributed Key-Value Store </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-distributed-file-system" class="article-nav-article-link">  Design a Distributed File System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-time-series-database" class="article-nav-article-link">  Design a Time Series Database </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-youtube-video-platform" class="article-nav-article-link">  Design a YouTube-Style Video Platform </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-netflix-streaming" class="article-nav-article-link">  Design Netflix Video Streaming </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-instagram-photo-sharing" class="article-nav-article-link">  Design Instagram: Photo Sharing at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-spotify-music-streaming" class="article-nav-article-link">  Design Spotify Music Streaming </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-real-time-chat-messaging" class="article-nav-article-link">  Design Real-Time Chat and Messaging </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-social-feed" class="article-nav-article-link">  Design a Social Feed (Facebook/Instagram) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-notification-system" class="article-nav-article-link">  Design a Notification System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-email-system" class="article-nav-article-link">  Design an Email System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-uber-ride-hailing" class="article-nav-article-link">  Design Uber-Style Ride Hailing </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-maps" class="article-nav-article-link">  Design Google Maps </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-yelp-proximity-service" class="article-nav-article-link">  Design Yelp: Location-Based Business Discovery Platform </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-search-autocomplete" class="article-nav-article-link">  Design Search Autocomplete: Prefix Matching at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-web-crawler" class="article-nav-article-link">  Design a Web Crawler </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-search" class="article-nav-article-link">  Design Google Search </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-docs-collaboration" class="article-nav-article-link">  Design Collaborative Document Editing (Google Docs) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-dropbox-file-sync" class="article-nav-article-link">  Design Dropbox File Sync </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-calendar" class="article-nav-article-link">  Design Google Calendar </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-issue-tracker" class="article-nav-article-link">  Design an Issue Tracker (Jira/Linear) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-payment-system" class="article-nav-article-link">  Design a Payment System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-flash-sale-system" class="article-nav-article-link">  Design a Flash Sale System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-amazon-shopping-cart" class="article-nav-article-link">  Design Amazon Shopping Cart </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/url-shortener-design" class="article-nav-article-link">  Design a URL Shortener: IDs, Storage, and Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-pastebin" class="article-nav-article-link">  Design Pastebin: Text Sharing, Expiration, and Abuse Prevention </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-api-rate-limiter" class="article-nav-article-link">  Design an API Rate Limiter: Distributed Throttling, Multi-Tenant Quotas, and Graceful Degradation </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-cookie-consent-service" class="article-nav-article-link">  Design a Cookie Consent Service </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Core Distributed Patterns</span> <span class="article-nav-topic-count">(9)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/crdt-for-collaborative-systems" class="article-nav-article-link">  CRDTs for Collaborative Systems </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/operational-transformation" class="article-nav-article-link">  Operational Transformation </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/distributed-locking" class="article-nav-article-link">  Distributed Locking </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/exactly-once-delivery" class="article-nav-article-link">  Exactly-Once Delivery </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/event-sourcing-deep-dive" class="article-nav-article-link">  Event Sourcing </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/change-data-capture" class="article-nav-article-link">  Change Data Capture </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/database-migrations-at-scale" class="article-nav-article-link">  Database Migrations at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/multi-region-architecture" class="article-nav-article-link">  Multi-Region Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/graceful-degradation" class="article-nav-article-link">  Graceful Degradation </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Frontend System Design</span> <span class="article-nav-topic-count">(15)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/virtualization-and-windowing" class="article-nav-article-link">  Virtualization and Windowing </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/offline-first-architecture" class="article-nav-article-link">  Offline-First Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/client-state-management" class="article-nav-article-link">  Client State Management </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/real-time-sync-client" class="article-nav-article-link">  Real-Time Sync Client </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/widget-framework" class="article-nav-article-link">  Multi-Tenant Pluggable Widget Framework </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/bundle-splitting-strategies" class="article-nav-article-link">  Bundle Splitting Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/rendering-strategies" class="article-nav-article-link">  Rendering Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/image-loading-optimization" class="article-nav-article-link">  Image Loading Optimization </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/performance-monitoring-client" class="article-nav-article-link">  Client Performance Monitoring </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-rich-text-editor" class="article-nav-article-link">  Design a Rich Text Editor </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-infinite-feed" class="article-nav-article-link">  Design an Infinite Feed </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-drag-drop-system" class="article-nav-article-link">  Design a Drag and Drop System </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-form-builder" class="article-nav-article-link">  Design a Form Builder </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-data-grid" class="article-nav-article-link">  Design a Data Grid </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-file-uploader" class="article-nav-article-link">  Design a File Uploader </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Real-World Case Studies</span> <span class="article-nav-topic-count">(20)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/facebook-2021-outage-analysis" class="article-nav-article-link">  Facebook 2021 Outage: BGP Withdrawal, DNS Collapse, and the Backbone That Disappeared </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/aws-kinesis-2020-outage" class="article-nav-article-link">  AWS Kinesis 2020 Outage: Thread Limits, Thundering Herds, and Hidden Dependencies </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/shopify-pod-architecture" class="article-nav-article-link">  Shopify: Pod Architecture for Multi-Tenant Isolation at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/netflix-microservices-evolution" class="article-nav-article-link">  Netflix: From Monolith to Microservices — A 7-Year Architecture Evolution </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/twitter-timeline-architecture" class="article-nav-article-link">  Twitter/X: Timeline Architecture and the Recommendation Algorithm </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/facebook-tao-social-graph" class="article-nav-article-link">  Facebook TAO: The Social Graph’s Distributed Cache </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/uber-microservices-journey" class="article-nav-article-link">  Uber: From Monolith to Domain-Oriented Microservices </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/uber-schemaless-datastore" class="article-nav-article-link">  Uber Schemaless: Building a Scalable Datastore on MySQL </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/slack-distributed-architecture" class="article-nav-article-link">  Slack: Scaling a Real-Time Messaging Platform from Monolith to Distributed Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/linkedin-kafka-origin" class="article-nav-article-link">  LinkedIn and the Birth of Apache Kafka: Solving the O(N²) Data Integration Problem </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/dropbox-magic-pocket" class="article-nav-article-link">  Dropbox Magic Pocket: Building Exabyte-Scale Blob Storage </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/instagram-cassandra-migration" class="article-nav-article-link">  Instagram: From Redis to Cassandra and the Rocksandra Storage Engine </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/youtube-vitess-scaling" class="article-nav-article-link">  YouTube: Scaling MySQL to Serve Billions with Vitess </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/github-mysql-migration" class="article-nav-article-link">  GitHub: Scaling MySQL from One Database to 1,200+ Hosts </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/pinterest-mysql-sharding" class="article-nav-article-link">  Pinterest: MySQL Sharding from Zero to Billions of Objects </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/stripe-idempotency-reliability" class="article-nav-article-link">  Stripe: Idempotency for Payment Reliability </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/discord-rust-read-states" class="article-nav-article-link">  Discord: Rewriting Read States from Go to Rust </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/discord-message-storage" class="article-nav-article-link">  Discord: From Billions to Trillions of Messages — A Three-Database Journey </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/figma-multiplayer-infrastructure" class="article-nav-article-link">  Figma: Building Multiplayer Infrastructure for Real-Time Design Collaboration </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/whatsapp-erlang-scaling" class="article-nav-article-link">  WhatsApp: 2 Million Connections Per Server with Erlang </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Platform Engineering</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Media Systems</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/drm-basics-for-streaming" class="article-nav-article-link">  DRM Fundamentals for Streaming Media </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/video-transcoding-pipeline" class="article-nav-article-link">  Video Transcoding Pipeline Design </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/web-video-playback-architecture" class="article-nav-article-link">  Web Video Playback Architecture: HLS, DASH, and Low Latency </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/image-processing-service-design" class="article-nav-article-link">  Image Processing Service Design: CDN, Transforms, and APIs </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Observability &amp; Reliability</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/slos-slis-error-budgets" class="article-nav-article-link">  SLOs, SLIs, and Error Budgets </a><a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/csp-violation-reporting-pipeline" class="article-nav-article-link">  CSP Violation Reporting Pipeline at Scale </a><a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/logging-metrics-tracing" class="article-nav-article-link">  Logging, Metrics, and Tracing Fundamentals </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Infrastructure &amp; Delivery</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/edge-delivery-and-cache-invalidation" class="article-nav-article-link">  Edge Delivery and Cache Invalidation </a><a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/deployment-strategies-blue-green-canary" class="article-nav-article-link">  Deployment Strategies: Blue-Green, Canary, and Rolling </a><a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/ssg-performance-optimizations" class="article-nav-article-link">  SSG Performance Optimizations: Build, Cache, and Delivery </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Experimentation &amp; Testing</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/experimentation-testing/k6-load-testing-overview" class="article-nav-article-link">  k6 Load Testing Overview: Smoke, Spike, Soak, Stress </a><a href="/legacy-personal-site/v4/articles/platform-engineering/experimentation-testing/statsig-experimentation-overview" class="article-nav-article-link">  Statsig Experimentation Platform: Architecture and Rollouts </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Platform Migrations</span> <span class="article-nav-topic-count">(1)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/platform-migrations/ecommerce-ssg-to-ssr-migration" class="article-nav-article-link">  E-commerce SSG to SSR Migration: Strategy and Pitfalls </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Frontend Engineering</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Frontend Architecture &amp; Patterns</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/micro-frontends-architecture" class="article-nav-article-link">  Micro-Frontends Architecture: Composition, Isolation, and Delivery </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/rendering-strategies-csr-ssr-ssg-isr" class="article-nav-article-link">  Rendering Strategies: CSR, SSR, SSG, and ISR </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/data-fetching-patterns" class="article-nav-article-link">  Frontend Data Fetching Patterns and Caching </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/css-architecture-strategies" class="article-nav-article-link">  CSS Architecture Strategies: BEM, Utility-First, and CSS-in-JS </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/component-architecture-blueprint" class="article-nav-article-link">  Component Architecture Blueprint for Scalable UI </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Web Performance Optimization</span> <span class="article-nav-topic-count">(6)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-infrastructure-stack" class="article-nav-article-link">  Web Performance Infrastructure: DNS, CDN, Caching, and Edge </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-javascript-optimization" class="article-nav-article-link">  JavaScript Performance Optimization for the Web </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-css-typography" class="article-nav-article-link">  CSS and Typography Performance Optimization </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-image-optimization" class="article-nav-article-link">  Image Performance Optimization for the Web </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/core-web-vitals-measurement" class="article-nav-article-link">  Core Web Vitals Measurement: Lab vs Field Data </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-overview" class="article-nav-article-link">  Web Performance Optimization: Overview and Playbook </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Design Systems</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-system-implementation-scaling" class="article-nav-article-link">  Design System Implementation and Scaling </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/component-library-architecture-and-governance" class="article-nav-article-link">  Component Library Architecture and Governance </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-tokens-and-theming" class="article-nav-article-link">  Design Tokens and Theming Architecture </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-system-adoption-foundations" class="article-nav-article-link">  Design System Adoption: Foundations and Governance </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">React Architecture</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-performance-patterns" class="article-nav-article-link">  React Performance Patterns: Rendering, Memoization, and Scheduling </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-hooks-advanced-patterns" class="article-nav-article-link">  React Hooks Advanced Patterns: Specialized Hooks and Composition </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-rendering-architecture" class="article-nav-article-link">  React Rendering Architecture: Fiber, SSR, and RSC </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-hooks-fundamentals" class="article-nav-article-link">  React Hooks Fundamentals: Rules, Core Hooks, and Custom Hooks </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Web Foundations</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Security &amp; Auth</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/csrf-and-cors-defense" class="article-nav-article-link">  CSRF and CORS Defense for Modern Web Applications </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/oauth-oidc-flow-guide" class="article-nav-article-link">  OAuth 2.0 and OIDC Flows: Authorization Code to PKCE </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/web-app-security-architecture" class="article-nav-article-link">  Web Application Security Architecture </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/auth-foundations-sessions-tokens" class="article-nav-article-link">  Authentication Foundations: Sessions, Tokens, and Trust </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/owasp-top-10-guide" class="article-nav-article-link">  OWASP Top 10: Web Application Security Risks </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Networking &amp; Protocols</span> <span class="article-nav-topic-count">(7)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/http3-quic-and-tls" class="article-nav-article-link">  HTTP/3 and QUIC: Transport Layer Revolution </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/http1-1-to-http2-evolution" class="article-nav-article-link">  HTTP/1.1 to HTTP/2: Bottlenecks and Multiplexing </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/tls-1-3-handshake-and-https" class="article-nav-article-link">  TLS 1.3 Handshake and HTTPS Hardening </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-security-doh-dot-dnssec" class="article-nav-article-link">  DNS Security and Privacy: DNSSEC, DoH, and DoT </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-troubleshooting-playbook" class="article-nav-article-link">  DNS Troubleshooting Playbook </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-records-ttl-and-caching" class="article-nav-article-link">  DNS Records, TTL Strategy, and Cache Behavior </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-resolution-path" class="article-nav-article-link">  DNS Resolution Path: Stub to Recursive to Authoritative </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Browser APIs</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/web-workers-and-worklets" class="article-nav-article-link">  Web Workers and Worklets for Off-Main-Thread Work </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/service-workers-and-cache-api" class="article-nav-article-link">  Service Workers and Cache API </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/fetch-and-streaming-apis" class="article-nav-article-link">  Fetch, Streams, and AbortController </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/storage-apis-local-indexeddb" class="article-nav-article-link">  Browser Storage APIs: localStorage, IndexedDB, and Beyond </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/dom-api-essentials" class="article-nav-article-link">  DOM API Essentials: Structure, Traversal, and Mutation </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Accessibility Standards</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/accessibility-standards/accessibility-testing-tooling" class="article-nav-article-link">  Accessibility Testing and Tooling Workflow </a><a href="/legacy-personal-site/v4/articles/web-foundations/accessibility-standards/wcag-2-2-practical-guide" class="article-nav-article-link">  WCAG 2.2: Practical Accessibility Guide </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Programming &amp; Patterns</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Data Structures</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/heaps-and-priority-queues" class="article-nav-article-link">  Heaps and Priority Queues: Internals, Trade-offs, and When Theory Breaks Down </a><a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/trees-and-graphs" class="article-nav-article-link">  Trees and Graphs: Traversals and Applications </a><a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/arrays-and-hash-maps" class="article-nav-article-link">  Arrays and Hash Maps: Engine Internals and Performance Reality </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Algorithms Foundations</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/k-crystal-balls-problem" class="article-nav-article-link">  K-Crystal Balls Problem: Jump Search Pattern </a><a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/sorting-algorithms-guide" class="article-nav-article-link">  Sorting Algorithms: Complexity, Stability, and Use Cases </a><a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/search-algorithms-guide" class="article-nav-article-link">  Search Algorithms: Linear, Binary, and Graph Traversal </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">JavaScript Patterns</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/publish-subscribe-pattern" class="article-nav-article-link">  Publish-Subscribe Pattern in JavaScript </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/exponential-backoff-retry-strategy" class="article-nav-article-link">  Exponential Backoff and Retry Strategy </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/async-queue-pattern" class="article-nav-article-link">  Async Queue Pattern in JavaScript </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/javascript-error-handling-patterns" class="article-nav-article-link">  JavaScript Error Handling Patterns </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/javascript-string-length" class="article-nav-article-link">  JavaScript String Length: Graphemes, UTF-16, and Unicode </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Developer Experience</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Productivity &amp; Workflows</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/developer-experience/productivity-workflows/chrome-developer-setup" class="article-nav-article-link">  Chrome Developer Setup: Extensions, Profiles, and Shortcuts </a><a href="/legacy-personal-site/v4/articles/developer-experience/productivity-workflows/editor-terminal-setup" class="article-nav-article-link">  macOS Developer Environment Setup </a> </div> </details> </div> </div> </nav> <script type="module">function e(){document.querySelector("#left-sidebar .article-nav-article-link.is-active")?.scrollIntoView({block:"nearest",behavior:"instant"})}e();document.addEventListener("astro:page-load",e);</script>  </div> </aside> <main id="main" class="zen-main"> <div class="page-content"> <nav class="breadcrumb" aria-label="Breadcrumb"><a title="Home" aria-label="Home" href="/legacy-personal-site/v4/" class="nav-link">  <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:home">   <symbol id="ai:carbon:home" viewBox="0 0 32 32"><path fill="currentColor" d="M16.612 2.214a1.01 1.01 0 0 0-1.242 0L1 13.419l1.243 1.572L4 13.621V26a2.004 2.004 0 0 0 2 2h20a2.004 2.004 0 0 0 2-2V13.63L29.757 15L31 13.428ZM18 26h-4v-8h4Zm2 0v-8a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v8H6V12.062l10-7.79l10 7.8V26Z"/></symbol><use href="#ai:carbon:home"></use>  </svg> </a><svg width="1em" height="1em" viewBox="0 0 32 32" class="breadcrumb-separator icon-sm" data-icon="carbon:chevron-right">   <use href="#ai:carbon:chevron-right"></use>  </svg><a href="/legacy-personal-site/v4/articles/system-design" class="nav-link">  System Design </a><svg width="1em" height="1em" class="breadcrumb-separator icon-sm" data-icon="carbon:chevron-right">   <symbol id="ai:carbon:chevron-right" viewBox="0 0 32 32"><path fill="currentColor" d="M22 16L12 26l-1.4-1.4l8.6-8.6l-8.6-8.6L12 6z"/></symbol><use href="#ai:carbon:chevron-right"></use>  </svg><a title="System Design Fundamentals" href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals" class="nav-link">  System Design Fundamentals </a></nav>    <div id="reading-progress" class="reading-progress" style="width: 0%"></div> <script type="module">function l(){const e=document.getElementById("reading-progress");if(!e)return;const t=document.querySelector("article")||document.querySelector(".prose");if(!t){e.style.display="none";return}function r(){if(!t||!e)return;const i=t.getBoundingClientRect(),s=i.top+window.scrollY,u=i.height,c=window.innerHeight,g=window.scrollY,o=s-c/2,w=s+u-c/2,d=g;let a=0;d>o&&(a=Math.min(100,(d-o)/(w-o)*100)),e.style.width=`${Math.max(0,a)}%`}let n=!1;window.addEventListener("scroll",()=>{n||(requestAnimationFrame(()=>{r(),n=!1}),n=!0)}),r()}document.addEventListener("DOMContentLoaded",l);document.addEventListener("astro:page-load",l);</script>  <div class="frontmatter article-frontmatter">    <span class="frontmatter-item"> <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:time">   <symbol id="ai:carbon:time" viewBox="0 0 32 32"><path fill="currentColor" d="M16 30a14 14 0 1 1 14-14a14 14 0 0 1-14 14m0-26a12 12 0 1 0 12 12A12 12 0 0 0 16 4"/><path fill="currentColor" d="M20.59 22L15 16.41V7h2v8.58l5 5.01z"/></symbol><use href="#ai:carbon:time"></use>  </svg> 24 min read </span> <span class="frontmatter-item"> <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:calendar">   <symbol id="ai:carbon:calendar" viewBox="0 0 32 32"><path fill="currentColor" d="M26 4h-4V2h-2v2h-8V2h-2v2H6c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2m0 22H6V12h20zm0-16H6V6h4v2h2V6h8v2h2V6h4z"/></symbol><use href="#ai:carbon:calendar"></use>  </svg>
+Last updated on Feb 3, 2026 </span> </div>  <article id="article-content" class="article-prose-content DocSearch-content"> <h1 id="queues-and-pubsub-decoupling-and-backpressure" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#queues-and-pubsub-decoupling-and-backpressure">Queues and Pub/Sub: Decoupling and Backpressure</a></h1>
+<p>Message queues and publish-subscribe systems decouple producers from consumers, enabling asynchronous communication, elastic scaling, and fault isolation. The choice between queue-based and pub/sub patterns—and the specific broker implementation—determines delivery guarantees, ordering semantics, and operational complexity. This article covers design choices, trade-offs, and production patterns from systems handling trillions of messages daily.</p>
+<figure>
+<p><img alt="Queues deliver each message to one consumer (competing consumers); topics deliver each message to all subscribers (fan-out)." loading="lazy" decoding="async" fetchpriority="auto" width="1058" height="378" src="/legacy-personal-site/v4/_astro/queues-deliver-each-message-to-one-consumer-competing-consumers-topics-deliver-e.D6abPFC3_ZHR6IR.svg" ></p>
+<figcaption>Queues deliver each message to one consumer (competing consumers); topics deliver each message to all subscribers (fan-out).</figcaption>
+</figure>
+<h2 id="abstract" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#abstract">Abstract</a></h2>
+<p>The mental model: <strong>queues distribute work, topics broadcast events</strong>.</p>
+<p>A queue is a buffer between producers and consumers where each message is processed by exactly one consumer—work distribution. Multiple consumers compete for messages, enabling horizontal scaling of processing capacity. If a consumer fails, another picks up the message.</p>
+<p>A topic (pub/sub) delivers each message to all subscribers—event broadcasting. Multiple independent consumers each receive their own copy. Subscribers are decoupled from each other and from the producer.</p>
+<p><strong>The key design axes:</strong></p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Axis</th><th>Options</th><th>Determines</th></tr></thead><tbody><tr><td><strong>Pattern</strong></td><td>Queue (point-to-point), Topic (pub/sub), Hybrid</td><td>Work distribution vs. fan-out</td></tr><tr><td><strong>Delivery semantics</strong></td><td>At-most-once, at-least-once, exactly-once</td><td>Reliability vs. complexity</td></tr><tr><td><strong>Ordering</strong></td><td>None, partition-ordered (key), FIFO, total</td><td>Consistency vs. throughput</td></tr><tr><td><strong>Consumption model</strong></td><td>Pull, push</td><td>Backpressure handling</td></tr></tbody></table></div>
+<p><strong>Production examples:</strong></p>
+<ul>
+<li><strong>LinkedIn</strong> (7 trillion msg/day): Kafka as company-wide event backbone—100+ clusters, 4,000+ brokers</li>
+<li><strong>Slack</strong> (1.4B jobs/day): Dual-queue architecture—Redis for speed, Kafka for durability</li>
+<li><strong>Netflix</strong> (500B events/day, 8M/sec peak): Kafka + Flink for real-time stream processing</li>
+<li><strong>Uber</strong> (250K msg/sec push): Custom push platform with Kafka backbone</li>
+</ul>
+<p>The choice depends on whether you need work distribution or event broadcasting, your consistency requirements, and operational capacity.</p>
+<h2 id="messaging-patterns" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#messaging-patterns">Messaging Patterns</a></h2>
+<h3 id="point-to-point-queues" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#point-to-point-queues">Point-to-Point Queues</a></h3>
+<p>Each message is delivered to exactly one consumer. Multiple consumers compete for messages from the same queue.</p>
+<p><strong>Mechanism</strong>: Producer enqueues messages; broker holds them until a consumer dequeues. Once delivered and acknowledged, the message is removed. If the consumer fails before acknowledging, the message becomes visible again for redelivery.</p>
+<p><strong>Why it exists</strong>: Distributes work across a pool of workers. The queue acts as a buffer—producers and consumers operate at different rates without blocking each other.</p>
+<p><strong>When to use</strong>:</p>
+<ul>
+<li>Task/job processing (email sending, image processing, report generation)</li>
+<li>Load leveling between services with different throughput capacities</li>
+<li>Work distribution across worker pools</li>
+</ul>
+<p><strong>Trade-offs</strong>:</p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Natural load balancing across consumers</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Built-in retry semantics (message redelivered on failure)</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Simple mental model—one message, one processor</li>
+<li><span role="img" aria-label="cross mark">❌</span> No fan-out—if multiple services need the same event, you need multiple queues</li>
+<li><span role="img" aria-label="cross mark">❌</span> Message ordering may be lost with competing consumers</li>
+</ul>
+<p><strong>Real-world</strong>: Slack’s job queue processes 1.4 billion jobs daily at 33K/sec peak. Every message post, push notification, URL unfurl, and billing calculation flows through their queue. They use a dual-queue architecture: Redis for in-flight messages (fast) and Kafka for durable storage (ledger). This gives them both performance and durability—Redis handles the hot path while Kafka ensures nothing is lost.</p>
+<h3 id="publish-subscribe-topics" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#publish-subscribe-topics">Publish-Subscribe (Topics)</a></h3>
+<p>Each message is delivered to all subscribers. Subscribers receive independent copies.</p>
+<p><strong>Mechanism</strong>: Producer publishes to a topic; broker delivers copies to all active subscriptions. Each subscription maintains its own cursor/offset—subscribers process at their own pace.</p>
+<p><strong>Why it exists</strong>: Decouples producers from consumers completely. The producer doesn’t know (or care) how many subscribers exist. New subscribers can be added without modifying the producer.</p>
+<p><strong>When to use</strong>:</p>
+<ul>
+<li>Event broadcasting (user signed up, order placed, price changed)</li>
+<li>Multiple independent consumers need the same events</li>
+<li>Event sourcing and audit logs</li>
+<li>Real-time analytics pipelines</li>
+</ul>
+<p><strong>Trade-offs</strong>:</p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> True decoupling—add subscribers without changing producers</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Each subscriber processes independently (different speeds, different transformations)</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Natural fit for event-driven architectures</li>
+<li><span role="img" aria-label="cross mark">❌</span> Storage scales with subscribers × messages (each subscription tracks position)</li>
+<li><span role="img" aria-label="cross mark">❌</span> Ordering guarantees harder across multiple subscribers</li>
+</ul>
+<p><strong>Real-world</strong>: Netflix processes 500 billion events daily through their Kafka-based event pipeline. Member actions flow from API Gateway → Kafka topics → Flink processing → multiple downstream consumers (recommendations, analytics, A/B testing). Multiple consumer groups independently subscribe to the same topics, each processing events for their specific use case.</p>
+<h3 id="hybrid-consumer-groups" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#hybrid-consumer-groups">Hybrid: Consumer Groups</a></h3>
+<p>Kafka’s model combines pub/sub with competing consumers through consumer groups.</p>
+<p><strong>Mechanism</strong>: A topic is divided into partitions. Within a consumer group, each partition is assigned to exactly one consumer—competing consumers pattern. Multiple consumer groups can subscribe to the same topic independently—pub/sub pattern.</p>
+<p><strong>Why it exists</strong>: Provides both work distribution (within a group) and event broadcasting (across groups). A single topic can serve as both a work queue and an event stream.</p>
+<p><strong>Example</strong>: Order events published to <code>orders</code> topic:</p>
+<ul>
+<li>Consumer group <code>fulfillment</code> processes each order once (work distribution)</li>
+<li>Consumer group <code>analytics</code> also processes each order once (independent work distribution)</li>
+<li>Consumer group <code>fraud-detection</code> also processes each order once (another independent consumer)</li>
+</ul>
+<p>Each group sees every message; within each group, messages are distributed across consumers.</p>
+<p><strong>Real-world</strong>: LinkedIn runs 100+ Kafka clusters with 100,000+ topics. The consumer group model allows multiple teams to independently consume the same event streams without coordination. Their activity tracking pipeline has dozens of consumer groups processing the same user activity events for different purposes.</p>
+<h2 id="delivery-semantics" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#delivery-semantics">Delivery Semantics</a></h2>
+<p>Delivery semantics define the guarantees about how many times a message is delivered and processed.</p>
+<h3 id="at-most-once" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#at-most-once">At-Most-Once</a></h3>
+<p>Messages may be lost but are never duplicated.</p>
+<p><strong>Mechanism</strong>: Producer sends message without waiting for acknowledgment (fire-and-forget). Or: consumer commits offset before processing—if processing fails, the message is skipped.</p>
+<p><strong>Why it exists</strong>: Maximum throughput and minimum latency. Suitable when occasional message loss is acceptable.</p>
+<p><strong>When to use</strong>:</p>
+<ul>
+<li>Metrics and telemetry (missing one data point is acceptable)</li>
+<li>Heartbeats and health checks</li>
+<li>Non-critical notifications</li>
+</ul>
+<p><strong>Trade-offs</strong>:</p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Highest throughput—no acknowledgment overhead</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Lowest latency—no round-trip for confirmation</li>
+<li><span role="img" aria-label="cross mark">❌</span> Data loss on failures—producer crash, network issues, consumer crash</li>
+</ul>
+<p><strong>Implementation</strong>: Kafka with <code>acks=0</code> (producer doesn’t wait for broker acknowledgment). Consumer with auto-commit enabled and commit-before-process pattern.</p>
+<h3 id="at-least-once" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#at-least-once">At-Least-Once</a></h3>
+<p>Messages are never lost but may be duplicated.</p>
+<p><strong>Mechanism</strong>: Producer retries until acknowledged. Consumer processes then commits—if consumer crashes after processing but before committing, the message is redelivered.</p>
+<p><strong>Why it exists</strong>: The default for most systems because message loss is usually worse than duplication. Duplicates can be handled with idempotent processing.</p>
+<p><strong>When to use</strong>:</p>
+<ul>
+<li>Most production workloads</li>
+<li>Any case where data loss is unacceptable</li>
+<li>Systems with idempotent consumers</li>
+</ul>
+<p><strong>Trade-offs</strong>:</p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> No message loss—retries ensure delivery</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Simpler than exactly-once</li>
+<li><span role="img" aria-label="cross mark">❌</span> Duplicates require downstream handling</li>
+<li><span role="img" aria-label="cross mark">❌</span> Higher latency than at-most-once (acknowledgment round-trip)</li>
+</ul>
+<p><strong>Implementation</strong>: Kafka with <code>acks=all</code> + <code>retries</code> enabled. Consumer with manual offset commit after successful processing.</p>
+<h3 id="exactly-once" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#exactly-once">Exactly-Once</a></h3>
+<p>Messages are delivered and processed exactly once.</p>
+<p><strong>Why it’s hard</strong>: The fundamental challenge is distinguishing between three scenarios:</p>
+<ol>
+<li>Message written, acknowledgment delivered → success</li>
+<li>Message written, acknowledgment lost → producer retries, creates duplicate</li>
+<li>Message lost → producer retries correctly</li>
+</ol>
+<p>In asynchronous distributed systems, these scenarios are indistinguishable from the producer’s perspective. The Two Generals Problem proves this fundamental limitation.</p>
+<p><strong>How systems approach it</strong>:</p>
+<p><strong>Kafka transactions (v0.11+)</strong>: Atomic writes across multiple partitions. Producer uses transactional API; consumers read with <code>isolation.level=read_committed</code>. This achieves exactly-once within Kafka’s boundaries—but the consumer’s processing of the message and any external side effects still require idempotency.</p>
+<p><strong>AWS SQS FIFO</strong>: MessageDeduplicationId with 5-minute deduplication window. Broker deduplicates retries within the window. Still requires idempotent processing for side effects.</p>
+<p><strong>The reality</strong>: Infrastructure provides at-most-once or at-least-once; exactly-once semantics require <strong>application-level idempotency</strong>. The broker can deduplicate message storage; only the application can deduplicate processing effects.</p>
+<p><strong>Trade-offs</strong>:</p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Simplifies application logic (in theory)</li>
+<li><span role="img" aria-label="cross mark">❌</span> High complexity and performance overhead</li>
+<li><span role="img" aria-label="cross mark">❌</span> Still requires application idempotency for external side effects</li>
+<li><span role="img" aria-label="cross mark">❌</span> Increases latency (coordination overhead)</li>
+</ul>
+<p><strong>Real-world</strong>: Uber’s Flink pipelines achieve exactly-once through Kafka transactions + Flink checkpointing. But their downstream systems (databases, external APIs) still implement idempotency—the exactly-once guarantee applies only to the stream processing boundary.</p>
+<h2 id="message-ordering" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#message-ordering">Message Ordering</a></h2>
+<p>Ordering guarantees determine whether consumers see messages in the same order they were produced.</p>
+<h3 id="no-ordering-unordered" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#no-ordering-unordered">No Ordering (Unordered)</a></h3>
+<p>Messages may arrive in any order.</p>
+<p><strong>Mechanism</strong>: Broker delivers messages as quickly as possible without ordering constraints. Parallel delivery maximizes throughput.</p>
+<p><strong>When to use</strong>:</p>
+<ul>
+<li>Independent events with no causal relationship</li>
+<li>Idempotent operations where order doesn’t matter</li>
+<li>High-throughput scenarios where ordering would bottleneck</li>
+</ul>
+<p><strong>Trade-offs</strong>:</p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Maximum throughput—parallel delivery</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Maximum availability—no coordination required</li>
+<li><span role="img" aria-label="cross mark">❌</span> Cannot rely on temporal relationships between messages</li>
+</ul>
+<p><strong>Real-world</strong>: Google Cloud Pub/Sub is unordered by design. This enables their dynamic scaling and low-latency delivery. Applications that need ordering must implement it at the application level.</p>
+<h3 id="partition-ordered-key-based" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#partition-ordered-key-based">Partition-Ordered (Key-Based)</a></h3>
+<p>Messages with the same key are ordered; messages with different keys may interleave.</p>
+<p><strong>Mechanism</strong>: Hash the message key to determine partition. All messages with the same key go to the same partition. Each partition maintains FIFO order. Different partitions process in parallel.</p>
+<p><strong>Why it exists</strong>: Provides ordering where it matters (same entity) while allowing parallelism where it’s safe (different entities).</p>
+<p><strong>Example</strong>: Order events keyed by <code>order_id</code>. All events for order #123 arrive in order (created → paid → shipped). Events for different orders may interleave.</p>
+<p><strong>When to use</strong>:</p>
+<ul>
+<li>Entity-scoped operations (all events for one user, one order, one device)</li>
+<li>Event sourcing where events must be applied in sequence per aggregate</li>
+<li>Most production use cases—80% of ordering benefit at 20% of the cost</li>
+</ul>
+<p><strong>Trade-offs</strong>:</p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Ordering where needed (per key)</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Parallelism where safe (across keys)</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Scales linearly with partition count</li>
+<li><span role="img" aria-label="cross mark">❌</span> Hot keys create hot partitions (ordering constraint prevents load balancing)</li>
+<li><span role="img" aria-label="cross mark">❌</span> Reordering possible if key assignment changes</li>
+</ul>
+<p><strong>Implementation</strong>: Kafka’s default model. Producer specifies key; <code>partitioner</code> hashes key to partition. Consumer processes one partition single-threaded to maintain order.</p>
+<p><strong>Real-world</strong>: Discord keys messages by channel ID. All messages within a channel arrive in order (critical for chat UX). Different channels process in parallel across partitions. With millions of channels, this provides massive parallelism while maintaining per-channel ordering.</p>
+<h3 id="fifo-total-ordering-per-queue" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#fifo-total-ordering-per-queue">FIFO (Total Ordering per Queue)</a></h3>
+<p>All messages in a queue/partition arrive in exactly the order they were sent.</p>
+<p><strong>Mechanism</strong>: Single writer or sequence numbers ensure ordering. Single consumer per queue/partition ensures processing order.</p>
+<p><strong>When to use</strong>:</p>
+<ul>
+<li>Financial transactions (deposit before withdrawal)</li>
+<li>Strict event sequencing requirements</li>
+<li>State machine transitions</li>
+</ul>
+<p><strong>Trade-offs</strong>:</p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Strict ordering guarantees</li>
+<li><span role="img" aria-label="cross mark">❌</span> Throughput limited by single consumer</li>
+<li><span role="img" aria-label="cross mark">❌</span> Typically 5-10K msg/s (vs. 100K+ for parallel)</li>
+</ul>
+<p><strong>Implementation</strong>: AWS SQS FIFO queues guarantee ordering within a message group. Throughput: 300 msg/s per message group (3,000 with batching), 70,000 msg/s per queue with high throughput mode.</p>
+<h3 id="total-ordering-global" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#total-ordering-global">Total Ordering (Global)</a></h3>
+<p>All consumers see all messages in identical order.</p>
+<p><strong>Mechanism</strong>: Requires consensus protocol (Raft, Paxos) or single sequencer. Every message goes through a coordination point.</p>
+<p><strong>Why it exists</strong>: Required for distributed consensus, leader election, and strong consistency across replicas.</p>
+<p><strong>When to use</strong>:</p>
+<ul>
+<li>Distributed coordination (ZooKeeper, etcd)</li>
+<li>Database replication (same transaction order on all replicas)</li>
+<li>Rare in messaging—usually overkill</li>
+</ul>
+<p><strong>Trade-offs</strong>:</p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Global consistency—all nodes see same order</li>
+<li><span role="img" aria-label="cross mark">❌</span> High latency—consensus overhead on every message</li>
+<li><span role="img" aria-label="cross mark">❌</span> Scalability bottleneck—single coordination point</li>
+</ul>
+<p><strong>Real-world</strong>: Apache ZooKeeper provides total ordering for coordination events. Not used for high-throughput messaging—reserved for low-volume, high-importance events like leader election and configuration changes.</p>
+<h2 id="backpressure-and-flow-control" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#backpressure-and-flow-control">Backpressure and Flow Control</a></h2>
+<p>Backpressure handles the situation where producers outpace consumers.</p>
+<h3 id="pull-model-consumer-controlled" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#pull-model-consumer-controlled">Pull Model (Consumer-Controlled)</a></h3>
+<p>Consumer requests messages when ready to process.</p>
+<p><strong>Mechanism</strong>: Consumer polls broker for messages. Consumer controls batch size and poll frequency. Broker buffers messages until requested.</p>
+<p><strong>Why it exists</strong>: True backpressure—consumers never receive more than they can handle. Consumer naturally throttles intake based on processing capacity.</p>
+<p><strong>Trade-offs</strong>:</p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Natural backpressure—consumer controls intake</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Consumer can batch for efficiency</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Broker simpler—no per-consumer delivery state</li>
+<li><span role="img" aria-label="cross mark">❌</span> Polling overhead (empty polls waste resources)</li>
+<li><span role="img" aria-label="cross mark">❌</span> Higher latency for individual messages (batch + poll interval)</li>
+</ul>
+<p><strong>Implementation</strong>: Kafka’s <code>poll()</code> API. Consumer requests up to <code>max.poll.records</code> messages. Long polling (<code>fetch.max.wait.ms</code>) reduces empty polls.</p>
+<p><strong>Real-world</strong>: AWS SQS uses long polling (up to 20 seconds). Consumer waits for messages or timeout—eliminates empty poll overhead while maintaining pull semantics. This is why SQS scales to massive throughput without per-consumer coordination.</p>
+<h3 id="push-model-broker-controlled" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#push-model-broker-controlled">Push Model (Broker-Controlled)</a></h3>
+<p>Broker sends messages to consumers as they arrive.</p>
+<p><strong>Mechanism</strong>: Broker maintains consumer connections. Messages pushed immediately on arrival. Prefetch/buffer limits control flow.</p>
+<p><strong>Why it exists</strong>: Lowest latency for individual messages—no poll interval. Better for real-time use cases.</p>
+<p><strong>Trade-offs</strong>:</p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Lower latency—immediate delivery</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> No polling overhead</li>
+<li><span role="img" aria-label="cross mark">❌</span> Backpressure harder—broker must track consumer capacity</li>
+<li><span role="img" aria-label="cross mark">❌</span> Slow consumer can overflow and lose messages</li>
+<li><span role="img" aria-label="cross mark">❌</span> Broker complexity—per-consumer delivery state</li>
+</ul>
+<p><strong>Implementation</strong>: RabbitMQ’s default mode. <code>prefetch_count</code> limits unacknowledged messages per consumer. When consumer is slow, prefetch fills up, and broker stops sending.</p>
+<p><strong>Real-world</strong>: Google Cloud Pub/Sub supports push delivery to HTTP endpoints. Includes automatic retry with exponential backoff. Useful for serverless functions (Cloud Functions, Cloud Run) where the consumer is an HTTP endpoint.</p>
+<h3 id="handling-overload" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#handling-overload">Handling Overload</a></h3>
+<p>When consumers can’t keep up:</p>
+<p><strong>Buffering</strong>: Broker stores messages in memory/disk. Limited by available storage. Eventually, oldest messages dropped or producers blocked.</p>
+<p><strong>Producer blocking</strong>: When buffers full, producer’s send blocks. Propagates backpressure upstream. Can cause cascading failures if producer has its own timeouts.</p>
+<p><strong>Message dropping</strong>: Shed load by dropping messages (usually oldest). Use for non-critical data (metrics, telemetry).</p>
+<p><strong>Rate limiting</strong>: Limit producer throughput at ingestion. Rejects excess rather than buffering.</p>
+<p><strong>Consumer scaling</strong>: Add more consumers (within partition limits). Only works with parallelizable workloads.</p>
+<p><strong>Real-world</strong>: Slack’s job queue uses Redis as a “shock absorber”—fast in-memory buffer for traffic spikes. When Redis fills up, they rely on Kafka’s disk-based storage as overflow. This two-tier approach handles burst traffic without dropping messages or blocking producers.</p>
+<h2 id="retry-and-dead-letter-queues" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#retry-and-dead-letter-queues">Retry and Dead Letter Queues</a></h2>
+<h3 id="retry-strategies" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#retry-strategies">Retry Strategies</a></h3>
+<p><strong>Immediate retry</strong>: Retry on first failure. Catches transient network issues. Risk: hammering a failing service.</p>
+<p><strong>Exponential backoff</strong>: Increase delay between retries. Formula: <code>delay = min(base × 2^attempt, max_delay)</code>. Allows failing services to recover.</p>
+<p><strong>Exponential backoff with jitter</strong>: Add randomness to delay. Prevents thundering herd when many consumers retry simultaneously. Formula: <code>delay = random(0, min(base × 2^attempt, max_delay))</code>.</p>
+<p><strong>Example configuration</strong>:</p>
+<div class="expressive-code"><link rel="stylesheet" href="/legacy-personal-site/v4/_astro/ec.g38ze.css"><script type="module" src="/legacy-personal-site/v4/_astro/ec.0vx5m.js"></script><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">initial_delay: 100ms</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">backoff_multiplier: 2</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">max_delay: 30s</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">max_attempts: 10</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">jitter: full (random between 0 and calculated delay)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="initial_delay: 100msbackoff_multiplier: 2max_delay: 30smax_attempts: 10jitter: full (random between 0 and calculated delay)"><div></div></button></div></figure></div>
+<p>This gives delays: ~50ms, ~100ms, ~200ms, ~400ms… up to ~15s average, max 10 attempts over ~1-2 minutes.</p>
+<h3 id="dead-letter-queues-dlq" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#dead-letter-queues-dlq">Dead Letter Queues (DLQ)</a></h3>
+<p>A secondary queue for messages that fail processing after maximum retries.</p>
+<p><strong>Mechanism</strong>: After N failures, message moves to DLQ instead of returning to main queue. DLQ holds failed messages for inspection, manual intervention, or automated reprocessing.</p>
+<p><strong>Why it exists</strong>: Prevents “poison pill” messages from blocking the queue forever. Isolates problematic messages without losing them.</p>
+<p><strong>Design considerations</strong>:</p>
+<p><strong>When to DLQ</strong>:</p>
+<ul>
+<li>Deserialization failures (malformed message)</li>
+<li>Validation errors (missing required fields)</li>
+<li>Business logic failures (invalid state transition)</li>
+<li>Exceeded retry limit</li>
+</ul>
+<p><strong>When NOT to DLQ</strong>:</p>
+<ul>
+<li>Transient failures (network timeout, service unavailable)—retry instead</li>
+<li>Temporary state issues (eventual consistency lag)—retry with delay</li>
+</ul>
+<p><strong>DLQ processing patterns</strong>:</p>
+<ul>
+<li>Manual inspection and replay after fixing consumer bug</li>
+<li>Automated reprocessing after dependent service recovers</li>
+<li>Alert on DLQ growth—indicates systematic problem</li>
+<li>Periodic purge of old messages (with audit log)</li>
+</ul>
+<p><strong>Real-world</strong>: AWS SQS integrates DLQ at the queue level. Configure <code>maxReceiveCount</code> on the source queue; messages exceeding this automatically route to the specified DLQ. CloudWatch alarms on <code>ApproximateNumberOfMessagesVisible</code> for the DLQ alert on failures.</p>
+<h3 id="poison-pill-handling" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#poison-pill-handling">Poison Pill Handling</a></h3>
+<p>A poison pill is a message that can never be processed successfully—causes consumer crash, infinite loop, or persistent error.</p>
+<p><strong>Detection</strong>:</p>
+<ul>
+<li>Same message appearing repeatedly (delivery count)</li>
+<li>Consumer crashes correlate with specific message</li>
+<li>Processing time exceeds timeout repeatedly</li>
+</ul>
+<p><strong>Handling</strong>:</p>
+<ul>
+<li>Track delivery attempts per message (message metadata or external store)</li>
+<li>After N attempts, route to DLQ without further processing</li>
+<li>Log full message content and error for debugging</li>
+<li>Alert on poison pill rate</li>
+</ul>
+<p><strong>Differentiation</strong>:</p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Error Type</th><th>Symptom</th><th>Action</th></tr></thead><tbody><tr><td>Transient</td><td>Network timeout, 503</td><td>Retry with backoff</td></tr><tr><td>Poison pill</td><td>Same error every attempt, deserialization failure</td><td>DLQ immediately</td></tr><tr><td>Bug</td><td>All messages of a type fail</td><td>Stop consumer, fix bug, replay</td></tr></tbody></table></div>
+<h2 id="idempotency-patterns" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#idempotency-patterns">Idempotency Patterns</a></h2>
+<p>Idempotency ensures processing a message multiple times has the same effect as processing it once. Required for at-least-once delivery to achieve exactly-once semantics.</p>
+<h3 id="why-idempotency-matters" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#why-idempotency-matters">Why Idempotency Matters</a></h3>
+<p>At-least-once delivery means duplicates are possible:</p>
+<ul>
+<li>Producer retry (acknowledgment lost)</li>
+<li>Consumer failure before commit (redelivery)</li>
+<li>Broker failover (may redeliver)</li>
+</ul>
+<p>Without idempotency, duplicates cause:</p>
+<ul>
+<li>Duplicate charges to customers</li>
+<li>Double inventory deductions</li>
+<li>Incorrect aggregate counts</li>
+<li>Duplicate notifications</li>
+</ul>
+<h3 id="idempotency-key-strategies" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#idempotency-key-strategies">Idempotency Key Strategies</a></h3>
+<p><strong>Message ID (UUID)</strong>:</p>
+<ul>
+<li>Each message has unique ID</li>
+<li>Consumer stores processed IDs</li>
+<li>Skip if ID already seen</li>
+</ul>
+<p><strong>Challenge</strong>: Must store all processed IDs forever, or risk accepting old duplicates after purge.</p>
+<p><strong>Monotonic sequence numbers</strong>:</p>
+<ul>
+<li>Producer assigns incrementing sequence per entity</li>
+<li>Consumer stores highest processed sequence per entity</li>
+<li>Reject any sequence ≤ stored value</li>
+</ul>
+<p><strong>Advantage</strong>: Store only one number per entity, not all message IDs.</p>
+<p><strong>Example</strong>: User #123’s events have sequences 1, 2, 3… Consumer stores <code>user_123_seq = 5</code>. Message with seq=3 rejected as duplicate. Message with seq=6 processed and seq updated to 6.</p>
+<p><strong>Time-windowed deduplication</strong>:</p>
+<ul>
+<li>Store message IDs for limited window (e.g., 5 minutes)</li>
+<li>Assume duplicates only arrive within window</li>
+<li>Purge old IDs automatically</li>
+</ul>
+<p><strong>Trade-off</strong>: Risk of accepting duplicates outside window. SQS FIFO uses 5-minute window; Kafka’s idempotent producer has effectively infinite window via producer epoch.</p>
+<h3 id="consumer-implementation" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#consumer-implementation">Consumer Implementation</a></h3>
+<p><strong>Pattern</strong>: Atomic check-and-process</p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">BEGIN TRANSACTION</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">  </span></span><span style="--0:#24292e;--1:#e1e4e8">-- Check for duplicate</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">  </span></span><span style="--0:#24292e;--1:#e1e4e8">IF EXISTS (SELECT 1 FROM processed_messages WHERE id = message_id)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">    </span></span><span style="--0:#24292e;--1:#e1e4e8">ROLLBACK</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">    </span></span><span style="--0:#24292e;--1:#e1e4e8">RETURN -- Already processed</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">7</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">  </span></span><span style="--0:#24292e;--1:#e1e4e8">-- Process message</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">8</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">  </span></span><span style="--0:#24292e;--1:#e1e4e8">... business logic ...</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">9</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">10</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">  </span></span><span style="--0:#24292e;--1:#e1e4e8">-- Record processed</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">11</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">  </span></span><span style="--0:#24292e;--1:#e1e4e8">INSERT INTO processed_messages (id, processed_at) VALUES (message_id, NOW())</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">12</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">COMMIT</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="BEGIN TRANSACTION  -- Check for duplicate  IF EXISTS (SELECT 1 FROM processed_messages WHERE id = message_id)    ROLLBACK    RETURN -- Already processed  -- Process message  ... business logic ...  -- Record processed  INSERT INTO processed_messages (id, processed_at) VALUES (message_id, NOW())COMMIT"><div></div></button></div></figure></div>
+<p><strong>Key</strong>: The duplicate check and business logic must be in the same transaction. Otherwise, a crash between processing and recording creates inconsistency.</p>
+<h3 id="broker-level-idempotency" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#broker-level-idempotency">Broker-Level Idempotency</a></h3>
+<p><strong>Kafka idempotent producer</strong> (v0.11+):</p>
+<ul>
+<li>Producer assigned unique PID (producer ID)</li>
+<li>Each message has sequence number per partition</li>
+<li>Broker rejects duplicates within same producer session</li>
+</ul>
+<p><strong>Limitation</strong>: Only prevents duplicates from producer retries within a session. New producer instance gets new PID—application still needs idempotency for end-to-end guarantees.</p>
+<p><strong>Kafka transactions</strong>:</p>
+<ul>
+<li>Atomic writes to multiple partitions</li>
+<li><code>read_committed</code> isolation for consumers</li>
+<li>Enables exactly-once stream processing (Kafka Streams, Flink)</li>
+</ul>
+<p><strong>SQS FIFO deduplication</strong>:</p>
+<ul>
+<li><code>MessageDeduplicationId</code> per message</li>
+<li>Broker deduplicates within 5-minute window</li>
+<li>Can be explicit (producer sets ID) or content-based (hash of message body)</li>
+</ul>
+<h2 id="scaling-consumers" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#scaling-consumers">Scaling Consumers</a></h2>
+<h3 id="partitions-and-parallelism" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#partitions-and-parallelism">Partitions and Parallelism</a></h3>
+<p><strong>Kafka model</strong>: Maximum parallelism = number of partitions.</p>
+<p>Within a consumer group:</p>
+<ul>
+<li>Each partition assigned to exactly one consumer</li>
+<li>More consumers than partitions → some consumers idle</li>
+<li>Fewer consumers than partitions → some consumers handle multiple partitions</li>
+</ul>
+<p><strong>Choosing partition count</strong>:</p>
+<ul>
+<li>Target throughput / per-consumer throughput = minimum partitions</li>
+<li>Round up for headroom and future growth</li>
+<li>Consider: partitions are hard to reduce, easy to add</li>
+</ul>
+<p><strong>Example</strong>: Need 100K msg/s. Each consumer handles 10K msg/s. Minimum partitions = 10. Add headroom → 20 partitions. Allows scaling to 20 consumers.</p>
+<h3 id="rebalancing" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#rebalancing">Rebalancing</a></h3>
+<p><strong>Trigger</strong>: Consumer joins, leaves, or crashes. Partition assignment changes.</p>
+<p><strong>Impact</strong>:</p>
+<ul>
+<li>Brief pause in processing (seconds to minutes)</li>
+<li>In-flight messages may be reprocessed (at-least-once)</li>
+<li>State (if any) must be rebuilt or migrated</li>
+</ul>
+<p><strong>Strategies</strong>:</p>
+<ul>
+<li><strong>Eager rebalancing</strong>: Stop all consumers, reassign, restart. Simple but higher impact.</li>
+<li><strong>Cooperative rebalancing</strong> (Kafka 2.4+): Only affected partitions pause. Lower impact, more complex.</li>
+</ul>
+<p><strong>Real-world</strong>: LinkedIn optimized rebalancing for their 4,000+ broker clusters. They use sticky assignor (minimize partition movement) and incremental cooperative rebalancing. Still, they design applications to handle rebalancing gracefully—checkpoint state, handle duplicates from reprocessing.</p>
+<h3 id="consumer-lag" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#consumer-lag">Consumer Lag</a></h3>
+<p>Lag = how far behind the consumer is from the latest produced message.</p>
+<p><strong>Metrics</strong>:</p>
+<ul>
+<li><strong>Offset lag</strong>: Latest offset − committed offset (message count)</li>
+<li><strong>Time lag</strong>: Time since the oldest unconsumed message was produced (seconds)</li>
+</ul>
+<p>Time lag is more useful for alerting—a lag of 10,000 messages means different things for different topics (high-throughput vs. low-throughput).</p>
+<p><strong>Monitoring</strong>:</p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Alert: consumer_lag_seconds > 60 for 5 minutes</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Action: Investigate consumer health, consider scaling</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="Alert: consumer_lag_seconds > 60 for 5 minutesAction: Investigate consumer health, consider scaling"><div></div></button></div></figure></div>
+<p><strong>Causes of lag</strong>:</p>
+<ul>
+<li>Consumer too slow (processing bottleneck)</li>
+<li>Too few consumers (under-provisioned)</li>
+<li>Partition imbalance (some partitions hot)</li>
+<li>Consumer bugs (stuck processing, memory leak)</li>
+<li>Rebalancing (temporary lag during reassignment)</li>
+</ul>
+<p><strong>Real-world</strong>: Discord monitors consumer lag as a primary health metric for their message delivery pipeline. Lag spikes correlate with delivery delays visible to users. They set aggressive alerting thresholds and have runbooks for rapid scale-up.</p>
+<h2 id="message-broker-comparison" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#message-broker-comparison">Message Broker Comparison</a></h2>
+<h3 id="design-choices" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#design-choices">Design Choices</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Factor</th><th>Kafka</th><th>RabbitMQ</th><th>SQS/SNS</th><th>Pub/Sub</th><th>Pulsar</th></tr></thead><tbody><tr><td><strong>Primary model</strong></td><td>Log-based pub/sub</td><td>Queue + exchange routing</td><td>Queue + topic</td><td>Topic</td><td>Log-based pub/sub</td></tr><tr><td><strong>Throughput</strong></td><td>2M+ msg/s per cluster</td><td>20-50K msg/s per node</td><td>100K+ msg/s</td><td>1M+ msg/s</td><td>1M+ msg/s</td></tr><tr><td><strong>Latency p99</strong></td><td>~5ms</td><td>&#x3C;1ms</td><td>100-200ms</td><td>10-100ms</td><td>&#x3C;10ms</td></tr><tr><td><strong>Ordering</strong></td><td>Partition-ordered</td><td>Queue FIFO</td><td>FIFO (queues only)</td><td>Unordered</td><td>Partition-ordered</td></tr><tr><td><strong>Retention</strong></td><td>Days to forever</td><td>Until consumed</td><td>14 days max</td><td>7 days default</td><td>Days to forever + tiered</td></tr><tr><td><strong>Multi-tenancy</strong></td><td>Manual</td><td>Manual</td><td>Native</td><td>Native</td><td>Native</td></tr><tr><td><strong>Operational complexity</strong></td><td>High</td><td>Medium</td><td>Zero (managed)</td><td>Zero (managed)</td><td>High</td></tr></tbody></table></div>
+<h3 id="kafka" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#kafka">Kafka</a></h3>
+<p><strong>Architecture</strong>: Distributed commit log. Partitioned topics stored on disk. Consumers track offset (position in log).</p>
+<p><strong>Strengths</strong>:</p>
+<ul>
+<li>Extreme throughput (LinkedIn: 7 trillion msg/day)</li>
+<li>Long retention (replay historical events)</li>
+<li>Exactly-once within Kafka boundary (transactions)</li>
+<li>Strong ecosystem (Kafka Streams, Connect, Schema Registry)</li>
+</ul>
+<p><strong>Weaknesses</strong>:</p>
+<ul>
+<li>Operational complexity (ZooKeeper/KRaft, partition management)</li>
+<li>Partition count limits scalability of individual topics</li>
+<li>No built-in delayed messages</li>
+<li>Cold start latency (consumer must catch up from offset)</li>
+</ul>
+<p><strong>Best for</strong>: Event streaming, event sourcing, high-throughput pipelines, data integration.</p>
+<p><strong>Real-world</strong>: Netflix scaled from 1 trillion events/day (2017) to 20+ trillion events/day using Kafka. They run weekly Kafka cluster failover drills to ensure operational readiness.</p>
+<h3 id="rabbitmq" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#rabbitmq">RabbitMQ</a></h3>
+<p><strong>Architecture</strong>: AMQP broker with exchanges and queues. Exchanges route messages to queues based on bindings and routing keys.</p>
+<p><strong>Strengths</strong>:</p>
+<ul>
+<li>Flexible routing (direct, fanout, topic, headers exchanges)</li>
+<li>Low latency (&#x3C;1ms p99)</li>
+<li>Built-in delayed messages via plugin</li>
+<li>Dead letter exchanges</li>
+<li>Mature, well-understood</li>
+</ul>
+<p><strong>Weaknesses</strong>:</p>
+<ul>
+<li>Lower throughput than Kafka</li>
+<li>Limited replay (messages consumed once)</li>
+<li>Clustering adds complexity</li>
+<li>Memory-bound (large queues require disk overflow)</li>
+</ul>
+<p><strong>Best for</strong>: Task queues, complex routing rules, RPC patterns, lower-scale messaging.</p>
+<h3 id="aws-sqssns" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#aws-sqssns">AWS SQS/SNS</a></h3>
+<p><strong>SQS (Simple Queue Service)</strong>: Fully managed message queue.</p>
+<ul>
+<li><strong>Standard queues</strong>: At-least-once, best-effort ordering, unlimited throughput</li>
+<li><strong>FIFO queues</strong>: Exactly-once processing, strict ordering, 70K msg/s with high throughput mode</li>
+</ul>
+<p><strong>SNS (Simple Notification Service)</strong>: Fully managed pub/sub.</p>
+<ul>
+<li>Fan-out to SQS queues, Lambda, HTTP endpoints, email, SMS</li>
+<li>Message filtering on subscription</li>
+</ul>
+<p><strong>SNS + SQS pattern</strong>: SNS topic fans out to multiple SQS queues. Each queue has independent consumers. Common for event broadcasting with reliable queue-based consumption.</p>
+<p><strong>Strengths</strong>:</p>
+<ul>
+<li>Zero operational overhead</li>
+<li>Scales automatically</li>
+<li>Integrated with AWS services</li>
+<li>Pay-per-message pricing</li>
+</ul>
+<p><strong>Weaknesses</strong>:</p>
+<ul>
+<li>Higher latency (100-200ms typical)</li>
+<li>Limited retention (14 days max for SQS)</li>
+<li>No replay (once delivered, gone)</li>
+<li>Vendor lock-in</li>
+</ul>
+<p><strong>Best for</strong>: AWS-native applications, serverless architectures, teams without messaging operations expertise.</p>
+<h3 id="apache-pulsar" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#apache-pulsar">Apache Pulsar</a></h3>
+<p><strong>Architecture</strong>: Separated compute (brokers) and storage (BookKeeper). Topics have segments stored across bookies.</p>
+<p><strong>Strengths</strong>:</p>
+<ul>
+<li>Multi-tenancy built-in (namespaces, isolation)</li>
+<li>Geo-replication native</li>
+<li>Tiered storage (hot → cold automatically)</li>
+<li>Millions of topics per cluster</li>
+<li>Both queuing and streaming in one system</li>
+</ul>
+<p><strong>Weaknesses</strong>:</p>
+<ul>
+<li>Newer, smaller ecosystem</li>
+<li>Operational complexity (BookKeeper cluster)</li>
+<li>Less mature tooling than Kafka</li>
+</ul>
+<p><strong>Best for</strong>: Multi-tenant platforms, multi-region deployments, very high topic counts.</p>
+<h3 id="nats" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#nats">NATS</a></h3>
+<p><strong>Architecture</strong>: Lightweight pub/sub with optional persistence (JetStream).</p>
+<p><strong>Core NATS</strong>: At-most-once, in-memory, fire-and-forget. Ultra-low latency.</p>
+<p><strong>JetStream</strong>: Persistence, at-least-once, replay, consumer groups.</p>
+<p><strong>Strengths</strong>:</p>
+<ul>
+<li>Extremely lightweight (~10MB binary)</li>
+<li>Sub-millisecond latency</li>
+<li>Simple protocol (text-based)</li>
+<li>Good for edge/IoT</li>
+</ul>
+<p><strong>Weaknesses</strong>:</p>
+<ul>
+<li>JetStream less mature than Kafka</li>
+<li>Smaller ecosystem</li>
+<li>Limited exactly-once support</li>
+</ul>
+<p><strong>Best for</strong>: Real-time communication, IoT, microservices internal messaging, edge computing.</p>
+<h2 id="how-to-choose" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#how-to-choose">How to Choose</a></h2>
+<h3 id="factors-to-consider" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#factors-to-consider">Factors to Consider</a></h3>
+<h4 id="1-messaging-pattern" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#1-messaging-pattern">1. Messaging Pattern</a></h4>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Need</th><th>Recommended Approach</th></tr></thead><tbody><tr><td>Work distribution to worker pool</td><td>Queue (SQS, RabbitMQ) or Kafka consumer groups</td></tr><tr><td>Event broadcasting to multiple consumers</td><td>Pub/sub (SNS, Kafka topics, Pub/Sub)</td></tr><tr><td>Complex routing rules</td><td>RabbitMQ exchanges</td></tr><tr><td>Event replay and sourcing</td><td>Kafka, Pulsar (log-based)</td></tr><tr><td>Multi-region fan-out</td><td>SNS, Pub/Sub, Pulsar</td></tr></tbody></table></div>
+<h4 id="2-throughput-and-latency" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#2-throughput-and-latency">2. Throughput and Latency</a></h4>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Requirement</th><th>Recommended Approach</th></tr></thead><tbody><tr><td>&#x3C; 10K msg/s</td><td>Any—choose based on other factors</td></tr><tr><td>10K-100K msg/s</td><td>RabbitMQ, SQS, or Kafka</td></tr><tr><td>> 100K msg/s</td><td>Kafka, Pulsar</td></tr><tr><td>Sub-millisecond latency</td><td>NATS, RabbitMQ</td></tr><tr><td>Latency tolerance (100ms+)</td><td>SQS, Cloud Pub/Sub</td></tr></tbody></table></div>
+<h4 id="3-ordering-requirements" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#3-ordering-requirements">3. Ordering Requirements</a></h4>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Requirement</th><th>Recommended Approach</th></tr></thead><tbody><tr><td>No ordering needed</td><td>Any (maximize throughput)</td></tr><tr><td>Per-entity ordering</td><td>Kafka (partition by key), SQS FIFO (message group)</td></tr><tr><td>Strict FIFO (low throughput)</td><td>SQS FIFO, RabbitMQ single queue</td></tr><tr><td>Global ordering</td><td>Single partition or consensus-based system</td></tr></tbody></table></div>
+<h4 id="4-operational-capacity" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#4-operational-capacity">4. Operational Capacity</a></h4>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Team Capability</th><th>Recommended Approach</th></tr></thead><tbody><tr><td>No messaging operations team</td><td>SQS/SNS, Cloud Pub/Sub, Confluent Cloud</td></tr><tr><td>Some operations capacity</td><td>RabbitMQ, managed Kafka</td></tr><tr><td>Dedicated platform team</td><td>Self-managed Kafka, Pulsar</td></tr></tbody></table></div>
+<h3 id="decision-tree" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#decision-tree">Decision Tree</a></h3>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Start: What's your primary use case?</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">├── Work distribution (task queue)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">│   └── Do you need complex routing?</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">│       ├── Yes → RabbitMQ</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">│       └── No → SQS or Kafka consumer groups</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">7</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">│</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">8</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">├── Event broadcasting</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">9</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">│   └── Do you need event replay?</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">10</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">│       ├── Yes → Kafka or Pulsar</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">11</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">│       └── No → SNS, Cloud Pub/Sub</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">12</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">│</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">13</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">├── Event sourcing / audit log</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">14</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">│   └── Kafka (log-based, long retention)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">15</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">│</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">16</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">├── Real-time (sub-ms latency)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">17</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">│   └── NATS or RabbitMQ</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">18</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">│</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">19</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">└── Multi-tenant platform</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">20</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">    </span></span><span style="--0:#24292e;--1:#e1e4e8">└── Pulsar (native multi-tenancy)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="Start: What&#x27;s your primary use case?├── Work distribution (task queue)│   └── Do you need complex routing?│       ├── Yes → RabbitMQ│       └── No → SQS or Kafka consumer groups│├── Event broadcasting│   └── Do you need event replay?│       ├── Yes → Kafka or Pulsar│       └── No → SNS, Cloud Pub/Sub│├── Event sourcing / audit log│   └── Kafka (log-based, long retention)│├── Real-time (sub-ms latency)│   └── NATS or RabbitMQ│└── Multi-tenant platform    └── Pulsar (native multi-tenancy)"><div></div></button></div></figure></div>
+<h2 id="real-world-examples" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#real-world-examples">Real-World Examples</a></h2>
+<h3 id="linkedin-kafka-at-extreme-scale" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#linkedin-kafka-at-extreme-scale">LinkedIn: Kafka at Extreme Scale</a></h3>
+<p><strong>Scale</strong>: 7 trillion messages/day, 100+ Kafka clusters, 4,000+ brokers, 100,000+ topics, 7 million partitions.</p>
+<p><strong>Use cases</strong>: Activity tracking (profile views, searches, connections), metrics collection, change data capture, inter-service communication.</p>
+<p><strong>Architecture decisions</strong>:</p>
+<ul>
+<li>Kafka as the central nervous system—all events flow through Kafka</li>
+<li>Custom Kafka version with upstream contributions</li>
+<li>Separate clusters by use case (real-time vs. batch, critical vs. non-critical)</li>
+<li>Extensive monitoring and automation for cluster operations</li>
+</ul>
+<p><strong>Key insight</strong>: Kafka’s log-based model enables multiple independent consumers. The same activity events feed recommendations, analytics, security monitoring, and data warehouse—each consuming independently.</p>
+<h3 id="slack-dual-queue-architecture" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#slack-dual-queue-architecture">Slack: Dual-Queue Architecture</a></h3>
+<p><strong>Scale</strong>: 1.4 billion jobs/day, 33K jobs/sec peak.</p>
+<p><strong>Use cases</strong>: Every message post, push notification, URL unfurl, billing event, search indexing.</p>
+<p><strong>Architecture decisions</strong>:</p>
+<ul>
+<li>Dual-queue: Redis (in-memory, fast) + Kafka (durable, ledger)</li>
+<li>Redis handles hot path—low latency for job dispatch</li>
+<li>Kafka provides durability—no job lost even if Redis fails</li>
+<li>Strong ordering guarantees per channel</li>
+<li>Exactly-once semantics critical for message delivery</li>
+</ul>
+<p><strong>Key insight</strong>: Combining Redis speed with Kafka durability gives both performance and reliability. Redis absorbs bursts; Kafka ensures nothing is lost.</p>
+<h3 id="uber-real-time-push-platform" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#uber-real-time-push-platform">Uber: Real-Time Push Platform</a></h3>
+<p><strong>Scale</strong>: 250K+ messages/second, 1.5M concurrent connections.</p>
+<p><strong>Use cases</strong>: Driver dispatch, rider updates, ETA notifications, surge pricing alerts.</p>
+<p><strong>Architecture decisions</strong>:</p>
+<ul>
+<li>Custom push platform (Streamgate) for WebSocket/gRPC connections</li>
+<li>Kafka backbone for durable message storage and replay</li>
+<li>Apache Flink for exactly-once stream processing</li>
+<li>Evolution from SSE to gRPC for bidirectional streaming</li>
+</ul>
+<p><strong>Key insight</strong>: Real-time push requires both low latency (direct connections) and durability (Kafka). The hybrid approach delivers both.</p>
+<h3 id="netflix-event-driven-analytics" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#netflix-event-driven-analytics">Netflix: Event-Driven Analytics</a></h3>
+<p><strong>Scale</strong>: 500 billion events/day, 8 million events/second peak, 1.3 PB/day consumed.</p>
+<p><strong>Use cases</strong>: A/B testing, recommendations, personalization, real-time analytics.</p>
+<p><strong>Architecture decisions</strong>:</p>
+<ul>
+<li>Kafka as the event backbone</li>
+<li>Flink for stream processing with exactly-once</li>
+<li>Real-time graph ingestion for recommendations</li>
+<li>Weekly failover drills for Kafka clusters</li>
+</ul>
+<p><strong>Key insight</strong>: Event-driven architecture with Kafka enables real-time ML pipelines. The same events feed both batch (data warehouse) and real-time (streaming) processing.</p>
+<h2 id="common-pitfalls" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#common-pitfalls">Common Pitfalls</a></h2>
+<h3 id="1-assuming-exactly-once-is-free" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#1-assuming-exactly-once-is-free">1. Assuming Exactly-Once is Free</a></h3>
+<p><strong>The mistake</strong>: Relying on broker’s “exactly-once” guarantee without implementing application idempotency.</p>
+<p><strong>Why it happens</strong>: Marketing materials promise exactly-once. The fine print explains it’s only within the broker boundary.</p>
+<p><strong>The consequence</strong>: Duplicate processing of side effects—double charges, duplicate notifications, inconsistent state.</p>
+<p><strong>The fix</strong>: Always implement application-level idempotency. Treat exactly-once as a broker optimization, not a guarantee you can rely on.</p>
+<p><strong>Example</strong>: A payment service consumed events with Kafka transactions (exactly-once processing). But the downstream payment API was called without idempotency keys. When consumer crashed and replayed, customers were charged twice.</p>
+<h3 id="2-wrong-partition-count" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#2-wrong-partition-count">2. Wrong Partition Count</a></h3>
+<p><strong>The mistake</strong>: Starting with too few partitions (can’t scale consumers) or too many (overhead, rebalancing pain).</p>
+<p><strong>Why it happens</strong>: Partition count is set at topic creation. Hard to change later.</p>
+<p><strong>The consequence</strong>: Too few → throughput ceiling, can’t add consumers. Too many → slow rebalancing, high metadata overhead, reduced batching efficiency.</p>
+<p><strong>The fix</strong>: Calculate based on target throughput. Start with headroom for growth. Monitor and adjust before hitting limits.</p>
+<p><strong>Formula</strong>: <code>partitions = max(target_throughput / per_consumer_throughput, expected_consumer_count * 1.5)</code></p>
+<h3 id="3-not-handling-rebalancing" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#3-not-handling-rebalancing">3. Not Handling Rebalancing</a></h3>
+<p><strong>The mistake</strong>: Assuming partition assignments are stable. Not handling reassignment gracefully.</p>
+<p><strong>Why it happens</strong>: Rebalancing seems like an edge case. Works fine in testing with stable consumers.</p>
+<p><strong>The consequence</strong>: During rebalancing: duplicate processing (at-least-once), lost in-memory state, processing stalls.</p>
+<p><strong>The fix</strong>:</p>
+<ul>
+<li>Commit offsets before rebalancing (ConsumerRebalanceListener)</li>
+<li>Design for message reprocessing (idempotency)</li>
+<li>Store state externally or rebuild on assignment</li>
+<li>Use cooperative rebalancing for lower impact</li>
+</ul>
+<h3 id="4-ignoring-consumer-lag" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#4-ignoring-consumer-lag">4. Ignoring Consumer Lag</a></h3>
+<p><strong>The mistake</strong>: Not monitoring how far behind consumers are.</p>
+<p><strong>Why it happens</strong>: System works fine initially. Lag builds gradually until visible problems.</p>
+<p><strong>The consequence</strong>: Processing delays compound. Old messages become stale. Eventually, messages expire before processing.</p>
+<p><strong>The fix</strong>: Monitor lag in seconds (not just offsets). Alert on sustained lag. Auto-scale consumers. Have runbooks for lag spikes.</p>
+<p><strong>Example</strong>: A notification service had 2-hour lag during peak traffic. By the time messages processed, the notifications were irrelevant (“Your ride is arriving” sent 2 hours late).</p>
+<h3 id="5-dlq-without-monitoring" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#5-dlq-without-monitoring">5. DLQ Without Monitoring</a></h3>
+<p><strong>The mistake</strong>: Setting up DLQ but not monitoring it.</p>
+<p><strong>Why it happens</strong>: DLQ is set-and-forget. Out of sight, out of mind.</p>
+<p><strong>The consequence</strong>: Systematic failures accumulate silently. By the time noticed, thousands of messages are stuck.</p>
+<p><strong>The fix</strong>: Alert on DLQ size growth. Regularly review DLQ contents. Automate reprocessing after fixes. Track DLQ rate as a system health metric.</p>
+<h2 id="conclusion" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#conclusion">Conclusion</a></h2>
+<p>Queues and pub/sub are complementary patterns for asynchronous communication:</p>
+<p><strong>Queues (point-to-point)</strong> distribute work across consumers:</p>
+<ul>
+<li>Each message processed by one consumer</li>
+<li>Natural load balancing and retry semantics</li>
+<li>Best for: task processing, job queues, work distribution</li>
+</ul>
+<p><strong>Topics (pub/sub)</strong> broadcast events to all subscribers:</p>
+<ul>
+<li>Each subscriber receives every message</li>
+<li>Subscribers independent and decoupled</li>
+<li>Best for: event broadcasting, event sourcing, analytics pipelines</li>
+</ul>
+<p><strong>Delivery semantics</strong> determine reliability:</p>
+<ul>
+<li>At-most-once: fast, may lose messages</li>
+<li>At-least-once: reliable, may duplicate (most common)</li>
+<li>Exactly-once: requires application idempotency (broker guarantees are limited)</li>
+</ul>
+<p><strong>Ordering</strong> trades off throughput:</p>
+<ul>
+<li>Partition-ordered (per-key): best balance of ordering and parallelism</li>
+<li>FIFO: strict but limited throughput</li>
+<li>Unordered: maximum throughput</li>
+</ul>
+<p><strong>Production patterns (2024)</strong>:</p>
+<ul>
+<li><strong>LinkedIn</strong> (Kafka, 7T msg/day): Event backbone for 100K+ topics</li>
+<li><strong>Slack</strong> (Redis + Kafka): Dual-queue for speed and durability</li>
+<li><strong>Netflix</strong> (Kafka + Flink, 500B events/day): Real-time event-driven analytics</li>
+<li><strong>Uber</strong> (Kafka + custom push): Real-time messaging at 250K msg/sec</li>
+</ul>
+<p>The choice depends on your messaging pattern (work distribution vs. fan-out), throughput requirements, ordering needs, and operational capacity.</p>
+<h2 id="appendix" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#appendix">Appendix</a></h2>
+<h3 id="prerequisites" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#prerequisites">Prerequisites</a></h3>
+<ul>
+<li>Distributed systems fundamentals (network failures, eventual consistency)</li>
+<li>Basic understanding of asynchronous programming</li>
+<li>Familiarity with at least one message broker (conceptual)</li>
+</ul>
+<h3 id="terminology" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#terminology">Terminology</a></h3>
+<ul>
+<li><strong>Queue</strong>: A buffer that delivers each message to one consumer (point-to-point)</li>
+<li><strong>Topic</strong>: A channel that delivers each message to all subscribers (pub/sub)</li>
+<li><strong>Partition</strong>: A subdivision of a topic for parallelism; each partition is ordered</li>
+<li><strong>Consumer group</strong>: A set of consumers that share message processing; each partition goes to one consumer in the group</li>
+<li><strong>Offset</strong>: A consumer’s position in a partition (how many messages read)</li>
+<li><strong>Consumer lag</strong>: The difference between latest produced offset and consumer’s committed offset</li>
+<li><strong>DLQ (Dead Letter Queue)</strong>: A queue for messages that failed processing after max retries</li>
+<li><strong>Idempotency</strong>: Property where processing a message multiple times has the same effect as processing once</li>
+<li><strong>Backpressure</strong>: Mechanism for consumers to signal producers to slow down</li>
+<li><strong>Acknowledgment (ack)</strong>: Consumer’s confirmation that a message was successfully processed</li>
+<li><strong>At-least-once</strong>: Delivery guarantee where messages may duplicate but never lose</li>
+<li><strong>Exactly-once</strong>: Delivery guarantee where messages are processed exactly once (requires idempotency)</li>
+</ul>
+<h3 id="summary" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#summary">Summary</a></h3>
+<ul>
+<li><strong>Queues distribute work</strong>; topics broadcast events—choose based on consumption pattern</li>
+<li><strong>At-least-once + idempotency</strong> = exactly-once semantics (the only reliable approach)</li>
+<li><strong>Partition-ordered</strong> gives 80% of ordering benefit at 20% of cost—use key-based partitioning</li>
+<li><strong>Consumer group parallelism</strong> limited by partition count—plan ahead</li>
+<li><strong>Pull model</strong> (Kafka, SQS) handles backpressure naturally; push model needs explicit flow control</li>
+<li><strong>Monitor consumer lag in time</strong> (not offsets) for consistent alerting across workloads</li>
+<li><strong>DLQ monitoring</strong> is critical—growing DLQ indicates systematic failures</li>
+<li><strong>Kafka</strong> dominates high-throughput event streaming (LinkedIn 7T/day, Netflix 500B/day)</li>
+<li><strong>Managed services</strong> (SQS/SNS, Cloud Pub/Sub) eliminate operations overhead for smaller scale</li>
+</ul>
+<h3 id="references" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#references">References</a></h3>
+<p><strong>Official Documentation</strong></p>
+<ul>
+<li><a href="https://kafka.apache.org/documentation/">Apache Kafka Documentation</a> - Core concepts, producer/consumer APIs, exactly-once semantics</li>
+<li><a href="https://docs.confluent.io/kafka/design/delivery-semantics.html">Confluent - Message Delivery Semantics</a> - Detailed delivery guarantees explanation</li>
+<li><a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/">AWS SQS Developer Guide</a> - Standard and FIFO queue semantics</li>
+<li><a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/FIFO-queues-exactly-once-processing.html">AWS SQS FIFO Exactly-Once Processing</a> - Deduplication and ordering</li>
+<li><a href="https://www.rabbitmq.com/tutorials/amqp-concepts">RabbitMQ AMQP Concepts</a> - Exchanges, bindings, routing</li>
+<li><a href="https://cloud.google.com/pubsub/docs">Google Cloud Pub/Sub Documentation</a> - Push/pull delivery, ordering, exactly-once</li>
+<li><a href="https://pulsar.apache.org/docs/">Apache Pulsar Documentation</a> - Multi-tenancy, geo-replication, tiered storage</li>
+<li><a href="https://docs.nats.io/">NATS Documentation</a> - Core NATS and JetStream</li>
+</ul>
+<p><strong>Engineering Blog Posts</strong></p>
+<ul>
+<li><a href="https://engineering.linkedin.com/kafka/running-kafka-scale">LinkedIn - Running Kafka at Scale</a> - 7 trillion messages/day architecture</li>
+<li><a href="https://engineering.linkedin.com/blog/2019/apache-kafka-trillion-messages">LinkedIn - Apache Kafka Trillion Messages</a> - Scaling journey</li>
+<li><a href="https://slack.engineering/scaling-slacks-job-queue/">Slack - Scaling Slack’s Job Queue</a> - 1.4B jobs/day, dual-queue architecture</li>
+<li><a href="https://www.uber.com/blog/real-time-push-platform/">Uber - Real-Time Push Platform</a> - 250K msg/sec push messaging</li>
+<li><a href="https://netflixtechblog.com/how-and-why-netflix-built-a-real-time-distributed-graph-part-1-ingesting-and-processing-data-80113e124acc">Netflix - Real-Time Graph Ingestion</a> - Kafka + Flink at scale</li>
+<li><a href="https://discord.com/blog/how-discord-stores-trillions-of-messages">Discord - How Discord Stores Trillions of Messages</a> - Message storage evolution</li>
+</ul>
+<p><strong>Patterns and Best Practices</strong></p>
+<ul>
+<li><a href="https://microservices.io/patterns/communication-style/idempotent-consumer.html">Microservices.io - Idempotent Consumer Pattern</a> - Idempotency implementation</li>
+<li><a href="https://www.morling.dev/blog/on-idempotency-keys/">Gunnar Morling - On Idempotency Keys</a> - Idempotency key design strategies</li>
+<li><a href="https://docs.confluent.io/platform/current/monitor/monitor-consumer-lag.html">Confluent - Monitor Consumer Lag</a> - Lag monitoring best practices</li>
+<li><a href="https://www.confluent.io/blog/how-to-survive-a-kafka-outage/">Confluent - How to Survive a Kafka Outage</a> - Failure handling and recovery</li>
+</ul>
+<p><strong>Books</strong></p>
+<ul>
+<li><a href="https://dataintensive.net/">Martin Kleppmann - Designing Data-Intensive Applications</a> - Chapter 11: Stream Processing</li>
+<li><a href="https://www.enterpriseintegrationpatterns.com/">Gregor Hohpe - Enterprise Integration Patterns</a> - Messaging patterns (Message Channel, Dead Letter Channel)</li>
+</ul> </article>  <section class="article-navigation"> <div class="section-divider"> <span class="section-divider-text">Continue Reading</span> </div> <ul class="article-list"> <li class="article-card"> <p class="article-card-label">Previous</p> <h3 class="article-card-title"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/dns-deep-dive" class="article-card-link">  DNS Deep Dive </a> </h3> <div class="frontmatter article-card-frontmatter">   <span class="frontmatter-item"> <a title="Category - System Design" href="/legacy-personal-site/v4/articles/system-design" class="frontmatter-link">  System Design </a>  <span class="text-muted">/</span> <a title="Topic - System Design Fundamentals" href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals" class="frontmatter-link">  System Design Fundamentals </a>  </span> <span class="frontmatter-item"> <svg width="1em" height="1em" viewBox="0 0 32 32" class="icon-sm" data-icon="carbon:time">   <use href="#ai:carbon:time"></use>  </svg> 20 min read </span>  </div> <p class="article-card-excerpt"> The Domain Name System (DNS) is the distributed hierarchical database that maps human-readable domain names to IP addresses. Designed in 1983 by Paul Mockapetris (RFC 1034/1035), DNS handles billions of queries per day with sub-100ms latency globally—yet its design choices (UDP transport, caching semantics, hierarchical delegation) create operational nuances that affect failover speed, security posture, and load distribution. This article covers DNS internals, resolution mechanics, record types with design rationale, TTL strategies, load balancing approaches, security mechanisms (DNSSEC, DoH/DoT), and production patterns from major providers. </p> </li> <li class="article-card"> <p class="article-card-label">Next</p> <h3 class="article-card-title"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/event-driven-architecture" class="article-card-link">  Event-Driven Architecture </a> </h3> <div class="frontmatter article-card-frontmatter">   <span class="frontmatter-item"> <a title="Category - System Design" href="/legacy-personal-site/v4/articles/system-design" class="frontmatter-link">  System Design </a>  <span class="text-muted">/</span> <a title="Topic - System Design Fundamentals" href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals" class="frontmatter-link">  System Design Fundamentals </a>  </span> <span class="frontmatter-item"> <svg width="1em" height="1em" viewBox="0 0 32 32" class="icon-sm" data-icon="carbon:time">   <use href="#ai:carbon:time"></use>  </svg> 21 min read </span>  </div> <p class="article-card-excerpt"> Designing systems around events rather than synchronous requests: when events beat API calls, event sourcing vs. state storage, CQRS trade-offs, saga patterns for distributed transactions, and production patterns from systems processing trillions of events daily. </p> </li> </ul> </section> </div> <footer class="site-footer"> <div class="site-footer-inner">  <nav class="site-footer-categories"> <a title="Browser &#38; Runtime Internals" href="/legacy-personal-site/v4/articles/browser-runtime-internals" class="nav-link">  Browser &amp; Runtime Internals </a><a title="System Design" href="/legacy-personal-site/v4/articles/system-design" class="nav-link">  System Design </a><a title="Platform Engineering" href="/legacy-personal-site/v4/articles/platform-engineering" class="nav-link">  Platform Engineering </a><a title="Frontend Engineering" href="/legacy-personal-site/v4/articles/frontend-engineering" class="nav-link">  Frontend Engineering </a><a title="Web Foundations" href="/legacy-personal-site/v4/articles/web-foundations" class="nav-link">  Web Foundations </a><a title="Programming &#38; Patterns" href="/legacy-personal-site/v4/articles/programming-patterns" class="nav-link">  Programming &amp; Patterns </a><a title="Developer Experience" href="/legacy-personal-site/v4/articles/developer-experience" class="nav-link">  Developer Experience </a> </nav>  <div class="site-footer-bar"> <div class="site-footer-links"> <a href="https://docs.google.com/document/d/1pazXBfzuL9O1wCjPdKb7IS-7nXz_ZzI7EvNL1r_KKRc/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="nav-link">  Resume </a><a href="/legacy-personal-site/v4/tags" class="nav-link">  Tags </a><a href="/legacy-personal-site/v4/articles/drafts" class="nav-link">  Drafts </a> </div> <div class="site-footer-controls">  <div class="site-footer-theme"> <svg width="1em" height="1em" class="site-footer-theme-icon" data-icon="carbon:paint-brush">   <symbol id="ai:carbon:paint-brush" viewBox="0 0 32 32"><path fill="currentColor" d="M28.83 23.17L23 17.33V13a1 1 0 0 0-.29-.71l-10-10a1 1 0 0 0-1.42 0l-9 9a1 1 0 0 0 0 1.42l10 10A1 1 0 0 0 13 23h4.34l5.83 5.84a4 4 0 0 0 5.66-5.66ZM6 10.41l2.29 2.3l1.42-1.42L7.41 9L9 7.41l4.29 4.3l1.42-1.42L10.41 6L12 4.41L18.59 11L11 18.59L4.41 12Zm21.41 17a2 2 0 0 1-2.82 0l-6.13-6.12a1.8 1.8 0 0 0-.71-.29h-4.34l-1-1L20 12.41l1 1v4.34a1 1 0 0 0 .29.7l6.12 6.14a2 2 0 0 1 0 2.82"/></symbol><use href="#ai:carbon:paint-brush"></use>  </svg> <select id="theme-select" class="site-footer-theme-select" aria-label="Select theme"> <option value="auto">Auto</option> <option value="light">Light</option> <option value="dark">Dark</option> <option value="high-contrast-light">High contrast light</option> <option value="high-contrast-dark">High contrast dark</option> <option value="paper">Paper</option> </select> </div>  <div class="site-footer-social"> <a aria-label="GitHub" title="GitHub" href="https://github.com/sujeet-pro" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-github">   <symbol id="ai:carbon:logo-github" viewBox="0 0 32 32"><path fill="currentColor" fill-rule="evenodd" d="M16 2a14 14 0 0 0-4.43 27.28c.7.13 1-.3 1-.67v-2.38c-3.89.84-4.71-1.88-4.71-1.88a3.7 3.7 0 0 0-1.62-2.05c-1.27-.86.1-.85.1-.85a2.94 2.94 0 0 1 2.14 1.45a3 3 0 0 0 4.08 1.16a2.93 2.93 0 0 1 .88-1.87c-3.1-.36-6.37-1.56-6.37-6.92a5.4 5.4 0 0 1 1.44-3.76a5 5 0 0 1 .14-3.7s1.17-.38 3.85 1.43a13.3 13.3 0 0 1 7 0c2.67-1.81 3.84-1.43 3.84-1.43a5 5 0 0 1 .14 3.7a5.4 5.4 0 0 1 1.44 3.76c0 5.38-3.27 6.56-6.39 6.91a3.33 3.33 0 0 1 .95 2.59v3.84c0 .46.25.81 1 .67A14 14 0 0 0 16 2"/></symbol><use href="#ai:carbon:logo-github"></use>  </svg>  </a> <a aria-label="LinkedIn" title="LinkedIn" href="https://www.linkedin.com/in/sujeetkrjaiswal/" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-linkedin">   <symbol id="ai:carbon:logo-linkedin" viewBox="0 0 32 32"><path fill="currentColor" d="M26.2 4H5.8C4.8 4 4 4.8 4 5.7v20.5c0 .9.8 1.7 1.8 1.7h20.4c1 0 1.8-.8 1.8-1.7V5.7c0-.9-.8-1.7-1.8-1.7M11.1 24.4H7.6V13h3.5zm-1.7-13c-1.1 0-2.1-.9-2.1-2.1s.9-2.1 2.1-2.1c1.1 0 2.1.9 2.1 2.1s-1 2.1-2.1 2.1m15.1 12.9H21v-5.6c0-1.3 0-3.1-1.9-3.1S17 17.1 17 18.5v5.7h-3.5V13h3.3v1.5h.1c.5-.9 1.7-1.9 3.4-1.9c3.6 0 4.3 2.4 4.3 5.5v6.2z"/></symbol><use href="#ai:carbon:logo-linkedin"></use>  </svg>  </a> <a aria-label="Twitter" title="Twitter" href="https://twitter.com/sujeetpro" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-twitter">   <symbol id="ai:carbon:logo-twitter" viewBox="0 0 32 32"><path fill="currentColor" d="M11.548 25.752c9.056 0 14.01-7.503 14.01-14.01c0-.213 0-.425-.015-.636A10 10 0 0 0 28 8.556a9.8 9.8 0 0 1-2.828.776a4.94 4.94 0 0 0 2.164-2.724a9.9 9.9 0 0 1-3.126 1.195a4.929 4.929 0 0 0-8.392 4.491A13.98 13.98 0 0 1 5.67 7.15a4.93 4.93 0 0 0 1.525 6.573a4.9 4.9 0 0 1-2.235-.617v.063a4.926 4.926 0 0 0 3.95 4.827a4.9 4.9 0 0 1-2.223.084a4.93 4.93 0 0 0 4.6 3.42A9.88 9.88 0 0 1 4 23.54a13.94 13.94 0 0 0 7.547 2.209"/></symbol><use href="#ai:carbon:logo-twitter"></use>  </svg>  </a> </div> </div> </div>  <p class="site-footer-copyright">
+&copy; 2024-2026 Sujeet Jaiswal </p> </div> </footer> </main> <aside id="right-sidebar" class="zen-sidebar zen-sidebar-right" aria-label="Table of contents"> <div class="zen-sidebar-header"> <span class="zen-sidebar-header-title">On This Page</span> <button class="zen-sidebar-close" data-sidebar-close="right" aria-label="Close table of contents"> <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5"> <path d="M8 8l16 16M24 8L8 24"></path> </svg> </button> </div> <div class="zen-sidebar-content"> <nav aria-label="Table of contents"><h2 class="sidebar-nav-title">On this page</h2><ul class="sidebar-toc-list"><li><a href="#abstract" class="sidebar-toc-item">Abstract</a></li><li><a href="#messaging-patterns" class="sidebar-toc-item">Messaging Patterns</a></li><li><a href="#point-to-point-queues" class="sidebar-toc-item sidebar-toc-item--h3">Point-to-Point Queues</a></li><li><a href="#publish-subscribe-topics" class="sidebar-toc-item sidebar-toc-item--h3">Publish-Subscribe (Topics)</a></li><li><a href="#hybrid-consumer-groups" class="sidebar-toc-item sidebar-toc-item--h3">Hybrid: Consumer Groups</a></li><li><a href="#delivery-semantics" class="sidebar-toc-item">Delivery Semantics</a></li><li><a href="#at-most-once" class="sidebar-toc-item sidebar-toc-item--h3">At-Most-Once</a></li><li><a href="#at-least-once" class="sidebar-toc-item sidebar-toc-item--h3">At-Least-Once</a></li><li><a href="#exactly-once" class="sidebar-toc-item sidebar-toc-item--h3">Exactly-Once</a></li><li><a href="#message-ordering" class="sidebar-toc-item">Message Ordering</a></li><li><a href="#no-ordering-unordered" class="sidebar-toc-item sidebar-toc-item--h3">No Ordering (Unordered)</a></li><li><a href="#partition-ordered-key-based" class="sidebar-toc-item sidebar-toc-item--h3">Partition-Ordered (Key-Based)</a></li><li><a href="#fifo-total-ordering-per-queue" class="sidebar-toc-item sidebar-toc-item--h3">FIFO (Total Ordering per Queue)</a></li><li><a href="#total-ordering-global" class="sidebar-toc-item sidebar-toc-item--h3">Total Ordering (Global)</a></li><li><a href="#backpressure-and-flow-control" class="sidebar-toc-item">Backpressure and Flow Control</a></li><li><a href="#pull-model-consumer-controlled" class="sidebar-toc-item sidebar-toc-item--h3">Pull Model (Consumer-Controlled)</a></li><li><a href="#push-model-broker-controlled" class="sidebar-toc-item sidebar-toc-item--h3">Push Model (Broker-Controlled)</a></li><li><a href="#handling-overload" class="sidebar-toc-item sidebar-toc-item--h3">Handling Overload</a></li><li><a href="#retry-and-dead-letter-queues" class="sidebar-toc-item">Retry and Dead Letter Queues</a></li><li><a href="#retry-strategies" class="sidebar-toc-item sidebar-toc-item--h3">Retry Strategies</a></li><li><a href="#dead-letter-queues-dlq" class="sidebar-toc-item sidebar-toc-item--h3">Dead Letter Queues (DLQ)</a></li><li><a href="#poison-pill-handling" class="sidebar-toc-item sidebar-toc-item--h3">Poison Pill Handling</a></li><li><a href="#idempotency-patterns" class="sidebar-toc-item">Idempotency Patterns</a></li><li><a href="#why-idempotency-matters" class="sidebar-toc-item sidebar-toc-item--h3">Why Idempotency Matters</a></li><li><a href="#idempotency-key-strategies" class="sidebar-toc-item sidebar-toc-item--h3">Idempotency Key Strategies</a></li><li><a href="#consumer-implementation" class="sidebar-toc-item sidebar-toc-item--h3">Consumer Implementation</a></li><li><a href="#broker-level-idempotency" class="sidebar-toc-item sidebar-toc-item--h3">Broker-Level Idempotency</a></li><li><a href="#scaling-consumers" class="sidebar-toc-item">Scaling Consumers</a></li><li><a href="#partitions-and-parallelism" class="sidebar-toc-item sidebar-toc-item--h3">Partitions and Parallelism</a></li><li><a href="#rebalancing" class="sidebar-toc-item sidebar-toc-item--h3">Rebalancing</a></li><li><a href="#consumer-lag" class="sidebar-toc-item sidebar-toc-item--h3">Consumer Lag</a></li><li><a href="#message-broker-comparison" class="sidebar-toc-item">Message Broker Comparison</a></li><li><a href="#design-choices" class="sidebar-toc-item sidebar-toc-item--h3">Design Choices</a></li><li><a href="#kafka" class="sidebar-toc-item sidebar-toc-item--h3">Kafka</a></li><li><a href="#rabbitmq" class="sidebar-toc-item sidebar-toc-item--h3">RabbitMQ</a></li><li><a href="#aws-sqssns" class="sidebar-toc-item sidebar-toc-item--h3">AWS SQS/SNS</a></li><li><a href="#apache-pulsar" class="sidebar-toc-item sidebar-toc-item--h3">Apache Pulsar</a></li><li><a href="#nats" class="sidebar-toc-item sidebar-toc-item--h3">NATS</a></li><li><a href="#how-to-choose" class="sidebar-toc-item">How to Choose</a></li><li><a href="#factors-to-consider" class="sidebar-toc-item sidebar-toc-item--h3">Factors to Consider</a></li><li><a href="#decision-tree" class="sidebar-toc-item sidebar-toc-item--h3">Decision Tree</a></li><li><a href="#real-world-examples" class="sidebar-toc-item">Real-World Examples</a></li><li><a href="#linkedin-kafka-at-extreme-scale" class="sidebar-toc-item sidebar-toc-item--h3">LinkedIn: Kafka at Extreme Scale</a></li><li><a href="#slack-dual-queue-architecture" class="sidebar-toc-item sidebar-toc-item--h3">Slack: Dual-Queue Architecture</a></li><li><a href="#uber-real-time-push-platform" class="sidebar-toc-item sidebar-toc-item--h3">Uber: Real-Time Push Platform</a></li><li><a href="#netflix-event-driven-analytics" class="sidebar-toc-item sidebar-toc-item--h3">Netflix: Event-Driven Analytics</a></li><li><a href="#common-pitfalls" class="sidebar-toc-item">Common Pitfalls</a></li><li><a href="#1-assuming-exactly-once-is-free" class="sidebar-toc-item sidebar-toc-item--h3">1. Assuming Exactly-Once is Free</a></li><li><a href="#2-wrong-partition-count" class="sidebar-toc-item sidebar-toc-item--h3">2. Wrong Partition Count</a></li><li><a href="#3-not-handling-rebalancing" class="sidebar-toc-item sidebar-toc-item--h3">3. Not Handling Rebalancing</a></li><li><a href="#4-ignoring-consumer-lag" class="sidebar-toc-item sidebar-toc-item--h3">4. Ignoring Consumer Lag</a></li><li><a href="#5-dlq-without-monitoring" class="sidebar-toc-item sidebar-toc-item--h3">5. DLQ Without Monitoring</a></li><li><a href="#conclusion" class="sidebar-toc-item">Conclusion</a></li><li><a href="#appendix" class="sidebar-toc-item">Appendix</a></li><li><a href="#prerequisites" class="sidebar-toc-item sidebar-toc-item--h3">Prerequisites</a></li><li><a href="#terminology" class="sidebar-toc-item sidebar-toc-item--h3">Terminology</a></li><li><a href="#summary" class="sidebar-toc-item sidebar-toc-item--h3">Summary</a></li><li><a href="#references" class="sidebar-toc-item sidebar-toc-item--h3">References</a></li></ul></nav> </div> </aside> </div>  <div id="sidebar-backdrop" class="zen-sidebar-backdrop"></div>  <!-- Image Modal --><div id="image-modal" class="image-modal" role="dialog" aria-modal="true" aria-label="Image viewer"> <div class="image-modal-backdrop"></div> <div class="image-modal-content"> <div class="image-modal-header"> <div class="image-modal-controls"> <button type="button" id="image-zoom-out" class="image-modal-btn" aria-label="Zoom out" title="Zoom out"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <circle cx="11" cy="11" r="8"></circle> <line x1="21" y1="21" x2="16.65" y2="16.65"></line> <line x1="8" y1="11" x2="14" y2="11"></line> </svg> </button> <span id="image-zoom-level" class="image-zoom-level">1.0X</span> <button type="button" id="image-zoom-in" class="image-modal-btn" aria-label="Zoom in" title="Zoom in"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <circle cx="11" cy="11" r="8"></circle> <line x1="21" y1="21" x2="16.65" y2="16.65"></line> <line x1="11" y1="8" x2="11" y2="14"></line> <line x1="8" y1="11" x2="14" y2="11"></line> </svg> </button> <button type="button" id="image-zoom-reset" class="image-modal-btn" aria-label="Reset zoom" title="Reset zoom"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path> <path d="M3 3v5h5"></path> </svg> </button> </div> <button type="button" id="image-modal-close" class="image-modal-btn image-modal-close" aria-label="Close image viewer"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <line x1="18" y1="6" x2="6" y2="18"></line> <line x1="6" y1="6" x2="18" y2="18"></line> </svg> </button> </div> <div class="image-modal-body" id="image-modal-body"> <!-- Cloned image will be inserted here --> </div> </div> </div> <script type="module" src="/legacy-personal-site/v4/_astro/image-modal.astro_astro_type_script_index_0_lang.DaIybCtt.js"></script>  <!-- Google Analytics 4 --><script async src="https://www.googletagmanager.com/gtag/js?id=G-1Z2TP5LG65"></script> <script>(function(){const GA_MEASUREMENT_ID = "G-1Z2TP5LG65";
+
+  window.dataLayer = window.dataLayer || []
+  function gtag() {
+    dataLayer.push(arguments)
+  }
+  gtag("js", new Date())
+  gtag("config", GA_MEASUREMENT_ID)
+})();</script> <script type="module" src="/legacy-personal-site/v4/_astro/sidebar-toggle.astro_astro_type_script_index_0_lang.BjmuyXEJ.js"></script> <script type="module">function l(){const s=document.getElementById("main");if(!s)return;const n=Array.from(s.querySelectorAll("h2[id], h3[id]"));if(n.length===0)return;const o=document.querySelectorAll("#right-sidebar .sidebar-toc-item");if(o.length===0)return;const c=new Map;o.forEach(t=>{const e=t.getAttribute("href");e?.startsWith("#")&&c.set(e.slice(1),t)});let r=null;const i=new Set;function f(t){const e=c.get(t);!e||e===r||(r?.classList.remove("is-active"),e.classList.add("is-active"),r=e,e.scrollIntoView({block:"nearest",behavior:"smooth"}))}const a=new IntersectionObserver(t=>{if(t.forEach(e=>{const d=e.target.id;e.isIntersecting?i.add(d):i.delete(d)}),i.size>0){for(const e of n)if(i.has(e.id)){f(e.id);break}}},{rootMargin:"-80px 0px -75% 0px"});n.forEach(t=>a.observe(t)),document.addEventListener("astro:before-swap",()=>{a.disconnect()},{once:!0})}l();document.addEventListener("astro:page-load",l);</script> <script type="module">function c(e,t){const n=window.__themeConfig.THEME_LABELS,o=window.getNextTheme();e.setAttribute("aria-label",`Theme: ${n[t]}. Click to cycle.`),e.title=`Switch to ${n[o]}`,e.dataset.theme=t,e.querySelectorAll("[data-theme-icon]").forEach(a=>{a.style.display=a.dataset.themeIcon===t?"block":"none"})}function s(e,t){e.value!==t&&(e.value=t)}function m(e){e.dataset.themeInit||(e.dataset.themeInit="true",e.addEventListener("click",()=>{const t=window.getNextTheme();window.applySiteTheme(t)}))}function r(e){e.dataset.themeInit||(e.dataset.themeInit="true",e.addEventListener("change",()=>{const t=e.value;window.__themeConfig.THEMES.includes(t)&&window.applySiteTheme(t)}))}function u(){const e=document.documentElement;if(e.dataset.themeObserverInit)return;e.dataset.themeObserverInit="true",new MutationObserver(()=>{const n=e.dataset.theme||"auto",o=document.getElementById("theme-toggle-btn");o&&c(o,n);const i=document.getElementById("theme-select");i&&s(i,n)}).observe(e,{attributes:!0,attributeFilter:["data-theme"]})}function d(){const e=document.documentElement.dataset.theme||"auto",t=document.getElementById("theme-toggle-btn");t&&(c(t,e),m(t));const n=document.getElementById("theme-select");n&&(s(n,e),r(n)),u()}d();document.addEventListener("astro:page-load",d);</script> <script type="module" src="/legacy-personal-site/v4/_astro/docsearch.astro_astro_type_script_index_0_lang.B0uJCub6.js"></script> <script type="module">function a(){function r(){const n=document.documentElement.dataset.colorScheme==="dark";document.querySelectorAll(".mermaid-diagram").forEach(e=>{const t=n?e.dataset.srcDark:e.dataset.srcLight;t&&e.src!==new URL(t,location.origin).href&&(e.src=t)})}r(),new MutationObserver(()=>r()).observe(document.documentElement,{attributes:!0,attributeFilter:["data-color-scheme"]})}document.addEventListener("DOMContentLoaded",a);document.addEventListener("astro:page-load",a);</script> </body> </html> 

@@ -1,0 +1,1079 @@
+<!DOCTYPE html><html lang="en"> <head><meta name="astro-view-transitions-enabled" content="true"><meta name="astro-view-transitions-fallback" content="animate"><script type="module" src="/legacy-personal-site/v4/_astro/ClientRouter.astro_astro_type_script_index_0_lang.HWuSm9BO.js"></script><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light"><script>
+  ;(function () {
+    var THEMES = ["auto", "light", "dark", "high-contrast-light", "high-contrast-dark", "paper"]
+    var STORAGE_KEY = "site-theme"
+    var THEME_LABELS = {
+      auto: "Auto (system)",
+      light: "Light",
+      dark: "Dark",
+      "high-contrast-light": "High contrast light",
+      "high-contrast-dark": "High contrast dark",
+      paper: "Paper",
+    }
+    var darkQuery = window.matchMedia("(prefers-color-scheme: dark)")
+
+    // Expose shared config for module scripts
+    window.__themeConfig = { THEMES: THEMES, STORAGE_KEY: STORAGE_KEY, THEME_LABELS: THEME_LABELS }
+
+    // BroadcastChannel for cross-tab sync
+    var channel = null
+    try {
+      channel = new BroadcastChannel("site-theme-sync")
+    } catch (e) {
+      // BroadcastChannel not supported
+    }
+
+    function getResolvedTheme(theme) {
+      if (theme === "auto") {
+        return darkQuery.matches ? "dark" : "light"
+      }
+      return theme
+    }
+
+    function getColorScheme(resolved) {
+      if (resolved === "dark" || resolved === "high-contrast-dark") return "dark"
+      return "light"
+    }
+
+    function applyTheme(theme, _fromBroadcast) {
+      if (!theme || THEMES.indexOf(theme) === -1) theme = "auto"
+
+      var resolved = getResolvedTheme(theme)
+      var root = document.documentElement
+      var scheme = getColorScheme(resolved)
+
+      // Remove all theme classes
+      for (var i = 0; i < THEMES.length; i++) {
+        root.classList.remove("theme-" + THEMES[i])
+      }
+
+      // Apply resolved theme class
+      root.classList.add("theme-" + resolved)
+
+      // Set color-scheme
+      root.style.setProperty("--color-scheme", scheme)
+
+      // Update meta tag
+      var meta = document.querySelector('meta[name="color-scheme"]')
+      if (meta) meta.setAttribute("content", scheme)
+
+      // Set color scheme data attribute for CSS/JS consumers
+      root.dataset.colorScheme = scheme
+
+      // Store the user's chosen theme (not the resolved one)
+      try {
+        localStorage.setItem(STORAGE_KEY, theme)
+      } catch (e) {
+        // localStorage may be unavailable
+      }
+
+      // Dispatch event for other scripts to react
+      root.dataset.theme = theme
+      root.dataset.resolvedTheme = resolved
+
+      // Broadcast to other tabs (but not if we received this from another tab)
+      if (!_fromBroadcast && channel) {
+        try {
+          channel.postMessage({ theme: theme })
+        } catch (e) {
+          // Channel may be closed
+        }
+      }
+    }
+
+    // Smart cycling: skip the theme that "auto" resolves to
+    function getNextTheme() {
+      var current = "auto"
+      try {
+        current = localStorage.getItem(STORAGE_KEY) || "auto"
+      } catch (e) {}
+      if (THEMES.indexOf(current) === -1) current = "auto"
+
+      var idx = THEMES.indexOf(current)
+      var next = THEMES[(idx + 1) % THEMES.length]
+
+      // If current is "auto", skip the theme auto resolves to
+      if (current === "auto") {
+        var autoResolved = getResolvedTheme("auto")
+        if (next === autoResolved) {
+          next = THEMES[(idx + 2) % THEMES.length]
+        }
+      }
+
+      return next
+    }
+
+    // Apply on load
+    var saved = "auto"
+    try {
+      saved = localStorage.getItem(STORAGE_KEY) || "auto"
+    } catch (e) {
+      // localStorage may be unavailable
+    }
+    applyTheme(saved)
+
+    // Listen for OS preference changes when in auto mode
+    darkQuery.addEventListener("change", function () {
+      var current = "auto"
+      try {
+        current = localStorage.getItem(STORAGE_KEY) || "auto"
+      } catch (e) {}
+      if (current === "auto") {
+        applyTheme("auto")
+      }
+    })
+
+    // Listen for cross-tab theme changes
+    if (channel) {
+      channel.onmessage = function (event) {
+        if (event.data && event.data.theme) {
+          applyTheme(event.data.theme, true)
+        }
+      }
+    }
+
+    // Expose for runtime use
+    window.applySiteTheme = applyTheme
+    window.getNextTheme = getNextTheme
+  })()
+</script><!-- Inline font-face declarations with base path --><style>
+      @font-face {
+        font-family: "Open Sans";
+        font-style: normal;
+        font-weight: 300 800;
+        font-display: swap;
+        src: url("/legacy-personal-site/v4/fonts/open-sans-latin-wght-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+          U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: "JetBrains Mono";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("/legacy-personal-site/v4/fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+          U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+    </style><!-- Preload local fonts --><link rel="preload" as="font" type="font/woff2" href="/legacy-personal-site/v4/fonts/open-sans-latin-wght-normal.woff2" crossorigin="anonymous"><link rel="preload" as="font" type="font/woff2" href="/legacy-personal-site/v4/fonts/jetbrains-mono-latin-400-normal.woff2" crossorigin="anonymous"><!-- Main favicon --><link rel="icon" type="image/x-icon" href="/legacy-personal-site/v4/favicons/favicon.ico"><!-- Apple Touch Icons --><link rel="apple-touch-icon" sizes="57x57" href="/legacy-personal-site/v4/favicons/apple-icon-57x57.png"><link rel="apple-touch-icon" sizes="60x60" href="/legacy-personal-site/v4/favicons/apple-icon-60x60.png"><link rel="apple-touch-icon" sizes="72x72" href="/legacy-personal-site/v4/favicons/apple-icon-72x72.png"><link rel="apple-touch-icon" sizes="76x76" href="/legacy-personal-site/v4/favicons/apple-icon-76x76.png"><link rel="apple-touch-icon" sizes="114x114" href="/legacy-personal-site/v4/favicons/apple-icon-114x114.png"><link rel="apple-touch-icon" sizes="120x120" href="/legacy-personal-site/v4/favicons/apple-icon-120x120.png"><link rel="apple-touch-icon" sizes="144x144" href="/legacy-personal-site/v4/favicons/apple-icon-144x144.png"><link rel="apple-touch-icon" sizes="152x152" href="/legacy-personal-site/v4/favicons/apple-icon-152x152.png"><link rel="apple-touch-icon" sizes="180x180" href="/legacy-personal-site/v4/favicons/apple-icon-180x180.png"><!-- Apple Touch Icon Precomposed (for older iOS versions) --><link rel="apple-touch-icon-precomposed" href="/legacy-personal-site/v4/favicons/apple-icon-precomposed.png"><!-- Standard Icons --><link rel="icon" type="image/png" sizes="192x192" href="/legacy-personal-site/v4/favicons/android-icon-192x192.png"><link rel="icon" type="image/png" sizes="144x144" href="/legacy-personal-site/v4/favicons/android-icon-144x144.png"><link rel="icon" type="image/png" sizes="96x96" href="/legacy-personal-site/v4/favicons/android-icon-96x96.png"><link rel="icon" type="image/png" sizes="72x72" href="/legacy-personal-site/v4/favicons/android-icon-72x72.png"><link rel="icon" type="image/png" sizes="48x48" href="/legacy-personal-site/v4/favicons/android-icon-48x48.png"><link rel="icon" type="image/png" sizes="36x36" href="/legacy-personal-site/v4/favicons/android-icon-36x36.png"><link rel="icon" type="image/png" sizes="32x32" href="/legacy-personal-site/v4/favicons/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/legacy-personal-site/v4/favicons/favicon-16x16.png"><!-- Web App Manifest --><link rel="manifest" href="/legacy-personal-site/v4/manifest.json"><!-- Microsoft Tiles --><meta name="msapplication-config" content="/legacy-personal-site/v4/browserconfig.xml"><meta name="msapplication-TileImage" content="/legacy-personal-site/v4/favicons/ms-icon-144x144.png"><meta name="msapplication-TileColor" content="#f8fafc"><!-- Theme Colors --><meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#020617" media="(prefers-color-scheme: dark)"><meta name="msapplication-TileColor" content="#f8fafc"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="docsearch:language" content="en"><!-- Canonical URL --><link rel="canonical" href="https://sujeet.pro/legacy-personal-site/v4/articles/system-design/real-world-case-studies/dropbox-magic-pocket.html"><!-- Primary Meta Tags --><title>Dropbox Magic Pocket: Building Exabyte-Scale Blob Storage - Sujeet Jaiswal</title><meta name="title" content="Dropbox Magic Pocket: Building Exabyte-Scale Blob Storage - Sujeet Jaiswal"><meta name="description" content="How Dropbox migrated 500+ petabytes off AWS S3 onto custom infrastructure in under two years, saving $74.6 million net while achieving higher durability than the service it replaced. Magic Pocket is a content-addressable, immutable block store built by a team of fewer than six engineers, now serving 700+ million users across 600,000+ storage drives."><!-- Open Graph / Facebook --><meta property="og:type" content="website"><meta property="og:url" content="https://sujeet.pro/legacy-personal-site/v4/articles/system-design/real-world-case-studies/dropbox-magic-pocket.html"><meta property="og:title" content="Dropbox Magic Pocket: Building Exabyte-Scale Blob Storage - Sujeet Jaiswal"><meta property="og:description" content="How Dropbox migrated 500+ petabytes off AWS S3 onto custom infrastructure in under two years, saving $74.6 million net while achieving higher durability than the service it replaced. Magic Pocket is a content-addressable, immutable block store built by a team of fewer than six engineers, now serving 700+ million users across 600,000+ storage drives."><!-- Twitter / X --><meta name="twitter:site" content="@sujeetpro"><meta name="twitter:card" content="summary_large_image"><!-- DocSearch facets --><meta name="docsearch:category" content="System Design"><meta name="docsearch:topic" content="Real-World Case Studies"><link rel="alternate" type="application/rss+xml" href="/legacy-personal-site/v4/rss.xml"><link rel="sitemap" href="/legacy-personal-site/v4/sitemap-index.xml"><!-- LLM-friendly content --><link rel="alternate" type="text/plain" href="/legacy-personal-site/v4/llms.txt" title="LLM Index"><link rel="alternate" type="text/plain" href="/legacy-personal-site/v4/llms-full.txt" title="LLM Full Content"><link rel="stylesheet" href="/legacy-personal-site/v4/_astro/docsearch.CgGoh9IB.css">
+<style>/*! tailwindcss v4.2.1 | MIT License | https://tailwindcss.com */.sidebar-toc-list{gap:calc(var(--spacing,.25rem) * .5);flex-direction:column;display:flex}
+@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) and (not (color:rgb(from red r g b)))){*,:before,:after,::backdrop{--tw-border-style:solid;--tw-font-weight:initial;--tw-ordinal:initial;--tw-slashed-zero:initial;--tw-numeric-figure:initial;--tw-numeric-spacing:initial;--tw-numeric-fraction:initial}}}.article-nav-category{margin-bottom:calc(var(--spacing,.25rem) * 5)}.article-nav-category+.article-nav-category{border-top-style:var(--tw-border-style);padding-top:calc(var(--spacing,.25rem) * 2);border-top-width:1px;border-color:var(--color-border)}.article-nav-category-name{margin-bottom:calc(var(--spacing,.25rem) * 1.5);padding-inline:calc(var(--spacing,.25rem) * 1);font-family:var(--font-mono,ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);--tw-font-weight:var(--font-weight-semibold,600);font-weight:var(--font-weight-semibold,600);text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-muted);font-size:11px;display:block}.article-nav-category-name.is-current{color:var(--color-text)}.article-nav-topics{flex-direction:column;display:flex}.article-nav-topic{list-style:none}.article-nav-topic-toggle{cursor:pointer;border-radius:var(--radius-md,.375rem);width:100%;padding-inline:calc(var(--spacing,.25rem) * 2);padding-block:calc(var(--spacing,.25rem) * 1.5);color:var(--color-text-muted);transition:all var(--transition-fast);justify-content:space-between;align-items:center;font-size:13px;list-style:none;display:flex}.article-nav-topic-toggle::-webkit-details-marker{display:none}.article-nav-topic-toggle::marker{content:"";display:none}.article-nav-topic-toggle:hover{color:var(--color-text);background:var(--color-bg-alt)}.article-nav-topic-toggle.is-active{color:var(--color-text);font-weight:500}.article-nav-topic-name{min-width:calc(var(--spacing,.25rem) * 0);flex:1}.article-nav-topic-count{--tw-numeric-spacing:tabular-nums;font-variant-numeric:var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);color:var(--color-text-muted);opacity:.6;flex-shrink:0;font-size:11px}.article-nav-chevron{opacity:.4;width:12px;height:12px;transition:transform var(--transition-fast);flex-shrink:0;margin-left:.5rem}.article-nav-topic-toggle:hover .article-nav-chevron{opacity:.7}details[open]>.article-nav-topic-toggle .article-nav-chevron{transform:rotate(90deg)}.article-nav-articles{margin-left:calc(var(--spacing,.25rem) * 3);border-left-style:var(--tw-border-style);padding-left:calc(var(--spacing,.25rem) * 2);border-left-width:1px;border-color:var(--color-border)}.article-nav-article-link{border-radius:var(--radius-md,.375rem);padding-inline:calc(var(--spacing,.25rem) * 2);padding-block:calc(var(--spacing,.25rem) * 1);color:var(--color-text-muted);transition:all var(--transition-fast);font-size:13px;line-height:1.4;text-decoration-line:none;display:block}.article-nav-article-link:hover{color:var(--color-text);background:var(--color-bg-alt)}.article-nav-article-link.is-active{color:var(--color-text);background:var(--color-bg-alt);font-weight:500}@property --tw-border-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-font-weight{syntax:"*";inherits:false}@property --tw-ordinal{syntax:"*";inherits:false}@property --tw-slashed-zero{syntax:"*";inherits:false}@property --tw-numeric-figure{syntax:"*";inherits:false}@property --tw-numeric-spacing{syntax:"*";inherits:false}@property --tw-numeric-fraction{syntax:"*";inherits:false}/*! tailwindcss v4.2.1 | MIT License | https://tailwindcss.com */.article-frontmatter{margin-bottom:calc(var(--spacing,.25rem) * 8)}.article-navigation{margin-top:calc(var(--spacing,.25rem) * 16)}
+</style>
+<link rel="stylesheet" href="/legacy-personal-site/v4/_astro/_slug_.u3hNe2gV.css"><script type="module" src="/legacy-personal-site/v4/_astro/page.CLJIuoFF.js"></script></head> <body> <a href="#main" class="skip-link">Skip to main content</a> <header class="site-header"> <div class="header-container"> <nav class="header-nav"> <!-- Left side: sidebar toggle + logo --> <div class="header-left"> <button id="left-sidebar-toggle" class="sidebar-toggle-btn" aria-label="Toggle navigation sidebar" aria-expanded="true" title="Hide navigation sidebar" aria-hidden="false"> <svg width="1em" height="1em" class="icon-md" data-icon="carbon:side-panel-open">   <symbol id="ai:carbon:side-panel-open" viewBox="0 0 32 32"><path fill="currentColor" d="M28 4H4c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h24c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2M10 26H4V6h6zm18 0H12v-9h10.2l-3.6 3.6L20 22l6-6l-6-6l-1.4 1.4l3.6 3.6H12V6h16z"/></symbol><use href="#ai:carbon:side-panel-open"></use>  </svg> </button> <a href="/legacy-personal-site/v4/" class="header-logo">   <span class="header-logo-name">sujeet.pro</span>  </a> </div> <!-- Center: Nav links - hidden on mobile --> <div class="header-nav-links"> <a href="/legacy-personal-site/v4/articles" class="nav-link">  Articles </a><a href="/legacy-personal-site/v4/blogs" class="nav-link">  Blogs </a><a href="/legacy-personal-site/v4/projects" class="nav-link">  Projects </a> </div> <!-- Right side: search + sidebar toggle + hamburger --> <div class="header-actions"> <!-- DocSearch --> <div id="docsearch-container"></div> <!-- Theme Toggle --> <button id="theme-toggle-btn" class="sidebar-toggle-btn" aria-label="Toggle theme" title="Switch theme"> <!-- Auto (monitor) --> <svg data-theme-icon="auto" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M28 4H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h8v4H8v2h16v-2h-4v-4h8a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 18H4V6h24Z"></path> </svg> <!-- Light (sun) --> <svg data-theme-icon="light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 12.005a4 4 0 1 1-4 4 4.005 4.005 0 0 1 4-4m0-2a6 6 0 1 0 6 6 6 6 0 0 0-6-6ZM5.394 6.813 6.81 5.399l3.505 3.506L8.9 10.319ZM2 15.005h5v2H2ZM5.394 25.197l3.505-3.506 1.414 1.414-3.505 3.506ZM15 25.005h2v5h-2ZM21.687 23.106l1.414-1.414 3.506 3.505-1.414 1.414ZM25 15.005h5v2h-5ZM21.69 8.904l3.505-3.505 1.414 1.415-3.505 3.505ZM15 2.005h2v5h-2Z"></path> </svg> <!-- Dark (moon) --> <svg data-theme-icon="dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M13.502 5.414a15.075 15.075 0 0 0 11.594 18.194 11.113 11.113 0 0 1-7.975 3.39c-.138 0-.278.005-.418 0a11.094 11.094 0 0 1-3.2-21.584M14.98 3a1.002 1.002 0 0 0-.175.016 13.096 13.096 0 0 0 1.825 25.981c.164.006.328 0 .49 0a13.072 13.072 0 0 0 10.703-5.555 1.01 1.01 0 0 0-.783-1.565A13.08 13.08 0 0 1 15.89 4.38 1.015 1.015 0 0 0 14.98 3Z"></path> </svg> <!-- High contrast light --> <svg data-theme-icon="high-contrast-light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26V4a12 12 0 0 1 0 24Z"></path> </svg> <!-- High contrast dark --> <svg data-theme-icon="high-contrast-dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 2a12 12 0 0 1 0 24Z"></path> </svg> <!-- Paper (document) --> <svg data-theme-icon="paper" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M19 10h7v2h-7zM19 6h7v2h-7zM19 14h7v2h-7zM19 18h7v2h-7z"></path> <path d="M28 2H10a2.002 2.002 0 0 0-2 2v6H4a2.002 2.002 0 0 0-2 2v18a2 2 0 0 0 2 2h14a2.002 2.002 0 0 0 2-2v-6h8a2.002 2.002 0 0 0 2-2V4a2.002 2.002 0 0 0-2-2Zm-10 28H4V12h14Zm10-8H20V12a2.002 2.002 0 0 0-2-2h-8V4h18Z"></path> <path d="M6 16h10v2H6zM6 20h10v2H6zM6 24h7v2H6z"></path> </svg> </button> <button id="right-sidebar-toggle" class="sidebar-toggle-btn" aria-label="Toggle table of contents" aria-expanded="true" title="Hide table of contents" aria-hidden="false"> <svg width="1em" height="1em" class="icon-md" data-icon="carbon:side-panel-close">   <symbol id="ai:carbon:side-panel-close" viewBox="0 0 32 32"><path fill="currentColor" d="M28 4H4c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h24c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2M10 26H4V6h6zm18-11H17.8l3.6-3.6L20 10l-6 6l6 6l1.4-1.4l-3.6-3.6H28v9H12V6h16z"/></symbol><use href="#ai:carbon:side-panel-close"></use>  </svg> </button> <!-- Hamburger Menu - visible on mobile only --> <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu" title="Open menu"> <svg width="1em" height="1em" class="icon-lg" data-icon="carbon:menu">   <symbol id="ai:carbon:menu" viewBox="0 0 32 32"><path fill="currentColor" d="M4 6h24v2H4zm0 18h24v2H4zm0-12h24v2H4zm0 6h24v2H4z"/></symbol><use href="#ai:carbon:menu"></use>  </svg> </button> </div> </nav> </div> </header> <div id="mobile-menu-overlay" class="mobile-menu-overlay is-hidden"></div> <aside id="mobile-menu" class="mobile-menu" aria-hidden="true"> <div class="mobile-menu-header"> <a href="/legacy-personal-site/v4/" class="nav-link nav-logo">   sujeet.pro  </a> <button id="mobile-menu-close" class="mobile-menu-close" aria-label="Close menu"> <svg width="1em" height="1em" class="icon-lg" data-icon="carbon:close">   <symbol id="ai:carbon:close" viewBox="0 0 32 32"><path fill="currentColor" d="M17.414 16L24 9.414L22.586 8L16 14.586L9.414 8L8 9.414L14.586 16L8 22.586L9.414 24L16 17.414L22.586 24L24 22.586z"/></symbol><use href="#ai:carbon:close"></use>  </svg> </button> </div> <nav class="mobile-menu-nav"> <a href="/legacy-personal-site/v4/articles" class="mobile-menu-link">  Articles </a><a href="/legacy-personal-site/v4/blogs" class="mobile-menu-link">  Blogs </a><a href="/legacy-personal-site/v4/projects" class="mobile-menu-link">  Projects </a> </nav> </aside> <script type="module" src="/legacy-personal-site/v4/_astro/mobile-menu.astro_astro_type_script_index_0_lang.AuCdxukU.js"></script>  <div class="zen-layout"> <aside id="left-sidebar" class="zen-sidebar zen-sidebar-left" aria-label="Navigation sidebar"> <div class="zen-sidebar-header"> <span class="zen-sidebar-header-title">Navigation</span> <button class="zen-sidebar-close" data-sidebar-close="left" aria-label="Close navigation sidebar"> <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5"> <path d="M8 8l16 16M24 8L8 24"></path> </svg> </button> </div> <div class="zen-sidebar-content"> <nav aria-label="Article navigation" class="article-nav"> <div class="article-nav-category"> <span class="article-nav-category-name">Browser &amp; Runtime Internals</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Critical Rendering Path</span> <span class="article-nav-topic-count">(12)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-rendering-pipeline-overview" class="article-nav-article-link">  Critical Rendering Path: Rendering Pipeline Overview </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-dom-construction" class="article-nav-article-link">  Critical Rendering Path: DOM Construction </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-cssom-construction" class="article-nav-article-link">  Critical Rendering Path: CSSOM Construction </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-style-recalculation" class="article-nav-article-link">  Critical Rendering Path: Style Recalculation </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-layout" class="article-nav-article-link">  Critical Rendering Path: Layout Stage </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-prepaint" class="article-nav-article-link">  Critical Rendering Path: Prepaint </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-paint" class="article-nav-article-link">  Critical Rendering Path: Paint Stage </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-commit" class="article-nav-article-link">  Critical Rendering Path: Commit </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-layerize" class="article-nav-article-link">  Critical Rendering Path: Layerize </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-raster" class="article-nav-article-link">  Critical Rendering Path: Rasterization </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-composit" class="article-nav-article-link">  Critical Rendering Path: Compositing </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-draw" class="article-nav-article-link">  Critical Rendering Path: Draw </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">JavaScript Runtime Internals</span> <span class="article-nav-topic-count">(7)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/v8-engine-architecture" class="article-nav-article-link">  V8 Engine Architecture: Parsing, Optimization, and JIT </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/browser-internals" class="article-nav-article-link">  Browser Architecture: Processes, Caching, and Extensions </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/browser-event-loop" class="article-nav-article-link">  Browser Event Loop: Tasks, Microtasks, Rendering, and Idle Time </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/nodejs-runtime-architecture" class="article-nav-article-link">  Node.js Runtime Architecture: Event Loop, Streams, and APIs </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/libuv-event-loop-internals" class="article-nav-article-link">  libuv Internals: Event Loop and Async I/O </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/nodejs-event-loop" class="article-nav-article-link">  Node.js Event Loop: Phases, Queues, and Process Exit </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/js-event-loop" class="article-nav-article-link">  JS Event Loop: Tasks, Microtasks, and Rendering (For Browser &amp; Node.js) </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name is-current">System Design</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">System Design Fundamentals</span> <span class="article-nav-topic-count">(20)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/consistency-and-cap-theorem" class="article-nav-article-link">  Consistency Models and the CAP Theorem </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/distributed-consensus" class="article-nav-article-link">  Distributed Consensus </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/time-and-ordering" class="article-nav-article-link">  Time and Ordering in Distributed Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/failure-modes-and-resilience" class="article-nav-article-link">  Failure Modes and Resilience Patterns </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/storage-choices-sql-vs-nosql" class="article-nav-article-link">  Storage Choices: SQL vs NoSQL </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/sharding-and-replication" class="article-nav-article-link">  Sharding and Replication </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/indexing-and-query-optimization" class="article-nav-article-link">  Indexing and Query Optimization </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/transactions-and-acid" class="article-nav-article-link">  Transactions and ACID Properties </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/load-balancers-architecture" class="article-nav-article-link">  Load Balancer Architecture: L4 vs L7 and Routing </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/cdn-architecture-and-caching" class="article-nav-article-link">  CDN Architecture and Edge Caching </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/caching-fundamentals-and-strategies" class="article-nav-article-link">  Caching Fundamentals and Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/api-gateway-patterns" class="article-nav-article-link">  API Gateway Patterns: Routing, Auth, and Policies </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/service-discovery-and-registry" class="article-nav-article-link">  Service Discovery and Registry Patterns </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/dns-deep-dive" class="article-nav-article-link">  DNS Deep Dive </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/queues-and-pubsub" class="article-nav-article-link">  Queues and Pub/Sub: Decoupling and Backpressure </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/event-driven-architecture" class="article-nav-article-link">  Event-Driven Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/rpc-and-api-design" class="article-nav-article-link">  RPC and API Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/rate-limiting-strategies" class="article-nav-article-link">  Rate Limiting Strategies: Token Bucket, Leaky Bucket, and Sliding Window </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/circuit-breaker-patterns" class="article-nav-article-link">  Circuit Breaker Patterns for Resilient Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/capacity-planning-and-estimation" class="article-nav-article-link">  Capacity Planning and Back-of-the-Envelope Estimates </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">System Design Building Blocks</span> <span class="article-nav-topic-count">(10)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/lru-cache-design" class="article-nav-article-link">  LRU Cache Design: Eviction Strategies and Trade-offs </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/unique-id-generation" class="article-nav-article-link">  Unique ID Generation in Distributed Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-cache-design" class="article-nav-article-link">  Distributed Cache Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/blob-storage-design" class="article-nav-article-link">  Blob Storage Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-search-engine" class="article-nav-article-link">  Distributed Search Engine </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-logging-system" class="article-nav-article-link">  Distributed Logging System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-monitoring" class="article-nav-article-link">  Distributed Monitoring Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/task-scheduler-design" class="article-nav-article-link">  Task Scheduler Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/sharded-counters" class="article-nav-article-link">  Sharded Counters </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/leaderboard-design" class="article-nav-article-link">  Leaderboard Design </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">System Design Problems</span> <span class="article-nav-topic-count">(28)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-key-value-store" class="article-nav-article-link">  Design a Distributed Key-Value Store </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-distributed-file-system" class="article-nav-article-link">  Design a Distributed File System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-time-series-database" class="article-nav-article-link">  Design a Time Series Database </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-youtube-video-platform" class="article-nav-article-link">  Design a YouTube-Style Video Platform </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-netflix-streaming" class="article-nav-article-link">  Design Netflix Video Streaming </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-instagram-photo-sharing" class="article-nav-article-link">  Design Instagram: Photo Sharing at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-spotify-music-streaming" class="article-nav-article-link">  Design Spotify Music Streaming </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-real-time-chat-messaging" class="article-nav-article-link">  Design Real-Time Chat and Messaging </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-social-feed" class="article-nav-article-link">  Design a Social Feed (Facebook/Instagram) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-notification-system" class="article-nav-article-link">  Design a Notification System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-email-system" class="article-nav-article-link">  Design an Email System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-uber-ride-hailing" class="article-nav-article-link">  Design Uber-Style Ride Hailing </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-maps" class="article-nav-article-link">  Design Google Maps </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-yelp-proximity-service" class="article-nav-article-link">  Design Yelp: Location-Based Business Discovery Platform </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-search-autocomplete" class="article-nav-article-link">  Design Search Autocomplete: Prefix Matching at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-web-crawler" class="article-nav-article-link">  Design a Web Crawler </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-search" class="article-nav-article-link">  Design Google Search </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-docs-collaboration" class="article-nav-article-link">  Design Collaborative Document Editing (Google Docs) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-dropbox-file-sync" class="article-nav-article-link">  Design Dropbox File Sync </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-calendar" class="article-nav-article-link">  Design Google Calendar </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-issue-tracker" class="article-nav-article-link">  Design an Issue Tracker (Jira/Linear) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-payment-system" class="article-nav-article-link">  Design a Payment System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-flash-sale-system" class="article-nav-article-link">  Design a Flash Sale System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-amazon-shopping-cart" class="article-nav-article-link">  Design Amazon Shopping Cart </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/url-shortener-design" class="article-nav-article-link">  Design a URL Shortener: IDs, Storage, and Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-pastebin" class="article-nav-article-link">  Design Pastebin: Text Sharing, Expiration, and Abuse Prevention </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-api-rate-limiter" class="article-nav-article-link">  Design an API Rate Limiter: Distributed Throttling, Multi-Tenant Quotas, and Graceful Degradation </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-cookie-consent-service" class="article-nav-article-link">  Design a Cookie Consent Service </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Core Distributed Patterns</span> <span class="article-nav-topic-count">(9)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/crdt-for-collaborative-systems" class="article-nav-article-link">  CRDTs for Collaborative Systems </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/operational-transformation" class="article-nav-article-link">  Operational Transformation </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/distributed-locking" class="article-nav-article-link">  Distributed Locking </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/exactly-once-delivery" class="article-nav-article-link">  Exactly-Once Delivery </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/event-sourcing-deep-dive" class="article-nav-article-link">  Event Sourcing </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/change-data-capture" class="article-nav-article-link">  Change Data Capture </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/database-migrations-at-scale" class="article-nav-article-link">  Database Migrations at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/multi-region-architecture" class="article-nav-article-link">  Multi-Region Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/graceful-degradation" class="article-nav-article-link">  Graceful Degradation </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Frontend System Design</span> <span class="article-nav-topic-count">(15)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/virtualization-and-windowing" class="article-nav-article-link">  Virtualization and Windowing </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/offline-first-architecture" class="article-nav-article-link">  Offline-First Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/client-state-management" class="article-nav-article-link">  Client State Management </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/real-time-sync-client" class="article-nav-article-link">  Real-Time Sync Client </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/widget-framework" class="article-nav-article-link">  Multi-Tenant Pluggable Widget Framework </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/bundle-splitting-strategies" class="article-nav-article-link">  Bundle Splitting Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/rendering-strategies" class="article-nav-article-link">  Rendering Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/image-loading-optimization" class="article-nav-article-link">  Image Loading Optimization </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/performance-monitoring-client" class="article-nav-article-link">  Client Performance Monitoring </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-rich-text-editor" class="article-nav-article-link">  Design a Rich Text Editor </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-infinite-feed" class="article-nav-article-link">  Design an Infinite Feed </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-drag-drop-system" class="article-nav-article-link">  Design a Drag and Drop System </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-form-builder" class="article-nav-article-link">  Design a Form Builder </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-data-grid" class="article-nav-article-link">  Design a Data Grid </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-file-uploader" class="article-nav-article-link">  Design a File Uploader </a> </div> </details><details class="article-nav-topic" open> <summary class="article-nav-topic-toggle is-active"> <span class="article-nav-topic-name">Real-World Case Studies</span> <span class="article-nav-topic-count">(20)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/facebook-2021-outage-analysis" class="article-nav-article-link">  Facebook 2021 Outage: BGP Withdrawal, DNS Collapse, and the Backbone That Disappeared </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/aws-kinesis-2020-outage" class="article-nav-article-link">  AWS Kinesis 2020 Outage: Thread Limits, Thundering Herds, and Hidden Dependencies </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/shopify-pod-architecture" class="article-nav-article-link">  Shopify: Pod Architecture for Multi-Tenant Isolation at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/netflix-microservices-evolution" class="article-nav-article-link">  Netflix: From Monolith to Microservices — A 7-Year Architecture Evolution </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/twitter-timeline-architecture" class="article-nav-article-link">  Twitter/X: Timeline Architecture and the Recommendation Algorithm </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/facebook-tao-social-graph" class="article-nav-article-link">  Facebook TAO: The Social Graph’s Distributed Cache </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/uber-microservices-journey" class="article-nav-article-link">  Uber: From Monolith to Domain-Oriented Microservices </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/uber-schemaless-datastore" class="article-nav-article-link">  Uber Schemaless: Building a Scalable Datastore on MySQL </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/slack-distributed-architecture" class="article-nav-article-link">  Slack: Scaling a Real-Time Messaging Platform from Monolith to Distributed Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/linkedin-kafka-origin" class="article-nav-article-link">  LinkedIn and the Birth of Apache Kafka: Solving the O(N²) Data Integration Problem </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/dropbox-magic-pocket" class="article-nav-article-link is-active">  Dropbox Magic Pocket: Building Exabyte-Scale Blob Storage </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/instagram-cassandra-migration" class="article-nav-article-link">  Instagram: From Redis to Cassandra and the Rocksandra Storage Engine </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/youtube-vitess-scaling" class="article-nav-article-link">  YouTube: Scaling MySQL to Serve Billions with Vitess </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/github-mysql-migration" class="article-nav-article-link">  GitHub: Scaling MySQL from One Database to 1,200+ Hosts </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/pinterest-mysql-sharding" class="article-nav-article-link">  Pinterest: MySQL Sharding from Zero to Billions of Objects </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/stripe-idempotency-reliability" class="article-nav-article-link">  Stripe: Idempotency for Payment Reliability </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/discord-rust-read-states" class="article-nav-article-link">  Discord: Rewriting Read States from Go to Rust </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/discord-message-storage" class="article-nav-article-link">  Discord: From Billions to Trillions of Messages — A Three-Database Journey </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/figma-multiplayer-infrastructure" class="article-nav-article-link">  Figma: Building Multiplayer Infrastructure for Real-Time Design Collaboration </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/whatsapp-erlang-scaling" class="article-nav-article-link">  WhatsApp: 2 Million Connections Per Server with Erlang </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Platform Engineering</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Media Systems</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/drm-basics-for-streaming" class="article-nav-article-link">  DRM Fundamentals for Streaming Media </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/video-transcoding-pipeline" class="article-nav-article-link">  Video Transcoding Pipeline Design </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/web-video-playback-architecture" class="article-nav-article-link">  Web Video Playback Architecture: HLS, DASH, and Low Latency </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/image-processing-service-design" class="article-nav-article-link">  Image Processing Service Design: CDN, Transforms, and APIs </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Observability &amp; Reliability</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/slos-slis-error-budgets" class="article-nav-article-link">  SLOs, SLIs, and Error Budgets </a><a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/csp-violation-reporting-pipeline" class="article-nav-article-link">  CSP Violation Reporting Pipeline at Scale </a><a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/logging-metrics-tracing" class="article-nav-article-link">  Logging, Metrics, and Tracing Fundamentals </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Infrastructure &amp; Delivery</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/edge-delivery-and-cache-invalidation" class="article-nav-article-link">  Edge Delivery and Cache Invalidation </a><a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/deployment-strategies-blue-green-canary" class="article-nav-article-link">  Deployment Strategies: Blue-Green, Canary, and Rolling </a><a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/ssg-performance-optimizations" class="article-nav-article-link">  SSG Performance Optimizations: Build, Cache, and Delivery </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Experimentation &amp; Testing</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/experimentation-testing/k6-load-testing-overview" class="article-nav-article-link">  k6 Load Testing Overview: Smoke, Spike, Soak, Stress </a><a href="/legacy-personal-site/v4/articles/platform-engineering/experimentation-testing/statsig-experimentation-overview" class="article-nav-article-link">  Statsig Experimentation Platform: Architecture and Rollouts </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Platform Migrations</span> <span class="article-nav-topic-count">(1)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/platform-migrations/ecommerce-ssg-to-ssr-migration" class="article-nav-article-link">  E-commerce SSG to SSR Migration: Strategy and Pitfalls </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Frontend Engineering</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Frontend Architecture &amp; Patterns</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/micro-frontends-architecture" class="article-nav-article-link">  Micro-Frontends Architecture: Composition, Isolation, and Delivery </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/rendering-strategies-csr-ssr-ssg-isr" class="article-nav-article-link">  Rendering Strategies: CSR, SSR, SSG, and ISR </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/data-fetching-patterns" class="article-nav-article-link">  Frontend Data Fetching Patterns and Caching </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/css-architecture-strategies" class="article-nav-article-link">  CSS Architecture Strategies: BEM, Utility-First, and CSS-in-JS </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/component-architecture-blueprint" class="article-nav-article-link">  Component Architecture Blueprint for Scalable UI </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Web Performance Optimization</span> <span class="article-nav-topic-count">(6)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-infrastructure-stack" class="article-nav-article-link">  Web Performance Infrastructure: DNS, CDN, Caching, and Edge </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-javascript-optimization" class="article-nav-article-link">  JavaScript Performance Optimization for the Web </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-css-typography" class="article-nav-article-link">  CSS and Typography Performance Optimization </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-image-optimization" class="article-nav-article-link">  Image Performance Optimization for the Web </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/core-web-vitals-measurement" class="article-nav-article-link">  Core Web Vitals Measurement: Lab vs Field Data </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-overview" class="article-nav-article-link">  Web Performance Optimization: Overview and Playbook </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Design Systems</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-system-implementation-scaling" class="article-nav-article-link">  Design System Implementation and Scaling </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/component-library-architecture-and-governance" class="article-nav-article-link">  Component Library Architecture and Governance </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-tokens-and-theming" class="article-nav-article-link">  Design Tokens and Theming Architecture </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-system-adoption-foundations" class="article-nav-article-link">  Design System Adoption: Foundations and Governance </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">React Architecture</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-performance-patterns" class="article-nav-article-link">  React Performance Patterns: Rendering, Memoization, and Scheduling </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-hooks-advanced-patterns" class="article-nav-article-link">  React Hooks Advanced Patterns: Specialized Hooks and Composition </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-rendering-architecture" class="article-nav-article-link">  React Rendering Architecture: Fiber, SSR, and RSC </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-hooks-fundamentals" class="article-nav-article-link">  React Hooks Fundamentals: Rules, Core Hooks, and Custom Hooks </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Web Foundations</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Security &amp; Auth</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/csrf-and-cors-defense" class="article-nav-article-link">  CSRF and CORS Defense for Modern Web Applications </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/oauth-oidc-flow-guide" class="article-nav-article-link">  OAuth 2.0 and OIDC Flows: Authorization Code to PKCE </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/web-app-security-architecture" class="article-nav-article-link">  Web Application Security Architecture </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/auth-foundations-sessions-tokens" class="article-nav-article-link">  Authentication Foundations: Sessions, Tokens, and Trust </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/owasp-top-10-guide" class="article-nav-article-link">  OWASP Top 10: Web Application Security Risks </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Networking &amp; Protocols</span> <span class="article-nav-topic-count">(7)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/http3-quic-and-tls" class="article-nav-article-link">  HTTP/3 and QUIC: Transport Layer Revolution </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/http1-1-to-http2-evolution" class="article-nav-article-link">  HTTP/1.1 to HTTP/2: Bottlenecks and Multiplexing </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/tls-1-3-handshake-and-https" class="article-nav-article-link">  TLS 1.3 Handshake and HTTPS Hardening </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-security-doh-dot-dnssec" class="article-nav-article-link">  DNS Security and Privacy: DNSSEC, DoH, and DoT </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-troubleshooting-playbook" class="article-nav-article-link">  DNS Troubleshooting Playbook </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-records-ttl-and-caching" class="article-nav-article-link">  DNS Records, TTL Strategy, and Cache Behavior </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-resolution-path" class="article-nav-article-link">  DNS Resolution Path: Stub to Recursive to Authoritative </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Browser APIs</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/web-workers-and-worklets" class="article-nav-article-link">  Web Workers and Worklets for Off-Main-Thread Work </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/service-workers-and-cache-api" class="article-nav-article-link">  Service Workers and Cache API </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/fetch-and-streaming-apis" class="article-nav-article-link">  Fetch, Streams, and AbortController </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/storage-apis-local-indexeddb" class="article-nav-article-link">  Browser Storage APIs: localStorage, IndexedDB, and Beyond </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/dom-api-essentials" class="article-nav-article-link">  DOM API Essentials: Structure, Traversal, and Mutation </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Accessibility Standards</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/accessibility-standards/accessibility-testing-tooling" class="article-nav-article-link">  Accessibility Testing and Tooling Workflow </a><a href="/legacy-personal-site/v4/articles/web-foundations/accessibility-standards/wcag-2-2-practical-guide" class="article-nav-article-link">  WCAG 2.2: Practical Accessibility Guide </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Programming &amp; Patterns</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Data Structures</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/heaps-and-priority-queues" class="article-nav-article-link">  Heaps and Priority Queues: Internals, Trade-offs, and When Theory Breaks Down </a><a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/trees-and-graphs" class="article-nav-article-link">  Trees and Graphs: Traversals and Applications </a><a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/arrays-and-hash-maps" class="article-nav-article-link">  Arrays and Hash Maps: Engine Internals and Performance Reality </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Algorithms Foundations</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/k-crystal-balls-problem" class="article-nav-article-link">  K-Crystal Balls Problem: Jump Search Pattern </a><a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/sorting-algorithms-guide" class="article-nav-article-link">  Sorting Algorithms: Complexity, Stability, and Use Cases </a><a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/search-algorithms-guide" class="article-nav-article-link">  Search Algorithms: Linear, Binary, and Graph Traversal </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">JavaScript Patterns</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/publish-subscribe-pattern" class="article-nav-article-link">  Publish-Subscribe Pattern in JavaScript </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/exponential-backoff-retry-strategy" class="article-nav-article-link">  Exponential Backoff and Retry Strategy </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/async-queue-pattern" class="article-nav-article-link">  Async Queue Pattern in JavaScript </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/javascript-error-handling-patterns" class="article-nav-article-link">  JavaScript Error Handling Patterns </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/javascript-string-length" class="article-nav-article-link">  JavaScript String Length: Graphemes, UTF-16, and Unicode </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Developer Experience</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Productivity &amp; Workflows</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/developer-experience/productivity-workflows/chrome-developer-setup" class="article-nav-article-link">  Chrome Developer Setup: Extensions, Profiles, and Shortcuts </a><a href="/legacy-personal-site/v4/articles/developer-experience/productivity-workflows/editor-terminal-setup" class="article-nav-article-link">  macOS Developer Environment Setup </a> </div> </details> </div> </div> </nav> <script type="module">function e(){document.querySelector("#left-sidebar .article-nav-article-link.is-active")?.scrollIntoView({block:"nearest",behavior:"instant"})}e();document.addEventListener("astro:page-load",e);</script>  </div> </aside> <main id="main" class="zen-main"> <div class="page-content"> <nav class="breadcrumb" aria-label="Breadcrumb"><a title="Home" aria-label="Home" href="/legacy-personal-site/v4/" class="nav-link">  <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:home">   <symbol id="ai:carbon:home" viewBox="0 0 32 32"><path fill="currentColor" d="M16.612 2.214a1.01 1.01 0 0 0-1.242 0L1 13.419l1.243 1.572L4 13.621V26a2.004 2.004 0 0 0 2 2h20a2.004 2.004 0 0 0 2-2V13.63L29.757 15L31 13.428ZM18 26h-4v-8h4Zm2 0v-8a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v8H6V12.062l10-7.79l10 7.8V26Z"/></symbol><use href="#ai:carbon:home"></use>  </svg> </a><svg width="1em" height="1em" viewBox="0 0 32 32" class="breadcrumb-separator icon-sm" data-icon="carbon:chevron-right">   <use href="#ai:carbon:chevron-right"></use>  </svg><a href="/legacy-personal-site/v4/articles/system-design" class="nav-link">  System Design </a><svg width="1em" height="1em" class="breadcrumb-separator icon-sm" data-icon="carbon:chevron-right">   <symbol id="ai:carbon:chevron-right" viewBox="0 0 32 32"><path fill="currentColor" d="M22 16L12 26l-1.4-1.4l8.6-8.6l-8.6-8.6L12 6z"/></symbol><use href="#ai:carbon:chevron-right"></use>  </svg><a title="Real-World Case Studies" href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies" class="nav-link">  Real-World Case Studies </a></nav>    <div id="reading-progress" class="reading-progress" style="width: 0%"></div> <script type="module">function l(){const e=document.getElementById("reading-progress");if(!e)return;const t=document.querySelector("article")||document.querySelector(".prose");if(!t){e.style.display="none";return}function r(){if(!t||!e)return;const i=t.getBoundingClientRect(),s=i.top+window.scrollY,u=i.height,c=window.innerHeight,g=window.scrollY,o=s-c/2,w=s+u-c/2,d=g;let a=0;d>o&&(a=Math.min(100,(d-o)/(w-o)*100)),e.style.width=`${Math.max(0,a)}%`}let n=!1;window.addEventListener("scroll",()=>{n||(requestAnimationFrame(()=>{r(),n=!1}),n=!0)}),r()}document.addEventListener("DOMContentLoaded",l);document.addEventListener("astro:page-load",l);</script>  <div class="frontmatter article-frontmatter">    <span class="frontmatter-item"> <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:time">   <symbol id="ai:carbon:time" viewBox="0 0 32 32"><path fill="currentColor" d="M16 30a14 14 0 1 1 14-14a14 14 0 0 1-14 14m0-26a12 12 0 1 0 12 12A12 12 0 0 0 16 4"/><path fill="currentColor" d="M20.59 22L15 16.41V7h2v8.58l5 5.01z"/></symbol><use href="#ai:carbon:time"></use>  </svg> 21 min read </span> <span class="frontmatter-item"> <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:calendar">   <symbol id="ai:carbon:calendar" viewBox="0 0 32 32"><path fill="currentColor" d="M26 4h-4V2h-2v2h-8V2h-2v2H6c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2m0 22H6V12h20zm0-16H6V6h4v2h2V6h8v2h2V6h4z"/></symbol><use href="#ai:carbon:calendar"></use>  </svg>
+Last updated on Feb 8, 2026 </span> </div>  <article id="article-content" class="article-prose-content DocSearch-content"> <h1 id="dropbox-magic-pocket-building-exabyte-scale-blob-storage" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#dropbox-magic-pocket-building-exabyte-scale-blob-storage">Dropbox Magic Pocket: Building Exabyte-Scale Blob Storage</a></h1>
+<p>How Dropbox migrated 500+ petabytes off AWS S3 onto custom infrastructure in under two years, saving $74.6 million net while achieving higher durability than the service it replaced. Magic Pocket is a content-addressable, immutable block store built by a team of fewer than six engineers, now serving 700+ million users across 600,000+ storage drives.</p>
+<figure>
+<p><img alt="Magic Pocket&amp;#x27;s core architecture: clients interact with Edgestore for metadata, which routes to Magic Pocket frontends. Frontends consult the Block Index for placement and store blocks across three geographic zones with cross-zone replication." loading="lazy" decoding="async" fetchpriority="auto" width="724" height="932" src="/legacy-personal-site/v4/_astro/magic-pocket-s-core-architecture-clients-interact-with-edgestore-for-metadata-wh.S6tTcDAw_13QrRM.svg" ></p>
+<figcaption>Magic Pocket's core architecture: clients interact with Edgestore for metadata, which routes to Magic Pocket frontends. Frontends consult the Block Index for placement and store blocks across three geographic zones with cross-zone replication.</figcaption>
+</figure>
+<h2 id="abstract" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#abstract">Abstract</a></h2>
+<p>Magic Pocket is a <strong>content-addressable, immutable block store</strong> where the key is a block’s SHA-256 hash and the value is a compressed, encrypted blob up to 4 MB. The mental model has three layers:</p>
+<ul>
+<li><strong>Metadata layer</strong> (Edgestore + Block Index): Maps file paths to block hashes, and block hashes to physical locations. Sharded MySQL under the hood.</li>
+<li><strong>Placement and routing layer</strong> (Frontends + Master): Determines which cell and volume stores each block. Handles deduplication at write time via hash lookup. The Master orchestrates repair and garbage collection but holds no authoritative state---the Replication Table does.</li>
+<li><strong>Physical storage layer</strong> (OSD nodes + Diskotech servers): 100 Shingled Magnetic Recording (SMR) drives per chassis, ~2 PB per machine, written append-only with no filesystem. Blocks start as 4x replicas (hot), then get erasure-coded to 1.5x overhead as they cool.</li>
+</ul>
+<p>The design bets: immutable blocks eliminate consistency complexity, content-addressing enables deduplication, and SMR’s sequential-write constraint aligns with append-only semantics. The verification system (Pocket Watch) spends over 50% of disk I/O on continuous integrity checking---an unusual choice that reflects Dropbox’s stance that detecting corruption matters more than optimizing throughput.</p>
+<h2 id="context" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#context">Context</a></h2>
+<h3 id="the-system" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-system">The System</a></h3>
+<p>Dropbox’s core product is file synchronization and storage. By 2015, the platform served 500+ million users, making it one of the largest consumers of AWS S3 globally.</p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Metric</th><th>Value (2015)</th></tr></thead><tbody><tr><td>Total data stored</td><td>500+ PB</td></tr><tr><td>Users</td><td>500+ million</td></tr><tr><td>Primary storage backend</td><td>AWS S3</td></tr><tr><td>Data growth rate</td><td>~40 PB/year (estimated from 2012’s 40 PB baseline)</td></tr><tr><td>AWS relationship</td><td>One of S3’s largest customers</td></tr></tbody></table></div>
+<h3 id="the-trigger" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-trigger">The Trigger</a></h3>
+<p>Storage is Dropbox’s core product---not a supporting service. When your entire business is storing files, the economics of renting per-GB storage from a cloud provider diverge sharply from owning infrastructure at scale.</p>
+<p>Three factors drove the decision:</p>
+<ol>
+<li><strong>Cost</strong>: Dropbox’s S-1 filing revealed they reduced infrastructure costs by **<mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.464ex;" xmlns="http://www.w3.org/2000/svg" width="93.784ex" height="2.084ex" role="img" focusable="false" viewBox="0 -716 41452.6 921" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><path id="MJX-1-TEX-N-37" d="M55 458Q56 460 72 567L88 674Q88 676 108 676H128V672Q128 662 143 655T195 646T364 644H485V605L417 512Q408 500 387 472T360 435T339 403T319 367T305 330T292 284T284 230T278 162T275 80Q275 66 275 52T274 28V19Q270 2 255 -10T221 -22Q210 -22 200 -19T179 0T168 40Q168 198 265 368Q285 400 349 489L395 552H302Q128 552 119 546Q113 543 108 522T98 479L95 458V455H55V458Z"></path><path id="MJX-1-TEX-N-34" d="M462 0Q444 3 333 3Q217 3 199 0H190V46H221Q241 46 248 46T265 48T279 53T286 61Q287 63 287 115V165H28V211L179 442Q332 674 334 675Q336 677 355 677H373L379 671V211H471V165H379V114Q379 73 379 66T385 54Q393 47 442 46H471V0H462ZM293 211V545L74 212L183 211H293Z"></path><path id="MJX-1-TEX-N-2E" d="M78 60Q78 84 95 102T138 120Q162 120 180 104T199 61Q199 36 182 18T139 0T96 17T78 60Z"></path><path id="MJX-1-TEX-N-36" d="M42 313Q42 476 123 571T303 666Q372 666 402 630T432 550Q432 525 418 510T379 495Q356 495 341 509T326 548Q326 592 373 601Q351 623 311 626Q240 626 194 566Q147 500 147 364L148 360Q153 366 156 373Q197 433 263 433H267Q313 433 348 414Q372 400 396 374T435 317Q456 268 456 210V192Q456 169 451 149Q440 90 387 34T253 -22Q225 -22 199 -14T143 16T92 75T56 172T42 313ZM257 397Q227 397 205 380T171 335T154 278T148 216Q148 133 160 97T198 39Q222 21 251 21Q302 21 329 59Q342 77 347 104T352 209Q352 289 347 316T329 361Q302 397 257 397Z"></path><path id="MJX-1-TEX-I-1D45A" d="M21 287Q22 293 24 303T36 341T56 388T88 425T132 442T175 435T205 417T221 395T229 376L231 369Q231 367 232 367L243 378Q303 442 384 442Q401 442 415 440T441 433T460 423T475 411T485 398T493 385T497 373T500 364T502 357L510 367Q573 442 659 442Q713 442 746 415T780 336Q780 285 742 178T704 50Q705 36 709 31T724 26Q752 26 776 56T815 138Q818 149 821 151T837 153Q857 153 857 145Q857 144 853 130Q845 101 831 73T785 17T716 -10Q669 -10 648 17T627 73Q627 92 663 193T700 345Q700 404 656 404H651Q565 404 506 303L499 291L466 157Q433 26 428 16Q415 -11 385 -11Q372 -11 364 -4T353 8T350 18Q350 29 384 161L420 307Q423 322 423 345Q423 404 379 404H374Q288 404 229 303L222 291L189 157Q156 26 151 16Q138 -11 108 -11Q95 -11 87 -5T76 7T74 17Q74 30 112 181Q151 335 151 342Q154 357 154 369Q154 405 129 405Q107 405 92 377T69 316T57 280Q55 278 41 278H27Q21 284 21 287Z"></path><path id="MJX-1-TEX-I-1D456" d="M184 600Q184 624 203 642T247 661Q265 661 277 649T290 619Q290 596 270 577T226 557Q211 557 198 567T184 600ZM21 287Q21 295 30 318T54 369T98 420T158 442Q197 442 223 419T250 357Q250 340 236 301T196 196T154 83Q149 61 149 51Q149 26 166 26Q175 26 185 29T208 43T235 78T260 137Q263 149 265 151T282 153Q302 153 302 143Q302 135 293 112T268 61T223 11T161 -11Q129 -11 102 10T74 74Q74 91 79 106T122 220Q160 321 166 341T173 380Q173 404 156 404H154Q124 404 99 371T61 287Q60 286 59 284T58 281T56 279T53 278T49 278T41 278H27Q21 284 21 287Z"></path><path id="MJX-1-TEX-I-1D459" d="M117 59Q117 26 142 26Q179 26 205 131Q211 151 215 152Q217 153 225 153H229Q238 153 241 153T246 151T248 144Q247 138 245 128T234 90T214 43T183 6T137 -11Q101 -11 70 11T38 85Q38 97 39 102L104 360Q167 615 167 623Q167 626 166 628T162 632T157 634T149 635T141 636T132 637T122 637Q112 637 109 637T101 638T95 641T94 647Q94 649 96 661Q101 680 107 682T179 688Q194 689 213 690T243 693T254 694Q266 694 266 686Q266 675 193 386T118 83Q118 81 118 75T117 65V59Z"></path><path id="MJX-1-TEX-I-1D45C" d="M201 -11Q126 -11 80 38T34 156Q34 221 64 279T146 380Q222 441 301 441Q333 441 341 440Q354 437 367 433T402 417T438 387T464 338T476 268Q476 161 390 75T201 -11ZM121 120Q121 70 147 48T206 26Q250 26 289 58T351 142Q360 163 374 216T388 308Q388 352 370 375Q346 405 306 405Q243 405 195 347Q158 303 140 230T121 120Z"></path><path id="MJX-1-TEX-I-1D45B" d="M21 287Q22 293 24 303T36 341T56 388T89 425T135 442Q171 442 195 424T225 390T231 369Q231 367 232 367L243 378Q304 442 382 442Q436 442 469 415T503 336T465 179T427 52Q427 26 444 26Q450 26 453 27Q482 32 505 65T540 145Q542 153 560 153Q580 153 580 145Q580 144 576 130Q568 101 554 73T508 17T439 -10Q392 -10 371 17T350 73Q350 92 386 193T423 345Q423 404 379 404H374Q288 404 229 303L222 291L189 157Q156 26 151 16Q138 -11 108 -11Q95 -11 87 -5T76 7T74 17Q74 30 112 180T152 343Q153 348 153 366Q153 405 129 405Q91 405 66 305Q60 285 60 284Q58 278 41 278H27Q21 284 21 287Z"></path><path id="MJX-1-TEX-I-1D452" d="M39 168Q39 225 58 272T107 350T174 402T244 433T307 442H310Q355 442 388 420T421 355Q421 265 310 237Q261 224 176 223Q139 223 138 221Q138 219 132 186T125 128Q125 81 146 54T209 26T302 45T394 111Q403 121 406 121Q410 121 419 112T429 98T420 82T390 55T344 24T281 -1T205 -11Q126 -11 83 42T39 168ZM373 353Q367 405 305 405Q272 405 244 391T199 357T170 316T154 280T149 261Q149 260 169 260Q282 260 327 284T373 353Z"></path><path id="MJX-1-TEX-I-1D461" d="M26 385Q19 392 19 395Q19 399 22 411T27 425Q29 430 36 430T87 431H140L159 511Q162 522 166 540T173 566T179 586T187 603T197 615T211 624T229 626Q247 625 254 615T261 596Q261 589 252 549T232 470L222 433Q222 431 272 431H323Q330 424 330 420Q330 398 317 385H210L174 240Q135 80 135 68Q135 26 162 26Q197 26 230 60T283 144Q285 150 288 151T303 153H307Q322 153 322 145Q322 142 319 133Q314 117 301 95T267 48T216 6T155 -11Q125 -11 98 4T59 56Q57 64 57 83V101L92 241Q127 382 128 383Q128 385 77 385H26Z"></path><path id="MJX-1-TEX-I-1D463" d="M173 380Q173 405 154 405Q130 405 104 376T61 287Q60 286 59 284T58 281T56 279T53 278T49 278T41 278H27Q21 284 21 287Q21 294 29 316T53 368T97 419T160 441Q202 441 225 417T249 361Q249 344 246 335Q246 329 231 291T200 202T182 113Q182 86 187 69Q200 26 250 26Q287 26 319 60T369 139T398 222T409 277Q409 300 401 317T383 343T365 361T357 383Q357 405 376 424T417 443Q436 443 451 425T467 367Q467 340 455 284T418 159T347 40T241 -11Q177 -11 139 22Q102 54 102 117Q102 148 110 181T151 298Q173 362 173 380Z"></path><path id="MJX-1-TEX-I-1D45F" d="M21 287Q22 290 23 295T28 317T38 348T53 381T73 411T99 433T132 442Q161 442 183 430T214 408T225 388Q227 382 228 382T236 389Q284 441 347 441H350Q398 441 422 400Q430 381 430 363Q430 333 417 315T391 292T366 288Q346 288 334 299T322 328Q322 376 378 392Q356 405 342 405Q286 405 239 331Q229 315 224 298T190 165Q156 25 151 16Q138 -11 108 -11Q95 -11 87 -5T76 7T74 17Q74 30 114 189T154 366Q154 405 128 405Q107 405 92 377T68 316T57 280Q55 278 41 278H27Q21 284 21 287Z"></path><path id="MJX-1-TEX-N-32" d="M109 429Q82 429 66 447T50 491Q50 562 103 614T235 666Q326 666 387 610T449 465Q449 422 429 383T381 315T301 241Q265 210 201 149L142 93L218 92Q375 92 385 97Q392 99 409 186V189H449V186Q448 183 436 95T421 3V0H50V19V31Q50 38 56 46T86 81Q115 113 136 137Q145 147 170 174T204 211T233 244T261 278T284 308T305 340T320 369T333 401T340 431T343 464Q343 527 309 573T212 619Q179 619 154 602T119 569T109 550Q109 549 114 549Q132 549 151 535T170 489Q170 464 154 447T109 429Z"></path><path id="MJX-1-TEX-N-30" d="M96 585Q152 666 249 666Q297 666 345 640T423 548Q460 465 460 320Q460 165 417 83Q397 41 362 16T301 -15T250 -22Q224 -22 198 -16T137 16T82 83Q39 165 39 320Q39 494 96 585ZM321 597Q291 629 250 629Q208 629 178 597Q153 571 145 525T137 333Q137 175 145 125T181 46Q209 16 250 16Q290 16 318 46Q347 76 354 130T362 333Q362 478 354 524T321 597Z"></path><path id="MJX-1-TEX-N-31" d="M213 578L200 573Q186 568 160 563T102 556H83V602H102Q149 604 189 617T245 641T273 663Q275 666 285 666Q294 666 302 660V361L303 61Q310 54 315 52T339 48T401 46H427V0H416Q395 3 257 3Q121 3 100 0H88V46H114Q136 46 152 46T177 47T193 50T201 52T207 57T213 61V578Z"></path><path id="MJX-1-TEX-N-2212" d="M84 237T84 250T98 270H679Q694 262 694 250T679 230H98Q84 237 84 250Z"></path><path id="MJX-1-TEX-N-2217" d="M229 286Q216 420 216 436Q216 454 240 464Q241 464 245 464T251 465Q263 464 273 456T283 436Q283 419 277 356T270 286L328 328Q384 369 389 372T399 375Q412 375 423 365T435 338Q435 325 425 315Q420 312 357 282T289 250L355 219L425 184Q434 175 434 161Q434 146 425 136T401 125Q393 125 383 131T328 171L270 213Q283 79 283 63Q283 53 276 44T250 35Q231 35 224 44T216 63Q216 80 222 143T229 213L171 171Q115 130 110 127Q106 124 100 124Q87 124 76 134T64 161Q64 166 64 169T67 175T72 181T81 188T94 195T113 204T138 215T170 230T210 250L74 315Q65 324 65 338Q65 353 74 363T98 374Q106 374 116 368T171 328L229 286Z"></path><path id="MJX-1-TEX-I-1D44E" d="M33 157Q33 258 109 349T280 441Q331 441 370 392Q386 422 416 422Q429 422 439 414T449 394Q449 381 412 234T374 68Q374 43 381 35T402 26Q411 27 422 35Q443 55 463 131Q469 151 473 152Q475 153 483 153H487Q506 153 506 144Q506 138 501 117T481 63T449 13Q436 0 417 -8Q409 -10 393 -10Q359 -10 336 5T306 36L300 51Q299 52 296 50Q294 48 292 46Q233 -10 172 -10Q117 -10 75 30T33 157ZM351 328Q351 334 346 350T323 385T277 405Q242 405 210 374T160 293Q131 214 119 129Q119 126 119 118T118 106Q118 61 136 44T179 26Q217 26 254 59T298 110Q300 114 325 217T351 328Z"></path><path id="MJX-1-TEX-I-1D453" d="M118 -162Q120 -162 124 -164T135 -167T147 -168Q160 -168 171 -155T187 -126Q197 -99 221 27T267 267T289 382V385H242Q195 385 192 387Q188 390 188 397L195 425Q197 430 203 430T250 431Q298 431 298 432Q298 434 307 482T319 540Q356 705 465 705Q502 703 526 683T550 630Q550 594 529 578T487 561Q443 561 443 603Q443 622 454 636T478 657L487 662Q471 668 457 668Q445 668 434 658T419 630Q412 601 403 552T387 469T380 433Q380 431 435 431Q480 431 487 430T498 424Q499 420 496 407T491 391Q489 386 482 386T428 385H372L349 263Q301 15 282 -47Q255 -132 212 -173Q175 -205 139 -205Q107 -205 81 -186T55 -132Q55 -95 76 -78T118 -61Q162 -61 162 -103Q162 -122 151 -136T127 -157L118 -162Z"></path><path id="MJX-1-TEX-I-1D454" d="M311 43Q296 30 267 15T206 0Q143 0 105 45T66 160Q66 265 143 353T314 442Q361 442 401 394L404 398Q406 401 409 404T418 412T431 419T447 422Q461 422 470 413T480 394Q480 379 423 152T363 -80Q345 -134 286 -169T151 -205Q10 -205 10 -137Q10 -111 28 -91T74 -71Q89 -71 102 -80T116 -111Q116 -121 114 -130T107 -144T99 -154T92 -162L90 -164H91Q101 -167 151 -167Q189 -167 211 -155Q234 -144 254 -122T282 -75Q288 -56 298 -13Q311 35 311 43ZM384 328L380 339Q377 350 375 354T369 368T359 382T346 393T328 402T306 405Q262 405 221 352Q191 313 171 233T151 117Q151 38 213 38Q269 38 323 108L331 118L384 328Z"></path><path id="MJX-1-TEX-I-1D447" d="M40 437Q21 437 21 445Q21 450 37 501T71 602L88 651Q93 669 101 677H569H659Q691 677 697 676T704 667Q704 661 687 553T668 444Q668 437 649 437Q640 437 637 437T631 442L629 445Q629 451 635 490T641 551Q641 586 628 604T573 629Q568 630 515 631Q469 631 457 630T439 622Q438 621 368 343T298 60Q298 48 386 46Q418 46 427 45T436 36Q436 31 433 22Q429 4 424 1L422 0Q419 0 415 0Q410 0 363 1T228 2Q99 2 64 0H49Q43 6 43 9T45 27Q49 40 55 46H83H94Q174 46 189 55Q190 56 191 56Q196 59 201 76T241 233Q258 301 269 344Q339 619 339 625Q339 630 310 630H279Q212 630 191 624Q146 614 121 583T67 467Q60 445 57 441T43 437H40Z"></path><path id="MJX-1-TEX-I-210E" d="M137 683Q138 683 209 688T282 694Q294 694 294 685Q294 674 258 534Q220 386 220 383Q220 381 227 388Q288 442 357 442Q411 442 444 415T478 336Q478 285 440 178T402 50Q403 36 407 31T422 26Q450 26 474 56T513 138Q516 149 519 151T535 153Q555 153 555 145Q555 144 551 130Q535 71 500 33Q466 -10 419 -10H414Q367 -10 346 17T325 74Q325 90 361 192T398 345Q398 404 354 404H349Q266 404 205 306L198 293L164 158Q132 28 127 16Q114 -11 83 -11Q69 -11 59 -2T48 16Q48 30 121 320L195 616Q195 629 188 632T149 637H128Q122 643 122 645T124 664Q129 683 137 683Z"></path><path id="MJX-1-TEX-I-1D460" d="M131 289Q131 321 147 354T203 415T300 442Q362 442 390 415T419 355Q419 323 402 308T364 292Q351 292 340 300T328 326Q328 342 337 354T354 372T367 378Q368 378 368 379Q368 382 361 388T336 399T297 405Q249 405 227 379T204 326Q204 301 223 291T278 274T330 259Q396 230 396 163Q396 135 385 107T352 51T289 7T195 -10Q118 -10 86 19T53 87Q53 126 74 143T118 160Q133 160 146 151T160 120Q160 94 142 76T111 58Q109 57 108 57T107 55Q108 52 115 47T146 34T201 27Q237 27 263 38T301 66T318 97T323 122Q323 150 302 164T254 181T195 196T148 231Q131 256 131 289Z"></path><path id="MJX-1-TEX-I-1D434" d="M208 74Q208 50 254 46Q272 46 272 35Q272 34 270 22Q267 8 264 4T251 0Q249 0 239 0T205 1T141 2Q70 2 50 0H42Q35 7 35 11Q37 38 48 46H62Q132 49 164 96Q170 102 345 401T523 704Q530 716 547 716H555H572Q578 707 578 706L606 383Q634 60 636 57Q641 46 701 46Q726 46 726 36Q726 34 723 22Q720 7 718 4T704 0Q701 0 690 0T651 1T578 2Q484 2 455 0H443Q437 6 437 9T439 27Q443 40 445 43L449 46H469Q523 49 533 63L521 213H283L249 155Q208 86 208 74ZM516 260Q516 271 504 416T490 562L463 519Q447 492 400 412L310 260L413 259Q516 259 516 260Z"></path><path id="MJX-1-TEX-I-1D44A" d="M436 683Q450 683 486 682T553 680Q604 680 638 681T677 682Q695 682 695 674Q695 670 692 659Q687 641 683 639T661 637Q636 636 621 632T600 624T597 615Q597 603 613 377T629 138L631 141Q633 144 637 151T649 170T666 200T690 241T720 295T759 362Q863 546 877 572T892 604Q892 619 873 628T831 637Q817 637 817 647Q817 650 819 660Q823 676 825 679T839 682Q842 682 856 682T895 682T949 681Q1015 681 1034 683Q1048 683 1048 672Q1048 666 1045 655T1038 640T1028 637Q1006 637 988 631T958 617T939 600T927 584L923 578L754 282Q586 -14 585 -15Q579 -22 561 -22Q546 -22 542 -17Q539 -14 523 229T506 480L494 462Q472 425 366 239Q222 -13 220 -15T215 -19Q210 -22 197 -22Q178 -22 176 -15Q176 -12 154 304T131 622Q129 631 121 633T82 637H58Q51 644 51 648Q52 671 64 683H76Q118 680 176 680Q301 680 313 683H323Q329 677 329 674T327 656Q322 641 318 637H297Q236 634 232 620Q262 160 266 136L501 550L499 587Q496 629 489 632Q483 636 447 637Q428 637 422 639T416 648Q416 650 418 660Q419 664 420 669T421 676T424 680T428 682T436 683Z"></path><path id="MJX-1-TEX-I-1D446" d="M308 24Q367 24 416 76T466 197Q466 260 414 284Q308 311 278 321T236 341Q176 383 176 462Q176 523 208 573T273 648Q302 673 343 688T407 704H418H425Q521 704 564 640Q565 640 577 653T603 682T623 704Q624 704 627 704T632 705Q645 705 645 698T617 577T585 459T569 456Q549 456 549 465Q549 471 550 475Q550 478 551 494T553 520Q553 554 544 579T526 616T501 641Q465 662 419 662Q362 662 313 616T263 510Q263 480 278 458T319 427Q323 425 389 408T456 390Q490 379 522 342T554 242Q554 216 546 186Q541 164 528 137T492 78T426 18T332 -20Q320 -22 298 -22Q199 -22 144 33L134 44L106 13Q83 -14 78 -18T65 -22Q52 -22 52 -14Q52 -11 110 221Q112 227 130 227H143Q149 221 149 216Q149 214 148 207T144 186T142 153Q144 114 160 87T203 47T255 29T308 24Z"></path><path id="MJX-1-TEX-I-1D44F" d="M73 647Q73 657 77 670T89 683Q90 683 161 688T234 694Q246 694 246 685T212 542Q204 508 195 472T180 418L176 399Q176 396 182 402Q231 442 283 442Q345 442 383 396T422 280Q422 169 343 79T173 -11Q123 -11 82 27T40 150V159Q40 180 48 217T97 414Q147 611 147 623T109 637Q104 637 101 637H96Q86 637 83 637T76 640T73 647ZM336 325V331Q336 405 275 405Q258 405 240 397T207 376T181 352T163 330L157 322L136 236Q114 150 114 114Q114 66 138 42Q154 26 178 26Q211 26 245 58Q270 81 285 114T318 219Q336 291 336 325Z"></path><path id="MJX-1-TEX-I-1D451" d="M366 683Q367 683 438 688T511 694Q523 694 523 686Q523 679 450 384T375 83T374 68Q374 26 402 26Q411 27 422 35Q443 55 463 131Q469 151 473 152Q475 153 483 153H487H491Q506 153 506 145Q506 140 503 129Q490 79 473 48T445 8T417 -8Q409 -10 393 -10Q359 -10 336 5T306 36L300 51Q299 52 296 50Q294 48 292 46Q233 -10 172 -10Q117 -10 75 30T33 157Q33 205 53 255T101 341Q148 398 195 420T280 442Q336 442 364 400Q369 394 369 396Q370 400 396 505T424 616Q424 629 417 632T378 637H357Q351 643 351 645T353 664Q358 683 366 683ZM352 326Q329 405 277 405Q242 405 210 374T160 293Q131 214 119 129Q119 126 119 118T118 106Q118 61 136 44T179 26Q233 26 290 98L298 109L352 326Z"></path><path id="MJX-1-TEX-I-1D462" d="M21 287Q21 295 30 318T55 370T99 420T158 442Q204 442 227 417T250 358Q250 340 216 246T182 105Q182 62 196 45T238 27T291 44T328 78L339 95Q341 99 377 247Q407 367 413 387T427 416Q444 431 463 431Q480 431 488 421T496 402L420 84Q419 79 419 68Q419 43 426 35T447 26Q469 29 482 57T512 145Q514 153 532 153Q551 153 551 144Q550 139 549 130T540 98T523 55T498 17T462 -8Q454 -10 438 -10Q372 -10 347 46Q345 45 336 36T318 21T296 6T267 -6T233 -11Q189 -11 155 7Q103 38 103 113Q103 170 138 262T173 379Q173 380 173 381Q173 390 173 393T169 400T158 404H154Q131 404 112 385T82 344T65 302T57 280Q55 278 41 278H27Q21 284 21 287Z"></path><path id="MJX-1-TEX-I-1D450" d="M34 159Q34 268 120 355T306 442Q362 442 394 418T427 355Q427 326 408 306T360 285Q341 285 330 295T319 325T330 359T352 380T366 386H367Q367 388 361 392T340 400T306 404Q276 404 249 390Q228 381 206 359Q162 315 142 235T121 119Q121 73 147 50Q169 26 205 26H209Q321 26 394 111Q403 121 406 121Q410 121 419 112T429 98T420 83T391 55T346 25T282 0T202 -11Q127 -11 81 37T34 159Z"></path><path id="MJX-1-TEX-I-1D464" d="M580 385Q580 406 599 424T641 443Q659 443 674 425T690 368Q690 339 671 253Q656 197 644 161T609 80T554 12T482 -11Q438 -11 404 5T355 48Q354 47 352 44Q311 -11 252 -11Q226 -11 202 -5T155 14T118 53T104 116Q104 170 138 262T173 379Q173 380 173 381Q173 390 173 393T169 400T158 404H154Q131 404 112 385T82 344T65 302T57 280Q55 278 41 278H27Q21 284 21 287Q21 293 29 315T52 366T96 418T161 441Q204 441 227 416T250 358Q250 340 217 250T184 111Q184 65 205 46T258 26Q301 26 334 87L339 96V119Q339 122 339 128T340 136T341 143T342 152T345 165T348 182T354 206T362 238T373 281Q402 395 406 404Q419 431 449 431Q468 431 475 421T483 402Q483 389 454 274T422 142Q420 131 420 107V100Q420 85 423 71T442 42T487 26Q558 26 600 148Q609 171 620 213T632 273Q632 306 619 325T593 357T580 385Z"></path></defs><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mn"><use data-c="37" xlink:href="#MJX-1-TEX-N-37"></use><use data-c="34" xlink:href="#MJX-1-TEX-N-34" transform="translate(500,0)"></use><use data-c="2E" xlink:href="#MJX-1-TEX-N-2E" transform="translate(1000,0)"></use><use data-c="36" xlink:href="#MJX-1-TEX-N-36" transform="translate(1278,0)"></use></g><g data-mml-node="mi" transform="translate(1778,0)"><use data-c="1D45A" xlink:href="#MJX-1-TEX-I-1D45A"></use></g><g data-mml-node="mi" transform="translate(2656,0)"><use data-c="1D456" xlink:href="#MJX-1-TEX-I-1D456"></use></g><g data-mml-node="mi" transform="translate(3001,0)"><use data-c="1D459" xlink:href="#MJX-1-TEX-I-1D459"></use></g><g data-mml-node="mi" transform="translate(3299,0)"><use data-c="1D459" xlink:href="#MJX-1-TEX-I-1D459"></use></g><g data-mml-node="mi" transform="translate(3597,0)"><use data-c="1D456" xlink:href="#MJX-1-TEX-I-1D456"></use></g><g data-mml-node="mi" transform="translate(3942,0)"><use data-c="1D45C" xlink:href="#MJX-1-TEX-I-1D45C"></use></g><g data-mml-node="mi" transform="translate(4427,0)"><use data-c="1D45B" xlink:href="#MJX-1-TEX-I-1D45B"></use></g><g data-mml-node="mi" transform="translate(5027,0)"><use data-c="1D45B" xlink:href="#MJX-1-TEX-I-1D45B"></use></g><g data-mml-node="mi" transform="translate(5627,0)"><use data-c="1D452" xlink:href="#MJX-1-TEX-I-1D452"></use></g><g data-mml-node="mi" transform="translate(6093,0)"><use data-c="1D461" xlink:href="#MJX-1-TEX-I-1D461"></use></g><g data-mml-node="mi" transform="translate(6454,0)"><use data-c="1D45C" xlink:href="#MJX-1-TEX-I-1D45C"></use></g><g data-mml-node="mi" transform="translate(6939,0)"><use data-c="1D463" xlink:href="#MJX-1-TEX-I-1D463"></use></g><g data-mml-node="mi" transform="translate(7424,0)"><use data-c="1D452" xlink:href="#MJX-1-TEX-I-1D452"></use></g><g data-mml-node="mi" transform="translate(7890,0)"><use data-c="1D45F" xlink:href="#MJX-1-TEX-I-1D45F"></use></g><g data-mml-node="mn" transform="translate(8341,0)"><use data-c="32" xlink:href="#MJX-1-TEX-N-32"></use><use data-c="30" xlink:href="#MJX-1-TEX-N-30" transform="translate(500,0)"></use><use data-c="31" xlink:href="#MJX-1-TEX-N-31" transform="translate(1000,0)"></use><use data-c="36" xlink:href="#MJX-1-TEX-N-36" transform="translate(1500,0)"></use></g><g data-mml-node="mo" transform="translate(10563.2,0)"><use data-c="2212" xlink:href="#MJX-1-TEX-N-2212"></use></g><g data-mml-node="mn" transform="translate(11563.4,0)"><use data-c="32" xlink:href="#MJX-1-TEX-N-32"></use><use data-c="30" xlink:href="#MJX-1-TEX-N-30" transform="translate(500,0)"></use><use data-c="31" xlink:href="#MJX-1-TEX-N-31" transform="translate(1000,0)"></use><use data-c="37" xlink:href="#MJX-1-TEX-N-37" transform="translate(1500,0)"></use></g><g data-mml-node="mo" transform="translate(13785.7,0)"><use data-c="2217" xlink:href="#MJX-1-TEX-N-2217"></use></g><g data-mml-node="mo" transform="translate(14507.9,0)"><use data-c="2217" xlink:href="#MJX-1-TEX-N-2217"></use></g><g data-mml-node="mi" transform="translate(15007.9,0)"><use data-c="1D44E" xlink:href="#MJX-1-TEX-I-1D44E"></use></g><g data-mml-node="mi" transform="translate(15536.9,0)"><use data-c="1D453" xlink:href="#MJX-1-TEX-I-1D453"></use></g><g data-mml-node="mi" transform="translate(16086.9,0)"><use data-c="1D461" xlink:href="#MJX-1-TEX-I-1D461"></use></g><g data-mml-node="mi" transform="translate(16447.9,0)"><use data-c="1D452" xlink:href="#MJX-1-TEX-I-1D452"></use></g><g data-mml-node="mi" transform="translate(16913.9,0)"><use data-c="1D45F" xlink:href="#MJX-1-TEX-I-1D45F"></use></g><g data-mml-node="mi" transform="translate(17364.9,0)"><use data-c="1D45A" xlink:href="#MJX-1-TEX-I-1D45A"></use></g><g data-mml-node="mi" transform="translate(18242.9,0)"><use data-c="1D456" xlink:href="#MJX-1-TEX-I-1D456"></use></g><g data-mml-node="mi" transform="translate(18587.9,0)"><use data-c="1D454" xlink:href="#MJX-1-TEX-I-1D454"></use></g><g data-mml-node="mi" transform="translate(19064.9,0)"><use data-c="1D45F" xlink:href="#MJX-1-TEX-I-1D45F"></use></g><g data-mml-node="mi" transform="translate(19515.9,0)"><use data-c="1D44E" xlink:href="#MJX-1-TEX-I-1D44E"></use></g><g data-mml-node="mi" transform="translate(20044.9,0)"><use data-c="1D461" xlink:href="#MJX-1-TEX-I-1D461"></use></g><g data-mml-node="mi" transform="translate(20405.9,0)"><use data-c="1D456" xlink:href="#MJX-1-TEX-I-1D456"></use></g><g data-mml-node="mi" transform="translate(20750.9,0)"><use data-c="1D45B" xlink:href="#MJX-1-TEX-I-1D45B"></use></g><g data-mml-node="mi" transform="translate(21350.9,0)"><use data-c="1D454" xlink:href="#MJX-1-TEX-I-1D454"></use></g><g data-mml-node="mo" transform="translate(21827.9,0)"><use data-c="2E" xlink:href="#MJX-1-TEX-N-2E"></use></g><g data-mml-node="mi" transform="translate(22272.6,0)"><use data-c="1D447" xlink:href="#MJX-1-TEX-I-1D447"></use></g><g data-mml-node="mi" transform="translate(22976.6,0)"><use data-c="210E" xlink:href="#MJX-1-TEX-I-210E"></use></g><g data-mml-node="mi" transform="translate(23552.6,0)"><use data-c="1D452" xlink:href="#MJX-1-TEX-I-1D452"></use></g><g data-mml-node="mi" transform="translate(24018.6,0)"><use data-c="1D454" xlink:href="#MJX-1-TEX-I-1D454"></use></g><g data-mml-node="mi" transform="translate(24495.6,0)"><use data-c="1D45F" xlink:href="#MJX-1-TEX-I-1D45F"></use></g><g data-mml-node="mi" transform="translate(24946.6,0)"><use data-c="1D45C" xlink:href="#MJX-1-TEX-I-1D45C"></use></g><g data-mml-node="mi" transform="translate(25431.6,0)"><use data-c="1D460" xlink:href="#MJX-1-TEX-I-1D460"></use></g><g data-mml-node="mi" transform="translate(25900.6,0)"><use data-c="1D460" xlink:href="#MJX-1-TEX-I-1D460"></use></g><g data-mml-node="mi" transform="translate(26369.6,0)"><use data-c="1D434" xlink:href="#MJX-1-TEX-I-1D434"></use></g><g data-mml-node="mi" transform="translate(27119.6,0)"><use data-c="1D44A" xlink:href="#MJX-1-TEX-I-1D44A"></use></g><g data-mml-node="mi" transform="translate(28167.6,0)"><use data-c="1D446" xlink:href="#MJX-1-TEX-I-1D446"></use></g><g data-mml-node="mi" transform="translate(28812.6,0)"><use data-c="1D44F" xlink:href="#MJX-1-TEX-I-1D44F"></use></g><g data-mml-node="mi" transform="translate(29241.6,0)"><use data-c="1D456" xlink:href="#MJX-1-TEX-I-1D456"></use></g><g data-mml-node="mi" transform="translate(29586.6,0)"><use data-c="1D459" xlink:href="#MJX-1-TEX-I-1D459"></use></g><g data-mml-node="mi" transform="translate(29884.6,0)"><use data-c="1D459" xlink:href="#MJX-1-TEX-I-1D459"></use></g><g data-mml-node="mi" transform="translate(30182.6,0)"><use data-c="1D45F" xlink:href="#MJX-1-TEX-I-1D45F"></use></g><g data-mml-node="mi" transform="translate(30633.6,0)"><use data-c="1D452" xlink:href="#MJX-1-TEX-I-1D452"></use></g><g data-mml-node="mi" transform="translate(31099.6,0)"><use data-c="1D451" xlink:href="#MJX-1-TEX-I-1D451"></use></g><g data-mml-node="mi" transform="translate(31619.6,0)"><use data-c="1D462" xlink:href="#MJX-1-TEX-I-1D462"></use></g><g data-mml-node="mi" transform="translate(32191.6,0)"><use data-c="1D450" xlink:href="#MJX-1-TEX-I-1D450"></use></g><g data-mml-node="mi" transform="translate(32624.6,0)"><use data-c="1D461" xlink:href="#MJX-1-TEX-I-1D461"></use></g><g data-mml-node="mi" transform="translate(32985.6,0)"><use data-c="1D456" xlink:href="#MJX-1-TEX-I-1D456"></use></g><g data-mml-node="mi" transform="translate(33330.6,0)"><use data-c="1D45C" xlink:href="#MJX-1-TEX-I-1D45C"></use></g><g data-mml-node="mi" transform="translate(33815.6,0)"><use data-c="1D45B" xlink:href="#MJX-1-TEX-I-1D45B"></use></g><g data-mml-node="mi" transform="translate(34415.6,0)"><use data-c="1D456" xlink:href="#MJX-1-TEX-I-1D456"></use></g><g data-mml-node="mi" transform="translate(34760.6,0)"><use data-c="1D45B" xlink:href="#MJX-1-TEX-I-1D45B"></use></g><g data-mml-node="mn" transform="translate(35360.6,0)"><use data-c="32" xlink:href="#MJX-1-TEX-N-32"></use><use data-c="30" xlink:href="#MJX-1-TEX-N-30" transform="translate(500,0)"></use><use data-c="31" xlink:href="#MJX-1-TEX-N-31" transform="translate(1000,0)"></use><use data-c="36" xlink:href="#MJX-1-TEX-N-36" transform="translate(1500,0)"></use></g><g data-mml-node="mi" transform="translate(37360.6,0)"><use data-c="1D44E" xlink:href="#MJX-1-TEX-I-1D44E"></use></g><g data-mml-node="mi" transform="translate(37889.6,0)"><use data-c="1D459" xlink:href="#MJX-1-TEX-I-1D459"></use></g><g data-mml-node="mi" transform="translate(38187.6,0)"><use data-c="1D45C" xlink:href="#MJX-1-TEX-I-1D45C"></use></g><g data-mml-node="mi" transform="translate(38672.6,0)"><use data-c="1D45B" xlink:href="#MJX-1-TEX-I-1D45B"></use></g><g data-mml-node="mi" transform="translate(39272.6,0)"><use data-c="1D452" xlink:href="#MJX-1-TEX-I-1D452"></use></g><g data-mml-node="mi" transform="translate(39738.6,0)"><use data-c="1D464" xlink:href="#MJX-1-TEX-I-1D464"></use></g><g data-mml-node="mi" transform="translate(40454.6,0)"><use data-c="1D44E" xlink:href="#MJX-1-TEX-I-1D44E"></use></g><g data-mml-node="mi" transform="translate(40983.6,0)"><use data-c="1D460" xlink:href="#MJX-1-TEX-I-1D460"></use></g></g></g></svg></mjx-container>92.5 million, offset by $53 million in new depreciation and facility costs.</li>
+<li><strong>Control</strong>: A custom stack allowed co-designing hardware and software for Dropbox’s specific workload---immutable 4 MB blobs, write-once-read-many access patterns, extreme deduplication potential.</li>
+<li><strong>Performance</strong>: End-to-end optimization of network, disk I/O, and encoding strategies that S3’s general-purpose design could not provide.</li>
+</ol>
+<h3 id="constraints" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#constraints">Constraints</a></h3>
+<ul>
+<li><strong>Team size</strong>: Fewer than 6 engineers initially. The VP of Engineering noted they could not hire 200 engineers, so they “got the best people and created a small team.”</li>
+<li><strong>Zero downtime</strong>: Migration had to be invisible to users. No maintenance windows, no degraded service.</li>
+<li><strong>Durability guarantee</strong>: Must match or exceed S3’s 11 nines of durability.</li>
+<li><strong>Geographic distribution</strong>: US-only data centers (colocation in West, Central, and East regions). European data remained on S3.</li>
+<li><strong>Timeline</strong>: Prototype started summer 2013; production serving by February 2015.</li>
+</ul>
+<h2 id="the-opportunity" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-opportunity">The Opportunity</a></h2>
+<h3 id="why-not-just-optimize-s3-usage" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#why-not-just-optimize-s3-usage">Why Not Just Optimize S3 Usage?</a></h3>
+<p>At Dropbox’s scale, the unit economics flip. For most companies, S3’s operational burden elimination justifies its per-GB premium. For Dropbox, storage is the product, not supporting infrastructure. Three properties of their workload made custom infrastructure particularly attractive:</p>
+<p><strong>Immutable blocks with content-addressing.</strong> Dropbox splits files into blocks (up to 4 MB), compresses them, and identifies each by its SHA-256 hash. A block never changes after creation. This eliminates the consistency complexity that makes general-purpose storage hard---no in-place updates, no concurrent modification conflicts, no cache invalidation.</p>
+<p><strong>Write-once-read-rarely access patterns.</strong> Over 40% of all file retrievals are for data uploaded in the last 24 hours. Over 90% of retrievals are for data less than a year old. This extreme skew means most stored data is cold, and cold storage can be optimized aggressively for density over latency.</p>
+<p><strong>Massive deduplication potential.</strong> Content-addressing means identical blocks (common across users who share files, or across versions of the same file) are stored once. At 500+ PB, even small deduplication ratios yield enormous savings.</p>
+<h3 id="what-s3-could-not-provide" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#what-s3-could-not-provide">What S3 Could Not Provide</a></h3>
+<p>S3 is a general-purpose object store. It cannot:</p>
+<ul>
+<li>Allow co-design of disk firmware, server chassis, and storage software as a unified system</li>
+<li>Use Shingled Magnetic Recording (SMR) drives that require application-level sequential write management</li>
+<li>Provide erasure coding tuned to Dropbox’s specific durability and read-latency trade-offs</li>
+<li>Enable the 50%+ I/O budget dedicated to integrity verification that Dropbox’s Pocket Watch system requires</li>
+</ul>
+<h2 id="options-considered" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#options-considered">Options Considered</a></h2>
+<h3 id="option-1-optimize-s3-usage" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#option-1-optimize-s3-usage">Option 1: Optimize S3 Usage</a></h3>
+<p><strong>Approach:</strong> Negotiate better rates, use S3 storage tiers (Glacier for cold data), optimize deduplication before upload.</p>
+<p><strong>Pros:</strong></p>
+<ul>
+<li>Zero engineering investment</li>
+<li>Operational burden stays with AWS</li>
+</ul>
+<p><strong>Cons:</strong></p>
+<ul>
+<li>Per-GB economics still unfavorable at 500+ PB scale</li>
+<li>No control over hardware or storage engine optimization</li>
+<li>Cannot co-design for immutable-block workload</li>
+</ul>
+<p><strong>Why not chosen:</strong> Even with aggressive optimization, the cost differential at exabyte scale was too large. Storage is Dropbox’s core product, not ancillary infrastructure.</p>
+<h3 id="option-2-use-another-cloud-provider-or-open-source-stack" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#option-2-use-another-cloud-provider-or-open-source-stack">Option 2: Use Another Cloud Provider or Open-Source Stack</a></h3>
+<p><strong>Approach:</strong> Migrate to a cheaper cloud provider (Google Cloud, Azure) or deploy an open-source distributed storage system (Ceph, HDFS) on leased hardware.</p>
+<p><strong>Pros:</strong></p>
+<ul>
+<li>Faster time to market than custom-built</li>
+<li>Existing community and tooling</li>
+</ul>
+<p><strong>Cons:</strong></p>
+<ul>
+<li>General-purpose systems carry overhead for features Dropbox does not need (mutable objects, POSIX semantics, directory hierarchies)</li>
+<li>Cannot optimize for immutable, content-addressed blocks</li>
+<li>Limited hardware co-design possibilities</li>
+</ul>
+<p><strong>Why not chosen:</strong> The workload is narrow enough (immutable blobs, hash-keyed, append-only) that a purpose-built system could be dramatically simpler and more efficient than any general-purpose alternative.</p>
+<h3 id="option-3-build-custom-storage-chosen" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#option-3-build-custom-storage-chosen">Option 3: Build Custom Storage (Chosen)</a></h3>
+<p><strong>Approach:</strong> Build a purpose-built, content-addressable block store optimized for immutable 4 MB blobs.</p>
+<p><strong>Pros:</strong></p>
+<ul>
+<li>Hardware-software co-design (custom server chassis, SMR drives, no filesystem)</li>
+<li>Erasure coding and replication tuned to exact durability requirements</li>
+<li>50%+ I/O budget for verification without impacting cost efficiency</li>
+<li>Long-term cost advantage compounds as data grows</li>
+</ul>
+<p><strong>Cons:</strong></p>
+<ul>
+<li>Multi-year engineering investment</li>
+<li>Operational expertise must be built in-house</li>
+<li>Single point of organizational risk (small team)</li>
+</ul>
+<p><strong>Why chosen:</strong> The narrow workload (immutable blobs) meant the system could be architecturally simple despite the scale. A team of fewer than 6 engineers could build it because the design eliminated most distributed systems complexity.</p>
+<h3 id="decision-factors" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#decision-factors">Decision Factors</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Factor</th><th>Optimize S3</th><th>Alternative Stack</th><th>Custom Build</th></tr></thead><tbody><tr><td>Cost at 500+ PB</td><td>High</td><td>Medium</td><td>Low (after amortization)</td></tr><tr><td>Hardware co-design</td><td>No</td><td>Limited</td><td>Full</td></tr><tr><td>Time to production</td><td>Immediate</td><td>6-12 months</td><td>~18 months</td></tr><tr><td>Workload optimization</td><td>None</td><td>Partial</td><td>Complete</td></tr><tr><td>Operational complexity</td><td>Low</td><td>Medium</td><td>High (initially)</td></tr><tr><td>Long-term compounding savings</td><td>No</td><td>Partial</td><td>Yes</td></tr></tbody></table></div>
+<h2 id="implementation" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#implementation">Implementation</a></h2>
+<h3 id="architecture-overview" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#architecture-overview">Architecture Overview</a></h3>
+<p>Magic Pocket’s architecture reflects a single design principle: <strong>immutable, content-addressed blocks eliminate most distributed systems complexity</strong>. There are no distributed transactions, no consensus protocols, no cache invalidation for data. The system is a distributed key-value store where keys are SHA-256 hashes and values are compressed, encrypted blobs.</p>
+<figure>
+<p><img alt="Magic Pocket&amp;#x27;s data hierarchy: blocks aggregate into buckets, buckets into volumes replicated across OSDs, stored as extents within cells, organized by geographic zone." loading="lazy" decoding="async" fetchpriority="auto" width="1800" height="188" src="/legacy-personal-site/v4/_astro/magic-pocket-s-data-hierarchy-blocks-aggregate-into-buckets-buckets-into-volumes.DezcsSoo_yQYhe.svg" ></p>
+<figcaption>Magic Pocket's data hierarchy: blocks aggregate into buckets, buckets into volumes replicated across OSDs, stored as extents within cells, organized by geographic zone.</figcaption>
+</figure>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Level</th><th>Size</th><th>Description</th></tr></thead><tbody><tr><td><strong>Block</strong></td><td>Up to 4 MB</td><td>Compressed, AES-256 encrypted chunk; identified by SHA-256 hash</td></tr><tr><td><strong>Bucket</strong></td><td>~1 GB</td><td>Logical container aggregating blocks uploaded around the same time</td></tr><tr><td><strong>Volume</strong></td><td>One or more buckets</td><td>Replicated or erasure-coded across multiple OSD nodes</td></tr><tr><td><strong>Extent</strong></td><td>1-2 GB</td><td>Physical on-disk unit; written append-only, immutable once sealed</td></tr><tr><td><strong>Cell</strong></td><td>~50 PB raw</td><td>Self-contained storage cluster with its own frontends, coordinators, and storage nodes</td></tr><tr><td><strong>Zone</strong></td><td>Multiple cells</td><td>Geographic region (US West, Central, East)</td></tr></tbody></table></div>
+<h3 id="core-components" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#core-components">Core Components</a></h3>
+<h4 id="block-index" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#block-index">Block Index</a></h4>
+<p>The Block Index is a sharded MySQL (InnoDB) cluster fronted by an RPC (Remote Procedure Call) service layer. It maps <code>block_hash -> (cell, bucket_id, checksum)</code>. The primary key is the SHA-256 hash of each block.</p>
+<p><strong>Why MySQL?</strong> At write time, the only coordination required is checking whether a block hash already exists (deduplication) and recording where it was placed. This is a simple key-value lookup and insert---exactly what sharded MySQL excels at. The immutability of blocks means no updates, no conflicting writes, and no consistency concerns beyond initial placement.</p>
+<h4 id="replication-table" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#replication-table">Replication Table</a></h4>
+<p>A smaller MySQL database within each cell that maps <code>bucket -> volume</code> and <code>volume -> (OSDs, open/closed, type, generation)</code>. The entire working set fits in memory for fast lookups. This is the authoritative record of where data physically lives within a cell.</p>
+<p><strong>Design choice:</strong> The Replication Table is the source of truth, not the Master coordinator. The Master is entirely soft-state---it can be restarted without losing any placement information. This avoids the complexity of distributed consensus for coordination.</p>
+<h4 id="object-storage-devices-osds" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#object-storage-devices-osds">Object Storage Devices (OSDs)</a></h4>
+<p>Custom storage machines running the Diskotech server chassis:</p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Specification</th><th>Value</th></tr></thead><tbody><tr><td>Form factor</td><td>4U chassis</td></tr><tr><td>Drives per chassis</td><td>~100 Large Form Factor (LFF)</td></tr><tr><td>Capacity per chassis</td><td>~2 PB (at 20 TB drives)</td></tr><tr><td>Capacity per rack</td><td>~8 PB</td></tr><tr><td>Memory</td><td>96 GB per host</td></tr><tr><td>CPU</td><td>20 cores, 40 threads</td></tr><tr><td>Network</td><td>50 Gbps NIC</td></tr><tr><td>Controller</td><td>Host Bus Adapter (HBA), no RAID controller</td></tr><tr><td>Disk access</td><td>Direct via libzbc/libzbd, no filesystem</td></tr></tbody></table></div>
+<p>The OSD storage engine was rewritten from Go to <strong>Rust</strong> by Jamie Turner’s team. Go’s garbage collector caused unpredictable latency spikes, and the constant threat of OOM (Out of Memory) conditions required C++-level control. The Rust rewrite achieved <strong>3-5x improvement in tail latencies</strong> and enabled handling more disks per machine without increased CPU overhead.</p>
+<blockquote>
+<p><strong>Organizational lesson:</strong> James Cowling later noted that the Rust components worked well and required little maintenance, but when the original authors departed, insufficient Rust expertise remained. The components continued running reliably but innovation on them slowed.</p>
+</blockquote>
+<h4 id="master-coordinator" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#master-coordinator">Master Coordinator</a></h4>
+<p>The cell-level coordinator handles OSD health monitoring, triggering repair operations, creating storage buckets, and orchestrating garbage collection. Critically, the Master holds <strong>no authoritative state</strong>---the Replication Table is the source of truth. The Master can crash and restart without data loss or placement confusion.</p>
+<p>This design avoids Paxos, Raft, or any quorum-based consensus for the coordination layer. The trade-off: recovery after Master failure requires rebuilding soft state from the Replication Table, but this is fast since the working set fits in memory.</p>
+<h4 id="frontends" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#frontends">Frontends</a></h4>
+<p>Gateway nodes that accept storage requests, determine block placement by balancing cell load and network traffic, and route read/write commands to appropriate OSD nodes.</p>
+<h4 id="cross-zone-replication-daemon" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#cross-zone-replication-daemon">Cross-Zone Replication Daemon</a></h4>
+<p>Asynchronously replicates all PUTs to at least one other geographic zone within approximately <strong>one second</strong>. Each block exists in at least two zones, ensuring zone-level fault tolerance.</p>
+<h3 id="write-path" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#write-path">Write Path</a></h3>
+<ol>
+<li>Frontend checks the Block Index for existing block (deduplication via SHA-256 hash).</li>
+<li>If the block does not exist, the frontend selects a target volume balancing cell load and network traffic.</li>
+<li>Issues store commands to <strong>all OSDs in the volume</strong>. All must <code>fsync</code> before responding---no acknowledgment until data is durable on disk.</li>
+<li>Adds entry to Block Index upon success.</li>
+<li>Retries with a different volume on failure.</li>
+<li>Cross-zone replication daemon asynchronously replicates within ~1 second.</li>
+</ol>
+<p><strong>Why synchronous replication within a volume?</strong> Data loss from a partial write (acknowledged to the client but not durable on all replicas) would violate the immutability contract. By requiring all replicas to fsync before acknowledging, the system guarantees that a successful write is immediately durable at the volume’s replication factor.</p>
+<h3 id="read-path" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#read-path">Read Path</a></h3>
+<ol>
+<li>Frontend queries Block Index for <code>(cell, bucket_id)</code>.</li>
+<li>Consults Replication Table for volume and OSD locations.</li>
+<li>For <strong>replicated volumes</strong>: fetches from a single OSD.</li>
+<li>For <strong>erasure-coded volumes</strong>: reconstructs from multiple OSD nodes with Volume Manager assistance.</li>
+</ol>
+<h3 id="erasure-coding-strategy" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#erasure-coding-strategy">Erasure Coding Strategy</a></h3>
+<p>Magic Pocket uses a variant of Reed-Solomon erasure coding similar to Local Reconstruction Codes (LRC):</p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Scheme</th><th>Configuration</th><th>Storage Overhead</th><th>Use Case</th></tr></thead><tbody><tr><td><strong>Replicated</strong></td><td>4x within zone, 2x cross-zone</td><td>Up to 8x total</td><td>Recently uploaded (hot) data</td></tr><tr><td><strong>Reed-Solomon</strong></td><td>6+3 (6 data, 3 parity)</td><td>1.5x</td><td>Standard encoding for warm data</td></tr><tr><td><strong>LRC</strong></td><td>~12+2+2</td><td>~1.33x</td><td>Optimized reads, tolerates 3 failures</td></tr></tbody></table></div>
+<p><strong>Why start with replication?</strong> Over 40% of file retrievals target data uploaded in the last 24 hours. High-redundancy replication ensures fast single-OSD reads for the hottest data. As blocks cool (access frequency drops), they are aggregated and erasure-coded---trading read simplicity for storage efficiency. This tiered approach means the system never pays the full 8x replication cost for the 90%+ of data that is rarely accessed.</p>
+<h3 id="cold-storage-optimization" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#cold-storage-optimization">Cold Storage Optimization</a></h3>
+<p>Introduced around 2019, the cold tier uses <strong>fragment-based striping across geographic regions</strong>:</p>
+<ul>
+<li><strong>2+1 scheme</strong>: A block is split into 2 data fragments plus 1 XOR parity fragment, each placed in a different geographic zone.</li>
+<li>Storage overhead: <strong>1.5x</strong> (compared to 2x+ for warm tier cross-zone replication).</li>
+<li><strong>25% disk reduction</strong> with 3 zones; 33% savings with a 4-region 3+1 model.</li>
+<li>Reads issue requests to all regions in parallel, use the fastest two responses, and cancel the rest.</li>
+</ul>
+<p>Counter-intuitively, the 99th percentile read latency for cold storage was <strong>lower</strong> than warm storage. The parallel cross-region reads with hedged cancellation effectively reduced tail latency, even though individual region latency was higher.</p>
+<h3 id="smr-drive-deployment" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#smr-drive-deployment">SMR Drive Deployment</a></h3>
+<p>Dropbox was the first major technology company to deploy Shingled Magnetic Recording (SMR) drives at petabyte scale. SMR drives overlap write tracks like roof shingles, increasing areal density but requiring sequential writes aligned to zone boundaries.</p>
+<p><strong>Why this is a perfect fit:</strong> Magic Pocket’s append-only, immutable write pattern naturally produces sequential writes. The OSD daemon manages sequential zones directly via libzbc/libzbd, bypassing the filesystem entirely.</p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Milestone</th><th>Date</th></tr></thead><tbody><tr><td>First petabyte-scale SMR deployment</td><td>June 2018</td></tr><tr><td>All new drives deployed as SMR</td><td>September 2018</td></tr><tr><td>~40% of total fleet on SMR</td><td>2019</td></tr><tr><td>90% of HDD fleet on SMR</td><td>2022</td></tr></tbody></table></div>
+<p><strong>Drive capacity progression:</strong> 4 TB -> 8 TB -> 14 TB -> 18 TB -> 20 TB -> 26 TB (as of 2023).</p>
+<p><strong>Power efficiency gains:</strong> 5-6x reduction in power per terabyte since initial 4 TB deployment. Latest 18-20 TB drives operate at ~0.30 watts/TB idle and ~0.50 watts/TB under random reads. The sixth-generation server requires <strong>5 fewer megawatts</strong> serving one exabyte compared to the fourth generation.</p>
+<h3 id="encryption" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#encryption">Encryption</a></h3>
+<ul>
+<li>Data at rest uses <strong>AES-256 encryption</strong>.</li>
+<li>Each block has its own <strong>block encryption key (BEK)</strong>.</li>
+<li>BEKs are wrapped with versioned global <strong>key encryption keys (KEKs)</strong>.</li>
+<li>Key rotation happens at the metadata level without rewriting encrypted data.</li>
+<li>Deletion uses <strong>crypto-shredding</strong>: deleting encryption metadata renders the encrypted block permanently inaccessible. Physical disk space is reclaimed asynchronously.</li>
+</ul>
+<h3 id="network-architecture" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#network-architecture">Network Architecture</a></h3>
+<p>Dropbox’s data center network evolved to a <strong>quad-plane, 3-tier Clos fabric</strong>:</p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Specification</th><th>Value</th></tr></thead><tbody><tr><td>Racks per pod</td><td>16</td></tr><tr><td>Pods per fabric</td><td>16 (expandable to 31 for ~500 racks)</td></tr><tr><td>Link speed</td><td>100G everywhere</td></tr><tr><td>Oversubscription</td><td>1:1 (non-blocking)</td></tr><tr><td>Routing</td><td>eBGP with ECMP</td></tr><tr><td>Uplink per rack</td><td>4x100G</td></tr></tbody></table></div>
+<p>The non-blocking fabric is essential for Magic Pocket’s repair operations, which must move terabytes of data across hundreds of OSD nodes simultaneously when a drive fails.</p>
+<h3 id="ssd-cache-removal-2021-2022" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#ssd-cache-removal-2021-2022">SSD Cache Removal (2021-2022)</a></h3>
+<p>Originally, Magic Pocket used an NVMe SSD caching layer for block metadata on each host. As drive density increased (14-20 TB per disk, 100 drives per host), the single NVMe SSD became a bottleneck at 15-20 Gbps write throughput.</p>
+<p><strong>Solution:</strong> Store both metadata and raw data inline on SMR disks using a new extent format that serializes blocks with their metadata directly to disk.</p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Metric</th><th>Before</th><th>After</th></tr></thead><tbody><tr><td>Peak write throughput</td><td>Baseline</td><td>2-2.5x improvement</td></tr><tr><td>Production write throughput</td><td>Baseline</td><td>15-20% improvement</td></tr><tr><td>P95 write latency under load</td><td>Baseline</td><td>15-20% improvement</td></tr><tr><td>Monthly SSD failure repairs</td><td>8-10</td><td>0</td></tr></tbody></table></div>
+<p>Completed fleet-wide by Q1 2022.</p>
+<h2 id="migration" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#migration">Migration</a></h2>
+<h3 id="timeline" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#timeline">Timeline</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Date</th><th>Milestone</th></tr></thead><tbody><tr><td>Summer 2013</td><td>Small team (fewer than 6 engineers) begins coding prototype</td></tr><tr><td>August 2014</td><td><strong>Dark launch</strong>: Mirroring data from 2 regional locations</td></tr><tr><td>February 27, 2015</td><td><strong>Launch</strong>: Production serving exclusively from own infrastructure</td></tr><tr><td>April 30, 2015</td><td><strong>BASE Jump</strong>: Scaling phase begins</td></tr><tr><td>October 7, 2015</td><td><strong>90% milestone</strong>: 90% of all user data on custom infrastructure</td></tr><tr><td>March 14, 2016</td><td>Public announcement via engineering blog</td></tr></tbody></table></div>
+<h3 id="migration-strategy" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#migration-strategy">Migration Strategy</a></h3>
+<p><strong>Dual-write approach:</strong> Every uploaded file was simultaneously saved to both AWS S3 and Magic Pocket. This allowed instant rollback at the file level if Magic Pocket returned incorrect data.</p>
+<p><strong>Peak transfer rate:</strong> Over <strong>half a terabit per second</strong> on the internal network during bulk migration.</p>
+<p><strong>Gradual cutover:</strong> The team scaled from double-digit-petabyte prototypes to a multi-exabyte system within approximately 6 months.</p>
+<h3 id="post-migration" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#post-migration">Post-Migration</a></h3>
+<p>Approximately 10% of data remained on AWS S3---primarily for European users and regions where Dropbox lacked physical data center presence. In 2020, Dropbox built the <strong>Object Store</strong> abstraction layer, providing a unified API (PUT, GET, DELETE, LIST) that routes requests transparently between S3 and Magic Pocket. Object Store added write batching, range-based reads, and encryption, while also enabling deprecation of most HDFS (Hadoop Distributed File System) usage by late 2021.</p>
+<h2 id="verification-pocket-watch" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#verification-pocket-watch">Verification: Pocket Watch</a></h2>
+<p>More than <strong>50% of the workload on disks and databases</strong> is internal verification traffic. This is an unusual design choice---most storage systems optimize for user-facing throughput. Dropbox chose to dedicate half their I/O capacity to catching corruption before it becomes data loss.</p>
+<figure>
+<p><img alt="Pocket Watch&amp;#x27;s five verification subsystems, each targeting a different failure mode." loading="lazy" decoding="async" fetchpriority="auto" width="772" height="652" src="/legacy-personal-site/v4/_astro/pocket-watch-s-five-verification-subsystems-each-targeting-a-different-failure-m.xWpb8lCo_Z1n4GKc.svg" ></p>
+<figcaption>Pocket Watch's five verification subsystems, each targeting a different failure mode.</figcaption>
+</figure>
+<h3 id="disk-scrubber" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#disk-scrubber">Disk Scrubber</a></h3>
+<p>Continuously reads back every bit on disk and validates against checksums. Full disk sweep every <strong>1-2 weeks</strong>, with recently modified areas scanned more frequently. Automatically schedules re-replication and disk remediation upon detecting corruption.</p>
+<h3 id="metadata-scanner" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#metadata-scanner">Metadata Scanner</a></h3>
+<p>Iterates through the Block Index at approximately <strong>1 million blocks per second</strong>, confirming that blocks exist on their designated storage nodes. Full scans complete roughly weekly per zone.</p>
+<h3 id="storage-watcher" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#storage-watcher">Storage Watcher</a></h3>
+<p>Independent black-box verification that samples <strong>1% of all written blocks</strong>. Retrieves each sampled block after intervals of 1 minute, 1 hour, 1 day, 1 week, and 1 month. This multi-interval approach detects end-to-end failures that manifest at different timescales---immediate write failures, short-term disk degradation, and long-term bit rot.</p>
+<h3 id="trash-inspector-and-extent-referee" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#trash-inspector-and-extent-referee">Trash Inspector and Extent Referee</a></h3>
+<p>Verify that deleted extents were safely migrated before permanent removal. Maintain a temporary “trash” storage for an additional day after inspection, providing a last-chance recovery window.</p>
+<h3 id="cross-zone-verifier" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#cross-zone-verifier">Cross-Zone Verifier</a></h3>
+<p>Confirms that all user files exist in the appropriate storage zones by walking the File Journal system. Catches cross-zone replication gaps that the one-second async replication might miss during transient failures.</p>
+<h2 id="repair-operations" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#repair-operations">Repair Operations</a></h2>
+<p>When an OSD goes offline for more than 15 minutes:</p>
+<ol>
+<li>Master closes all volumes on the failed OSD.</li>
+<li>Builds a reconstruction plan distributing load across <strong>hundreds of OSD nodes</strong> to avoid creating a new hotspot.</li>
+<li>Performs data transfer with erasure coding reconstruction where needed.</li>
+<li>Increments the generation number on new volumes (enabling stale-read detection if the old OSD comes back online with outdated data).</li>
+<li>Updates the Replication Table to commit changes atomically.</li>
+</ol>
+<p><strong>Repair rate:</strong> 4 extents per second (each 1-2 GB).</p>
+<p><strong>Repair SLA:</strong> Less than 48 hours for a full OSD reconstruction.</p>
+<p><strong>Auto-repair volume:</strong> Hundreds of hardware failures are repaired automatically per day across the fleet.</p>
+<h2 id="disaster-readiness" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#disaster-readiness">Disaster Readiness</a></h2>
+<p>On November 18, 2021, Dropbox physically unplugged their San Jose (SJC) data center from the network for 30 minutes. Three on-site technicians physically disconnected optical fiber at three colocation facilities.</p>
+<p><strong>Result:</strong> Zero impact to global availability. The active-active design across three zones handled the loss transparently. Recovery Time Objective (RTO) improved by more than an order of magnitude compared to pre-2020 capabilities.</p>
+<p>This was not a simulated failover---it was a real disconnection of production infrastructure serving user traffic.</p>
+<h2 id="outcome" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#outcome">Outcome</a></h2>
+<h3 id="financial-impact" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#financial-impact">Financial Impact</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Year</th><th>Gross AWS Savings</th><th>New Infra Costs (depreciation, facilities)</th><th>Net Savings</th></tr></thead><tbody><tr><td>2016</td><td>$92.5M</td><td>$53.0M</td><td>$39.5M</td></tr><tr><td>2017</td><td>(continued)</td><td>(continued)</td><td>$35.1M</td></tr><tr><td><strong>Total</strong></td><td>—</td><td>—</td><td><strong>$74.6M</strong></td></tr></tbody></table></div>
+<p>Source: Dropbox S-1 filing (2018).</p>
+<h3 id="durability-and-availability" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#durability-and-availability">Durability and Availability</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody><tr><td>Theoretical durability (Markov model)</td><td>27 nines</td></tr><tr><td>Published durability guarantee</td><td>Over 12 nines</td></tr><tr><td>Availability</td><td>99.99%</td></tr><tr><td>Cross-zone replication latency</td><td>~1 second</td></tr><tr><td>Repair SLA (full OSD)</td><td>Less than 48 hours</td></tr></tbody></table></div>
+<h3 id="scale-2023-2024" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#scale-2023-2024">Scale (2023-2024)</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody><tr><td>Storage drives deployed</td><td>600,000+</td></tr><tr><td>SMR fleet percentage</td><td>~90%</td></tr><tr><td>Users served</td><td>700+ million</td></tr><tr><td>Request throughput</td><td>Tens of millions per second</td></tr><tr><td>Auto-repaired hardware failures</td><td>Hundreds per day</td></tr><tr><td>Geographic zones</td><td>3 US + AWS for Europe</td></tr><tr><td>Latest drive capacity</td><td>26 TB</td></tr><tr><td>Hardware generation</td><td>6th (7th in development)</td></tr><tr><td>Next-gen NIC requirement</td><td>200G per host</td></tr></tbody></table></div>
+<h3 id="unexpected-benefits" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#unexpected-benefits">Unexpected Benefits</a></h3>
+<ul>
+<li><strong>SMR alignment:</strong> The append-only, immutable write pattern turned out to be ideal for SMR drives, enabling Dropbox to adopt higher-density drives years before competitors.</li>
+<li><strong>Cold storage latency improvement:</strong> Cross-region parallel reads with hedged cancellation produced lower P99 latency than warm storage single-region reads.</li>
+<li><strong>Crypto-shredding simplification:</strong> The per-block encryption key design meant data deletion required only metadata deletion, not physical overwrite---simplifying compliance with data deletion regulations.</li>
+</ul>
+<h3 id="remaining-limitations" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#remaining-limitations">Remaining Limitations</a></h3>
+<ul>
+<li><strong>US-only custom infrastructure:</strong> European data still relies on AWS S3 (~10% of total).</li>
+<li><strong>Rust expertise concentration:</strong> The OSD storage engine’s Rust codebase remained robust but innovation-constrained after original authors departed.</li>
+<li><strong>Single-vendor risk:</strong> The Diskotech server design creates dependency on specific drive vendors for SMR qualification and firmware collaboration.</li>
+</ul>
+<h2 id="lessons-learned" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#lessons-learned">Lessons Learned</a></h2>
+<h3 id="technical-lessons" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#technical-lessons">Technical Lessons</a></h3>
+<h4 id="1-narrow-workloads-enable-radical-simplification" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#1-narrow-workloads-enable-radical-simplification">1. Narrow Workloads Enable Radical Simplification</a></h4>
+<p><strong>The insight:</strong> Magic Pocket avoids distributed consensus, distributed transactions, and cache invalidation for data---the three hardest problems in distributed storage. It can do this because blocks are immutable and content-addressed. Fewer than 6 engineers built a system that replaced the world’s most sophisticated object store.</p>
+<p><strong>How it applies elsewhere:</strong></p>
+<ul>
+<li>Before building general-purpose infrastructure, ask whether your workload has properties that eliminate entire categories of complexity.</li>
+<li>Append-only, immutable data models are dramatically simpler to distribute than mutable ones.</li>
+</ul>
+<p><strong>Warning signs to watch for:</strong></p>
+<ul>
+<li>Your storage system handles consistency edge cases that your actual data model does not require.</li>
+<li>You are paying for POSIX semantics or mutable-object support that your application never uses.</li>
+</ul>
+<h4 id="2-hardware-software-co-design-compounds-over-time" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#2-hardware-software-co-design-compounds-over-time">2. Hardware-Software Co-Design Compounds Over Time</a></h4>
+<p><strong>The insight:</strong> By designing the Diskotech chassis, choosing SMR drives, writing a custom OSD engine without a filesystem, and building a non-blocking Clos network, Dropbox created an integrated stack where each layer amplifies the others. The power efficiency gains (5-6x per TB) and the SSD cache removal are examples of optimizations only possible with full-stack control.</p>
+<p><strong>How it applies elsewhere:</strong></p>
+<ul>
+<li>At sufficient scale, the cost of understanding hardware intimately pays for itself.</li>
+<li>General-purpose layers (filesystems, RAID controllers, general-purpose SSDs) add overhead and limit optimization options.</li>
+</ul>
+<h4 id="3-verification-is-worth-half-your-io-budget" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#3-verification-is-worth-half-your-io-budget">3. Verification is Worth Half Your I/O Budget</a></h4>
+<p><strong>The insight:</strong> Pocket Watch’s five verification subsystems consume over 50% of disk and database I/O. This seems wasteful until you consider that undetected corruption at exabyte scale would mean certain data loss. The cost of verification is the cost of maintaining durability guarantees.</p>
+<p><strong>How it applies elsewhere:</strong></p>
+<ul>
+<li>Durability claims without continuous verification are aspirational, not actual.</li>
+<li>Multi-interval sampling (1 minute to 1 month) catches failure modes that single-point-in-time checks miss.</li>
+</ul>
+<p><strong>Warning signs to watch for:</strong></p>
+<ul>
+<li>Your durability SLA depends on assumptions about disk reliability that you are not actively validating.</li>
+<li>You discover corruption through user reports rather than automated systems.</li>
+</ul>
+<h3 id="process-lessons" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#process-lessons">Process Lessons</a></h3>
+<h4 id="1-small-teams-can-build-at-extreme-scale" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#1-small-teams-can-build-at-extreme-scale">1. Small Teams Can Build at Extreme Scale</a></h4>
+<p><strong>What they’d do differently:</strong> James Cowling later reflected that the Rust rewrite, while technically successful, created a skills gap when original authors departed. A small team building critical infrastructure must plan for knowledge transfer from day one.</p>
+<h3 id="organizational-lessons" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#organizational-lessons">Organizational Lessons</a></h3>
+<h4 id="1-storage-economics-change-the-build-vs-buy-equation" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#1-storage-economics-change-the-build-vs-buy-equation">1. Storage Economics Change the Build-vs-Buy Equation</a></h4>
+<p>When storage is your product (not a supporting service), the economics of building custom infrastructure become favorable at a lower scale threshold than most engineers assume. Dropbox’s $74.6M net savings in two years funded the ongoing engineering investment many times over.</p>
+<h2 id="edgestore-and-panda-the-metadata-layer" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#edgestore-and-panda-the-metadata-layer">Edgestore and Panda: The Metadata Layer</a></h2>
+<p>Magic Pocket stores blocks, but mapping files to blocks requires a metadata system. Dropbox built <strong>Edgestore</strong>, a strongly consistent, read-optimized, horizontally scalable, geo-distributed metadata store.</p>
+<ul>
+<li><strong>Storage engine:</strong> MySQL (InnoDB)</li>
+<li><strong>Data model:</strong> Entities (objects with attributes) and Associations (relationships between entities)</li>
+<li><strong>Architecture:</strong> Language-specific SDKs (Go, Python) -> stateless Cores -> Caching Layer -> Engines -> MySQL</li>
+<li><strong>Consistency:</strong> Strong by default (cache invalidation on writes); eventual consistency optional</li>
+<li><strong>Scale:</strong> Thousands of machines, several trillion entries, millions of queries per second, 5 nines of availability</li>
+</ul>
+<p>In later years, Dropbox built <strong>Panda</strong>, a petabyte-scale transactional key-value store sitting between Edgestore and sharded MySQL. Panda provides Atomicity, Consistency, Isolation, Durability (ACID) transactions with Multi-Version Concurrency Control (MVCC), eliminating the fleet-doubling expansion model of traditional MySQL sharding.</p>
+<h2 id="future-direction-hamr" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#future-direction-hamr">Future Direction: HAMR</a></h2>
+<p>Dropbox is preparing for <strong>Heat-Assisted Magnetic Recording (HAMR)</strong> drives, which temporarily heat the recording media to 450 degrees Celsius during writes, enabling smaller thermally stable grains and projected capacities of 50+ TB per drive. The transition from SMR to HAMR represents the next major hardware-software co-design cycle for Magic Pocket.</p>
+<h2 id="conclusion" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#conclusion">Conclusion</a></h2>
+<p>Magic Pocket’s success rests on a single architectural insight: immutable, content-addressed blocks eliminate the hardest problems in distributed storage. This allowed a team of fewer than six engineers to build a system that replaced AWS S3, saved $74.6 million in two years, and now serves 700+ million users across 600,000+ drives.</p>
+<p>The design decisions compound: immutability enables append-only writes, append-only writes enable SMR drives, SMR drives enable higher density, higher density drives justify custom chassis, custom chassis justify custom networks. Each choice opens the next optimization.</p>
+<p>The most counterintuitive decision---spending 50%+ of I/O on verification rather than throughput---reflects a maturity about durability that distinguishes production storage systems from academic designs. At exabyte scale, undetected corruption is not a risk to be modeled; it is a certainty to be continuously hunted.</p>
+<h2 id="appendix" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#appendix">Appendix</a></h2>
+<h3 id="prerequisites" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#prerequisites">Prerequisites</a></h3>
+<ul>
+<li>Distributed storage fundamentals (replication, erasure coding)</li>
+<li>Content-addressable storage concepts</li>
+<li>Basic understanding of disk technologies (HDD, SSD, SMR)</li>
+</ul>
+<h3 id="terminology" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#terminology">Terminology</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Term</th><th>Definition</th></tr></thead><tbody><tr><td><strong>SMR</strong></td><td>Shingled Magnetic Recording---HDD technology that overlaps write tracks for higher density, requiring sequential writes</td></tr><tr><td><strong>LRC</strong></td><td>Local Reconstruction Codes---erasure coding variant enabling local repair without reading all shards</td></tr><tr><td><strong>OSD</strong></td><td>Object Storage Device---a Magic Pocket storage node with ~100 drives</td></tr><tr><td><strong>Extent</strong></td><td>1-2 GB append-only physical storage unit on disk</td></tr><tr><td><strong>Cell</strong></td><td>~50 PB self-contained storage cluster within a zone</td></tr><tr><td><strong>Crypto-shredding</strong></td><td>Data deletion by destroying encryption keys rather than overwriting ciphertext</td></tr><tr><td><strong>HAMR</strong></td><td>Heat-Assisted Magnetic Recording---next-generation HDD technology using laser heating</td></tr><tr><td><strong>Clos fabric</strong></td><td>Non-blocking network topology providing full bisection bandwidth</td></tr><tr><td><strong>BEK/KEK</strong></td><td>Block Encryption Key / Key Encryption Key---two-layer encryption hierarchy</td></tr></tbody></table></div>
+<h3 id="summary" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#summary">Summary</a></h3>
+<ul>
+<li>Magic Pocket is a content-addressable, immutable block store using SHA-256 hashes as keys, built by fewer than 6 engineers.</li>
+<li>The system migrated 500+ PB from AWS S3 using a dual-write strategy over ~18 months, saving $74.6M net in the first two years.</li>
+<li>Data starts as 4x replicated (hot), then gets erasure-coded to 1.33-1.5x overhead as access frequency drops.</li>
+<li>Pocket Watch verification consumes 50%+ of disk I/O across five subsystems, continuously validating durability at exabyte scale.</li>
+<li>Custom Diskotech servers with 100 SMR drives per chassis (~2 PB per machine) enable 5-6x power efficiency gains per TB generation over generation.</li>
+<li>The narrow workload (immutable blobs) eliminates distributed consensus, transactions, and cache invalidation, making extreme scale tractable for a small team.</li>
+</ul>
+<h3 id="references" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#references">References</a></h3>
+<ul>
+<li><a href="https://dropbox.tech/infrastructure/inside-the-magic-pocket">Inside the Magic Pocket</a> - Architecture deep-dive by James Cowling (2016)</li>
+<li><a href="https://dropbox.tech/infrastructure/magic-pocket-infrastructure">Scaling to Exabytes and Beyond</a> - Migration announcement and timeline (2016)</li>
+<li><a href="https://dropbox.tech/infrastructure/pocket-watch">Pocket Watch: Verifying Exabytes of Data</a> - Durability verification systems (2016)</li>
+<li><a href="https://dropbox.tech/infrastructure/extending-magic-pocket-innovation-with-the-first-petabyte-scale-smr-drive-deployment">Extending Magic Pocket Innovation with SMR</a> - First petabyte-scale SMR deployment (2018)</li>
+<li><a href="https://dropbox.tech/infrastructure/how-we-optimized-magic-pocket-for-cold-storage">How We Optimized Magic Pocket for Cold Storage</a> - Cold tier design (2019)</li>
+<li><a href="https://dropbox.tech/infrastructure/smr-what-we-learned-in-our-first-year">SMR: What We Learned in Our First Year</a> - SMR lessons (2019)</li>
+<li><a href="https://dropbox.tech/infrastructure/four-years-of-smr-storage-what-we-love-and-whats-next">Four Years of SMR Storage</a> - SMR evolution and HAMR preview (2022)</li>
+<li><a href="https://dropbox.tech/infrastructure/increasing-magic-pocket-write-throughput-by-removing-our-ssd-cache-disks">Increasing Write Throughput by Removing SSD Cache Disks</a> - SSD cache removal (2022)</li>
+<li><a href="https://dropbox.tech/infrastructure/abstracting-cloud-storage-backends-with-object-store">Object Store: Cloud Storage Abstraction</a> - Unified storage API (2023)</li>
+<li><a href="https://dropbox.tech/infrastructure/reintroducing-edgestore">(Re)Introducing Edgestore</a> - Metadata system architecture</li>
+<li><a href="https://dropbox.tech/infrastructure/panda-metadata-stack-petabyte-scale-transactional-key-value-store">Panda: Petabyte-Scale Transactional Key-Value Store</a> - Metadata evolution</li>
+<li><a href="https://dropbox.tech/infrastructure/disaster-readiness-test-failover-blackhole-sjc">Disaster Readiness Test: Failover Blackhole SJC</a> - Data center disconnection test (2021)</li>
+<li><a href="https://dropbox.tech/infrastructure/the-scalable-fabric-behind-our-growing-data-center-network">The Scalable Fabric Behind Our Growing Data Center Network</a> - Network architecture</li>
+<li><a href="https://www.sec.gov/Archives/edgar/data/1467623/000119312518055809/d451946ds1.htm">Dropbox S-1 Filing</a> - Financial data and infrastructure cost savings (2018)</li>
+<li><a href="https://www.infoq.com/presentations/magic-pocket-dropbox/">Magic Pocket: Dropbox’s Exabyte-Scale Blob Storage System (QCon 2022)</a> - Andrew Fong &#x26; Akhil Gupta conference talk</li>
+<li><a href="https://www.infoq.com/articles/dropbox-magic-pocket-exabyte-storage/">Dropbox Magic Pocket at Exabyte Scale (InfoQ 2023)</a> - Detailed architecture article by Facundo Agriel</li>
+<li><a href="https://softwareengineeringdaily.com/2016/05/17/dropboxs-magic-pocket-james-cowling/">Software Engineering Daily: Dropbox’s Magic Pocket with James Cowling (2016)</a> - Podcast interview</li>
+<li><a href="https://se-radio.net/2017/03/se-radio-episode-285-james-cowling-on-dropboxs-distributed-storage-system/">SE Radio Episode 285: James Cowling on Distributed Storage (2017)</a> - Podcast interview</li>
+<li><a href="https://documents.westerndigital.com/content/dam/doc-library/en_us/assets/public/western-digital/collateral/case-study/case-study-dropbox-magic-pocket-achieves-exabyte-scale-with-smr-hdds.pdf">Western Digital Case Study: Dropbox Magic Pocket with SMR HDDs</a> - Vendor case study</li>
+</ul><style>
+mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+  min-height: 1px;
+  min-width: 1px;
+}
+
+mjx-container[jax="SVG"] > svg a {
+  fill: blue;
+  stroke: blue;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][display="true"][width="full"] {
+  display: flex;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line], svg[data-table] > g > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame], svg[data-table] > g > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed, svg[data-table] > g > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted, svg[data-table] > g > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > g > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"] path[data-c], mjx-container[jax="SVG"] use[data-c] {
+  stroke-width: 3;
+}
+</style> </article>  <section class="article-navigation"> <div class="section-divider"> <span class="section-divider-text">Continue Reading</span> </div> <ul class="article-list"> <li class="article-card"> <p class="article-card-label">Previous</p> <h3 class="article-card-title"> <a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/linkedin-kafka-origin" class="article-card-link">  LinkedIn and the Birth of Apache Kafka: Solving the O(N²) Data Integration Problem </a> </h3> <div class="frontmatter article-card-frontmatter">   <span class="frontmatter-item"> <a title="Category - System Design" href="/legacy-personal-site/v4/articles/system-design" class="frontmatter-link">  System Design </a>  <span class="text-muted">/</span> <a title="Topic - Real-World Case Studies" href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies" class="frontmatter-link">  Real-World Case Studies </a>  </span> <span class="frontmatter-item"> <svg width="1em" height="1em" viewBox="0 0 32 32" class="icon-sm" data-icon="carbon:time">   <use href="#ai:carbon:time"></use>  </svg> 16 min read </span>  </div> <p class="article-card-excerpt"> In 2010, LinkedIn faced a data infrastructure crisis: connecting 10 specialized data systems required 90 custom pipelines, each prone to failure. Oracle SQL*Loader jobs took 2-3 days with manual babysitting. Despite significant engineering effort, only 14% of their data reached Hadoop. Traditional messaging systems like ActiveMQ required a full TCP/IP roundtrip per message—unacceptable for billions of daily events. Jay Kreps, Neha Narkhede, and Jun Rao built Kafka to solve this: a distributed commit log that decoupled data producers from consumers, enabling any-to-any data flow through a single, scalable pipeline. This case study examines the architectural decisions that made Kafka the backbone of modern data infrastructure. </p> </li> <li class="article-card"> <p class="article-card-label">Next</p> <h3 class="article-card-title"> <a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/instagram-cassandra-migration" class="article-card-link">  Instagram: From Redis to Cassandra and the Rocksandra Storage Engine </a> </h3> <div class="frontmatter article-card-frontmatter">   <span class="frontmatter-item"> <a title="Category - System Design" href="/legacy-personal-site/v4/articles/system-design" class="frontmatter-link">  System Design </a>  <span class="text-muted">/</span> <a title="Topic - Real-World Case Studies" href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies" class="frontmatter-link">  Real-World Case Studies </a>  </span> <span class="frontmatter-item"> <svg width="1em" height="1em" viewBox="0 0 32 32" class="icon-sm" data-icon="carbon:time">   <use href="#ai:carbon:time"></use>  </svg> 21 min read </span>  </div> <p class="article-card-excerpt"> How Instagram migrated critical workloads from Redis to Apache Cassandra, achieving 75% cost savings, then engineered a custom RocksDB-based storage engine to eliminate JVM garbage collection stalls and reduce P99 read latency by 10x. A seven-year evolution from 12 nodes to 1,000+ nodes serving billions of operations daily. </p> </li> </ul> </section> </div> <footer class="site-footer"> <div class="site-footer-inner">  <nav class="site-footer-categories"> <a title="Browser &#38; Runtime Internals" href="/legacy-personal-site/v4/articles/browser-runtime-internals" class="nav-link">  Browser &amp; Runtime Internals </a><a title="System Design" href="/legacy-personal-site/v4/articles/system-design" class="nav-link">  System Design </a><a title="Platform Engineering" href="/legacy-personal-site/v4/articles/platform-engineering" class="nav-link">  Platform Engineering </a><a title="Frontend Engineering" href="/legacy-personal-site/v4/articles/frontend-engineering" class="nav-link">  Frontend Engineering </a><a title="Web Foundations" href="/legacy-personal-site/v4/articles/web-foundations" class="nav-link">  Web Foundations </a><a title="Programming &#38; Patterns" href="/legacy-personal-site/v4/articles/programming-patterns" class="nav-link">  Programming &amp; Patterns </a><a title="Developer Experience" href="/legacy-personal-site/v4/articles/developer-experience" class="nav-link">  Developer Experience </a> </nav>  <div class="site-footer-bar"> <div class="site-footer-links"> <a href="https://docs.google.com/document/d/1pazXBfzuL9O1wCjPdKb7IS-7nXz_ZzI7EvNL1r_KKRc/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="nav-link">  Resume </a><a href="/legacy-personal-site/v4/tags" class="nav-link">  Tags </a><a href="/legacy-personal-site/v4/articles/drafts" class="nav-link">  Drafts </a> </div> <div class="site-footer-controls">  <div class="site-footer-theme"> <svg width="1em" height="1em" class="site-footer-theme-icon" data-icon="carbon:paint-brush">   <symbol id="ai:carbon:paint-brush" viewBox="0 0 32 32"><path fill="currentColor" d="M28.83 23.17L23 17.33V13a1 1 0 0 0-.29-.71l-10-10a1 1 0 0 0-1.42 0l-9 9a1 1 0 0 0 0 1.42l10 10A1 1 0 0 0 13 23h4.34l5.83 5.84a4 4 0 0 0 5.66-5.66ZM6 10.41l2.29 2.3l1.42-1.42L7.41 9L9 7.41l4.29 4.3l1.42-1.42L10.41 6L12 4.41L18.59 11L11 18.59L4.41 12Zm21.41 17a2 2 0 0 1-2.82 0l-6.13-6.12a1.8 1.8 0 0 0-.71-.29h-4.34l-1-1L20 12.41l1 1v4.34a1 1 0 0 0 .29.7l6.12 6.14a2 2 0 0 1 0 2.82"/></symbol><use href="#ai:carbon:paint-brush"></use>  </svg> <select id="theme-select" class="site-footer-theme-select" aria-label="Select theme"> <option value="auto">Auto</option> <option value="light">Light</option> <option value="dark">Dark</option> <option value="high-contrast-light">High contrast light</option> <option value="high-contrast-dark">High contrast dark</option> <option value="paper">Paper</option> </select> </div>  <div class="site-footer-social"> <a aria-label="GitHub" title="GitHub" href="https://github.com/sujeet-pro" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-github">   <symbol id="ai:carbon:logo-github" viewBox="0 0 32 32"><path fill="currentColor" fill-rule="evenodd" d="M16 2a14 14 0 0 0-4.43 27.28c.7.13 1-.3 1-.67v-2.38c-3.89.84-4.71-1.88-4.71-1.88a3.7 3.7 0 0 0-1.62-2.05c-1.27-.86.1-.85.1-.85a2.94 2.94 0 0 1 2.14 1.45a3 3 0 0 0 4.08 1.16a2.93 2.93 0 0 1 .88-1.87c-3.1-.36-6.37-1.56-6.37-6.92a5.4 5.4 0 0 1 1.44-3.76a5 5 0 0 1 .14-3.7s1.17-.38 3.85 1.43a13.3 13.3 0 0 1 7 0c2.67-1.81 3.84-1.43 3.84-1.43a5 5 0 0 1 .14 3.7a5.4 5.4 0 0 1 1.44 3.76c0 5.38-3.27 6.56-6.39 6.91a3.33 3.33 0 0 1 .95 2.59v3.84c0 .46.25.81 1 .67A14 14 0 0 0 16 2"/></symbol><use href="#ai:carbon:logo-github"></use>  </svg>  </a> <a aria-label="LinkedIn" title="LinkedIn" href="https://www.linkedin.com/in/sujeetkrjaiswal/" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-linkedin">   <symbol id="ai:carbon:logo-linkedin" viewBox="0 0 32 32"><path fill="currentColor" d="M26.2 4H5.8C4.8 4 4 4.8 4 5.7v20.5c0 .9.8 1.7 1.8 1.7h20.4c1 0 1.8-.8 1.8-1.7V5.7c0-.9-.8-1.7-1.8-1.7M11.1 24.4H7.6V13h3.5zm-1.7-13c-1.1 0-2.1-.9-2.1-2.1s.9-2.1 2.1-2.1c1.1 0 2.1.9 2.1 2.1s-1 2.1-2.1 2.1m15.1 12.9H21v-5.6c0-1.3 0-3.1-1.9-3.1S17 17.1 17 18.5v5.7h-3.5V13h3.3v1.5h.1c.5-.9 1.7-1.9 3.4-1.9c3.6 0 4.3 2.4 4.3 5.5v6.2z"/></symbol><use href="#ai:carbon:logo-linkedin"></use>  </svg>  </a> <a aria-label="Twitter" title="Twitter" href="https://twitter.com/sujeetpro" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-twitter">   <symbol id="ai:carbon:logo-twitter" viewBox="0 0 32 32"><path fill="currentColor" d="M11.548 25.752c9.056 0 14.01-7.503 14.01-14.01c0-.213 0-.425-.015-.636A10 10 0 0 0 28 8.556a9.8 9.8 0 0 1-2.828.776a4.94 4.94 0 0 0 2.164-2.724a9.9 9.9 0 0 1-3.126 1.195a4.929 4.929 0 0 0-8.392 4.491A13.98 13.98 0 0 1 5.67 7.15a4.93 4.93 0 0 0 1.525 6.573a4.9 4.9 0 0 1-2.235-.617v.063a4.926 4.926 0 0 0 3.95 4.827a4.9 4.9 0 0 1-2.223.084a4.93 4.93 0 0 0 4.6 3.42A9.88 9.88 0 0 1 4 23.54a13.94 13.94 0 0 0 7.547 2.209"/></symbol><use href="#ai:carbon:logo-twitter"></use>  </svg>  </a> </div> </div> </div>  <p class="site-footer-copyright">
+&copy; 2024-2026 Sujeet Jaiswal </p> </div> </footer> </main> <aside id="right-sidebar" class="zen-sidebar zen-sidebar-right" aria-label="Table of contents"> <div class="zen-sidebar-header"> <span class="zen-sidebar-header-title">On This Page</span> <button class="zen-sidebar-close" data-sidebar-close="right" aria-label="Close table of contents"> <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5"> <path d="M8 8l16 16M24 8L8 24"></path> </svg> </button> </div> <div class="zen-sidebar-content"> <nav aria-label="Table of contents"><h2 class="sidebar-nav-title">On this page</h2><ul class="sidebar-toc-list"><li><a href="#abstract" class="sidebar-toc-item">Abstract</a></li><li><a href="#context" class="sidebar-toc-item">Context</a></li><li><a href="#the-system" class="sidebar-toc-item sidebar-toc-item--h3">The System</a></li><li><a href="#the-trigger" class="sidebar-toc-item sidebar-toc-item--h3">The Trigger</a></li><li><a href="#constraints" class="sidebar-toc-item sidebar-toc-item--h3">Constraints</a></li><li><a href="#the-opportunity" class="sidebar-toc-item">The Opportunity</a></li><li><a href="#why-not-just-optimize-s3-usage" class="sidebar-toc-item sidebar-toc-item--h3">Why Not Just Optimize S3 Usage?</a></li><li><a href="#what-s3-could-not-provide" class="sidebar-toc-item sidebar-toc-item--h3">What S3 Could Not Provide</a></li><li><a href="#options-considered" class="sidebar-toc-item">Options Considered</a></li><li><a href="#option-1-optimize-s3-usage" class="sidebar-toc-item sidebar-toc-item--h3">Option 1: Optimize S3 Usage</a></li><li><a href="#option-2-use-another-cloud-provider-or-open-source-stack" class="sidebar-toc-item sidebar-toc-item--h3">Option 2: Use Another Cloud Provider or Open-Source Stack</a></li><li><a href="#option-3-build-custom-storage-chosen" class="sidebar-toc-item sidebar-toc-item--h3">Option 3: Build Custom Storage (Chosen)</a></li><li><a href="#decision-factors" class="sidebar-toc-item sidebar-toc-item--h3">Decision Factors</a></li><li><a href="#implementation" class="sidebar-toc-item">Implementation</a></li><li><a href="#architecture-overview" class="sidebar-toc-item sidebar-toc-item--h3">Architecture Overview</a></li><li><a href="#core-components" class="sidebar-toc-item sidebar-toc-item--h3">Core Components</a></li><li><a href="#write-path" class="sidebar-toc-item sidebar-toc-item--h3">Write Path</a></li><li><a href="#read-path" class="sidebar-toc-item sidebar-toc-item--h3">Read Path</a></li><li><a href="#erasure-coding-strategy" class="sidebar-toc-item sidebar-toc-item--h3">Erasure Coding Strategy</a></li><li><a href="#cold-storage-optimization" class="sidebar-toc-item sidebar-toc-item--h3">Cold Storage Optimization</a></li><li><a href="#smr-drive-deployment" class="sidebar-toc-item sidebar-toc-item--h3">SMR Drive Deployment</a></li><li><a href="#encryption" class="sidebar-toc-item sidebar-toc-item--h3">Encryption</a></li><li><a href="#network-architecture" class="sidebar-toc-item sidebar-toc-item--h3">Network Architecture</a></li><li><a href="#ssd-cache-removal-2021-2022" class="sidebar-toc-item sidebar-toc-item--h3">SSD Cache Removal (2021-2022)</a></li><li><a href="#migration" class="sidebar-toc-item">Migration</a></li><li><a href="#timeline" class="sidebar-toc-item sidebar-toc-item--h3">Timeline</a></li><li><a href="#migration-strategy" class="sidebar-toc-item sidebar-toc-item--h3">Migration Strategy</a></li><li><a href="#post-migration" class="sidebar-toc-item sidebar-toc-item--h3">Post-Migration</a></li><li><a href="#verification-pocket-watch" class="sidebar-toc-item">Verification: Pocket Watch</a></li><li><a href="#disk-scrubber" class="sidebar-toc-item sidebar-toc-item--h3">Disk Scrubber</a></li><li><a href="#metadata-scanner" class="sidebar-toc-item sidebar-toc-item--h3">Metadata Scanner</a></li><li><a href="#storage-watcher" class="sidebar-toc-item sidebar-toc-item--h3">Storage Watcher</a></li><li><a href="#trash-inspector-and-extent-referee" class="sidebar-toc-item sidebar-toc-item--h3">Trash Inspector and Extent Referee</a></li><li><a href="#cross-zone-verifier" class="sidebar-toc-item sidebar-toc-item--h3">Cross-Zone Verifier</a></li><li><a href="#repair-operations" class="sidebar-toc-item">Repair Operations</a></li><li><a href="#disaster-readiness" class="sidebar-toc-item">Disaster Readiness</a></li><li><a href="#outcome" class="sidebar-toc-item">Outcome</a></li><li><a href="#financial-impact" class="sidebar-toc-item sidebar-toc-item--h3">Financial Impact</a></li><li><a href="#durability-and-availability" class="sidebar-toc-item sidebar-toc-item--h3">Durability and Availability</a></li><li><a href="#scale-2023-2024" class="sidebar-toc-item sidebar-toc-item--h3">Scale (2023-2024)</a></li><li><a href="#unexpected-benefits" class="sidebar-toc-item sidebar-toc-item--h3">Unexpected Benefits</a></li><li><a href="#remaining-limitations" class="sidebar-toc-item sidebar-toc-item--h3">Remaining Limitations</a></li><li><a href="#lessons-learned" class="sidebar-toc-item">Lessons Learned</a></li><li><a href="#technical-lessons" class="sidebar-toc-item sidebar-toc-item--h3">Technical Lessons</a></li><li><a href="#process-lessons" class="sidebar-toc-item sidebar-toc-item--h3">Process Lessons</a></li><li><a href="#organizational-lessons" class="sidebar-toc-item sidebar-toc-item--h3">Organizational Lessons</a></li><li><a href="#edgestore-and-panda-the-metadata-layer" class="sidebar-toc-item">Edgestore and Panda: The Metadata Layer</a></li><li><a href="#future-direction-hamr" class="sidebar-toc-item">Future Direction: HAMR</a></li><li><a href="#conclusion" class="sidebar-toc-item">Conclusion</a></li><li><a href="#appendix" class="sidebar-toc-item">Appendix</a></li><li><a href="#prerequisites" class="sidebar-toc-item sidebar-toc-item--h3">Prerequisites</a></li><li><a href="#terminology" class="sidebar-toc-item sidebar-toc-item--h3">Terminology</a></li><li><a href="#summary" class="sidebar-toc-item sidebar-toc-item--h3">Summary</a></li><li><a href="#references" class="sidebar-toc-item sidebar-toc-item--h3">References</a></li></ul></nav> </div> </aside> </div>  <div id="sidebar-backdrop" class="zen-sidebar-backdrop"></div>  <!-- Image Modal --><div id="image-modal" class="image-modal" role="dialog" aria-modal="true" aria-label="Image viewer"> <div class="image-modal-backdrop"></div> <div class="image-modal-content"> <div class="image-modal-header"> <div class="image-modal-controls"> <button type="button" id="image-zoom-out" class="image-modal-btn" aria-label="Zoom out" title="Zoom out"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <circle cx="11" cy="11" r="8"></circle> <line x1="21" y1="21" x2="16.65" y2="16.65"></line> <line x1="8" y1="11" x2="14" y2="11"></line> </svg> </button> <span id="image-zoom-level" class="image-zoom-level">1.0X</span> <button type="button" id="image-zoom-in" class="image-modal-btn" aria-label="Zoom in" title="Zoom in"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <circle cx="11" cy="11" r="8"></circle> <line x1="21" y1="21" x2="16.65" y2="16.65"></line> <line x1="11" y1="8" x2="11" y2="14"></line> <line x1="8" y1="11" x2="14" y2="11"></line> </svg> </button> <button type="button" id="image-zoom-reset" class="image-modal-btn" aria-label="Reset zoom" title="Reset zoom"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path> <path d="M3 3v5h5"></path> </svg> </button> </div> <button type="button" id="image-modal-close" class="image-modal-btn image-modal-close" aria-label="Close image viewer"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <line x1="18" y1="6" x2="6" y2="18"></line> <line x1="6" y1="6" x2="18" y2="18"></line> </svg> </button> </div> <div class="image-modal-body" id="image-modal-body"> <!-- Cloned image will be inserted here --> </div> </div> </div> <script type="module" src="/legacy-personal-site/v4/_astro/image-modal.astro_astro_type_script_index_0_lang.DaIybCtt.js"></script>  <!-- Google Analytics 4 --><script async src="https://www.googletagmanager.com/gtag/js?id=G-1Z2TP5LG65"></script> <script>(function(){const GA_MEASUREMENT_ID = "G-1Z2TP5LG65";
+
+  window.dataLayer = window.dataLayer || []
+  function gtag() {
+    dataLayer.push(arguments)
+  }
+  gtag("js", new Date())
+  gtag("config", GA_MEASUREMENT_ID)
+})();</script> <script type="module" src="/legacy-personal-site/v4/_astro/sidebar-toggle.astro_astro_type_script_index_0_lang.BjmuyXEJ.js"></script> <script type="module">function l(){const s=document.getElementById("main");if(!s)return;const n=Array.from(s.querySelectorAll("h2[id], h3[id]"));if(n.length===0)return;const o=document.querySelectorAll("#right-sidebar .sidebar-toc-item");if(o.length===0)return;const c=new Map;o.forEach(t=>{const e=t.getAttribute("href");e?.startsWith("#")&&c.set(e.slice(1),t)});let r=null;const i=new Set;function f(t){const e=c.get(t);!e||e===r||(r?.classList.remove("is-active"),e.classList.add("is-active"),r=e,e.scrollIntoView({block:"nearest",behavior:"smooth"}))}const a=new IntersectionObserver(t=>{if(t.forEach(e=>{const d=e.target.id;e.isIntersecting?i.add(d):i.delete(d)}),i.size>0){for(const e of n)if(i.has(e.id)){f(e.id);break}}},{rootMargin:"-80px 0px -75% 0px"});n.forEach(t=>a.observe(t)),document.addEventListener("astro:before-swap",()=>{a.disconnect()},{once:!0})}l();document.addEventListener("astro:page-load",l);</script> <script type="module">function c(e,t){const n=window.__themeConfig.THEME_LABELS,o=window.getNextTheme();e.setAttribute("aria-label",`Theme: ${n[t]}. Click to cycle.`),e.title=`Switch to ${n[o]}`,e.dataset.theme=t,e.querySelectorAll("[data-theme-icon]").forEach(a=>{a.style.display=a.dataset.themeIcon===t?"block":"none"})}function s(e,t){e.value!==t&&(e.value=t)}function m(e){e.dataset.themeInit||(e.dataset.themeInit="true",e.addEventListener("click",()=>{const t=window.getNextTheme();window.applySiteTheme(t)}))}function r(e){e.dataset.themeInit||(e.dataset.themeInit="true",e.addEventListener("change",()=>{const t=e.value;window.__themeConfig.THEMES.includes(t)&&window.applySiteTheme(t)}))}function u(){const e=document.documentElement;if(e.dataset.themeObserverInit)return;e.dataset.themeObserverInit="true",new MutationObserver(()=>{const n=e.dataset.theme||"auto",o=document.getElementById("theme-toggle-btn");o&&c(o,n);const i=document.getElementById("theme-select");i&&s(i,n)}).observe(e,{attributes:!0,attributeFilter:["data-theme"]})}function d(){const e=document.documentElement.dataset.theme||"auto",t=document.getElementById("theme-toggle-btn");t&&(c(t,e),m(t));const n=document.getElementById("theme-select");n&&(s(n,e),r(n)),u()}d();document.addEventListener("astro:page-load",d);</script> <script type="module" src="/legacy-personal-site/v4/_astro/docsearch.astro_astro_type_script_index_0_lang.B0uJCub6.js"></script> <script type="module">function a(){function r(){const n=document.documentElement.dataset.colorScheme==="dark";document.querySelectorAll(".mermaid-diagram").forEach(e=>{const t=n?e.dataset.srcDark:e.dataset.srcLight;t&&e.src!==new URL(t,location.origin).href&&(e.src=t)})}r(),new MutationObserver(()=>r()).observe(document.documentElement,{attributes:!0,attributeFilter:["data-color-scheme"]})}document.addEventListener("DOMContentLoaded",a);document.addEventListener("astro:page-load",a);</script> </body> </html> 

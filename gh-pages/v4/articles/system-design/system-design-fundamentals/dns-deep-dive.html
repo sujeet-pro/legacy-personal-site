@@ -1,0 +1,852 @@
+<!DOCTYPE html><html lang="en"> <head><meta name="astro-view-transitions-enabled" content="true"><meta name="astro-view-transitions-fallback" content="animate"><script type="module" src="/legacy-personal-site/v4/_astro/ClientRouter.astro_astro_type_script_index_0_lang.HWuSm9BO.js"></script><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light"><script>
+  ;(function () {
+    var THEMES = ["auto", "light", "dark", "high-contrast-light", "high-contrast-dark", "paper"]
+    var STORAGE_KEY = "site-theme"
+    var THEME_LABELS = {
+      auto: "Auto (system)",
+      light: "Light",
+      dark: "Dark",
+      "high-contrast-light": "High contrast light",
+      "high-contrast-dark": "High contrast dark",
+      paper: "Paper",
+    }
+    var darkQuery = window.matchMedia("(prefers-color-scheme: dark)")
+
+    // Expose shared config for module scripts
+    window.__themeConfig = { THEMES: THEMES, STORAGE_KEY: STORAGE_KEY, THEME_LABELS: THEME_LABELS }
+
+    // BroadcastChannel for cross-tab sync
+    var channel = null
+    try {
+      channel = new BroadcastChannel("site-theme-sync")
+    } catch (e) {
+      // BroadcastChannel not supported
+    }
+
+    function getResolvedTheme(theme) {
+      if (theme === "auto") {
+        return darkQuery.matches ? "dark" : "light"
+      }
+      return theme
+    }
+
+    function getColorScheme(resolved) {
+      if (resolved === "dark" || resolved === "high-contrast-dark") return "dark"
+      return "light"
+    }
+
+    function applyTheme(theme, _fromBroadcast) {
+      if (!theme || THEMES.indexOf(theme) === -1) theme = "auto"
+
+      var resolved = getResolvedTheme(theme)
+      var root = document.documentElement
+      var scheme = getColorScheme(resolved)
+
+      // Remove all theme classes
+      for (var i = 0; i < THEMES.length; i++) {
+        root.classList.remove("theme-" + THEMES[i])
+      }
+
+      // Apply resolved theme class
+      root.classList.add("theme-" + resolved)
+
+      // Set color-scheme
+      root.style.setProperty("--color-scheme", scheme)
+
+      // Update meta tag
+      var meta = document.querySelector('meta[name="color-scheme"]')
+      if (meta) meta.setAttribute("content", scheme)
+
+      // Set color scheme data attribute for CSS/JS consumers
+      root.dataset.colorScheme = scheme
+
+      // Store the user's chosen theme (not the resolved one)
+      try {
+        localStorage.setItem(STORAGE_KEY, theme)
+      } catch (e) {
+        // localStorage may be unavailable
+      }
+
+      // Dispatch event for other scripts to react
+      root.dataset.theme = theme
+      root.dataset.resolvedTheme = resolved
+
+      // Broadcast to other tabs (but not if we received this from another tab)
+      if (!_fromBroadcast && channel) {
+        try {
+          channel.postMessage({ theme: theme })
+        } catch (e) {
+          // Channel may be closed
+        }
+      }
+    }
+
+    // Smart cycling: skip the theme that "auto" resolves to
+    function getNextTheme() {
+      var current = "auto"
+      try {
+        current = localStorage.getItem(STORAGE_KEY) || "auto"
+      } catch (e) {}
+      if (THEMES.indexOf(current) === -1) current = "auto"
+
+      var idx = THEMES.indexOf(current)
+      var next = THEMES[(idx + 1) % THEMES.length]
+
+      // If current is "auto", skip the theme auto resolves to
+      if (current === "auto") {
+        var autoResolved = getResolvedTheme("auto")
+        if (next === autoResolved) {
+          next = THEMES[(idx + 2) % THEMES.length]
+        }
+      }
+
+      return next
+    }
+
+    // Apply on load
+    var saved = "auto"
+    try {
+      saved = localStorage.getItem(STORAGE_KEY) || "auto"
+    } catch (e) {
+      // localStorage may be unavailable
+    }
+    applyTheme(saved)
+
+    // Listen for OS preference changes when in auto mode
+    darkQuery.addEventListener("change", function () {
+      var current = "auto"
+      try {
+        current = localStorage.getItem(STORAGE_KEY) || "auto"
+      } catch (e) {}
+      if (current === "auto") {
+        applyTheme("auto")
+      }
+    })
+
+    // Listen for cross-tab theme changes
+    if (channel) {
+      channel.onmessage = function (event) {
+        if (event.data && event.data.theme) {
+          applyTheme(event.data.theme, true)
+        }
+      }
+    }
+
+    // Expose for runtime use
+    window.applySiteTheme = applyTheme
+    window.getNextTheme = getNextTheme
+  })()
+</script><!-- Inline font-face declarations with base path --><style>
+      @font-face {
+        font-family: "Open Sans";
+        font-style: normal;
+        font-weight: 300 800;
+        font-display: swap;
+        src: url("/legacy-personal-site/v4/fonts/open-sans-latin-wght-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+          U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: "JetBrains Mono";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("/legacy-personal-site/v4/fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+          U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+    </style><!-- Preload local fonts --><link rel="preload" as="font" type="font/woff2" href="/legacy-personal-site/v4/fonts/open-sans-latin-wght-normal.woff2" crossorigin="anonymous"><link rel="preload" as="font" type="font/woff2" href="/legacy-personal-site/v4/fonts/jetbrains-mono-latin-400-normal.woff2" crossorigin="anonymous"><!-- Main favicon --><link rel="icon" type="image/x-icon" href="/legacy-personal-site/v4/favicons/favicon.ico"><!-- Apple Touch Icons --><link rel="apple-touch-icon" sizes="57x57" href="/legacy-personal-site/v4/favicons/apple-icon-57x57.png"><link rel="apple-touch-icon" sizes="60x60" href="/legacy-personal-site/v4/favicons/apple-icon-60x60.png"><link rel="apple-touch-icon" sizes="72x72" href="/legacy-personal-site/v4/favicons/apple-icon-72x72.png"><link rel="apple-touch-icon" sizes="76x76" href="/legacy-personal-site/v4/favicons/apple-icon-76x76.png"><link rel="apple-touch-icon" sizes="114x114" href="/legacy-personal-site/v4/favicons/apple-icon-114x114.png"><link rel="apple-touch-icon" sizes="120x120" href="/legacy-personal-site/v4/favicons/apple-icon-120x120.png"><link rel="apple-touch-icon" sizes="144x144" href="/legacy-personal-site/v4/favicons/apple-icon-144x144.png"><link rel="apple-touch-icon" sizes="152x152" href="/legacy-personal-site/v4/favicons/apple-icon-152x152.png"><link rel="apple-touch-icon" sizes="180x180" href="/legacy-personal-site/v4/favicons/apple-icon-180x180.png"><!-- Apple Touch Icon Precomposed (for older iOS versions) --><link rel="apple-touch-icon-precomposed" href="/legacy-personal-site/v4/favicons/apple-icon-precomposed.png"><!-- Standard Icons --><link rel="icon" type="image/png" sizes="192x192" href="/legacy-personal-site/v4/favicons/android-icon-192x192.png"><link rel="icon" type="image/png" sizes="144x144" href="/legacy-personal-site/v4/favicons/android-icon-144x144.png"><link rel="icon" type="image/png" sizes="96x96" href="/legacy-personal-site/v4/favicons/android-icon-96x96.png"><link rel="icon" type="image/png" sizes="72x72" href="/legacy-personal-site/v4/favicons/android-icon-72x72.png"><link rel="icon" type="image/png" sizes="48x48" href="/legacy-personal-site/v4/favicons/android-icon-48x48.png"><link rel="icon" type="image/png" sizes="36x36" href="/legacy-personal-site/v4/favicons/android-icon-36x36.png"><link rel="icon" type="image/png" sizes="32x32" href="/legacy-personal-site/v4/favicons/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/legacy-personal-site/v4/favicons/favicon-16x16.png"><!-- Web App Manifest --><link rel="manifest" href="/legacy-personal-site/v4/manifest.json"><!-- Microsoft Tiles --><meta name="msapplication-config" content="/legacy-personal-site/v4/browserconfig.xml"><meta name="msapplication-TileImage" content="/legacy-personal-site/v4/favicons/ms-icon-144x144.png"><meta name="msapplication-TileColor" content="#f8fafc"><!-- Theme Colors --><meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#020617" media="(prefers-color-scheme: dark)"><meta name="msapplication-TileColor" content="#f8fafc"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="docsearch:language" content="en"><!-- Canonical URL --><link rel="canonical" href="https://sujeet.pro/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/dns-deep-dive.html"><!-- Primary Meta Tags --><title>DNS Deep Dive - Sujeet Jaiswal</title><meta name="title" content="DNS Deep Dive - Sujeet Jaiswal"><meta name="description" content="The Domain Name System (DNS) is the distributed hierarchical database that maps human-readable domain names to IP addresses. Designed in 1983 by Paul Mockapetris (RFC 1034/1035), DNS handles billions of queries per day with sub-100ms latency globally—yet its design choices (UDP transport, caching semantics, hierarchical delegation) create operational nuances that affect failover speed, security posture, and load distribution. This article covers DNS internals, resolution mechanics, record types with design rationale, TTL strategies, load balancing approaches, security mechanisms (DNSSEC, DoH/DoT), and production patterns from major providers."><!-- Open Graph / Facebook --><meta property="og:type" content="website"><meta property="og:url" content="https://sujeet.pro/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/dns-deep-dive.html"><meta property="og:title" content="DNS Deep Dive - Sujeet Jaiswal"><meta property="og:description" content="The Domain Name System (DNS) is the distributed hierarchical database that maps human-readable domain names to IP addresses. Designed in 1983 by Paul Mockapetris (RFC 1034/1035), DNS handles billions of queries per day with sub-100ms latency globally—yet its design choices (UDP transport, caching semantics, hierarchical delegation) create operational nuances that affect failover speed, security posture, and load distribution. This article covers DNS internals, resolution mechanics, record types with design rationale, TTL strategies, load balancing approaches, security mechanisms (DNSSEC, DoH/DoT), and production patterns from major providers."><!-- Twitter / X --><meta name="twitter:site" content="@sujeetpro"><meta name="twitter:card" content="summary_large_image"><!-- DocSearch facets --><meta name="docsearch:category" content="System Design"><meta name="docsearch:topic" content="System Design Fundamentals"><link rel="alternate" type="application/rss+xml" href="/legacy-personal-site/v4/rss.xml"><link rel="sitemap" href="/legacy-personal-site/v4/sitemap-index.xml"><!-- LLM-friendly content --><link rel="alternate" type="text/plain" href="/legacy-personal-site/v4/llms.txt" title="LLM Index"><link rel="alternate" type="text/plain" href="/legacy-personal-site/v4/llms-full.txt" title="LLM Full Content"><link rel="stylesheet" href="/legacy-personal-site/v4/_astro/docsearch.CgGoh9IB.css">
+<style>/*! tailwindcss v4.2.1 | MIT License | https://tailwindcss.com */.sidebar-toc-list{gap:calc(var(--spacing,.25rem) * .5);flex-direction:column;display:flex}
+@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) and (not (color:rgb(from red r g b)))){*,:before,:after,::backdrop{--tw-border-style:solid;--tw-font-weight:initial;--tw-ordinal:initial;--tw-slashed-zero:initial;--tw-numeric-figure:initial;--tw-numeric-spacing:initial;--tw-numeric-fraction:initial}}}.article-nav-category{margin-bottom:calc(var(--spacing,.25rem) * 5)}.article-nav-category+.article-nav-category{border-top-style:var(--tw-border-style);padding-top:calc(var(--spacing,.25rem) * 2);border-top-width:1px;border-color:var(--color-border)}.article-nav-category-name{margin-bottom:calc(var(--spacing,.25rem) * 1.5);padding-inline:calc(var(--spacing,.25rem) * 1);font-family:var(--font-mono,ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);--tw-font-weight:var(--font-weight-semibold,600);font-weight:var(--font-weight-semibold,600);text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-muted);font-size:11px;display:block}.article-nav-category-name.is-current{color:var(--color-text)}.article-nav-topics{flex-direction:column;display:flex}.article-nav-topic{list-style:none}.article-nav-topic-toggle{cursor:pointer;border-radius:var(--radius-md,.375rem);width:100%;padding-inline:calc(var(--spacing,.25rem) * 2);padding-block:calc(var(--spacing,.25rem) * 1.5);color:var(--color-text-muted);transition:all var(--transition-fast);justify-content:space-between;align-items:center;font-size:13px;list-style:none;display:flex}.article-nav-topic-toggle::-webkit-details-marker{display:none}.article-nav-topic-toggle::marker{content:"";display:none}.article-nav-topic-toggle:hover{color:var(--color-text);background:var(--color-bg-alt)}.article-nav-topic-toggle.is-active{color:var(--color-text);font-weight:500}.article-nav-topic-name{min-width:calc(var(--spacing,.25rem) * 0);flex:1}.article-nav-topic-count{--tw-numeric-spacing:tabular-nums;font-variant-numeric:var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);color:var(--color-text-muted);opacity:.6;flex-shrink:0;font-size:11px}.article-nav-chevron{opacity:.4;width:12px;height:12px;transition:transform var(--transition-fast);flex-shrink:0;margin-left:.5rem}.article-nav-topic-toggle:hover .article-nav-chevron{opacity:.7}details[open]>.article-nav-topic-toggle .article-nav-chevron{transform:rotate(90deg)}.article-nav-articles{margin-left:calc(var(--spacing,.25rem) * 3);border-left-style:var(--tw-border-style);padding-left:calc(var(--spacing,.25rem) * 2);border-left-width:1px;border-color:var(--color-border)}.article-nav-article-link{border-radius:var(--radius-md,.375rem);padding-inline:calc(var(--spacing,.25rem) * 2);padding-block:calc(var(--spacing,.25rem) * 1);color:var(--color-text-muted);transition:all var(--transition-fast);font-size:13px;line-height:1.4;text-decoration-line:none;display:block}.article-nav-article-link:hover{color:var(--color-text);background:var(--color-bg-alt)}.article-nav-article-link.is-active{color:var(--color-text);background:var(--color-bg-alt);font-weight:500}@property --tw-border-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-font-weight{syntax:"*";inherits:false}@property --tw-ordinal{syntax:"*";inherits:false}@property --tw-slashed-zero{syntax:"*";inherits:false}@property --tw-numeric-figure{syntax:"*";inherits:false}@property --tw-numeric-spacing{syntax:"*";inherits:false}@property --tw-numeric-fraction{syntax:"*";inherits:false}/*! tailwindcss v4.2.1 | MIT License | https://tailwindcss.com */.article-frontmatter{margin-bottom:calc(var(--spacing,.25rem) * 8)}.article-navigation{margin-top:calc(var(--spacing,.25rem) * 16)}
+</style>
+<link rel="stylesheet" href="/legacy-personal-site/v4/_astro/_slug_.u3hNe2gV.css"><script type="module" src="/legacy-personal-site/v4/_astro/page.CLJIuoFF.js"></script></head> <body> <a href="#main" class="skip-link">Skip to main content</a> <header class="site-header"> <div class="header-container"> <nav class="header-nav"> <!-- Left side: sidebar toggle + logo --> <div class="header-left"> <button id="left-sidebar-toggle" class="sidebar-toggle-btn" aria-label="Toggle navigation sidebar" aria-expanded="true" title="Hide navigation sidebar" aria-hidden="false"> <svg width="1em" height="1em" class="icon-md" data-icon="carbon:side-panel-open">   <symbol id="ai:carbon:side-panel-open" viewBox="0 0 32 32"><path fill="currentColor" d="M28 4H4c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h24c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2M10 26H4V6h6zm18 0H12v-9h10.2l-3.6 3.6L20 22l6-6l-6-6l-1.4 1.4l3.6 3.6H12V6h16z"/></symbol><use href="#ai:carbon:side-panel-open"></use>  </svg> </button> <a href="/legacy-personal-site/v4/" class="header-logo">   <span class="header-logo-name">sujeet.pro</span>  </a> </div> <!-- Center: Nav links - hidden on mobile --> <div class="header-nav-links"> <a href="/legacy-personal-site/v4/articles" class="nav-link">  Articles </a><a href="/legacy-personal-site/v4/blogs" class="nav-link">  Blogs </a><a href="/legacy-personal-site/v4/projects" class="nav-link">  Projects </a> </div> <!-- Right side: search + sidebar toggle + hamburger --> <div class="header-actions"> <!-- DocSearch --> <div id="docsearch-container"></div> <!-- Theme Toggle --> <button id="theme-toggle-btn" class="sidebar-toggle-btn" aria-label="Toggle theme" title="Switch theme"> <!-- Auto (monitor) --> <svg data-theme-icon="auto" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M28 4H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h8v4H8v2h16v-2h-4v-4h8a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 18H4V6h24Z"></path> </svg> <!-- Light (sun) --> <svg data-theme-icon="light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 12.005a4 4 0 1 1-4 4 4.005 4.005 0 0 1 4-4m0-2a6 6 0 1 0 6 6 6 6 0 0 0-6-6ZM5.394 6.813 6.81 5.399l3.505 3.506L8.9 10.319ZM2 15.005h5v2H2ZM5.394 25.197l3.505-3.506 1.414 1.414-3.505 3.506ZM15 25.005h2v5h-2ZM21.687 23.106l1.414-1.414 3.506 3.505-1.414 1.414ZM25 15.005h5v2h-5ZM21.69 8.904l3.505-3.505 1.414 1.415-3.505 3.505ZM15 2.005h2v5h-2Z"></path> </svg> <!-- Dark (moon) --> <svg data-theme-icon="dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M13.502 5.414a15.075 15.075 0 0 0 11.594 18.194 11.113 11.113 0 0 1-7.975 3.39c-.138 0-.278.005-.418 0a11.094 11.094 0 0 1-3.2-21.584M14.98 3a1.002 1.002 0 0 0-.175.016 13.096 13.096 0 0 0 1.825 25.981c.164.006.328 0 .49 0a13.072 13.072 0 0 0 10.703-5.555 1.01 1.01 0 0 0-.783-1.565A13.08 13.08 0 0 1 15.89 4.38 1.015 1.015 0 0 0 14.98 3Z"></path> </svg> <!-- High contrast light --> <svg data-theme-icon="high-contrast-light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26V4a12 12 0 0 1 0 24Z"></path> </svg> <!-- High contrast dark --> <svg data-theme-icon="high-contrast-dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 2a12 12 0 0 1 0 24Z"></path> </svg> <!-- Paper (document) --> <svg data-theme-icon="paper" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M19 10h7v2h-7zM19 6h7v2h-7zM19 14h7v2h-7zM19 18h7v2h-7z"></path> <path d="M28 2H10a2.002 2.002 0 0 0-2 2v6H4a2.002 2.002 0 0 0-2 2v18a2 2 0 0 0 2 2h14a2.002 2.002 0 0 0 2-2v-6h8a2.002 2.002 0 0 0 2-2V4a2.002 2.002 0 0 0-2-2Zm-10 28H4V12h14Zm10-8H20V12a2.002 2.002 0 0 0-2-2h-8V4h18Z"></path> <path d="M6 16h10v2H6zM6 20h10v2H6zM6 24h7v2H6z"></path> </svg> </button> <button id="right-sidebar-toggle" class="sidebar-toggle-btn" aria-label="Toggle table of contents" aria-expanded="true" title="Hide table of contents" aria-hidden="false"> <svg width="1em" height="1em" class="icon-md" data-icon="carbon:side-panel-close">   <symbol id="ai:carbon:side-panel-close" viewBox="0 0 32 32"><path fill="currentColor" d="M28 4H4c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h24c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2M10 26H4V6h6zm18-11H17.8l3.6-3.6L20 10l-6 6l6 6l1.4-1.4l-3.6-3.6H28v9H12V6h16z"/></symbol><use href="#ai:carbon:side-panel-close"></use>  </svg> </button> <!-- Hamburger Menu - visible on mobile only --> <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu" title="Open menu"> <svg width="1em" height="1em" class="icon-lg" data-icon="carbon:menu">   <symbol id="ai:carbon:menu" viewBox="0 0 32 32"><path fill="currentColor" d="M4 6h24v2H4zm0 18h24v2H4zm0-12h24v2H4zm0 6h24v2H4z"/></symbol><use href="#ai:carbon:menu"></use>  </svg> </button> </div> </nav> </div> </header> <div id="mobile-menu-overlay" class="mobile-menu-overlay is-hidden"></div> <aside id="mobile-menu" class="mobile-menu" aria-hidden="true"> <div class="mobile-menu-header"> <a href="/legacy-personal-site/v4/" class="nav-link nav-logo">   sujeet.pro  </a> <button id="mobile-menu-close" class="mobile-menu-close" aria-label="Close menu"> <svg width="1em" height="1em" class="icon-lg" data-icon="carbon:close">   <symbol id="ai:carbon:close" viewBox="0 0 32 32"><path fill="currentColor" d="M17.414 16L24 9.414L22.586 8L16 14.586L9.414 8L8 9.414L14.586 16L8 22.586L9.414 24L16 17.414L22.586 24L24 22.586z"/></symbol><use href="#ai:carbon:close"></use>  </svg> </button> </div> <nav class="mobile-menu-nav"> <a href="/legacy-personal-site/v4/articles" class="mobile-menu-link">  Articles </a><a href="/legacy-personal-site/v4/blogs" class="mobile-menu-link">  Blogs </a><a href="/legacy-personal-site/v4/projects" class="mobile-menu-link">  Projects </a> </nav> </aside> <script type="module" src="/legacy-personal-site/v4/_astro/mobile-menu.astro_astro_type_script_index_0_lang.AuCdxukU.js"></script>  <div class="zen-layout"> <aside id="left-sidebar" class="zen-sidebar zen-sidebar-left" aria-label="Navigation sidebar"> <div class="zen-sidebar-header"> <span class="zen-sidebar-header-title">Navigation</span> <button class="zen-sidebar-close" data-sidebar-close="left" aria-label="Close navigation sidebar"> <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5"> <path d="M8 8l16 16M24 8L8 24"></path> </svg> </button> </div> <div class="zen-sidebar-content"> <nav aria-label="Article navigation" class="article-nav"> <div class="article-nav-category"> <span class="article-nav-category-name">Browser &amp; Runtime Internals</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Critical Rendering Path</span> <span class="article-nav-topic-count">(12)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-rendering-pipeline-overview" class="article-nav-article-link">  Critical Rendering Path: Rendering Pipeline Overview </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-dom-construction" class="article-nav-article-link">  Critical Rendering Path: DOM Construction </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-cssom-construction" class="article-nav-article-link">  Critical Rendering Path: CSSOM Construction </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-style-recalculation" class="article-nav-article-link">  Critical Rendering Path: Style Recalculation </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-layout" class="article-nav-article-link">  Critical Rendering Path: Layout Stage </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-prepaint" class="article-nav-article-link">  Critical Rendering Path: Prepaint </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-paint" class="article-nav-article-link">  Critical Rendering Path: Paint Stage </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-commit" class="article-nav-article-link">  Critical Rendering Path: Commit </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-layerize" class="article-nav-article-link">  Critical Rendering Path: Layerize </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-raster" class="article-nav-article-link">  Critical Rendering Path: Rasterization </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-composit" class="article-nav-article-link">  Critical Rendering Path: Compositing </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-draw" class="article-nav-article-link">  Critical Rendering Path: Draw </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">JavaScript Runtime Internals</span> <span class="article-nav-topic-count">(7)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/v8-engine-architecture" class="article-nav-article-link">  V8 Engine Architecture: Parsing, Optimization, and JIT </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/browser-internals" class="article-nav-article-link">  Browser Architecture: Processes, Caching, and Extensions </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/browser-event-loop" class="article-nav-article-link">  Browser Event Loop: Tasks, Microtasks, Rendering, and Idle Time </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/nodejs-runtime-architecture" class="article-nav-article-link">  Node.js Runtime Architecture: Event Loop, Streams, and APIs </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/libuv-event-loop-internals" class="article-nav-article-link">  libuv Internals: Event Loop and Async I/O </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/nodejs-event-loop" class="article-nav-article-link">  Node.js Event Loop: Phases, Queues, and Process Exit </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/js-event-loop" class="article-nav-article-link">  JS Event Loop: Tasks, Microtasks, and Rendering (For Browser &amp; Node.js) </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name is-current">System Design</span> <div class="article-nav-topics"> <details class="article-nav-topic" open> <summary class="article-nav-topic-toggle is-active"> <span class="article-nav-topic-name">System Design Fundamentals</span> <span class="article-nav-topic-count">(20)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/consistency-and-cap-theorem" class="article-nav-article-link">  Consistency Models and the CAP Theorem </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/distributed-consensus" class="article-nav-article-link">  Distributed Consensus </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/time-and-ordering" class="article-nav-article-link">  Time and Ordering in Distributed Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/failure-modes-and-resilience" class="article-nav-article-link">  Failure Modes and Resilience Patterns </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/storage-choices-sql-vs-nosql" class="article-nav-article-link">  Storage Choices: SQL vs NoSQL </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/sharding-and-replication" class="article-nav-article-link">  Sharding and Replication </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/indexing-and-query-optimization" class="article-nav-article-link">  Indexing and Query Optimization </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/transactions-and-acid" class="article-nav-article-link">  Transactions and ACID Properties </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/load-balancers-architecture" class="article-nav-article-link">  Load Balancer Architecture: L4 vs L7 and Routing </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/cdn-architecture-and-caching" class="article-nav-article-link">  CDN Architecture and Edge Caching </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/caching-fundamentals-and-strategies" class="article-nav-article-link">  Caching Fundamentals and Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/api-gateway-patterns" class="article-nav-article-link">  API Gateway Patterns: Routing, Auth, and Policies </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/service-discovery-and-registry" class="article-nav-article-link">  Service Discovery and Registry Patterns </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/dns-deep-dive" class="article-nav-article-link is-active">  DNS Deep Dive </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/queues-and-pubsub" class="article-nav-article-link">  Queues and Pub/Sub: Decoupling and Backpressure </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/event-driven-architecture" class="article-nav-article-link">  Event-Driven Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/rpc-and-api-design" class="article-nav-article-link">  RPC and API Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/rate-limiting-strategies" class="article-nav-article-link">  Rate Limiting Strategies: Token Bucket, Leaky Bucket, and Sliding Window </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/circuit-breaker-patterns" class="article-nav-article-link">  Circuit Breaker Patterns for Resilient Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/capacity-planning-and-estimation" class="article-nav-article-link">  Capacity Planning and Back-of-the-Envelope Estimates </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">System Design Building Blocks</span> <span class="article-nav-topic-count">(10)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/lru-cache-design" class="article-nav-article-link">  LRU Cache Design: Eviction Strategies and Trade-offs </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/unique-id-generation" class="article-nav-article-link">  Unique ID Generation in Distributed Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-cache-design" class="article-nav-article-link">  Distributed Cache Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/blob-storage-design" class="article-nav-article-link">  Blob Storage Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-search-engine" class="article-nav-article-link">  Distributed Search Engine </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-logging-system" class="article-nav-article-link">  Distributed Logging System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-monitoring" class="article-nav-article-link">  Distributed Monitoring Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/task-scheduler-design" class="article-nav-article-link">  Task Scheduler Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/sharded-counters" class="article-nav-article-link">  Sharded Counters </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/leaderboard-design" class="article-nav-article-link">  Leaderboard Design </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">System Design Problems</span> <span class="article-nav-topic-count">(28)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-key-value-store" class="article-nav-article-link">  Design a Distributed Key-Value Store </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-distributed-file-system" class="article-nav-article-link">  Design a Distributed File System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-time-series-database" class="article-nav-article-link">  Design a Time Series Database </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-youtube-video-platform" class="article-nav-article-link">  Design a YouTube-Style Video Platform </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-netflix-streaming" class="article-nav-article-link">  Design Netflix Video Streaming </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-instagram-photo-sharing" class="article-nav-article-link">  Design Instagram: Photo Sharing at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-spotify-music-streaming" class="article-nav-article-link">  Design Spotify Music Streaming </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-real-time-chat-messaging" class="article-nav-article-link">  Design Real-Time Chat and Messaging </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-social-feed" class="article-nav-article-link">  Design a Social Feed (Facebook/Instagram) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-notification-system" class="article-nav-article-link">  Design a Notification System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-email-system" class="article-nav-article-link">  Design an Email System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-uber-ride-hailing" class="article-nav-article-link">  Design Uber-Style Ride Hailing </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-maps" class="article-nav-article-link">  Design Google Maps </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-yelp-proximity-service" class="article-nav-article-link">  Design Yelp: Location-Based Business Discovery Platform </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-search-autocomplete" class="article-nav-article-link">  Design Search Autocomplete: Prefix Matching at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-web-crawler" class="article-nav-article-link">  Design a Web Crawler </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-search" class="article-nav-article-link">  Design Google Search </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-docs-collaboration" class="article-nav-article-link">  Design Collaborative Document Editing (Google Docs) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-dropbox-file-sync" class="article-nav-article-link">  Design Dropbox File Sync </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-calendar" class="article-nav-article-link">  Design Google Calendar </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-issue-tracker" class="article-nav-article-link">  Design an Issue Tracker (Jira/Linear) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-payment-system" class="article-nav-article-link">  Design a Payment System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-flash-sale-system" class="article-nav-article-link">  Design a Flash Sale System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-amazon-shopping-cart" class="article-nav-article-link">  Design Amazon Shopping Cart </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/url-shortener-design" class="article-nav-article-link">  Design a URL Shortener: IDs, Storage, and Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-pastebin" class="article-nav-article-link">  Design Pastebin: Text Sharing, Expiration, and Abuse Prevention </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-api-rate-limiter" class="article-nav-article-link">  Design an API Rate Limiter: Distributed Throttling, Multi-Tenant Quotas, and Graceful Degradation </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-cookie-consent-service" class="article-nav-article-link">  Design a Cookie Consent Service </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Core Distributed Patterns</span> <span class="article-nav-topic-count">(9)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/crdt-for-collaborative-systems" class="article-nav-article-link">  CRDTs for Collaborative Systems </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/operational-transformation" class="article-nav-article-link">  Operational Transformation </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/distributed-locking" class="article-nav-article-link">  Distributed Locking </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/exactly-once-delivery" class="article-nav-article-link">  Exactly-Once Delivery </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/event-sourcing-deep-dive" class="article-nav-article-link">  Event Sourcing </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/change-data-capture" class="article-nav-article-link">  Change Data Capture </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/database-migrations-at-scale" class="article-nav-article-link">  Database Migrations at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/multi-region-architecture" class="article-nav-article-link">  Multi-Region Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/graceful-degradation" class="article-nav-article-link">  Graceful Degradation </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Frontend System Design</span> <span class="article-nav-topic-count">(15)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/virtualization-and-windowing" class="article-nav-article-link">  Virtualization and Windowing </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/offline-first-architecture" class="article-nav-article-link">  Offline-First Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/client-state-management" class="article-nav-article-link">  Client State Management </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/real-time-sync-client" class="article-nav-article-link">  Real-Time Sync Client </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/widget-framework" class="article-nav-article-link">  Multi-Tenant Pluggable Widget Framework </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/bundle-splitting-strategies" class="article-nav-article-link">  Bundle Splitting Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/rendering-strategies" class="article-nav-article-link">  Rendering Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/image-loading-optimization" class="article-nav-article-link">  Image Loading Optimization </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/performance-monitoring-client" class="article-nav-article-link">  Client Performance Monitoring </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-rich-text-editor" class="article-nav-article-link">  Design a Rich Text Editor </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-infinite-feed" class="article-nav-article-link">  Design an Infinite Feed </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-drag-drop-system" class="article-nav-article-link">  Design a Drag and Drop System </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-form-builder" class="article-nav-article-link">  Design a Form Builder </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-data-grid" class="article-nav-article-link">  Design a Data Grid </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-file-uploader" class="article-nav-article-link">  Design a File Uploader </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Real-World Case Studies</span> <span class="article-nav-topic-count">(20)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/facebook-2021-outage-analysis" class="article-nav-article-link">  Facebook 2021 Outage: BGP Withdrawal, DNS Collapse, and the Backbone That Disappeared </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/aws-kinesis-2020-outage" class="article-nav-article-link">  AWS Kinesis 2020 Outage: Thread Limits, Thundering Herds, and Hidden Dependencies </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/shopify-pod-architecture" class="article-nav-article-link">  Shopify: Pod Architecture for Multi-Tenant Isolation at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/netflix-microservices-evolution" class="article-nav-article-link">  Netflix: From Monolith to Microservices — A 7-Year Architecture Evolution </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/twitter-timeline-architecture" class="article-nav-article-link">  Twitter/X: Timeline Architecture and the Recommendation Algorithm </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/facebook-tao-social-graph" class="article-nav-article-link">  Facebook TAO: The Social Graph’s Distributed Cache </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/uber-microservices-journey" class="article-nav-article-link">  Uber: From Monolith to Domain-Oriented Microservices </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/uber-schemaless-datastore" class="article-nav-article-link">  Uber Schemaless: Building a Scalable Datastore on MySQL </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/slack-distributed-architecture" class="article-nav-article-link">  Slack: Scaling a Real-Time Messaging Platform from Monolith to Distributed Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/linkedin-kafka-origin" class="article-nav-article-link">  LinkedIn and the Birth of Apache Kafka: Solving the O(N²) Data Integration Problem </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/dropbox-magic-pocket" class="article-nav-article-link">  Dropbox Magic Pocket: Building Exabyte-Scale Blob Storage </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/instagram-cassandra-migration" class="article-nav-article-link">  Instagram: From Redis to Cassandra and the Rocksandra Storage Engine </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/youtube-vitess-scaling" class="article-nav-article-link">  YouTube: Scaling MySQL to Serve Billions with Vitess </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/github-mysql-migration" class="article-nav-article-link">  GitHub: Scaling MySQL from One Database to 1,200+ Hosts </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/pinterest-mysql-sharding" class="article-nav-article-link">  Pinterest: MySQL Sharding from Zero to Billions of Objects </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/stripe-idempotency-reliability" class="article-nav-article-link">  Stripe: Idempotency for Payment Reliability </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/discord-rust-read-states" class="article-nav-article-link">  Discord: Rewriting Read States from Go to Rust </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/discord-message-storage" class="article-nav-article-link">  Discord: From Billions to Trillions of Messages — A Three-Database Journey </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/figma-multiplayer-infrastructure" class="article-nav-article-link">  Figma: Building Multiplayer Infrastructure for Real-Time Design Collaboration </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/whatsapp-erlang-scaling" class="article-nav-article-link">  WhatsApp: 2 Million Connections Per Server with Erlang </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Platform Engineering</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Media Systems</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/drm-basics-for-streaming" class="article-nav-article-link">  DRM Fundamentals for Streaming Media </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/video-transcoding-pipeline" class="article-nav-article-link">  Video Transcoding Pipeline Design </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/web-video-playback-architecture" class="article-nav-article-link">  Web Video Playback Architecture: HLS, DASH, and Low Latency </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/image-processing-service-design" class="article-nav-article-link">  Image Processing Service Design: CDN, Transforms, and APIs </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Observability &amp; Reliability</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/slos-slis-error-budgets" class="article-nav-article-link">  SLOs, SLIs, and Error Budgets </a><a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/csp-violation-reporting-pipeline" class="article-nav-article-link">  CSP Violation Reporting Pipeline at Scale </a><a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/logging-metrics-tracing" class="article-nav-article-link">  Logging, Metrics, and Tracing Fundamentals </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Infrastructure &amp; Delivery</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/edge-delivery-and-cache-invalidation" class="article-nav-article-link">  Edge Delivery and Cache Invalidation </a><a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/deployment-strategies-blue-green-canary" class="article-nav-article-link">  Deployment Strategies: Blue-Green, Canary, and Rolling </a><a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/ssg-performance-optimizations" class="article-nav-article-link">  SSG Performance Optimizations: Build, Cache, and Delivery </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Experimentation &amp; Testing</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/experimentation-testing/k6-load-testing-overview" class="article-nav-article-link">  k6 Load Testing Overview: Smoke, Spike, Soak, Stress </a><a href="/legacy-personal-site/v4/articles/platform-engineering/experimentation-testing/statsig-experimentation-overview" class="article-nav-article-link">  Statsig Experimentation Platform: Architecture and Rollouts </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Platform Migrations</span> <span class="article-nav-topic-count">(1)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/platform-migrations/ecommerce-ssg-to-ssr-migration" class="article-nav-article-link">  E-commerce SSG to SSR Migration: Strategy and Pitfalls </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Frontend Engineering</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Frontend Architecture &amp; Patterns</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/micro-frontends-architecture" class="article-nav-article-link">  Micro-Frontends Architecture: Composition, Isolation, and Delivery </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/rendering-strategies-csr-ssr-ssg-isr" class="article-nav-article-link">  Rendering Strategies: CSR, SSR, SSG, and ISR </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/data-fetching-patterns" class="article-nav-article-link">  Frontend Data Fetching Patterns and Caching </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/css-architecture-strategies" class="article-nav-article-link">  CSS Architecture Strategies: BEM, Utility-First, and CSS-in-JS </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/component-architecture-blueprint" class="article-nav-article-link">  Component Architecture Blueprint for Scalable UI </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Web Performance Optimization</span> <span class="article-nav-topic-count">(6)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-infrastructure-stack" class="article-nav-article-link">  Web Performance Infrastructure: DNS, CDN, Caching, and Edge </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-javascript-optimization" class="article-nav-article-link">  JavaScript Performance Optimization for the Web </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-css-typography" class="article-nav-article-link">  CSS and Typography Performance Optimization </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-image-optimization" class="article-nav-article-link">  Image Performance Optimization for the Web </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/core-web-vitals-measurement" class="article-nav-article-link">  Core Web Vitals Measurement: Lab vs Field Data </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-overview" class="article-nav-article-link">  Web Performance Optimization: Overview and Playbook </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Design Systems</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-system-implementation-scaling" class="article-nav-article-link">  Design System Implementation and Scaling </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/component-library-architecture-and-governance" class="article-nav-article-link">  Component Library Architecture and Governance </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-tokens-and-theming" class="article-nav-article-link">  Design Tokens and Theming Architecture </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-system-adoption-foundations" class="article-nav-article-link">  Design System Adoption: Foundations and Governance </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">React Architecture</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-performance-patterns" class="article-nav-article-link">  React Performance Patterns: Rendering, Memoization, and Scheduling </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-hooks-advanced-patterns" class="article-nav-article-link">  React Hooks Advanced Patterns: Specialized Hooks and Composition </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-rendering-architecture" class="article-nav-article-link">  React Rendering Architecture: Fiber, SSR, and RSC </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-hooks-fundamentals" class="article-nav-article-link">  React Hooks Fundamentals: Rules, Core Hooks, and Custom Hooks </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Web Foundations</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Security &amp; Auth</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/csrf-and-cors-defense" class="article-nav-article-link">  CSRF and CORS Defense for Modern Web Applications </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/oauth-oidc-flow-guide" class="article-nav-article-link">  OAuth 2.0 and OIDC Flows: Authorization Code to PKCE </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/web-app-security-architecture" class="article-nav-article-link">  Web Application Security Architecture </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/auth-foundations-sessions-tokens" class="article-nav-article-link">  Authentication Foundations: Sessions, Tokens, and Trust </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/owasp-top-10-guide" class="article-nav-article-link">  OWASP Top 10: Web Application Security Risks </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Networking &amp; Protocols</span> <span class="article-nav-topic-count">(7)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/http3-quic-and-tls" class="article-nav-article-link">  HTTP/3 and QUIC: Transport Layer Revolution </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/http1-1-to-http2-evolution" class="article-nav-article-link">  HTTP/1.1 to HTTP/2: Bottlenecks and Multiplexing </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/tls-1-3-handshake-and-https" class="article-nav-article-link">  TLS 1.3 Handshake and HTTPS Hardening </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-security-doh-dot-dnssec" class="article-nav-article-link">  DNS Security and Privacy: DNSSEC, DoH, and DoT </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-troubleshooting-playbook" class="article-nav-article-link">  DNS Troubleshooting Playbook </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-records-ttl-and-caching" class="article-nav-article-link">  DNS Records, TTL Strategy, and Cache Behavior </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-resolution-path" class="article-nav-article-link">  DNS Resolution Path: Stub to Recursive to Authoritative </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Browser APIs</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/web-workers-and-worklets" class="article-nav-article-link">  Web Workers and Worklets for Off-Main-Thread Work </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/service-workers-and-cache-api" class="article-nav-article-link">  Service Workers and Cache API </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/fetch-and-streaming-apis" class="article-nav-article-link">  Fetch, Streams, and AbortController </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/storage-apis-local-indexeddb" class="article-nav-article-link">  Browser Storage APIs: localStorage, IndexedDB, and Beyond </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/dom-api-essentials" class="article-nav-article-link">  DOM API Essentials: Structure, Traversal, and Mutation </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Accessibility Standards</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/accessibility-standards/accessibility-testing-tooling" class="article-nav-article-link">  Accessibility Testing and Tooling Workflow </a><a href="/legacy-personal-site/v4/articles/web-foundations/accessibility-standards/wcag-2-2-practical-guide" class="article-nav-article-link">  WCAG 2.2: Practical Accessibility Guide </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Programming &amp; Patterns</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Data Structures</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/heaps-and-priority-queues" class="article-nav-article-link">  Heaps and Priority Queues: Internals, Trade-offs, and When Theory Breaks Down </a><a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/trees-and-graphs" class="article-nav-article-link">  Trees and Graphs: Traversals and Applications </a><a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/arrays-and-hash-maps" class="article-nav-article-link">  Arrays and Hash Maps: Engine Internals and Performance Reality </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Algorithms Foundations</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/k-crystal-balls-problem" class="article-nav-article-link">  K-Crystal Balls Problem: Jump Search Pattern </a><a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/sorting-algorithms-guide" class="article-nav-article-link">  Sorting Algorithms: Complexity, Stability, and Use Cases </a><a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/search-algorithms-guide" class="article-nav-article-link">  Search Algorithms: Linear, Binary, and Graph Traversal </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">JavaScript Patterns</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/publish-subscribe-pattern" class="article-nav-article-link">  Publish-Subscribe Pattern in JavaScript </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/exponential-backoff-retry-strategy" class="article-nav-article-link">  Exponential Backoff and Retry Strategy </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/async-queue-pattern" class="article-nav-article-link">  Async Queue Pattern in JavaScript </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/javascript-error-handling-patterns" class="article-nav-article-link">  JavaScript Error Handling Patterns </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/javascript-string-length" class="article-nav-article-link">  JavaScript String Length: Graphemes, UTF-16, and Unicode </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Developer Experience</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Productivity &amp; Workflows</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/developer-experience/productivity-workflows/chrome-developer-setup" class="article-nav-article-link">  Chrome Developer Setup: Extensions, Profiles, and Shortcuts </a><a href="/legacy-personal-site/v4/articles/developer-experience/productivity-workflows/editor-terminal-setup" class="article-nav-article-link">  macOS Developer Environment Setup </a> </div> </details> </div> </div> </nav> <script type="module">function e(){document.querySelector("#left-sidebar .article-nav-article-link.is-active")?.scrollIntoView({block:"nearest",behavior:"instant"})}e();document.addEventListener("astro:page-load",e);</script>  </div> </aside> <main id="main" class="zen-main"> <div class="page-content"> <nav class="breadcrumb" aria-label="Breadcrumb"><a title="Home" aria-label="Home" href="/legacy-personal-site/v4/" class="nav-link">  <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:home">   <symbol id="ai:carbon:home" viewBox="0 0 32 32"><path fill="currentColor" d="M16.612 2.214a1.01 1.01 0 0 0-1.242 0L1 13.419l1.243 1.572L4 13.621V26a2.004 2.004 0 0 0 2 2h20a2.004 2.004 0 0 0 2-2V13.63L29.757 15L31 13.428ZM18 26h-4v-8h4Zm2 0v-8a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v8H6V12.062l10-7.79l10 7.8V26Z"/></symbol><use href="#ai:carbon:home"></use>  </svg> </a><svg width="1em" height="1em" viewBox="0 0 32 32" class="breadcrumb-separator icon-sm" data-icon="carbon:chevron-right">   <use href="#ai:carbon:chevron-right"></use>  </svg><a href="/legacy-personal-site/v4/articles/system-design" class="nav-link">  System Design </a><svg width="1em" height="1em" class="breadcrumb-separator icon-sm" data-icon="carbon:chevron-right">   <symbol id="ai:carbon:chevron-right" viewBox="0 0 32 32"><path fill="currentColor" d="M22 16L12 26l-1.4-1.4l8.6-8.6l-8.6-8.6L12 6z"/></symbol><use href="#ai:carbon:chevron-right"></use>  </svg><a title="System Design Fundamentals" href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals" class="nav-link">  System Design Fundamentals </a></nav>    <div id="reading-progress" class="reading-progress" style="width: 0%"></div> <script type="module">function l(){const e=document.getElementById("reading-progress");if(!e)return;const t=document.querySelector("article")||document.querySelector(".prose");if(!t){e.style.display="none";return}function r(){if(!t||!e)return;const i=t.getBoundingClientRect(),s=i.top+window.scrollY,u=i.height,c=window.innerHeight,g=window.scrollY,o=s-c/2,w=s+u-c/2,d=g;let a=0;d>o&&(a=Math.min(100,(d-o)/(w-o)*100)),e.style.width=`${Math.max(0,a)}%`}let n=!1;window.addEventListener("scroll",()=>{n||(requestAnimationFrame(()=>{r(),n=!1}),n=!0)}),r()}document.addEventListener("DOMContentLoaded",l);document.addEventListener("astro:page-load",l);</script>  <div class="frontmatter article-frontmatter">    <span class="frontmatter-item"> <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:time">   <symbol id="ai:carbon:time" viewBox="0 0 32 32"><path fill="currentColor" d="M16 30a14 14 0 1 1 14-14a14 14 0 0 1-14 14m0-26a12 12 0 1 0 12 12A12 12 0 0 0 16 4"/><path fill="currentColor" d="M20.59 22L15 16.41V7h2v8.58l5 5.01z"/></symbol><use href="#ai:carbon:time"></use>  </svg> 20 min read </span> <span class="frontmatter-item"> <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:calendar">   <symbol id="ai:carbon:calendar" viewBox="0 0 32 32"><path fill="currentColor" d="M26 4h-4V2h-2v2h-8V2h-2v2H6c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2m0 22H6V12h20zm0-16H6V6h4v2h2V6h8v2h2V6h4z"/></symbol><use href="#ai:carbon:calendar"></use>  </svg>
+Last updated on Feb 3, 2026 </span> </div>  <article id="article-content" class="article-prose-content DocSearch-content"> <h1 id="dns-deep-dive" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#dns-deep-dive">DNS Deep Dive</a></h1>
+<p>The Domain Name System (DNS) is the distributed hierarchical database that maps human-readable domain names to IP addresses. Designed in 1983 by Paul Mockapetris (RFC 1034/1035), DNS handles <strong>billions of queries per day</strong> with sub-100ms latency globally—yet its design choices (UDP transport, caching semantics, hierarchical delegation) create operational nuances that affect failover speed, security posture, and load distribution. This article covers DNS internals, resolution mechanics, record types with design rationale, TTL strategies, load balancing approaches, security mechanisms (DNSSEC, DoH/DoT), and production patterns from major providers.</p>
+<figure>
+<p><img alt="DNS resolution flow: stub resolver queries recursive resolver, which walks the hierarchy (root → TLD → authoritative) or returns cached answers." loading="lazy" decoding="async" fetchpriority="auto" width="1817" height="603" src="/legacy-personal-site/v4/_astro/dns-resolution-flow-stub-resolver-queries-recursive-resolver-which-walks-the-hie.yj8Ix01p_z5P17.svg" ></p>
+<figcaption>DNS resolution flow: stub resolver queries recursive resolver, which walks the hierarchy (root → TLD → authoritative) or returns cached answers.</figcaption>
+</figure>
+<h2 id="abstract" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#abstract">Abstract</a></h2>
+<p>DNS is a <strong>hierarchical, eventually consistent, globally distributed key-value store</strong> optimized for read-heavy workloads. The mental model:</p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Layer</th><th>Role</th><th>Caching Behavior</th></tr></thead><tbody><tr><td><strong>Stub resolver</strong></td><td>OS-level client</td><td>Browser: 1min, OS: varies</td></tr><tr><td><strong>Recursive resolver</strong></td><td>Walks hierarchy, caches</td><td>TTL-based, negative caching</td></tr><tr><td><strong>Authoritative server</strong></td><td>Source of truth for zone</td><td>No caching (serves from zone file)</td></tr></tbody></table></div>
+<p><strong>Core design trade-offs:</strong></p>
+<ul>
+<li><strong>UDP over TCP</strong>: Faster (no handshake), but limited to 512 bytes without EDNS—TCP fallback for large responses</li>
+<li><strong>TTL-based caching</strong>: Reduces load on authoritative servers, but delays propagation of changes</li>
+<li><strong>Hierarchical delegation</strong>: Scalable (no single point of failure), but adds latency for uncached queries (4+ round trips)</li>
+<li><strong>No authentication in original design</strong>: Enables cache poisoning—DNSSEC adds signatures, DoH/DoT add encryption</li>
+</ul>
+<p><strong>Operational implications:</strong></p>
+<ul>
+<li>Failover speed is bounded by TTL (60-300s for fast failover, 3600-86400s for stable records)</li>
+<li>Negative responses (NXDOMAIN) are cached—typosquatting and phishing leverage this</li>
+<li>EDNS Client Subnet (RFC 7871) enables GeoDNS accuracy but leaks client location to authoritative servers</li>
+</ul>
+<h2 id="dns-resolution-process" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#dns-resolution-process">DNS Resolution Process</a></h2>
+<h3 id="query-types-recursive-vs-iterative" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#query-types-recursive-vs-iterative">Query Types: Recursive vs. Iterative</a></h3>
+<p>DNS supports two query modes that serve different purposes:</p>
+<p><strong>Recursive queries</strong> (client → recursive resolver): The client asks for a complete answer. The resolver takes full responsibility for walking the hierarchy. Most client queries are recursive—the <code>RD</code> (Recursion Desired) flag is set to 1.</p>
+<p><strong>Iterative queries</strong> (recursive resolver → authoritative servers): The resolver asks each server in turn; each returns a referral to the next server. The resolver follows the chain: root → TLD → authoritative.</p>
+<p><strong>Design rationale</strong>: This separation allows caching at the recursive resolver layer. Clients don’t need to understand DNS hierarchy—they just ask their configured resolver. Recursive resolvers amortize the cost of hierarchy traversal across many clients.</p>
+<h3 id="resolution-chain-in-detail" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#resolution-chain-in-detail">Resolution Chain in Detail</a></h3>
+<p>For <code>www.example.com</code> from a cold cache:</p>
+<ol>
+<li>
+<p><strong>Root query</strong>: Resolver queries a root server (e.g., <code>a.root-servers.net</code>). Root returns referral to <code>.com</code> TLD servers with their IP addresses (glue records).</p>
+</li>
+<li>
+<p><strong>TLD query</strong>: Resolver queries <code>.com</code> TLD server. TLD returns referral to <code>example.com</code> authoritative servers.</p>
+</li>
+<li>
+<p><strong>Authoritative query</strong>: Resolver queries <code>example.com</code> nameserver. Authoritative returns the A record with IP address.</p>
+</li>
+<li>
+<p><strong>Caching</strong>: Resolver caches all responses per their TTLs—root referrals (48 hours typical), TLD referrals (24-48 hours), final answer (varies by record).</p>
+</li>
+</ol>
+<p><strong>Latency breakdown</strong> (typical uncached):</p>
+<ul>
+<li>Root query: 5-20ms (anycast)</li>
+<li>TLD query: 10-30ms</li>
+<li>Authoritative query: 10-100ms+ (depends on server location)</li>
+<li>Total: 25-150ms uncached vs. &#x3C;1ms cached</li>
+</ul>
+<h3 id="negative-caching-rfc-2308" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#negative-caching-rfc-2308">Negative Caching (RFC 2308)</a></h3>
+<p>When a domain doesn’t exist (NXDOMAIN) or has no records of the requested type (NODATA), the response is cached to prevent repeated queries.</p>
+<p><strong>Mechanism</strong>: The authoritative server includes its SOA record in the response. The negative cache TTL is the <strong>minimum of</strong>:</p>
+<ul>
+<li>SOA record’s TTL</li>
+<li>SOA MINIMUM field value</li>
+</ul>
+<p><strong>Design rationale</strong>: Without negative caching, attackers could flood resolvers with queries for non-existent domains, causing repeated hierarchy traversals. RFC 2308 mandates negative caching when SOA is present.</p>
+<p><strong>Production impact</strong>:</p>
+<ul>
+<li>Setting SOA MINIMUM too high (e.g., 86400s) means a typo in DNS configuration takes a day to “undo” in caches</li>
+<li>Setting it too low increases authoritative server load</li>
+<li>Typical recommendation: 300-3600 seconds</li>
+</ul>
+<div class="expressive-code"><link rel="stylesheet" href="/legacy-personal-site/v4/_astro/ec.g38ze.css"><script type="module" src="/legacy-personal-site/v4/_astro/ec.0vx5m.js"></script><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">example.com.  IN SOA ns1.example.com. admin.example.com. (</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">    </span></span><span style="--0:#24292e;--1:#e1e4e8">2024010101  ; serial</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">    </span></span><span style="--0:#24292e;--1:#e1e4e8">7200        ; refresh (2 hours)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">    </span></span><span style="--0:#24292e;--1:#e1e4e8">900         ; retry (15 minutes)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">    </span></span><span style="--0:#24292e;--1:#e1e4e8">1209600     ; expire (2 weeks)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span class="indent"><span style="--0:#24292e;--1:#e1e4e8">    </span></span><span style="--0:#24292e;--1:#e1e4e8">3600        ; minimum TTL for negative caching</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">7</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="example.com.  IN SOA ns1.example.com. admin.example.com. (    2024010101  ; serial    7200        ; refresh (2 hours)    900         ; retry (15 minutes)    1209600     ; expire (2 weeks)    3600        ; minimum TTL for negative caching)"><div></div></button></div></figure></div>
+<h2 id="record-types-and-design-rationale" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#record-types-and-design-rationale">Record Types and Design Rationale</a></h2>
+<p>DNS record types evolved to support different use cases. Understanding their design helps avoid common misconfigurations.</p>
+<h3 id="address-records-a-and-aaaa" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#address-records-a-and-aaaa">Address Records: A and AAAA</a></h3>
+<p><strong>A record</strong>: Maps hostname to IPv4 address (32-bit). Defined in RFC 1035 (1987).</p>
+<p><strong>AAAA record</strong> (quad-A): Maps hostname to IPv6 address (128-bit). Defined in RFC 3596 (2003). The name “AAAA” reflects that IPv6 addresses are 4× the size of IPv4.</p>
+<p><strong>Dual-stack behavior</strong>: Modern resolvers query both A and AAAA in parallel. Clients prefer IPv6 if available (RFC 6724 address selection). If only A exists, no AAAA NODATA response is cached.</p>
+<p><strong>Design consideration</strong>: Multiple A/AAAA records for the same name enable round-robin load distribution—the resolver returns all records, but their order may be rotated. Client behavior varies: some use first, some randomize.</p>
+<h3 id="cname-canonical-name" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#cname-canonical-name">CNAME: Canonical Name</a></h3>
+<p>CNAME creates an alias from one domain to another. When a resolver queries a CNAME, it must follow the chain to the canonical name and query that.</p>
+<p><strong>RFC 1034 constraint</strong>: CNAME cannot coexist with other records at the same name. This is because CNAME effectively says “this name is really that name”—having both <code>A</code> and <code>CNAME</code> creates ambiguity.</p>
+<p><strong>Zone apex problem</strong>: The apex (<code>example.com</code> without subdomain) requires NS and SOA records. Since CNAME cannot coexist with these, <strong>you cannot use CNAME at the zone apex</strong>.</p>
+<p><strong>Workarounds</strong>:</p>
+<ul>
+<li><strong>CNAME flattening</strong> (Cloudflare): DNS provider resolves CNAME at query time, returns A record to client</li>
+<li><strong>ALIAS/ANAME records</strong> (Route53, others): Proprietary record types that behave like CNAME but resolve to A at the authoritative level</li>
+<li>Route53 ALIAS works only for AWS resources; Cloudflare CNAME flattening is automatic at apex</li>
+</ul>
+<p><strong>CNAME chains</strong>: Multiple CNAMEs in sequence (A → B → C → IP) are valid but add latency. RFC 1034 recommends avoiding chains longer than necessary.</p>
+<h3 id="mx-mail-exchange" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#mx-mail-exchange">MX: Mail Exchange</a></h3>
+<p>MX records direct email traffic to mail servers. Each MX has a <strong>priority</strong> (lower = preferred) and a <strong>target hostname</strong>.</p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">example.com.  IN MX  10 mail1.example.com.</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">example.com.  IN MX  20 mail2.example.com.</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="example.com.  IN MX  10 mail1.example.com.example.com.  IN MX  20 mail2.example.com."><div></div></button></div></figure></div>
+<p><strong>Design rationale</strong>: Priority enables failover—if priority 10 server is unreachable, senders try priority 20. Equal priorities mean load distribution.</p>
+<p><strong>Common mistake</strong>: MX target must be a hostname, not an IP address, and cannot be a CNAME (RFC 2181). This ensures mail servers can be updated by changing only the A record of the target.</p>
+<h3 id="txt-text-records" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#txt-text-records">TXT: Text Records</a></h3>
+<p>TXT records store arbitrary text, limited to 255 characters per string but multiple strings concatenate.</p>
+<p><strong>Primary uses</strong>:</p>
+<ul>
+<li><strong>SPF</strong> (Sender Policy Framework): Lists authorized mail servers. RFC 7208 deprecated dedicated SPF record type—use TXT.</li>
+<li><strong>DKIM</strong> (DomainKeys Identified Mail): Public key for email signature verification.</li>
+<li><strong>DMARC</strong>: Policy for handling SPF/DKIM failures.</li>
+<li><strong>Domain verification</strong>: Google, AWS, others use TXT records to prove domain ownership.</li>
+</ul>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">example.com.       IN TXT "v=spf1 include:_spf.google.com -all"</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">selector._domainkey.example.com. IN TXT "v=DKIM1; k=rsa; p=MIGf..."</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">_dmarc.example.com. IN TXT "v=DMARC1; p=reject; rua=mailto:dmarc@example.com"</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="example.com.       IN TXT &#x22;v=spf1 include:_spf.google.com -all&#x22;selector._domainkey.example.com. IN TXT &#x22;v=DKIM1; k=rsa; p=MIGf...&#x22;_dmarc.example.com. IN TXT &#x22;v=DMARC1; p=reject; rua=mailto:dmarc@example.com&#x22;"><div></div></button></div></figure></div>
+<h3 id="srv-service-records" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#srv-service-records">SRV: Service Records</a></h3>
+<p>SRV records (RFC 2782) specify host and port for services. Format: <code>_service._proto.name TTL IN SRV priority weight port target</code>.</p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">_sip._tcp.example.com. IN SRV 10 60 5060 sipserver.example.com.</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">_sip._tcp.example.com. IN SRV 10 40 5060 sipbackup.example.com.</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="_sip._tcp.example.com. IN SRV 10 60 5060 sipserver.example.com._sip._tcp.example.com. IN SRV 10 40 5060 sipbackup.example.com."><div></div></button></div></figure></div>
+<p><strong>Fields</strong>:</p>
+<ul>
+<li><strong>Priority</strong>: Lower is preferred (like MX)</li>
+<li><strong>Weight</strong>: For load distribution among same-priority records (60/40 split above)</li>
+<li><strong>Port</strong>: Service port (allows port flexibility without hardcoding)</li>
+<li><strong>Target</strong>: Hostname (not IP)</li>
+</ul>
+<p><strong>Use cases</strong>: SIP, XMPP, LDAP, Minecraft servers. Kubernetes uses SRV for service discovery.</p>
+<h3 id="ns-nameserver-records" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#ns-nameserver-records">NS: Nameserver Records</a></h3>
+<p>NS records delegate a zone to authoritative nameservers. They appear at the zone apex and at delegation points (subdomains delegated to different servers).</p>
+<p><strong>Glue records</strong>: When NS target is within the zone being delegated, the parent zone must include A records (glue) to avoid circular dependency.</p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">; In .com zone:</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">example.com.    IN NS  ns1.example.com.</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">example.com.    IN NS  ns2.example.com.</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">ns1.example.com. IN A   192.0.2.1    ; glue record</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">ns2.example.com. IN A   192.0.2.2    ; glue record</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="; In .com zone:example.com.    IN NS  ns1.example.com.example.com.    IN NS  ns2.example.com.ns1.example.com. IN A   192.0.2.1    ; glue recordns2.example.com. IN A   192.0.2.2    ; glue record"><div></div></button></div></figure></div>
+<h3 id="record-type-decision-matrix" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#record-type-decision-matrix">Record Type Decision Matrix</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Use Case</th><th>Record Type</th><th>Notes</th></tr></thead><tbody><tr><td>Website IP (IPv4)</td><td>A</td><td>Multiple for round-robin</td></tr><tr><td>Website IP (IPv6)</td><td>AAAA</td><td>Prefer dual-stack</td></tr><tr><td>Alias to another domain</td><td>CNAME</td><td>Not at apex; consider ALIAS</td></tr><tr><td>Email routing</td><td>MX</td><td>Must point to hostname, not IP</td></tr><tr><td>Email authentication</td><td>TXT</td><td>SPF, DKIM, DMARC</td></tr><tr><td>Service with port</td><td>SRV</td><td>Weight for load distribution</td></tr><tr><td>Zone delegation</td><td>NS</td><td>Include glue if needed</td></tr><tr><td>Subdomain delegation</td><td>NS</td><td>At delegation point</td></tr></tbody></table></div>
+<h2 id="ttl-strategies-and-trade-offs" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#ttl-strategies-and-trade-offs">TTL Strategies and Trade-offs</a></h2>
+<p>TTL (Time To Live) controls how long resolvers cache a record. This single value balances conflicting goals: fast failover vs. reduced query load vs. change propagation speed.</p>
+<h3 id="design-choices" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#design-choices">Design Choices</a></h3>
+<h4 id="low-ttl-60-300-seconds" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#low-ttl-60-300-seconds">Low TTL (60-300 seconds)</a></h4>
+<p><strong>When to use</strong>:</p>
+<ul>
+<li>Health-checked failover records</li>
+<li>Blue-green deployments</li>
+<li>Active/passive disaster recovery</li>
+<li>Frequently changing infrastructure</li>
+</ul>
+<p><strong>Trade-offs</strong>:</p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Fast failover (changes propagate in minutes)</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Flexibility for infrastructure changes</li>
+<li><span role="img" aria-label="cross mark">❌</span> Higher query volume to authoritative servers</li>
+<li><span role="img" aria-label="cross mark">❌</span> Higher latency (more cache misses)</li>
+<li><span role="img" aria-label="cross mark">❌</span> Some resolvers ignore TTLs below 300s (ISP resolvers may floor to 5 minutes)</li>
+</ul>
+<p><strong>Real-world</strong>: AWS Route53 health-checked records commonly use 60s TTL. Cloudflare’s default for proxied records is 300s.</p>
+<h4 id="high-ttl-3600-86400-seconds" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#high-ttl-3600-86400-seconds">High TTL (3600-86400 seconds)</a></h4>
+<p><strong>When to use</strong>:</p>
+<ul>
+<li>Stable records (NS, MX for established domains)</li>
+<li>Root/TLD referrals (48 hours typical)</li>
+<li>CDN endpoints that don’t change</li>
+</ul>
+<p><strong>Trade-offs</strong>:</p>
+<ul>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Reduced authoritative server load</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Lower latency (higher cache hit rate)</li>
+<li><span role="img" aria-label="white heavy check mark">✅</span> Resilient to authoritative server outages (cached answers continue working)</li>
+<li><span role="img" aria-label="cross mark">❌</span> Slow change propagation (up to TTL duration)</li>
+<li><span role="img" aria-label="cross mark">❌</span> Mistakes persist longer</li>
+</ul>
+<p><strong>Real-world</strong>: Root server NS records have 518400s TTL (6 days). Google’s <code>google.com</code> A records use 300s.</p>
+<h4 id="ttl-migration-strategy" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#ttl-migration-strategy">TTL Migration Strategy</a></h4>
+<p>Before DNS changes, temporarily lower TTL to minimize propagation delay:</p>
+<ol>
+<li><strong>T-48h</strong>: Lower TTL from 86400s to 3600s</li>
+<li><strong>T-24h</strong>: Lower TTL from 3600s to 300s</li>
+<li><strong>T-0</strong>: Make the change</li>
+<li><strong>T+1h</strong>: Verify change propagated</li>
+<li><strong>T+24h</strong>: Raise TTL back to desired value</li>
+</ol>
+<p><strong>Limitation</strong>: This only works if you can wait for the original high TTL to expire before step 3. If your TTL is 86400s, you need to lower it and wait 24 hours before the change window.</p>
+<h3 id="browser-and-os-caching" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#browser-and-os-caching">Browser and OS Caching</a></h3>
+<p>Beyond DNS resolver caching, browsers and operating systems have their own caches:</p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Layer</th><th>Default TTL</th><th>Notes</th></tr></thead><tbody><tr><td>Chrome</td><td>60 seconds</td><td>Ignores TTL; fixed duration</td></tr><tr><td>Firefox</td><td>60 seconds</td><td>Respects TTL with 60s minimum</td></tr><tr><td>Windows DNS Client</td><td>Honors TTL</td><td>Can be configured via registry</td></tr><tr><td>macOS</td><td>Honors TTL</td><td><code>dscacheutil -flushcache</code> to clear</td></tr></tbody></table></div>
+<p><strong>Implication</strong>: Even with 30s DNS TTL, browser-level caching means users may see stale IPs for 1-2 minutes. For truly instant failover, use application-level health checks or service mesh.</p>
+<h2 id="dns-based-load-balancing" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#dns-based-load-balancing">DNS-Based Load Balancing</a></h2>
+<p>DNS can distribute traffic across servers, but it’s a coarse-grained mechanism with specific trade-offs.</p>
+<h3 id="round-robin-dns" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#round-robin-dns">Round-Robin DNS</a></h3>
+<p>Return multiple A/AAAA records; resolvers/clients rotate through them.</p>
+<p><strong>Mechanism</strong>: Authoritative server returns all records. Resolvers may shuffle order. Clients typically use first record.</p>
+<p><strong>Limitations</strong>:</p>
+<ul>
+<li>No health checking (returns dead servers)</li>
+<li>No session affinity (different IPs per query)</li>
+<li>No load awareness (even distribution, not load-based)</li>
+<li>Client caching defeats rotation</li>
+</ul>
+<p><strong>Real-world</strong>: GitHub uses round-robin for <code>github.com</code> with 4 IPs. Combined with BGP anycast, each IP routes to nearest datacenter.</p>
+<h3 id="weighted-routing" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#weighted-routing">Weighted Routing</a></h3>
+<p>Route53, Cloudflare, and others support weighted DNS where records have relative weights.</p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">; 70% to primary, 30% to secondary</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">www  300  IN A  192.0.2.1  ; weight 70</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">www  300  IN A  192.0.2.2  ; weight 30</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="; 70% to primary, 30% to secondarywww  300  IN A  192.0.2.1  ; weight 70www  300  IN A  192.0.2.2  ; weight 30"><div></div></button></div></figure></div>
+<p><strong>Use cases</strong>:</p>
+<ul>
+<li>Canary deployments (1% to new version)</li>
+<li>Gradual migration (shift traffic over time)</li>
+<li>A/B testing (split by DNS)</li>
+</ul>
+<p><strong>Caveat</strong>: Weights apply to DNS responses, not actual traffic. A single resolver cache hit serves all its clients the same answer—weight distribution is approximate at scale.</p>
+<h3 id="latency-based-routing" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#latency-based-routing">Latency-Based Routing</a></h3>
+<p>Route53 measures latency from resolver locations to AWS regions and returns the lowest-latency endpoint.</p>
+<p><strong>How it works</strong>: Route53 maintains latency measurements from hundreds of global locations to each AWS region. When a query arrives, Route53 uses the resolver’s IP (or EDNS Client Subnet if available) to estimate client location and return the lowest-latency endpoint.</p>
+<p><strong>Limitation</strong>: Latency is measured to AWS regions, not to your specific endpoints. If your server in <code>us-east-1</code> is overloaded, latency-based routing doesn’t know.</p>
+<h3 id="geodns" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#geodns">GeoDNS</a></h3>
+<p>Return different records based on client geographic location.</p>
+<p><strong>Location determination</strong>:</p>
+<ol>
+<li><strong>Resolver IP</strong>: GeoIP database lookup. Inaccurate when users use public resolvers (8.8.8.8, 1.1.1.1)</li>
+<li><strong>EDNS Client Subnet (ECS)</strong> (RFC 7871): Resolver sends truncated client IP to authoritative. More accurate but leaks client location.</li>
+</ol>
+<p><strong>Privacy trade-off</strong>: ECS improves GeoDNS accuracy but reveals client subnet to authoritative server and all intermediate resolvers. Privacy-focused resolvers (1.1.1.1, some 8.8.8.8 configurations) minimize or disable ECS.</p>
+<p><strong>Real-world</strong>: Netflix uses GeoDNS to route users to regional Open Connect caches. Content not available in a region? DNS returns different IPs that serve a “not available” page.</p>
+<h3 id="anycast-dns" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#anycast-dns">Anycast DNS</a></h3>
+<p>Instead of GeoDNS (different IPs per region), use the same IP announced via BGP from multiple locations.</p>
+<p><strong>Mechanism</strong>: Multiple servers advertise the same IP prefix. BGP routing delivers packets to the “closest” (by AS path) server.</p>
+<p><strong>Advantages</strong>:</p>
+<ul>
+<li>No DNS-level complexity</li>
+<li>Works with any resolver (no ECS needed)</li>
+<li>Instant failover (BGP withdrawal)</li>
+<li>DDoS resilience (attack traffic distributed)</li>
+</ul>
+<p><strong>Disadvantages</strong>:</p>
+<ul>
+<li>Requires BGP/AS number (not for small deployments)</li>
+<li>TCP affinity issues (route changes mid-connection)</li>
+<li>Debugging harder (which server answered?)</li>
+</ul>
+<p><strong>Real-world</strong>: Cloudflare’s 1.1.1.1, Google’s 8.8.8.8, and all root DNS servers use anycast. Cloudflare operates from 330+ cities with the same IP addresses.</p>
+<h3 id="load-balancing-decision-matrix" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#load-balancing-decision-matrix">Load Balancing Decision Matrix</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Approach</th><th>Health Checks</th><th>Granularity</th><th>Operational Complexity</th></tr></thead><tbody><tr><td>Round-robin</td><td>No</td><td>Per-record</td><td>Low</td></tr><tr><td>Weighted (Route53/CF)</td><td>Optional</td><td>Per-record</td><td>Low</td></tr><tr><td>Latency-based</td><td>No</td><td>Per-region</td><td>Medium</td></tr><tr><td>GeoDNS</td><td>Optional</td><td>Per-country/region</td><td>Medium</td></tr><tr><td>Anycast + BGP</td><td>Via BGP withdrawal</td><td>Per-datacenter</td><td>High</td></tr></tbody></table></div>
+<p><strong>Recommendation</strong>: For most applications, use a load balancer (ALB, NLB, HAProxy) with DNS pointing to the load balancer. DNS-based load balancing is best for global distribution to load balancers, not to individual servers.</p>
+<h2 id="dns-security" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#dns-security">DNS Security</a></h2>
+<h3 id="the-original-problem-no-authentication" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-original-problem-no-authentication">The Original Problem: No Authentication</a></h3>
+<p>RFC 1034/1035 designed DNS without authentication. Resolvers trust responses that match query parameters (QNAME, QTYPE, transaction ID, source port). This enables:</p>
+<ul>
+<li><strong>Cache poisoning</strong>: Attacker races to inject forged response before legitimate answer arrives</li>
+<li><strong>Man-in-the-middle</strong>: Attacker on network path modifies responses</li>
+<li><strong>DNS hijacking</strong>: ISP or government redirects queries</li>
+</ul>
+<h3 id="the-kaminsky-attack-2008" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-kaminsky-attack-2008">The Kaminsky Attack (2008)</a></h3>
+<p>Dan Kaminsky demonstrated that the 16-bit transaction ID (65,536 possibilities) could be guessed by flooding responses.</p>
+<p><strong>Attack vector</strong>: Query <code>random123.example.com</code> (no cache entry). Flood resolver with forged responses for all possible transaction IDs, including malicious NS records for <code>example.com</code>. If any forged response arrives before legitimate, the entire zone is poisoned.</p>
+<p><strong>Mitigation</strong>: Source port randomization adds ~16 bits of entropy (32 bits total). Now standard in all major resolver implementations.</p>
+<p><strong>Modern variant—SAD DNS (2020)</strong>: Side-channel attack infers source port via ICMP rate limiting behavior, partially defeating randomization. Mitigations: DNS cookies (RFC 7873), DNSSEC.</p>
+<h3 id="dnssec-cryptographic-authentication" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#dnssec-cryptographic-authentication">DNSSEC: Cryptographic Authentication</a></h3>
+<p>DNSSEC (RFC 4033-4035, 2005) adds digital signatures to DNS responses, enabling validation of authenticity and integrity.</p>
+<p><strong>Key record types</strong>:</p>
+<ul>
+<li><strong>DNSKEY</strong>: Public key for the zone</li>
+<li><strong>RRSIG</strong>: Signature over a record set</li>
+<li><strong>DS (Delegation Signer)</strong>: Hash of child zone’s DNSKEY, stored in parent zone—creates chain of trust</li>
+<li><strong>NSEC/NSEC3</strong>: Proves non-existence of a name (prevents forged NXDOMAIN)</li>
+</ul>
+<p><strong>Chain of trust</strong>:</p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Root (.) → DS for .com → .com DNSKEY validates →</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">.com → DS for example.com → example.com DNSKEY validates →</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">example.com → RRSIG validates A record</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="Root (.) → DS for .com → .com DNSKEY validates →.com → DS for example.com → example.com DNSKEY validates →example.com → RRSIG validates A record"><div></div></button></div></figure></div>
+<p><strong>Trust anchor</strong>: Resolvers have the root zone’s public key (KSK) preconfigured. All validation chains back to this anchor.</p>
+<p><strong>Key rollover complexity</strong>: Changing keys requires coordinating with parent zone (updating DS record) and waiting for TTLs. The root zone’s first KSK rollover (2018) took years of planning.</p>
+<p><strong>Operational challenges</strong>:</p>
+<ul>
+<li>Signature expiration: Signatures have validity periods. Failure to re-sign causes validation failures.</li>
+<li>Clock skew: Validators check signature timestamps. Clock drift causes spurious failures.</li>
+<li>Deployment: As of 2024, ~30% of domains are signed, but only ~25% of resolvers validate.</li>
+</ul>
+<p><strong>Validation failure debugging</strong>:</p>
+<div class="expressive-code"><figure class="frame is-terminal"><figcaption class="header"><span class="title"></span><span class="sr-only">Terminal window</span></figcaption><pre data-language="bash"><code><div class="ec-line"><div class="code"><span style="--0:#616972;--1:#99A0A6"># Check DNSSEC chain</span></div></div><div class="ec-line"><div class="code"><span style="--0:#6F42C1;--1:#B392F0">dig</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#032F62;--1:#9ECBFF">+dnssec</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#032F62;--1:#9ECBFF">+multi</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#032F62;--1:#9ECBFF">example.com</span></div></div><div class="ec-line"><div class="code"><span style="--0:#6F42C1;--1:#B392F0">delv</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#032F62;--1:#9ECBFF">example.com</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#616972;--1:#99A0A6"># Bypass validation (for debugging)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#6F42C1;--1:#B392F0">dig</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#032F62;--1:#9ECBFF">+cd</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#032F62;--1:#9ECBFF">example.com</span><span style="--0:#24292E;--1:#E1E4E8">  </span><span style="--0:#616972;--1:#99A0A6"># "checking disabled"</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="dig +dnssec +multi example.comdelv example.comdig +cd example.com  # &#x22;checking disabled&#x22;"><div></div></button></div></figure></div>
+<h3 id="dns-over-https-doh-and-dns-over-tls-dot" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#dns-over-https-doh-and-dns-over-tls-dot">DNS over HTTPS (DoH) and DNS over TLS (DoT)</a></h3>
+<p>DNSSEC authenticates responses but doesn’t encrypt queries. Anyone on the network path can see what domains you query.</p>
+<p><strong>DNS over TLS (DoT)</strong> (RFC 7858, 2016):</p>
+<ul>
+<li>Wraps DNS in TLS on port 853</li>
+<li>Easy to identify and block (dedicated port)</li>
+<li>Supported by Android 9+, iOS 14+</li>
+</ul>
+<p><strong>DNS over HTTPS (DoH)</strong> (RFC 8484, 2018):</p>
+<ul>
+<li>Sends DNS queries as HTTPS requests on port 443</li>
+<li>Indistinguishable from regular HTTPS traffic</li>
+<li>Supported by Chrome, Firefox, Windows 11</li>
+</ul>
+<p><strong>Trade-offs</strong>:</p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Aspect</th><th>DoT</th><th>DoH</th></tr></thead><tbody><tr><td>Port</td><td>853 (dedicated)</td><td>443 (shared with HTTPS)</td></tr><tr><td>Blocking</td><td>Easy (port-based)</td><td>Hard (looks like web traffic)</td></tr><tr><td>Firewall inspection</td><td>Visible as DNS</td><td>Hidden in HTTPS</td></tr><tr><td>Performance</td><td>Lower overhead</td><td>HTTP/2 overhead</td></tr><tr><td>Enterprise control</td><td>Easier to manage</td><td>Harder to enforce policies</td></tr></tbody></table></div>
+<p><strong>Privacy considerations</strong>:</p>
+<ul>
+<li>Encrypts resolver ↔ client. Resolver ↔ authoritative remains unencrypted (unless authoritative supports DoH).</li>
+<li>Resolver still sees all your queries. 1.1.1.1 and 8.8.8.8 have privacy policies; ISP resolvers may not.</li>
+<li><strong>Oblivious DoH (ODoH)</strong> (RFC 9230, 2022): Adds proxy layer so no single party sees both client IP and query content.</li>
+</ul>
+<h3 id="dns-amplification-attacks" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#dns-amplification-attacks">DNS Amplification Attacks</a></h3>
+<p>Open resolvers answer queries from any source. Attackers exploit this for DDoS:</p>
+<ol>
+<li>Spoof victim’s IP as source address</li>
+<li>Send small queries (60 bytes) requesting large responses (3000+ bytes)</li>
+<li>Resolver sends large response to victim</li>
+<li>Amplification factor: 50-70×</li>
+</ol>
+<p><strong>Mitigations</strong>:</p>
+<ul>
+<li><strong>Response Rate Limiting (RRL)</strong>: Limit responses per source IP per second</li>
+<li><strong>BCP38/BCP84</strong>: ISPs should filter spoofed source addresses</li>
+<li><strong>Disable open recursion</strong>: Only serve configured clients</li>
+</ul>
+<h3 id="dns-security-checklist" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#dns-security-checklist">DNS Security Checklist</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Threat</th><th>Mitigation</th><th>Status</th></tr></thead><tbody><tr><td>Cache poisoning</td><td>Source port randomization</td><td>Standard since 2008</td></tr><tr><td>Cache poisoning</td><td>DNSSEC validation</td><td>~25% of resolvers</td></tr><tr><td>Eavesdropping</td><td>DoH/DoT</td><td>Growing adoption</td></tr><tr><td>Amplification DDoS</td><td>RRL + BCP38</td><td>Partial deployment</td></tr><tr><td>Zone hijacking</td><td>Registrar locks + MFA</td><td>Recommended</td></tr></tbody></table></div>
+<h2 id="dns-failover-and-health-checks" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#dns-failover-and-health-checks">DNS Failover and Health Checks</a></h2>
+<p>DNS-based failover removes unhealthy endpoints from responses. It’s slower than load balancer health checks but works across regions.</p>
+<h3 id="how-dns-health-checks-work-route53-example" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#how-dns-health-checks-work-route53-example">How DNS Health Checks Work (Route53 Example)</a></h3>
+<ol>
+<li><strong>Health checker endpoints</strong> in multiple AWS regions ping your endpoint</li>
+<li>If endpoint fails checks from majority of regions, it’s marked unhealthy</li>
+<li>Route53 stops returning that record in DNS responses</li>
+<li><strong>Propagation delay</strong>: Existing cached responses continue until TTL expires</li>
+</ol>
+<p><strong>Health check options</strong>:</p>
+<ul>
+<li>HTTP/HTTPS: Check specific path, status code, response body</li>
+<li>TCP: Port connectivity only</li>
+<li>Calculated: Combine multiple checks with AND/OR logic</li>
+<li>CloudWatch alarm: Based on custom metrics</li>
+</ul>
+<h3 id="failover-latency-analysis" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#failover-latency-analysis">Failover Latency Analysis</a></h3>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Time 0:00 - Primary fails</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Time 0:30 - Health check fails (30s check interval)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Time 1:00 - Majority of checkers confirm failure</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Time 1:30 - Route53 marks record unhealthy, stops returning it</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Time 1:30 to 3:00 - Cached responses continue (60s TTL example)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">Time 3:00 - All caches expired, traffic flows to secondary</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="Time 0:00 - Primary failsTime 0:30 - Health check fails (30s check interval)Time 1:00 - Majority of checkers confirm failureTime 1:30 - Route53 marks record unhealthy, stops returning itTime 1:30 to 3:00 - Cached responses continue (60s TTL example)Time 3:00 - All caches expired, traffic flows to secondary"><div></div></button></div></figure></div>
+<p><strong>Best case with 60s TTL</strong>: ~3 minutes to full failover
+<strong>With browser caching</strong>: Add 1-2 minutes</p>
+<p><strong>Comparison</strong>: Load balancer health checks detect failure in 10-30 seconds with instant traffic shift.</p>
+<h3 id="active-active-vs-active-passive" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#active-active-vs-active-passive">Active-Active vs. Active-Passive</a></h3>
+<p><strong>Active-Active</strong>: Multiple endpoints in rotation; unhealthy ones removed.</p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">www.example.com.  60  IN  A  192.0.2.1  ; health checked</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">www.example.com.  60  IN  A  192.0.2.2  ; health checked</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="www.example.com.  60  IN  A  192.0.2.1  ; health checkedwww.example.com.  60  IN  A  192.0.2.2  ; health checked"><div></div></button></div></figure></div>
+<p><strong>Active-Passive</strong>: Secondary only used when primary fails.</p>
+<div class="expressive-code"><figure class="frame"><figcaption class="header"></figcaption><pre data-language="plaintext"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">; Route53 failover routing policy</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">www.example.com.  60  IN  A  192.0.2.1  ; primary, health checked</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span style="--0:#24292e;--1:#e1e4e8">www.example.com.  60  IN  A  192.0.2.2  ; secondary, returned if primary fails</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="; Route53 failover routing policywww.example.com.  60  IN  A  192.0.2.1  ; primary, health checkedwww.example.com.  60  IN  A  192.0.2.2  ; secondary, returned if primary fails"><div></div></button></div></figure></div>
+<p><strong>Gotcha</strong>: With active-passive, if you don’t health-check the secondary, failover might route traffic to a dead endpoint.</p>
+<h2 id="real-world-examples" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#real-world-examples">Real-World Examples</a></h2>
+<h3 id="cloudflare-1111-building-a-fast-resolver" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#cloudflare-1111-building-a-fast-resolver">Cloudflare 1.1.1.1: Building a Fast Resolver</a></h3>
+<p><strong>Problem</strong>: Provide the fastest, most private public DNS resolver.</p>
+<p><strong>Design choices</strong>:</p>
+<ul>
+<li><strong>Anycast from 330+ cities</strong>: Same IP (1.1.1.1) announced everywhere. BGP routes queries to nearest PoP.</li>
+<li><strong>Aggressive caching</strong>: Cache responses at edge; pre-populate popular domains.</li>
+<li><strong>Minimal logging</strong>: Purge query logs within 24 hours. No selling of data.</li>
+<li><strong>DNSSEC validation</strong>: Enabled by default.</li>
+<li><strong>DoH/DoT support</strong>: Privacy from network observers.</li>
+</ul>
+<p><strong>Performance result</strong>: DNSPerf ranks 1.1.1.1 at ~14ms average globally, compared to ~20-30ms for competitors.</p>
+<p><strong>Incident (October 2023)</strong>: Internal software error caused SERVFAIL responses for valid queries. 3-hour impact. Root cause: bug in internal data structure synchronization. Mitigation: additional validation layers, improved monitoring.</p>
+<h3 id="route53-dns-at-aws-scale" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#route53-dns-at-aws-scale">Route53: DNS at AWS Scale</a></h3>
+<p><strong>Scale</strong>: Handles 100+ billion queries/day across millions of hosted zones.</p>
+<p><strong>Design choices</strong>:</p>
+<ul>
+<li><strong>Four anycast networks</strong>: Geographically distributed. Health-checked routing to nearest healthy PoP.</li>
+<li><strong>EDNS Client Subnet support</strong>: More accurate latency-based and geo routing.</li>
+<li><strong>Alias records</strong>: Proprietary record type that resolves AWS resources at the authoritative level (no CNAME chain).</li>
+<li><strong>100% SLA</strong>: Backed by service credit (though historical uptime is >99.99%).</li>
+</ul>
+<p><strong>Integration</strong>: Tight coupling with AWS services—ELB, CloudFront, S3 static hosting all work via Alias records.</p>
+<h3 id="github-dns-and-ddos" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#github-dns-and-ddos">GitHub: DNS and DDoS</a></h3>
+<p><strong>Challenge</strong>: High-value target for DDoS attacks while serving millions of developers.</p>
+<p><strong>Approach</strong>:</p>
+<ul>
+<li><strong>Multiple DNS providers</strong>: Redundancy against provider outages.</li>
+<li><strong>Anycast for github.com</strong>: Multiple IPs, each anycast to multiple datacenters.</li>
+<li><strong>DDoS mitigation partners</strong>: Traffic scrubbing before reaching origin.</li>
+</ul>
+<p><strong>2018 DDoS attack</strong>: 1.35 Tbps attack using memcached amplification (not DNS, but illustrates scale). Mitigated in 10 minutes via Akamai.</p>
+<h3 id="root-dns-the-foundation" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#root-dns-the-foundation">Root DNS: The Foundation</a></h3>
+<p><strong>Architecture</strong>: 13 root server identities (A through M), operated by 12 organizations. Actually 1,700+ instances globally via anycast.</p>
+<p><strong>Why 13?</strong> Original UDP packet limit (512 bytes) constrained response size. 13 NS records with glue fit within this limit. Modern DNS uses EDNS for larger responses, but 13 remains for compatibility.</p>
+<p><strong>Resilience</strong>: Each root server identity runs hundreds of anycast instances. An attack on “A root” hits different physical servers depending on attacker location. No single instance failure affects global resolution.</p>
+<p><strong>Update mechanism</strong>: Root zone signed with DNSSEC. Updates propagate via zone transfers. KSK rollover (2018) required coordinated trust anchor updates across all validating resolvers globally.</p>
+<h2 id="common-pitfalls" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#common-pitfalls">Common Pitfalls</a></h2>
+<h3 id="1-cname-at-zone-apex" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#1-cname-at-zone-apex">1. CNAME at Zone Apex</a></h3>
+<p><strong>The mistake</strong>: Setting <code>example.com</code> as CNAME to <code>loadbalancer.example.net</code>.</p>
+<p><strong>Why it fails</strong>: RFC 1034 prohibits CNAME at apex because it conflicts with required NS and SOA records.</p>
+<p><strong>The fix</strong>: Use provider-specific solutions (Cloudflare CNAME flattening, Route53 ALIAS) or configure A records pointing to load balancer IPs.</p>
+<h3 id="2-ignoring-negative-ttl" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#2-ignoring-negative-ttl">2. Ignoring Negative TTL</a></h3>
+<p><strong>The mistake</strong>: Setting SOA MINIMUM to 86400s (1 day) for “stability.”</p>
+<p><strong>Why it’s problematic</strong>: Typo in DNS configuration (NXDOMAIN for real subdomain) persists in caches for a full day.</p>
+<p><strong>The fix</strong>: Use 300-3600s for SOA MINIMUM. Balance between reducing load and enabling recovery from mistakes.</p>
+<h3 id="3-over-relying-on-dns-failover" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#3-over-relying-on-dns-failover">3. Over-relying on DNS Failover</a></h3>
+<p><strong>The mistake</strong>: Using DNS health checks for sub-minute failover.</p>
+<p><strong>Why it fails</strong>: DNS TTL + browser caching + resolver caching = minutes of stale responses.</p>
+<p><strong>The fix</strong>: DNS failover for regional/datacenter failures (minutes acceptable). Load balancers for server failures (seconds matter).</p>
+<h3 id="4-forgetting-glue-records" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#4-forgetting-glue-records">4. Forgetting Glue Records</a></h3>
+<p><strong>The mistake</strong>: Delegating <code>example.com</code> to <code>ns1.example.com</code> without glue records in parent zone.</p>
+<p><strong>Why it fails</strong>: Resolver needs to query <code>ns1.example.com</code> to find <code>example.com</code> records, but can’t resolve <code>ns1.example.com</code> without first resolving <code>example.com</code>. Circular dependency.</p>
+<p><strong>The fix</strong>: Ensure registrar includes glue A records for nameservers within the delegated zone.</p>
+<h3 id="5-dnssec-signature-expiration" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#5-dnssec-signature-expiration">5. DNSSEC Signature Expiration</a></h3>
+<p><strong>The mistake</strong>: Setting up DNSSEC, then forgetting to re-sign zone before signatures expire.</p>
+<p><strong>Why it fails</strong>: Validating resolvers reject responses with expired signatures. Domain becomes unreachable for DNSSEC-validating users (~25% of internet).</p>
+<p><strong>The fix</strong>: Automate zone signing with DNSSEC-aware DNS providers (Route53, Cloudflare) or tools like OpenDNSSEC with automated key management.</p>
+<h2 id="conclusion" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#conclusion">Conclusion</a></h2>
+<p>DNS is deceptively simple—a hierarchical lookup system—but its design choices have profound operational implications:</p>
+<p><strong>Resolution mechanics</strong>: Recursive resolvers walk the hierarchy and cache aggressively. Caching enables DNS to scale globally but introduces propagation delays for changes.</p>
+<p><strong>TTL trade-offs</strong>: Low TTLs (60-300s) enable fast failover at the cost of increased authoritative load. High TTLs (3600-86400s) reduce load but slow change propagation. Plan TTL changes 24-48 hours before infrastructure changes.</p>
+<p><strong>Load balancing via DNS</strong>: Useful for global distribution to regional load balancers. Not suitable for server-level health checking or sub-minute failover. Combine with anycast for DDoS resilience.</p>
+<p><strong>Security layers</strong>:</p>
+<ul>
+<li>DNSSEC authenticates responses but doesn’t encrypt</li>
+<li>DoH/DoT encrypt the client-resolver path</li>
+<li>Neither fully solves DNS security—defense in depth required</li>
+</ul>
+<p><strong>Production patterns</strong>:</p>
+<ul>
+<li>Use managed DNS (Route53, Cloudflare) for reliability and features</li>
+<li>Enable DNSSEC if your registrar and provider support it</li>
+<li>Monitor resolution from multiple global locations</li>
+<li>Test failover regularly—don’t wait for a real outage</li>
+</ul>
+<p>DNS will outlive most of the systems it serves. Understanding its constraints—rather than fighting them—leads to more resilient architectures.</p>
+<h2 id="appendix" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#appendix">Appendix</a></h2>
+<h3 id="prerequisites" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#prerequisites">Prerequisites</a></h3>
+<ul>
+<li>Basic networking concepts (IP addresses, TCP/UDP, ports)</li>
+<li>Understanding of client-server architecture</li>
+<li>Familiarity with hierarchical data structures</li>
+</ul>
+<h3 id="terminology" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#terminology">Terminology</a></h3>
+<ul>
+<li><strong>Authoritative server</strong>: DNS server that holds the source-of-truth records for a zone</li>
+<li><strong>Recursive resolver</strong>: DNS server that queries other servers on behalf of clients and caches results</li>
+<li><strong>Stub resolver</strong>: Minimal resolver in OS/application that sends queries to recursive resolver</li>
+<li><strong>Zone</strong>: Administrative boundary in DNS namespace (e.g., <code>example.com</code> and all its subdomains)</li>
+<li><strong>TTL (Time To Live)</strong>: Duration a record can be cached before requiring re-query</li>
+<li><strong>Glue record</strong>: A record in parent zone providing IP for nameserver within delegated zone</li>
+<li><strong>EDNS (Extension Mechanisms for DNS)</strong>: Allows larger UDP responses and additional features</li>
+<li><strong>ECS (EDNS Client Subnet)</strong>: Extension that passes client subnet to authoritative server for better GeoDNS</li>
+<li><strong>Anycast</strong>: Routing technique where same IP is announced from multiple locations</li>
+</ul>
+<h3 id="summary" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#summary">Summary</a></h3>
+<ul>
+<li><strong>DNS is a hierarchical, eventually consistent, globally distributed key-value store</strong> optimized for reads</li>
+<li><strong>Resolution chain</strong>: Root → TLD → Authoritative, with aggressive caching at recursive resolvers</li>
+<li><strong>TTL controls propagation speed</strong>: 60s for failover records, 3600s+ for stable records</li>
+<li><strong>Negative caching</strong>: NXDOMAIN responses cached per SOA MINIMUM—mistakes persist</li>
+<li><strong>CNAME cannot exist at zone apex</strong>: Use ALIAS/CNAME flattening for apex pointing to hostnames</li>
+<li><strong>DNS load balancing is coarse</strong>: Use for global distribution; load balancers for server-level health</li>
+<li><strong>DNSSEC adds authentication</strong>: Chain of trust from root; ~25% of resolvers validate</li>
+<li><strong>DoH/DoT add encryption</strong>: Client ↔ resolver path; resolver ↔ authoritative still unencrypted</li>
+<li><strong>Failover speed bounded by TTL</strong>: Best case ~3 minutes with 60s TTL + browser caching</li>
+</ul>
+<h3 id="references" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#references">References</a></h3>
+<p><strong>Specifications (Primary Sources)</strong></p>
+<ul>
+<li><a href="https://datatracker.ietf.org/doc/html/rfc1034">RFC 1034: Domain Names - Concepts and Facilities</a> - Core DNS architecture</li>
+<li><a href="https://datatracker.ietf.org/doc/html/rfc1035">RFC 1035: Domain Names - Implementation and Specification</a> - DNS protocol and record formats</li>
+<li><a href="https://datatracker.ietf.org/doc/html/rfc2308">RFC 2308: Negative Caching of DNS Queries</a> - NXDOMAIN caching requirements</li>
+<li><a href="https://datatracker.ietf.org/doc/html/rfc4033">RFC 4033/4034/4035: DNSSEC</a> - DNS Security Extensions</li>
+<li><a href="https://datatracker.ietf.org/doc/html/rfc7858">RFC 7858: DNS over TLS</a> - Specification for DoT</li>
+<li><a href="https://datatracker.ietf.org/doc/html/rfc8484">RFC 8484: DNS over HTTPS</a> - Specification for DoH</li>
+<li><a href="https://datatracker.ietf.org/doc/html/rfc7871">RFC 7871: EDNS Client Subnet</a> - Client subnet for GeoDNS</li>
+<li><a href="https://datatracker.ietf.org/doc/html/rfc9230">RFC 9230: Oblivious DoH</a> - Privacy-preserving DNS</li>
+</ul>
+<p><strong>Official Documentation</strong></p>
+<ul>
+<li><a href="https://developers.cloudflare.com/dns/">Cloudflare DNS Documentation</a> - CNAME flattening, DNSSEC troubleshooting</li>
+<li><a href="https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/">AWS Route53 Developer Guide</a> - Routing policies, health checks</li>
+<li><a href="https://developers.google.com/speed/public-dns/">Google Public DNS Documentation</a> - DoH implementation</li>
+</ul>
+<p><strong>Engineering Blog Posts</strong></p>
+<ul>
+<li><a href="https://blog.cloudflare.com/introducing-cname-flattening-rfc-compliant-cnames-at-a-domains-root/">Cloudflare: Introducing CNAME Flattening</a> - Zone apex CNAME solution</li>
+<li><a href="https://blog.cloudflare.com/announcing-1111/">Cloudflare: Announcing 1.1.1.1</a> - Public resolver architecture</li>
+<li><a href="https://blog.cloudflare.com/a-brief-anycast-primer/">Cloudflare: A Brief Primer on Anycast</a> - Anycast implementation</li>
+<li><a href="https://blog.cloudflare.com/sad-dns-explained/">Cloudflare: SAD DNS Explained</a> - Modern cache poisoning attack</li>
+</ul>
+<p><strong>Security Research</strong></p>
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Dan_Kaminsky">Dan Kaminsky’s DNS Vulnerability (2008)</a> - Original cache poisoning disclosure</li>
+<li><a href="https://us-cert.cisa.gov/ncas/alerts/TA13-088A">CISA: DNS Amplification Attacks</a> - Mitigation guidance</li>
+<li><a href="https://ianix.com/pub/dnssec-outages.html">DNSSEC Outages List</a> - Historical validation failures</li>
+</ul>
+<p><strong>Books</strong></p>
+<ul>
+<li><a href="https://www.oreilly.com/library/view/dns-and-bind/0596100574/">Cricket Liu, Paul Albitz: DNS and BIND, 5th Edition</a> - Comprehensive DNS reference</li>
+</ul> </article>  <section class="article-navigation"> <div class="section-divider"> <span class="section-divider-text">Continue Reading</span> </div> <ul class="article-list"> <li class="article-card"> <p class="article-card-label">Previous</p> <h3 class="article-card-title"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/service-discovery-and-registry" class="article-card-link">  Service Discovery and Registry Patterns </a> </h3> <div class="frontmatter article-card-frontmatter">   <span class="frontmatter-item"> <a title="Category - System Design" href="/legacy-personal-site/v4/articles/system-design" class="frontmatter-link">  System Design </a>  <span class="text-muted">/</span> <a title="Topic - System Design Fundamentals" href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals" class="frontmatter-link">  System Design Fundamentals </a>  </span> <span class="frontmatter-item"> <svg width="1em" height="1em" viewBox="0 0 32 32" class="icon-sm" data-icon="carbon:time">   <use href="#ai:carbon:time"></use>  </svg> 16 min read </span>  </div> <p class="article-card-excerpt"> How services find each other in dynamic distributed environments where instance locations change continuously. This article covers discovery models, registry design, health checking mechanisms, and production trade-offs across client-side, server-side, and service mesh approaches. </p> </li> <li class="article-card"> <p class="article-card-label">Next</p> <h3 class="article-card-title"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/queues-and-pubsub" class="article-card-link">  Queues and Pub/Sub: Decoupling and Backpressure </a> </h3> <div class="frontmatter article-card-frontmatter">   <span class="frontmatter-item"> <a title="Category - System Design" href="/legacy-personal-site/v4/articles/system-design" class="frontmatter-link">  System Design </a>  <span class="text-muted">/</span> <a title="Topic - System Design Fundamentals" href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals" class="frontmatter-link">  System Design Fundamentals </a>  </span> <span class="frontmatter-item"> <svg width="1em" height="1em" viewBox="0 0 32 32" class="icon-sm" data-icon="carbon:time">   <use href="#ai:carbon:time"></use>  </svg> 24 min read </span>  </div> <p class="article-card-excerpt"> Message queues and publish-subscribe systems decouple producers from consumers, enabling asynchronous communication, elastic scaling, and fault isolation. The choice between queue-based and pub/sub patterns—and the specific broker implementation—determines delivery guarantees, ordering semantics, and operational complexity. This article covers design choices, trade-offs, and production patterns from systems handling trillions of messages daily. </p> </li> </ul> </section> </div> <footer class="site-footer"> <div class="site-footer-inner">  <nav class="site-footer-categories"> <a title="Browser &#38; Runtime Internals" href="/legacy-personal-site/v4/articles/browser-runtime-internals" class="nav-link">  Browser &amp; Runtime Internals </a><a title="System Design" href="/legacy-personal-site/v4/articles/system-design" class="nav-link">  System Design </a><a title="Platform Engineering" href="/legacy-personal-site/v4/articles/platform-engineering" class="nav-link">  Platform Engineering </a><a title="Frontend Engineering" href="/legacy-personal-site/v4/articles/frontend-engineering" class="nav-link">  Frontend Engineering </a><a title="Web Foundations" href="/legacy-personal-site/v4/articles/web-foundations" class="nav-link">  Web Foundations </a><a title="Programming &#38; Patterns" href="/legacy-personal-site/v4/articles/programming-patterns" class="nav-link">  Programming &amp; Patterns </a><a title="Developer Experience" href="/legacy-personal-site/v4/articles/developer-experience" class="nav-link">  Developer Experience </a> </nav>  <div class="site-footer-bar"> <div class="site-footer-links"> <a href="https://docs.google.com/document/d/1pazXBfzuL9O1wCjPdKb7IS-7nXz_ZzI7EvNL1r_KKRc/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="nav-link">  Resume </a><a href="/legacy-personal-site/v4/tags" class="nav-link">  Tags </a><a href="/legacy-personal-site/v4/articles/drafts" class="nav-link">  Drafts </a> </div> <div class="site-footer-controls">  <div class="site-footer-theme"> <svg width="1em" height="1em" class="site-footer-theme-icon" data-icon="carbon:paint-brush">   <symbol id="ai:carbon:paint-brush" viewBox="0 0 32 32"><path fill="currentColor" d="M28.83 23.17L23 17.33V13a1 1 0 0 0-.29-.71l-10-10a1 1 0 0 0-1.42 0l-9 9a1 1 0 0 0 0 1.42l10 10A1 1 0 0 0 13 23h4.34l5.83 5.84a4 4 0 0 0 5.66-5.66ZM6 10.41l2.29 2.3l1.42-1.42L7.41 9L9 7.41l4.29 4.3l1.42-1.42L10.41 6L12 4.41L18.59 11L11 18.59L4.41 12Zm21.41 17a2 2 0 0 1-2.82 0l-6.13-6.12a1.8 1.8 0 0 0-.71-.29h-4.34l-1-1L20 12.41l1 1v4.34a1 1 0 0 0 .29.7l6.12 6.14a2 2 0 0 1 0 2.82"/></symbol><use href="#ai:carbon:paint-brush"></use>  </svg> <select id="theme-select" class="site-footer-theme-select" aria-label="Select theme"> <option value="auto">Auto</option> <option value="light">Light</option> <option value="dark">Dark</option> <option value="high-contrast-light">High contrast light</option> <option value="high-contrast-dark">High contrast dark</option> <option value="paper">Paper</option> </select> </div>  <div class="site-footer-social"> <a aria-label="GitHub" title="GitHub" href="https://github.com/sujeet-pro" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-github">   <symbol id="ai:carbon:logo-github" viewBox="0 0 32 32"><path fill="currentColor" fill-rule="evenodd" d="M16 2a14 14 0 0 0-4.43 27.28c.7.13 1-.3 1-.67v-2.38c-3.89.84-4.71-1.88-4.71-1.88a3.7 3.7 0 0 0-1.62-2.05c-1.27-.86.1-.85.1-.85a2.94 2.94 0 0 1 2.14 1.45a3 3 0 0 0 4.08 1.16a2.93 2.93 0 0 1 .88-1.87c-3.1-.36-6.37-1.56-6.37-6.92a5.4 5.4 0 0 1 1.44-3.76a5 5 0 0 1 .14-3.7s1.17-.38 3.85 1.43a13.3 13.3 0 0 1 7 0c2.67-1.81 3.84-1.43 3.84-1.43a5 5 0 0 1 .14 3.7a5.4 5.4 0 0 1 1.44 3.76c0 5.38-3.27 6.56-6.39 6.91a3.33 3.33 0 0 1 .95 2.59v3.84c0 .46.25.81 1 .67A14 14 0 0 0 16 2"/></symbol><use href="#ai:carbon:logo-github"></use>  </svg>  </a> <a aria-label="LinkedIn" title="LinkedIn" href="https://www.linkedin.com/in/sujeetkrjaiswal/" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-linkedin">   <symbol id="ai:carbon:logo-linkedin" viewBox="0 0 32 32"><path fill="currentColor" d="M26.2 4H5.8C4.8 4 4 4.8 4 5.7v20.5c0 .9.8 1.7 1.8 1.7h20.4c1 0 1.8-.8 1.8-1.7V5.7c0-.9-.8-1.7-1.8-1.7M11.1 24.4H7.6V13h3.5zm-1.7-13c-1.1 0-2.1-.9-2.1-2.1s.9-2.1 2.1-2.1c1.1 0 2.1.9 2.1 2.1s-1 2.1-2.1 2.1m15.1 12.9H21v-5.6c0-1.3 0-3.1-1.9-3.1S17 17.1 17 18.5v5.7h-3.5V13h3.3v1.5h.1c.5-.9 1.7-1.9 3.4-1.9c3.6 0 4.3 2.4 4.3 5.5v6.2z"/></symbol><use href="#ai:carbon:logo-linkedin"></use>  </svg>  </a> <a aria-label="Twitter" title="Twitter" href="https://twitter.com/sujeetpro" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-twitter">   <symbol id="ai:carbon:logo-twitter" viewBox="0 0 32 32"><path fill="currentColor" d="M11.548 25.752c9.056 0 14.01-7.503 14.01-14.01c0-.213 0-.425-.015-.636A10 10 0 0 0 28 8.556a9.8 9.8 0 0 1-2.828.776a4.94 4.94 0 0 0 2.164-2.724a9.9 9.9 0 0 1-3.126 1.195a4.929 4.929 0 0 0-8.392 4.491A13.98 13.98 0 0 1 5.67 7.15a4.93 4.93 0 0 0 1.525 6.573a4.9 4.9 0 0 1-2.235-.617v.063a4.926 4.926 0 0 0 3.95 4.827a4.9 4.9 0 0 1-2.223.084a4.93 4.93 0 0 0 4.6 3.42A9.88 9.88 0 0 1 4 23.54a13.94 13.94 0 0 0 7.547 2.209"/></symbol><use href="#ai:carbon:logo-twitter"></use>  </svg>  </a> </div> </div> </div>  <p class="site-footer-copyright">
+&copy; 2024-2026 Sujeet Jaiswal </p> </div> </footer> </main> <aside id="right-sidebar" class="zen-sidebar zen-sidebar-right" aria-label="Table of contents"> <div class="zen-sidebar-header"> <span class="zen-sidebar-header-title">On This Page</span> <button class="zen-sidebar-close" data-sidebar-close="right" aria-label="Close table of contents"> <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5"> <path d="M8 8l16 16M24 8L8 24"></path> </svg> </button> </div> <div class="zen-sidebar-content"> <nav aria-label="Table of contents"><h2 class="sidebar-nav-title">On this page</h2><ul class="sidebar-toc-list"><li><a href="#abstract" class="sidebar-toc-item">Abstract</a></li><li><a href="#dns-resolution-process" class="sidebar-toc-item">DNS Resolution Process</a></li><li><a href="#query-types-recursive-vs-iterative" class="sidebar-toc-item sidebar-toc-item--h3">Query Types: Recursive vs. Iterative</a></li><li><a href="#resolution-chain-in-detail" class="sidebar-toc-item sidebar-toc-item--h3">Resolution Chain in Detail</a></li><li><a href="#negative-caching-rfc-2308" class="sidebar-toc-item sidebar-toc-item--h3">Negative Caching (RFC 2308)</a></li><li><a href="#record-types-and-design-rationale" class="sidebar-toc-item">Record Types and Design Rationale</a></li><li><a href="#address-records-a-and-aaaa" class="sidebar-toc-item sidebar-toc-item--h3">Address Records: A and AAAA</a></li><li><a href="#cname-canonical-name" class="sidebar-toc-item sidebar-toc-item--h3">CNAME: Canonical Name</a></li><li><a href="#mx-mail-exchange" class="sidebar-toc-item sidebar-toc-item--h3">MX: Mail Exchange</a></li><li><a href="#txt-text-records" class="sidebar-toc-item sidebar-toc-item--h3">TXT: Text Records</a></li><li><a href="#srv-service-records" class="sidebar-toc-item sidebar-toc-item--h3">SRV: Service Records</a></li><li><a href="#ns-nameserver-records" class="sidebar-toc-item sidebar-toc-item--h3">NS: Nameserver Records</a></li><li><a href="#record-type-decision-matrix" class="sidebar-toc-item sidebar-toc-item--h3">Record Type Decision Matrix</a></li><li><a href="#ttl-strategies-and-trade-offs" class="sidebar-toc-item">TTL Strategies and Trade-offs</a></li><li><a href="#design-choices" class="sidebar-toc-item sidebar-toc-item--h3">Design Choices</a></li><li><a href="#browser-and-os-caching" class="sidebar-toc-item sidebar-toc-item--h3">Browser and OS Caching</a></li><li><a href="#dns-based-load-balancing" class="sidebar-toc-item">DNS-Based Load Balancing</a></li><li><a href="#round-robin-dns" class="sidebar-toc-item sidebar-toc-item--h3">Round-Robin DNS</a></li><li><a href="#weighted-routing" class="sidebar-toc-item sidebar-toc-item--h3">Weighted Routing</a></li><li><a href="#latency-based-routing" class="sidebar-toc-item sidebar-toc-item--h3">Latency-Based Routing</a></li><li><a href="#geodns" class="sidebar-toc-item sidebar-toc-item--h3">GeoDNS</a></li><li><a href="#anycast-dns" class="sidebar-toc-item sidebar-toc-item--h3">Anycast DNS</a></li><li><a href="#load-balancing-decision-matrix" class="sidebar-toc-item sidebar-toc-item--h3">Load Balancing Decision Matrix</a></li><li><a href="#dns-security" class="sidebar-toc-item">DNS Security</a></li><li><a href="#the-original-problem-no-authentication" class="sidebar-toc-item sidebar-toc-item--h3">The Original Problem: No Authentication</a></li><li><a href="#the-kaminsky-attack-2008" class="sidebar-toc-item sidebar-toc-item--h3">The Kaminsky Attack (2008)</a></li><li><a href="#dnssec-cryptographic-authentication" class="sidebar-toc-item sidebar-toc-item--h3">DNSSEC: Cryptographic Authentication</a></li><li><a href="#dns-over-https-doh-and-dns-over-tls-dot" class="sidebar-toc-item sidebar-toc-item--h3">DNS over HTTPS (DoH) and DNS over TLS (DoT)</a></li><li><a href="#dns-amplification-attacks" class="sidebar-toc-item sidebar-toc-item--h3">DNS Amplification Attacks</a></li><li><a href="#dns-security-checklist" class="sidebar-toc-item sidebar-toc-item--h3">DNS Security Checklist</a></li><li><a href="#dns-failover-and-health-checks" class="sidebar-toc-item">DNS Failover and Health Checks</a></li><li><a href="#how-dns-health-checks-work-route53-example" class="sidebar-toc-item sidebar-toc-item--h3">How DNS Health Checks Work (Route53 Example)</a></li><li><a href="#failover-latency-analysis" class="sidebar-toc-item sidebar-toc-item--h3">Failover Latency Analysis</a></li><li><a href="#active-active-vs-active-passive" class="sidebar-toc-item sidebar-toc-item--h3">Active-Active vs. Active-Passive</a></li><li><a href="#real-world-examples" class="sidebar-toc-item">Real-World Examples</a></li><li><a href="#cloudflare-1111-building-a-fast-resolver" class="sidebar-toc-item sidebar-toc-item--h3">Cloudflare 1.1.1.1: Building a Fast Resolver</a></li><li><a href="#route53-dns-at-aws-scale" class="sidebar-toc-item sidebar-toc-item--h3">Route53: DNS at AWS Scale</a></li><li><a href="#github-dns-and-ddos" class="sidebar-toc-item sidebar-toc-item--h3">GitHub: DNS and DDoS</a></li><li><a href="#root-dns-the-foundation" class="sidebar-toc-item sidebar-toc-item--h3">Root DNS: The Foundation</a></li><li><a href="#common-pitfalls" class="sidebar-toc-item">Common Pitfalls</a></li><li><a href="#1-cname-at-zone-apex" class="sidebar-toc-item sidebar-toc-item--h3">1. CNAME at Zone Apex</a></li><li><a href="#2-ignoring-negative-ttl" class="sidebar-toc-item sidebar-toc-item--h3">2. Ignoring Negative TTL</a></li><li><a href="#3-over-relying-on-dns-failover" class="sidebar-toc-item sidebar-toc-item--h3">3. Over-relying on DNS Failover</a></li><li><a href="#4-forgetting-glue-records" class="sidebar-toc-item sidebar-toc-item--h3">4. Forgetting Glue Records</a></li><li><a href="#5-dnssec-signature-expiration" class="sidebar-toc-item sidebar-toc-item--h3">5. DNSSEC Signature Expiration</a></li><li><a href="#conclusion" class="sidebar-toc-item">Conclusion</a></li><li><a href="#appendix" class="sidebar-toc-item">Appendix</a></li><li><a href="#prerequisites" class="sidebar-toc-item sidebar-toc-item--h3">Prerequisites</a></li><li><a href="#terminology" class="sidebar-toc-item sidebar-toc-item--h3">Terminology</a></li><li><a href="#summary" class="sidebar-toc-item sidebar-toc-item--h3">Summary</a></li><li><a href="#references" class="sidebar-toc-item sidebar-toc-item--h3">References</a></li></ul></nav> </div> </aside> </div>  <div id="sidebar-backdrop" class="zen-sidebar-backdrop"></div>  <!-- Image Modal --><div id="image-modal" class="image-modal" role="dialog" aria-modal="true" aria-label="Image viewer"> <div class="image-modal-backdrop"></div> <div class="image-modal-content"> <div class="image-modal-header"> <div class="image-modal-controls"> <button type="button" id="image-zoom-out" class="image-modal-btn" aria-label="Zoom out" title="Zoom out"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <circle cx="11" cy="11" r="8"></circle> <line x1="21" y1="21" x2="16.65" y2="16.65"></line> <line x1="8" y1="11" x2="14" y2="11"></line> </svg> </button> <span id="image-zoom-level" class="image-zoom-level">1.0X</span> <button type="button" id="image-zoom-in" class="image-modal-btn" aria-label="Zoom in" title="Zoom in"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <circle cx="11" cy="11" r="8"></circle> <line x1="21" y1="21" x2="16.65" y2="16.65"></line> <line x1="11" y1="8" x2="11" y2="14"></line> <line x1="8" y1="11" x2="14" y2="11"></line> </svg> </button> <button type="button" id="image-zoom-reset" class="image-modal-btn" aria-label="Reset zoom" title="Reset zoom"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path> <path d="M3 3v5h5"></path> </svg> </button> </div> <button type="button" id="image-modal-close" class="image-modal-btn image-modal-close" aria-label="Close image viewer"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <line x1="18" y1="6" x2="6" y2="18"></line> <line x1="6" y1="6" x2="18" y2="18"></line> </svg> </button> </div> <div class="image-modal-body" id="image-modal-body"> <!-- Cloned image will be inserted here --> </div> </div> </div> <script type="module" src="/legacy-personal-site/v4/_astro/image-modal.astro_astro_type_script_index_0_lang.DaIybCtt.js"></script>  <!-- Google Analytics 4 --><script async src="https://www.googletagmanager.com/gtag/js?id=G-1Z2TP5LG65"></script> <script>(function(){const GA_MEASUREMENT_ID = "G-1Z2TP5LG65";
+
+  window.dataLayer = window.dataLayer || []
+  function gtag() {
+    dataLayer.push(arguments)
+  }
+  gtag("js", new Date())
+  gtag("config", GA_MEASUREMENT_ID)
+})();</script> <script type="module" src="/legacy-personal-site/v4/_astro/sidebar-toggle.astro_astro_type_script_index_0_lang.BjmuyXEJ.js"></script> <script type="module">function l(){const s=document.getElementById("main");if(!s)return;const n=Array.from(s.querySelectorAll("h2[id], h3[id]"));if(n.length===0)return;const o=document.querySelectorAll("#right-sidebar .sidebar-toc-item");if(o.length===0)return;const c=new Map;o.forEach(t=>{const e=t.getAttribute("href");e?.startsWith("#")&&c.set(e.slice(1),t)});let r=null;const i=new Set;function f(t){const e=c.get(t);!e||e===r||(r?.classList.remove("is-active"),e.classList.add("is-active"),r=e,e.scrollIntoView({block:"nearest",behavior:"smooth"}))}const a=new IntersectionObserver(t=>{if(t.forEach(e=>{const d=e.target.id;e.isIntersecting?i.add(d):i.delete(d)}),i.size>0){for(const e of n)if(i.has(e.id)){f(e.id);break}}},{rootMargin:"-80px 0px -75% 0px"});n.forEach(t=>a.observe(t)),document.addEventListener("astro:before-swap",()=>{a.disconnect()},{once:!0})}l();document.addEventListener("astro:page-load",l);</script> <script type="module">function c(e,t){const n=window.__themeConfig.THEME_LABELS,o=window.getNextTheme();e.setAttribute("aria-label",`Theme: ${n[t]}. Click to cycle.`),e.title=`Switch to ${n[o]}`,e.dataset.theme=t,e.querySelectorAll("[data-theme-icon]").forEach(a=>{a.style.display=a.dataset.themeIcon===t?"block":"none"})}function s(e,t){e.value!==t&&(e.value=t)}function m(e){e.dataset.themeInit||(e.dataset.themeInit="true",e.addEventListener("click",()=>{const t=window.getNextTheme();window.applySiteTheme(t)}))}function r(e){e.dataset.themeInit||(e.dataset.themeInit="true",e.addEventListener("change",()=>{const t=e.value;window.__themeConfig.THEMES.includes(t)&&window.applySiteTheme(t)}))}function u(){const e=document.documentElement;if(e.dataset.themeObserverInit)return;e.dataset.themeObserverInit="true",new MutationObserver(()=>{const n=e.dataset.theme||"auto",o=document.getElementById("theme-toggle-btn");o&&c(o,n);const i=document.getElementById("theme-select");i&&s(i,n)}).observe(e,{attributes:!0,attributeFilter:["data-theme"]})}function d(){const e=document.documentElement.dataset.theme||"auto",t=document.getElementById("theme-toggle-btn");t&&(c(t,e),m(t));const n=document.getElementById("theme-select");n&&(s(n,e),r(n)),u()}d();document.addEventListener("astro:page-load",d);</script> <script type="module" src="/legacy-personal-site/v4/_astro/docsearch.astro_astro_type_script_index_0_lang.B0uJCub6.js"></script> <script type="module">function a(){function r(){const n=document.documentElement.dataset.colorScheme==="dark";document.querySelectorAll(".mermaid-diagram").forEach(e=>{const t=n?e.dataset.srcDark:e.dataset.srcLight;t&&e.src!==new URL(t,location.origin).href&&(e.src=t)})}r(),new MutationObserver(()=>r()).observe(document.documentElement,{attributes:!0,attributeFilter:["data-color-scheme"]})}document.addEventListener("DOMContentLoaded",a);document.addEventListener("astro:page-load",a);</script> </body> </html> 

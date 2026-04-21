@@ -1,0 +1,934 @@
+<!DOCTYPE html><html lang="en"> <head><meta name="astro-view-transitions-enabled" content="true"><meta name="astro-view-transitions-fallback" content="animate"><script type="module" src="/legacy-personal-site/v4/_astro/ClientRouter.astro_astro_type_script_index_0_lang.HWuSm9BO.js"></script><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light"><script>
+  ;(function () {
+    var THEMES = ["auto", "light", "dark", "high-contrast-light", "high-contrast-dark", "paper"]
+    var STORAGE_KEY = "site-theme"
+    var THEME_LABELS = {
+      auto: "Auto (system)",
+      light: "Light",
+      dark: "Dark",
+      "high-contrast-light": "High contrast light",
+      "high-contrast-dark": "High contrast dark",
+      paper: "Paper",
+    }
+    var darkQuery = window.matchMedia("(prefers-color-scheme: dark)")
+
+    // Expose shared config for module scripts
+    window.__themeConfig = { THEMES: THEMES, STORAGE_KEY: STORAGE_KEY, THEME_LABELS: THEME_LABELS }
+
+    // BroadcastChannel for cross-tab sync
+    var channel = null
+    try {
+      channel = new BroadcastChannel("site-theme-sync")
+    } catch (e) {
+      // BroadcastChannel not supported
+    }
+
+    function getResolvedTheme(theme) {
+      if (theme === "auto") {
+        return darkQuery.matches ? "dark" : "light"
+      }
+      return theme
+    }
+
+    function getColorScheme(resolved) {
+      if (resolved === "dark" || resolved === "high-contrast-dark") return "dark"
+      return "light"
+    }
+
+    function applyTheme(theme, _fromBroadcast) {
+      if (!theme || THEMES.indexOf(theme) === -1) theme = "auto"
+
+      var resolved = getResolvedTheme(theme)
+      var root = document.documentElement
+      var scheme = getColorScheme(resolved)
+
+      // Remove all theme classes
+      for (var i = 0; i < THEMES.length; i++) {
+        root.classList.remove("theme-" + THEMES[i])
+      }
+
+      // Apply resolved theme class
+      root.classList.add("theme-" + resolved)
+
+      // Set color-scheme
+      root.style.setProperty("--color-scheme", scheme)
+
+      // Update meta tag
+      var meta = document.querySelector('meta[name="color-scheme"]')
+      if (meta) meta.setAttribute("content", scheme)
+
+      // Set color scheme data attribute for CSS/JS consumers
+      root.dataset.colorScheme = scheme
+
+      // Store the user's chosen theme (not the resolved one)
+      try {
+        localStorage.setItem(STORAGE_KEY, theme)
+      } catch (e) {
+        // localStorage may be unavailable
+      }
+
+      // Dispatch event for other scripts to react
+      root.dataset.theme = theme
+      root.dataset.resolvedTheme = resolved
+
+      // Broadcast to other tabs (but not if we received this from another tab)
+      if (!_fromBroadcast && channel) {
+        try {
+          channel.postMessage({ theme: theme })
+        } catch (e) {
+          // Channel may be closed
+        }
+      }
+    }
+
+    // Smart cycling: skip the theme that "auto" resolves to
+    function getNextTheme() {
+      var current = "auto"
+      try {
+        current = localStorage.getItem(STORAGE_KEY) || "auto"
+      } catch (e) {}
+      if (THEMES.indexOf(current) === -1) current = "auto"
+
+      var idx = THEMES.indexOf(current)
+      var next = THEMES[(idx + 1) % THEMES.length]
+
+      // If current is "auto", skip the theme auto resolves to
+      if (current === "auto") {
+        var autoResolved = getResolvedTheme("auto")
+        if (next === autoResolved) {
+          next = THEMES[(idx + 2) % THEMES.length]
+        }
+      }
+
+      return next
+    }
+
+    // Apply on load
+    var saved = "auto"
+    try {
+      saved = localStorage.getItem(STORAGE_KEY) || "auto"
+    } catch (e) {
+      // localStorage may be unavailable
+    }
+    applyTheme(saved)
+
+    // Listen for OS preference changes when in auto mode
+    darkQuery.addEventListener("change", function () {
+      var current = "auto"
+      try {
+        current = localStorage.getItem(STORAGE_KEY) || "auto"
+      } catch (e) {}
+      if (current === "auto") {
+        applyTheme("auto")
+      }
+    })
+
+    // Listen for cross-tab theme changes
+    if (channel) {
+      channel.onmessage = function (event) {
+        if (event.data && event.data.theme) {
+          applyTheme(event.data.theme, true)
+        }
+      }
+    }
+
+    // Expose for runtime use
+    window.applySiteTheme = applyTheme
+    window.getNextTheme = getNextTheme
+  })()
+</script><!-- Inline font-face declarations with base path --><style>
+      @font-face {
+        font-family: "Open Sans";
+        font-style: normal;
+        font-weight: 300 800;
+        font-display: swap;
+        src: url("/legacy-personal-site/v4/fonts/open-sans-latin-wght-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+          U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: "JetBrains Mono";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("/legacy-personal-site/v4/fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+          U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+    </style><!-- Preload local fonts --><link rel="preload" as="font" type="font/woff2" href="/legacy-personal-site/v4/fonts/open-sans-latin-wght-normal.woff2" crossorigin="anonymous"><link rel="preload" as="font" type="font/woff2" href="/legacy-personal-site/v4/fonts/jetbrains-mono-latin-400-normal.woff2" crossorigin="anonymous"><!-- Main favicon --><link rel="icon" type="image/x-icon" href="/legacy-personal-site/v4/favicons/favicon.ico"><!-- Apple Touch Icons --><link rel="apple-touch-icon" sizes="57x57" href="/legacy-personal-site/v4/favicons/apple-icon-57x57.png"><link rel="apple-touch-icon" sizes="60x60" href="/legacy-personal-site/v4/favicons/apple-icon-60x60.png"><link rel="apple-touch-icon" sizes="72x72" href="/legacy-personal-site/v4/favicons/apple-icon-72x72.png"><link rel="apple-touch-icon" sizes="76x76" href="/legacy-personal-site/v4/favicons/apple-icon-76x76.png"><link rel="apple-touch-icon" sizes="114x114" href="/legacy-personal-site/v4/favicons/apple-icon-114x114.png"><link rel="apple-touch-icon" sizes="120x120" href="/legacy-personal-site/v4/favicons/apple-icon-120x120.png"><link rel="apple-touch-icon" sizes="144x144" href="/legacy-personal-site/v4/favicons/apple-icon-144x144.png"><link rel="apple-touch-icon" sizes="152x152" href="/legacy-personal-site/v4/favicons/apple-icon-152x152.png"><link rel="apple-touch-icon" sizes="180x180" href="/legacy-personal-site/v4/favicons/apple-icon-180x180.png"><!-- Apple Touch Icon Precomposed (for older iOS versions) --><link rel="apple-touch-icon-precomposed" href="/legacy-personal-site/v4/favicons/apple-icon-precomposed.png"><!-- Standard Icons --><link rel="icon" type="image/png" sizes="192x192" href="/legacy-personal-site/v4/favicons/android-icon-192x192.png"><link rel="icon" type="image/png" sizes="144x144" href="/legacy-personal-site/v4/favicons/android-icon-144x144.png"><link rel="icon" type="image/png" sizes="96x96" href="/legacy-personal-site/v4/favicons/android-icon-96x96.png"><link rel="icon" type="image/png" sizes="72x72" href="/legacy-personal-site/v4/favicons/android-icon-72x72.png"><link rel="icon" type="image/png" sizes="48x48" href="/legacy-personal-site/v4/favicons/android-icon-48x48.png"><link rel="icon" type="image/png" sizes="36x36" href="/legacy-personal-site/v4/favicons/android-icon-36x36.png"><link rel="icon" type="image/png" sizes="32x32" href="/legacy-personal-site/v4/favicons/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/legacy-personal-site/v4/favicons/favicon-16x16.png"><!-- Web App Manifest --><link rel="manifest" href="/legacy-personal-site/v4/manifest.json"><!-- Microsoft Tiles --><meta name="msapplication-config" content="/legacy-personal-site/v4/browserconfig.xml"><meta name="msapplication-TileImage" content="/legacy-personal-site/v4/favicons/ms-icon-144x144.png"><meta name="msapplication-TileColor" content="#f8fafc"><!-- Theme Colors --><meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#020617" media="(prefers-color-scheme: dark)"><meta name="msapplication-TileColor" content="#f8fafc"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="docsearch:language" content="en"><!-- Canonical URL --><link rel="canonical" href="https://sujeet.pro/legacy-personal-site/v4/articles/platform-engineering/platform-migrations/ecommerce-ssg-to-ssr-migration.html"><!-- Primary Meta Tags --><title>E-commerce SSG to SSR Migration: Strategy and Pitfalls - Sujeet Jaiswal</title><meta name="title" content="E-commerce SSG to SSR Migration: Strategy and Pitfalls - Sujeet Jaiswal"><meta name="description" content="This comprehensive guide outlines the strategic migration from Static Site Generation (SSG) to Server-Side Rendering (SSR) for enterprise e-commerce platforms. Drawing from real-world implementation experience where SSG limitations caused significant business impact including product rollout disruptions, ad rejections, and marketing campaign inefficiencies, this playbook addresses the critical business drivers, technical challenges, and operational considerations that make this architectural transformation essential for modern digital commerce.Your marketing team launches a campaign at 9 AM. By 9:15, they discover the featured product shows yesterday’s price because the site rebuild hasn’t completed. By 10 AM, Google Ads has rejected the campaign for price mismatch. This scenario—and dozens like it—drove our migration from SSG to SSR. The lessons learned section documents our missteps—including a mid-project pivot from App Router to Pages Router—that shaped the final approach."><!-- Open Graph / Facebook --><meta property="og:type" content="website"><meta property="og:url" content="https://sujeet.pro/legacy-personal-site/v4/articles/platform-engineering/platform-migrations/ecommerce-ssg-to-ssr-migration.html"><meta property="og:title" content="E-commerce SSG to SSR Migration: Strategy and Pitfalls - Sujeet Jaiswal"><meta property="og:description" content="This comprehensive guide outlines the strategic migration from Static Site Generation (SSG) to Server-Side Rendering (SSR) for enterprise e-commerce platforms. Drawing from real-world implementation experience where SSG limitations caused significant business impact including product rollout disruptions, ad rejections, and marketing campaign inefficiencies, this playbook addresses the critical business drivers, technical challenges, and operational considerations that make this architectural transformation essential for modern digital commerce.Your marketing team launches a campaign at 9 AM. By 9:15, they discover the featured product shows yesterday’s price because the site rebuild hasn’t completed. By 10 AM, Google Ads has rejected the campaign for price mismatch. This scenario—and dozens like it—drove our migration from SSG to SSR. The lessons learned section documents our missteps—including a mid-project pivot from App Router to Pages Router—that shaped the final approach."><!-- Twitter / X --><meta name="twitter:site" content="@sujeetpro"><meta name="twitter:card" content="summary_large_image"><!-- DocSearch facets --><meta name="docsearch:category" content="Platform Engineering"><meta name="docsearch:topic" content="Platform Migrations"><link rel="alternate" type="application/rss+xml" href="/legacy-personal-site/v4/rss.xml"><link rel="sitemap" href="/legacy-personal-site/v4/sitemap-index.xml"><!-- LLM-friendly content --><link rel="alternate" type="text/plain" href="/legacy-personal-site/v4/llms.txt" title="LLM Index"><link rel="alternate" type="text/plain" href="/legacy-personal-site/v4/llms-full.txt" title="LLM Full Content"><link rel="stylesheet" href="/legacy-personal-site/v4/_astro/docsearch.CgGoh9IB.css">
+<style>/*! tailwindcss v4.2.1 | MIT License | https://tailwindcss.com */.sidebar-toc-list{gap:calc(var(--spacing,.25rem) * .5);flex-direction:column;display:flex}
+@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) and (not (color:rgb(from red r g b)))){*,:before,:after,::backdrop{--tw-border-style:solid;--tw-font-weight:initial;--tw-ordinal:initial;--tw-slashed-zero:initial;--tw-numeric-figure:initial;--tw-numeric-spacing:initial;--tw-numeric-fraction:initial}}}.article-nav-category{margin-bottom:calc(var(--spacing,.25rem) * 5)}.article-nav-category+.article-nav-category{border-top-style:var(--tw-border-style);padding-top:calc(var(--spacing,.25rem) * 2);border-top-width:1px;border-color:var(--color-border)}.article-nav-category-name{margin-bottom:calc(var(--spacing,.25rem) * 1.5);padding-inline:calc(var(--spacing,.25rem) * 1);font-family:var(--font-mono,ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);--tw-font-weight:var(--font-weight-semibold,600);font-weight:var(--font-weight-semibold,600);text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-muted);font-size:11px;display:block}.article-nav-category-name.is-current{color:var(--color-text)}.article-nav-topics{flex-direction:column;display:flex}.article-nav-topic{list-style:none}.article-nav-topic-toggle{cursor:pointer;border-radius:var(--radius-md,.375rem);width:100%;padding-inline:calc(var(--spacing,.25rem) * 2);padding-block:calc(var(--spacing,.25rem) * 1.5);color:var(--color-text-muted);transition:all var(--transition-fast);justify-content:space-between;align-items:center;font-size:13px;list-style:none;display:flex}.article-nav-topic-toggle::-webkit-details-marker{display:none}.article-nav-topic-toggle::marker{content:"";display:none}.article-nav-topic-toggle:hover{color:var(--color-text);background:var(--color-bg-alt)}.article-nav-topic-toggle.is-active{color:var(--color-text);font-weight:500}.article-nav-topic-name{min-width:calc(var(--spacing,.25rem) * 0);flex:1}.article-nav-topic-count{--tw-numeric-spacing:tabular-nums;font-variant-numeric:var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);color:var(--color-text-muted);opacity:.6;flex-shrink:0;font-size:11px}.article-nav-chevron{opacity:.4;width:12px;height:12px;transition:transform var(--transition-fast);flex-shrink:0;margin-left:.5rem}.article-nav-topic-toggle:hover .article-nav-chevron{opacity:.7}details[open]>.article-nav-topic-toggle .article-nav-chevron{transform:rotate(90deg)}.article-nav-articles{margin-left:calc(var(--spacing,.25rem) * 3);border-left-style:var(--tw-border-style);padding-left:calc(var(--spacing,.25rem) * 2);border-left-width:1px;border-color:var(--color-border)}.article-nav-article-link{border-radius:var(--radius-md,.375rem);padding-inline:calc(var(--spacing,.25rem) * 2);padding-block:calc(var(--spacing,.25rem) * 1);color:var(--color-text-muted);transition:all var(--transition-fast);font-size:13px;line-height:1.4;text-decoration-line:none;display:block}.article-nav-article-link:hover{color:var(--color-text);background:var(--color-bg-alt)}.article-nav-article-link.is-active{color:var(--color-text);background:var(--color-bg-alt);font-weight:500}@property --tw-border-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-font-weight{syntax:"*";inherits:false}@property --tw-ordinal{syntax:"*";inherits:false}@property --tw-slashed-zero{syntax:"*";inherits:false}@property --tw-numeric-figure{syntax:"*";inherits:false}@property --tw-numeric-spacing{syntax:"*";inherits:false}@property --tw-numeric-fraction{syntax:"*";inherits:false}/*! tailwindcss v4.2.1 | MIT License | https://tailwindcss.com */.article-frontmatter{margin-bottom:calc(var(--spacing,.25rem) * 8)}.article-navigation{margin-top:calc(var(--spacing,.25rem) * 16)}
+</style>
+<link rel="stylesheet" href="/legacy-personal-site/v4/_astro/_slug_.u3hNe2gV.css"><script type="module" src="/legacy-personal-site/v4/_astro/page.CLJIuoFF.js"></script></head> <body> <a href="#main" class="skip-link">Skip to main content</a> <header class="site-header"> <div class="header-container"> <nav class="header-nav"> <!-- Left side: sidebar toggle + logo --> <div class="header-left"> <button id="left-sidebar-toggle" class="sidebar-toggle-btn" aria-label="Toggle navigation sidebar" aria-expanded="true" title="Hide navigation sidebar" aria-hidden="false"> <svg width="1em" height="1em" class="icon-md" data-icon="carbon:side-panel-open">   <symbol id="ai:carbon:side-panel-open" viewBox="0 0 32 32"><path fill="currentColor" d="M28 4H4c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h24c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2M10 26H4V6h6zm18 0H12v-9h10.2l-3.6 3.6L20 22l6-6l-6-6l-1.4 1.4l3.6 3.6H12V6h16z"/></symbol><use href="#ai:carbon:side-panel-open"></use>  </svg> </button> <a href="/legacy-personal-site/v4/" class="header-logo">   <span class="header-logo-name">sujeet.pro</span>  </a> </div> <!-- Center: Nav links - hidden on mobile --> <div class="header-nav-links"> <a href="/legacy-personal-site/v4/articles" class="nav-link">  Articles </a><a href="/legacy-personal-site/v4/blogs" class="nav-link">  Blogs </a><a href="/legacy-personal-site/v4/projects" class="nav-link">  Projects </a> </div> <!-- Right side: search + sidebar toggle + hamburger --> <div class="header-actions"> <!-- DocSearch --> <div id="docsearch-container"></div> <!-- Theme Toggle --> <button id="theme-toggle-btn" class="sidebar-toggle-btn" aria-label="Toggle theme" title="Switch theme"> <!-- Auto (monitor) --> <svg data-theme-icon="auto" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M28 4H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h8v4H8v2h16v-2h-4v-4h8a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 18H4V6h24Z"></path> </svg> <!-- Light (sun) --> <svg data-theme-icon="light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 12.005a4 4 0 1 1-4 4 4.005 4.005 0 0 1 4-4m0-2a6 6 0 1 0 6 6 6 6 0 0 0-6-6ZM5.394 6.813 6.81 5.399l3.505 3.506L8.9 10.319ZM2 15.005h5v2H2ZM5.394 25.197l3.505-3.506 1.414 1.414-3.505 3.506ZM15 25.005h2v5h-2ZM21.687 23.106l1.414-1.414 3.506 3.505-1.414 1.414ZM25 15.005h5v2h-5ZM21.69 8.904l3.505-3.505 1.414 1.415-3.505 3.505ZM15 2.005h2v5h-2Z"></path> </svg> <!-- Dark (moon) --> <svg data-theme-icon="dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M13.502 5.414a15.075 15.075 0 0 0 11.594 18.194 11.113 11.113 0 0 1-7.975 3.39c-.138 0-.278.005-.418 0a11.094 11.094 0 0 1-3.2-21.584M14.98 3a1.002 1.002 0 0 0-.175.016 13.096 13.096 0 0 0 1.825 25.981c.164.006.328 0 .49 0a13.072 13.072 0 0 0 10.703-5.555 1.01 1.01 0 0 0-.783-1.565A13.08 13.08 0 0 1 15.89 4.38 1.015 1.015 0 0 0 14.98 3Z"></path> </svg> <!-- High contrast light --> <svg data-theme-icon="high-contrast-light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 26V4a12 12 0 0 1 0 24Z"></path> </svg> <!-- High contrast dark --> <svg data-theme-icon="high-contrast-dark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm0 2a12 12 0 0 1 0 24Z"></path> </svg> <!-- Paper (document) --> <svg data-theme-icon="paper" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" class="icon-md" style="display:none"> <path d="M19 10h7v2h-7zM19 6h7v2h-7zM19 14h7v2h-7zM19 18h7v2h-7z"></path> <path d="M28 2H10a2.002 2.002 0 0 0-2 2v6H4a2.002 2.002 0 0 0-2 2v18a2 2 0 0 0 2 2h14a2.002 2.002 0 0 0 2-2v-6h8a2.002 2.002 0 0 0 2-2V4a2.002 2.002 0 0 0-2-2Zm-10 28H4V12h14Zm10-8H20V12a2.002 2.002 0 0 0-2-2h-8V4h18Z"></path> <path d="M6 16h10v2H6zM6 20h10v2H6zM6 24h7v2H6z"></path> </svg> </button> <button id="right-sidebar-toggle" class="sidebar-toggle-btn" aria-label="Toggle table of contents" aria-expanded="true" title="Hide table of contents" aria-hidden="false"> <svg width="1em" height="1em" class="icon-md" data-icon="carbon:side-panel-close">   <symbol id="ai:carbon:side-panel-close" viewBox="0 0 32 32"><path fill="currentColor" d="M28 4H4c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h24c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2M10 26H4V6h6zm18-11H17.8l3.6-3.6L20 10l-6 6l6 6l1.4-1.4l-3.6-3.6H28v9H12V6h16z"/></symbol><use href="#ai:carbon:side-panel-close"></use>  </svg> </button> <!-- Hamburger Menu - visible on mobile only --> <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu" title="Open menu"> <svg width="1em" height="1em" class="icon-lg" data-icon="carbon:menu">   <symbol id="ai:carbon:menu" viewBox="0 0 32 32"><path fill="currentColor" d="M4 6h24v2H4zm0 18h24v2H4zm0-12h24v2H4zm0 6h24v2H4z"/></symbol><use href="#ai:carbon:menu"></use>  </svg> </button> </div> </nav> </div> </header> <div id="mobile-menu-overlay" class="mobile-menu-overlay is-hidden"></div> <aside id="mobile-menu" class="mobile-menu" aria-hidden="true"> <div class="mobile-menu-header"> <a href="/legacy-personal-site/v4/" class="nav-link nav-logo">   sujeet.pro  </a> <button id="mobile-menu-close" class="mobile-menu-close" aria-label="Close menu"> <svg width="1em" height="1em" class="icon-lg" data-icon="carbon:close">   <symbol id="ai:carbon:close" viewBox="0 0 32 32"><path fill="currentColor" d="M17.414 16L24 9.414L22.586 8L16 14.586L9.414 8L8 9.414L14.586 16L8 22.586L9.414 24L16 17.414L22.586 24L24 22.586z"/></symbol><use href="#ai:carbon:close"></use>  </svg> </button> </div> <nav class="mobile-menu-nav"> <a href="/legacy-personal-site/v4/articles" class="mobile-menu-link">  Articles </a><a href="/legacy-personal-site/v4/blogs" class="mobile-menu-link">  Blogs </a><a href="/legacy-personal-site/v4/projects" class="mobile-menu-link">  Projects </a> </nav> </aside> <script type="module" src="/legacy-personal-site/v4/_astro/mobile-menu.astro_astro_type_script_index_0_lang.AuCdxukU.js"></script>  <div class="zen-layout"> <aside id="left-sidebar" class="zen-sidebar zen-sidebar-left" aria-label="Navigation sidebar"> <div class="zen-sidebar-header"> <span class="zen-sidebar-header-title">Navigation</span> <button class="zen-sidebar-close" data-sidebar-close="left" aria-label="Close navigation sidebar"> <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5"> <path d="M8 8l16 16M24 8L8 24"></path> </svg> </button> </div> <div class="zen-sidebar-content"> <nav aria-label="Article navigation" class="article-nav"> <div class="article-nav-category"> <span class="article-nav-category-name">Browser &amp; Runtime Internals</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Critical Rendering Path</span> <span class="article-nav-topic-count">(12)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-rendering-pipeline-overview" class="article-nav-article-link">  Critical Rendering Path: Rendering Pipeline Overview </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-dom-construction" class="article-nav-article-link">  Critical Rendering Path: DOM Construction </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-cssom-construction" class="article-nav-article-link">  Critical Rendering Path: CSSOM Construction </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-style-recalculation" class="article-nav-article-link">  Critical Rendering Path: Style Recalculation </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-layout" class="article-nav-article-link">  Critical Rendering Path: Layout Stage </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-prepaint" class="article-nav-article-link">  Critical Rendering Path: Prepaint </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-paint" class="article-nav-article-link">  Critical Rendering Path: Paint Stage </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-commit" class="article-nav-article-link">  Critical Rendering Path: Commit </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-layerize" class="article-nav-article-link">  Critical Rendering Path: Layerize </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-raster" class="article-nav-article-link">  Critical Rendering Path: Rasterization </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-composit" class="article-nav-article-link">  Critical Rendering Path: Compositing </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/critical-rendering-path/crp-draw" class="article-nav-article-link">  Critical Rendering Path: Draw </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">JavaScript Runtime Internals</span> <span class="article-nav-topic-count">(7)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/v8-engine-architecture" class="article-nav-article-link">  V8 Engine Architecture: Parsing, Optimization, and JIT </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/browser-internals" class="article-nav-article-link">  Browser Architecture: Processes, Caching, and Extensions </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/browser-event-loop" class="article-nav-article-link">  Browser Event Loop: Tasks, Microtasks, Rendering, and Idle Time </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/nodejs-runtime-architecture" class="article-nav-article-link">  Node.js Runtime Architecture: Event Loop, Streams, and APIs </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/libuv-event-loop-internals" class="article-nav-article-link">  libuv Internals: Event Loop and Async I/O </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/nodejs-event-loop" class="article-nav-article-link">  Node.js Event Loop: Phases, Queues, and Process Exit </a><a href="/legacy-personal-site/v4/articles/browser-runtime-internals/js-runtime-internals/js-event-loop" class="article-nav-article-link">  JS Event Loop: Tasks, Microtasks, and Rendering (For Browser &amp; Node.js) </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">System Design</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">System Design Fundamentals</span> <span class="article-nav-topic-count">(20)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/consistency-and-cap-theorem" class="article-nav-article-link">  Consistency Models and the CAP Theorem </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/distributed-consensus" class="article-nav-article-link">  Distributed Consensus </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/time-and-ordering" class="article-nav-article-link">  Time and Ordering in Distributed Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/failure-modes-and-resilience" class="article-nav-article-link">  Failure Modes and Resilience Patterns </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/storage-choices-sql-vs-nosql" class="article-nav-article-link">  Storage Choices: SQL vs NoSQL </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/sharding-and-replication" class="article-nav-article-link">  Sharding and Replication </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/indexing-and-query-optimization" class="article-nav-article-link">  Indexing and Query Optimization </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/transactions-and-acid" class="article-nav-article-link">  Transactions and ACID Properties </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/load-balancers-architecture" class="article-nav-article-link">  Load Balancer Architecture: L4 vs L7 and Routing </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/cdn-architecture-and-caching" class="article-nav-article-link">  CDN Architecture and Edge Caching </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/caching-fundamentals-and-strategies" class="article-nav-article-link">  Caching Fundamentals and Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/api-gateway-patterns" class="article-nav-article-link">  API Gateway Patterns: Routing, Auth, and Policies </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/service-discovery-and-registry" class="article-nav-article-link">  Service Discovery and Registry Patterns </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/dns-deep-dive" class="article-nav-article-link">  DNS Deep Dive </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/queues-and-pubsub" class="article-nav-article-link">  Queues and Pub/Sub: Decoupling and Backpressure </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/event-driven-architecture" class="article-nav-article-link">  Event-Driven Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/rpc-and-api-design" class="article-nav-article-link">  RPC and API Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/rate-limiting-strategies" class="article-nav-article-link">  Rate Limiting Strategies: Token Bucket, Leaky Bucket, and Sliding Window </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/circuit-breaker-patterns" class="article-nav-article-link">  Circuit Breaker Patterns for Resilient Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-fundamentals/capacity-planning-and-estimation" class="article-nav-article-link">  Capacity Planning and Back-of-the-Envelope Estimates </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">System Design Building Blocks</span> <span class="article-nav-topic-count">(10)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/lru-cache-design" class="article-nav-article-link">  LRU Cache Design: Eviction Strategies and Trade-offs </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/unique-id-generation" class="article-nav-article-link">  Unique ID Generation in Distributed Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-cache-design" class="article-nav-article-link">  Distributed Cache Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/blob-storage-design" class="article-nav-article-link">  Blob Storage Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-search-engine" class="article-nav-article-link">  Distributed Search Engine </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-logging-system" class="article-nav-article-link">  Distributed Logging System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/distributed-monitoring" class="article-nav-article-link">  Distributed Monitoring Systems </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/task-scheduler-design" class="article-nav-article-link">  Task Scheduler Design </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/sharded-counters" class="article-nav-article-link">  Sharded Counters </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-building-blocks/leaderboard-design" class="article-nav-article-link">  Leaderboard Design </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">System Design Problems</span> <span class="article-nav-topic-count">(28)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-key-value-store" class="article-nav-article-link">  Design a Distributed Key-Value Store </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-distributed-file-system" class="article-nav-article-link">  Design a Distributed File System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-time-series-database" class="article-nav-article-link">  Design a Time Series Database </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-youtube-video-platform" class="article-nav-article-link">  Design a YouTube-Style Video Platform </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-netflix-streaming" class="article-nav-article-link">  Design Netflix Video Streaming </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-instagram-photo-sharing" class="article-nav-article-link">  Design Instagram: Photo Sharing at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-spotify-music-streaming" class="article-nav-article-link">  Design Spotify Music Streaming </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-real-time-chat-messaging" class="article-nav-article-link">  Design Real-Time Chat and Messaging </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-social-feed" class="article-nav-article-link">  Design a Social Feed (Facebook/Instagram) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-notification-system" class="article-nav-article-link">  Design a Notification System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-email-system" class="article-nav-article-link">  Design an Email System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-uber-ride-hailing" class="article-nav-article-link">  Design Uber-Style Ride Hailing </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-maps" class="article-nav-article-link">  Design Google Maps </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-yelp-proximity-service" class="article-nav-article-link">  Design Yelp: Location-Based Business Discovery Platform </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-search-autocomplete" class="article-nav-article-link">  Design Search Autocomplete: Prefix Matching at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-web-crawler" class="article-nav-article-link">  Design a Web Crawler </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-search" class="article-nav-article-link">  Design Google Search </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-docs-collaboration" class="article-nav-article-link">  Design Collaborative Document Editing (Google Docs) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-dropbox-file-sync" class="article-nav-article-link">  Design Dropbox File Sync </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-google-calendar" class="article-nav-article-link">  Design Google Calendar </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-issue-tracker" class="article-nav-article-link">  Design an Issue Tracker (Jira/Linear) </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-payment-system" class="article-nav-article-link">  Design a Payment System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-flash-sale-system" class="article-nav-article-link">  Design a Flash Sale System </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-amazon-shopping-cart" class="article-nav-article-link">  Design Amazon Shopping Cart </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/url-shortener-design" class="article-nav-article-link">  Design a URL Shortener: IDs, Storage, and Scale </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-pastebin" class="article-nav-article-link">  Design Pastebin: Text Sharing, Expiration, and Abuse Prevention </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-api-rate-limiter" class="article-nav-article-link">  Design an API Rate Limiter: Distributed Throttling, Multi-Tenant Quotas, and Graceful Degradation </a><a href="/legacy-personal-site/v4/articles/system-design/system-design-problems/design-cookie-consent-service" class="article-nav-article-link">  Design a Cookie Consent Service </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Core Distributed Patterns</span> <span class="article-nav-topic-count">(9)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/crdt-for-collaborative-systems" class="article-nav-article-link">  CRDTs for Collaborative Systems </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/operational-transformation" class="article-nav-article-link">  Operational Transformation </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/distributed-locking" class="article-nav-article-link">  Distributed Locking </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/exactly-once-delivery" class="article-nav-article-link">  Exactly-Once Delivery </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/event-sourcing-deep-dive" class="article-nav-article-link">  Event Sourcing </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/change-data-capture" class="article-nav-article-link">  Change Data Capture </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/database-migrations-at-scale" class="article-nav-article-link">  Database Migrations at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/multi-region-architecture" class="article-nav-article-link">  Multi-Region Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/core-distributed-patterns/graceful-degradation" class="article-nav-article-link">  Graceful Degradation </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Frontend System Design</span> <span class="article-nav-topic-count">(15)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/virtualization-and-windowing" class="article-nav-article-link">  Virtualization and Windowing </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/offline-first-architecture" class="article-nav-article-link">  Offline-First Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/client-state-management" class="article-nav-article-link">  Client State Management </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/real-time-sync-client" class="article-nav-article-link">  Real-Time Sync Client </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/widget-framework" class="article-nav-article-link">  Multi-Tenant Pluggable Widget Framework </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/bundle-splitting-strategies" class="article-nav-article-link">  Bundle Splitting Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/rendering-strategies" class="article-nav-article-link">  Rendering Strategies </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/image-loading-optimization" class="article-nav-article-link">  Image Loading Optimization </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/performance-monitoring-client" class="article-nav-article-link">  Client Performance Monitoring </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-rich-text-editor" class="article-nav-article-link">  Design a Rich Text Editor </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-infinite-feed" class="article-nav-article-link">  Design an Infinite Feed </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-drag-drop-system" class="article-nav-article-link">  Design a Drag and Drop System </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-form-builder" class="article-nav-article-link">  Design a Form Builder </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-data-grid" class="article-nav-article-link">  Design a Data Grid </a><a href="/legacy-personal-site/v4/articles/system-design/frontend-system-design/design-file-uploader" class="article-nav-article-link">  Design a File Uploader </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Real-World Case Studies</span> <span class="article-nav-topic-count">(20)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/facebook-2021-outage-analysis" class="article-nav-article-link">  Facebook 2021 Outage: BGP Withdrawal, DNS Collapse, and the Backbone That Disappeared </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/aws-kinesis-2020-outage" class="article-nav-article-link">  AWS Kinesis 2020 Outage: Thread Limits, Thundering Herds, and Hidden Dependencies </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/shopify-pod-architecture" class="article-nav-article-link">  Shopify: Pod Architecture for Multi-Tenant Isolation at Scale </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/netflix-microservices-evolution" class="article-nav-article-link">  Netflix: From Monolith to Microservices — A 7-Year Architecture Evolution </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/twitter-timeline-architecture" class="article-nav-article-link">  Twitter/X: Timeline Architecture and the Recommendation Algorithm </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/facebook-tao-social-graph" class="article-nav-article-link">  Facebook TAO: The Social Graph’s Distributed Cache </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/uber-microservices-journey" class="article-nav-article-link">  Uber: From Monolith to Domain-Oriented Microservices </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/uber-schemaless-datastore" class="article-nav-article-link">  Uber Schemaless: Building a Scalable Datastore on MySQL </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/slack-distributed-architecture" class="article-nav-article-link">  Slack: Scaling a Real-Time Messaging Platform from Monolith to Distributed Architecture </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/linkedin-kafka-origin" class="article-nav-article-link">  LinkedIn and the Birth of Apache Kafka: Solving the O(N²) Data Integration Problem </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/dropbox-magic-pocket" class="article-nav-article-link">  Dropbox Magic Pocket: Building Exabyte-Scale Blob Storage </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/instagram-cassandra-migration" class="article-nav-article-link">  Instagram: From Redis to Cassandra and the Rocksandra Storage Engine </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/youtube-vitess-scaling" class="article-nav-article-link">  YouTube: Scaling MySQL to Serve Billions with Vitess </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/github-mysql-migration" class="article-nav-article-link">  GitHub: Scaling MySQL from One Database to 1,200+ Hosts </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/pinterest-mysql-sharding" class="article-nav-article-link">  Pinterest: MySQL Sharding from Zero to Billions of Objects </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/stripe-idempotency-reliability" class="article-nav-article-link">  Stripe: Idempotency for Payment Reliability </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/discord-rust-read-states" class="article-nav-article-link">  Discord: Rewriting Read States from Go to Rust </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/discord-message-storage" class="article-nav-article-link">  Discord: From Billions to Trillions of Messages — A Three-Database Journey </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/figma-multiplayer-infrastructure" class="article-nav-article-link">  Figma: Building Multiplayer Infrastructure for Real-Time Design Collaboration </a><a href="/legacy-personal-site/v4/articles/system-design/real-world-case-studies/whatsapp-erlang-scaling" class="article-nav-article-link">  WhatsApp: 2 Million Connections Per Server with Erlang </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name is-current">Platform Engineering</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Media Systems</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/drm-basics-for-streaming" class="article-nav-article-link">  DRM Fundamentals for Streaming Media </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/video-transcoding-pipeline" class="article-nav-article-link">  Video Transcoding Pipeline Design </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/web-video-playback-architecture" class="article-nav-article-link">  Web Video Playback Architecture: HLS, DASH, and Low Latency </a><a href="/legacy-personal-site/v4/articles/platform-engineering/media-systems/image-processing-service-design" class="article-nav-article-link">  Image Processing Service Design: CDN, Transforms, and APIs </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Observability &amp; Reliability</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/slos-slis-error-budgets" class="article-nav-article-link">  SLOs, SLIs, and Error Budgets </a><a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/csp-violation-reporting-pipeline" class="article-nav-article-link">  CSP Violation Reporting Pipeline at Scale </a><a href="/legacy-personal-site/v4/articles/platform-engineering/observability-reliability/logging-metrics-tracing" class="article-nav-article-link">  Logging, Metrics, and Tracing Fundamentals </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Infrastructure &amp; Delivery</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/edge-delivery-and-cache-invalidation" class="article-nav-article-link">  Edge Delivery and Cache Invalidation </a><a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/deployment-strategies-blue-green-canary" class="article-nav-article-link">  Deployment Strategies: Blue-Green, Canary, and Rolling </a><a href="/legacy-personal-site/v4/articles/platform-engineering/infrastructure-delivery/ssg-performance-optimizations" class="article-nav-article-link">  SSG Performance Optimizations: Build, Cache, and Delivery </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Experimentation &amp; Testing</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/experimentation-testing/k6-load-testing-overview" class="article-nav-article-link">  k6 Load Testing Overview: Smoke, Spike, Soak, Stress </a><a href="/legacy-personal-site/v4/articles/platform-engineering/experimentation-testing/statsig-experimentation-overview" class="article-nav-article-link">  Statsig Experimentation Platform: Architecture and Rollouts </a> </div> </details><details class="article-nav-topic" open> <summary class="article-nav-topic-toggle is-active"> <span class="article-nav-topic-name">Platform Migrations</span> <span class="article-nav-topic-count">(1)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/platform-engineering/platform-migrations/ecommerce-ssg-to-ssr-migration" class="article-nav-article-link is-active">  E-commerce SSG to SSR Migration: Strategy and Pitfalls </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Frontend Engineering</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Frontend Architecture &amp; Patterns</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/micro-frontends-architecture" class="article-nav-article-link">  Micro-Frontends Architecture: Composition, Isolation, and Delivery </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/rendering-strategies-csr-ssr-ssg-isr" class="article-nav-article-link">  Rendering Strategies: CSR, SSR, SSG, and ISR </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/data-fetching-patterns" class="article-nav-article-link">  Frontend Data Fetching Patterns and Caching </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/css-architecture-strategies" class="article-nav-article-link">  CSS Architecture Strategies: BEM, Utility-First, and CSS-in-JS </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/component-architecture-blueprint" class="article-nav-article-link">  Component Architecture Blueprint for Scalable UI </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Web Performance Optimization</span> <span class="article-nav-topic-count">(6)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-infrastructure-stack" class="article-nav-article-link">  Web Performance Infrastructure: DNS, CDN, Caching, and Edge </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-javascript-optimization" class="article-nav-article-link">  JavaScript Performance Optimization for the Web </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-css-typography" class="article-nav-article-link">  CSS and Typography Performance Optimization </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-image-optimization" class="article-nav-article-link">  Image Performance Optimization for the Web </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/core-web-vitals-measurement" class="article-nav-article-link">  Core Web Vitals Measurement: Lab vs Field Data </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/web-performance-optimization/web-performance-overview" class="article-nav-article-link">  Web Performance Optimization: Overview and Playbook </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Design Systems</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-system-implementation-scaling" class="article-nav-article-link">  Design System Implementation and Scaling </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/component-library-architecture-and-governance" class="article-nav-article-link">  Component Library Architecture and Governance </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-tokens-and-theming" class="article-nav-article-link">  Design Tokens and Theming Architecture </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/design-systems/design-system-adoption-foundations" class="article-nav-article-link">  Design System Adoption: Foundations and Governance </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">React Architecture</span> <span class="article-nav-topic-count">(4)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-performance-patterns" class="article-nav-article-link">  React Performance Patterns: Rendering, Memoization, and Scheduling </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-hooks-advanced-patterns" class="article-nav-article-link">  React Hooks Advanced Patterns: Specialized Hooks and Composition </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-rendering-architecture" class="article-nav-article-link">  React Rendering Architecture: Fiber, SSR, and RSC </a><a href="/legacy-personal-site/v4/articles/frontend-engineering/react-architecture/react-hooks-fundamentals" class="article-nav-article-link">  React Hooks Fundamentals: Rules, Core Hooks, and Custom Hooks </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Web Foundations</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Security &amp; Auth</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/csrf-and-cors-defense" class="article-nav-article-link">  CSRF and CORS Defense for Modern Web Applications </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/oauth-oidc-flow-guide" class="article-nav-article-link">  OAuth 2.0 and OIDC Flows: Authorization Code to PKCE </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/web-app-security-architecture" class="article-nav-article-link">  Web Application Security Architecture </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/auth-foundations-sessions-tokens" class="article-nav-article-link">  Authentication Foundations: Sessions, Tokens, and Trust </a><a href="/legacy-personal-site/v4/articles/web-foundations/web-security-auth/owasp-top-10-guide" class="article-nav-article-link">  OWASP Top 10: Web Application Security Risks </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Networking &amp; Protocols</span> <span class="article-nav-topic-count">(7)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/http3-quic-and-tls" class="article-nav-article-link">  HTTP/3 and QUIC: Transport Layer Revolution </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/http1-1-to-http2-evolution" class="article-nav-article-link">  HTTP/1.1 to HTTP/2: Bottlenecks and Multiplexing </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/tls-1-3-handshake-and-https" class="article-nav-article-link">  TLS 1.3 Handshake and HTTPS Hardening </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-security-doh-dot-dnssec" class="article-nav-article-link">  DNS Security and Privacy: DNSSEC, DoH, and DoT </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-troubleshooting-playbook" class="article-nav-article-link">  DNS Troubleshooting Playbook </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-records-ttl-and-caching" class="article-nav-article-link">  DNS Records, TTL Strategy, and Cache Behavior </a><a href="/legacy-personal-site/v4/articles/web-foundations/networking-protocols/dns-resolution-path" class="article-nav-article-link">  DNS Resolution Path: Stub to Recursive to Authoritative </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Browser APIs</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/web-workers-and-worklets" class="article-nav-article-link">  Web Workers and Worklets for Off-Main-Thread Work </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/service-workers-and-cache-api" class="article-nav-article-link">  Service Workers and Cache API </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/fetch-and-streaming-apis" class="article-nav-article-link">  Fetch, Streams, and AbortController </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/storage-apis-local-indexeddb" class="article-nav-article-link">  Browser Storage APIs: localStorage, IndexedDB, and Beyond </a><a href="/legacy-personal-site/v4/articles/web-foundations/browser-apis/dom-api-essentials" class="article-nav-article-link">  DOM API Essentials: Structure, Traversal, and Mutation </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Accessibility Standards</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/web-foundations/accessibility-standards/accessibility-testing-tooling" class="article-nav-article-link">  Accessibility Testing and Tooling Workflow </a><a href="/legacy-personal-site/v4/articles/web-foundations/accessibility-standards/wcag-2-2-practical-guide" class="article-nav-article-link">  WCAG 2.2: Practical Accessibility Guide </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Programming &amp; Patterns</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Data Structures</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/heaps-and-priority-queues" class="article-nav-article-link">  Heaps and Priority Queues: Internals, Trade-offs, and When Theory Breaks Down </a><a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/trees-and-graphs" class="article-nav-article-link">  Trees and Graphs: Traversals and Applications </a><a href="/legacy-personal-site/v4/articles/programming-patterns/data-structures/arrays-and-hash-maps" class="article-nav-article-link">  Arrays and Hash Maps: Engine Internals and Performance Reality </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Algorithms Foundations</span> <span class="article-nav-topic-count">(3)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/k-crystal-balls-problem" class="article-nav-article-link">  K-Crystal Balls Problem: Jump Search Pattern </a><a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/sorting-algorithms-guide" class="article-nav-article-link">  Sorting Algorithms: Complexity, Stability, and Use Cases </a><a href="/legacy-personal-site/v4/articles/programming-patterns/algorithms-foundations/search-algorithms-guide" class="article-nav-article-link">  Search Algorithms: Linear, Binary, and Graph Traversal </a> </div> </details><details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">JavaScript Patterns</span> <span class="article-nav-topic-count">(5)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/publish-subscribe-pattern" class="article-nav-article-link">  Publish-Subscribe Pattern in JavaScript </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/exponential-backoff-retry-strategy" class="article-nav-article-link">  Exponential Backoff and Retry Strategy </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/async-queue-pattern" class="article-nav-article-link">  Async Queue Pattern in JavaScript </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/javascript-error-handling-patterns" class="article-nav-article-link">  JavaScript Error Handling Patterns </a><a href="/legacy-personal-site/v4/articles/programming-patterns/javascript-patterns/javascript-string-length" class="article-nav-article-link">  JavaScript String Length: Graphemes, UTF-16, and Unicode </a> </div> </details> </div> </div><div class="article-nav-category"> <span class="article-nav-category-name">Developer Experience</span> <div class="article-nav-topics"> <details class="article-nav-topic"> <summary class="article-nav-topic-toggle"> <span class="article-nav-topic-name">Productivity &amp; Workflows</span> <span class="article-nav-topic-count">(2)</span> <svg class="article-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <polyline points="9 18 15 12 9 6"></polyline> </svg> </summary> <div class="article-nav-articles"> <a href="/legacy-personal-site/v4/articles/developer-experience/productivity-workflows/chrome-developer-setup" class="article-nav-article-link">  Chrome Developer Setup: Extensions, Profiles, and Shortcuts </a><a href="/legacy-personal-site/v4/articles/developer-experience/productivity-workflows/editor-terminal-setup" class="article-nav-article-link">  macOS Developer Environment Setup </a> </div> </details> </div> </div> </nav> <script type="module">function e(){document.querySelector("#left-sidebar .article-nav-article-link.is-active")?.scrollIntoView({block:"nearest",behavior:"instant"})}e();document.addEventListener("astro:page-load",e);</script>  </div> </aside> <main id="main" class="zen-main"> <div class="page-content"> <nav class="breadcrumb" aria-label="Breadcrumb"><a title="Home" aria-label="Home" href="/legacy-personal-site/v4/" class="nav-link">  <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:home">   <symbol id="ai:carbon:home" viewBox="0 0 32 32"><path fill="currentColor" d="M16.612 2.214a1.01 1.01 0 0 0-1.242 0L1 13.419l1.243 1.572L4 13.621V26a2.004 2.004 0 0 0 2 2h20a2.004 2.004 0 0 0 2-2V13.63L29.757 15L31 13.428ZM18 26h-4v-8h4Zm2 0v-8a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v8H6V12.062l10-7.79l10 7.8V26Z"/></symbol><use href="#ai:carbon:home"></use>  </svg> </a><svg width="1em" height="1em" viewBox="0 0 32 32" class="breadcrumb-separator icon-sm" data-icon="carbon:chevron-right">   <use href="#ai:carbon:chevron-right"></use>  </svg><a href="/legacy-personal-site/v4/articles/platform-engineering" class="nav-link">  Platform Engineering </a><svg width="1em" height="1em" class="breadcrumb-separator icon-sm" data-icon="carbon:chevron-right">   <symbol id="ai:carbon:chevron-right" viewBox="0 0 32 32"><path fill="currentColor" d="M22 16L12 26l-1.4-1.4l8.6-8.6l-8.6-8.6L12 6z"/></symbol><use href="#ai:carbon:chevron-right"></use>  </svg><a title="Platform Migrations" href="/legacy-personal-site/v4/articles/platform-engineering/platform-migrations" class="nav-link">  Platform Migrations </a></nav>    <div id="reading-progress" class="reading-progress" style="width: 0%"></div> <script type="module">function l(){const e=document.getElementById("reading-progress");if(!e)return;const t=document.querySelector("article")||document.querySelector(".prose");if(!t){e.style.display="none";return}function r(){if(!t||!e)return;const i=t.getBoundingClientRect(),s=i.top+window.scrollY,u=i.height,c=window.innerHeight,g=window.scrollY,o=s-c/2,w=s+u-c/2,d=g;let a=0;d>o&&(a=Math.min(100,(d-o)/(w-o)*100)),e.style.width=`${Math.max(0,a)}%`}let n=!1;window.addEventListener("scroll",()=>{n||(requestAnimationFrame(()=>{r(),n=!1}),n=!0)}),r()}document.addEventListener("DOMContentLoaded",l);document.addEventListener("astro:page-load",l);</script>  <div class="frontmatter article-frontmatter">    <span class="frontmatter-item"> <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:time">   <symbol id="ai:carbon:time" viewBox="0 0 32 32"><path fill="currentColor" d="M16 30a14 14 0 1 1 14-14a14 14 0 0 1-14 14m0-26a12 12 0 1 0 12 12A12 12 0 0 0 16 4"/><path fill="currentColor" d="M20.59 22L15 16.41V7h2v8.58l5 5.01z"/></symbol><use href="#ai:carbon:time"></use>  </svg> 23 min read </span> <span class="frontmatter-item"> <svg width="1em" height="1em" class="icon-sm" data-icon="carbon:calendar">   <symbol id="ai:carbon:calendar" viewBox="0 0 32 32"><path fill="currentColor" d="M26 4h-4V2h-2v2h-8V2h-2v2H6c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2m0 22H6V12h20zm0-16H6V6h4v2h2V6h8v2h2V6h4z"/></symbol><use href="#ai:carbon:calendar"></use>  </svg>
+Last updated on Jan 24, 2026 </span> </div>  <article id="article-content" class="article-prose-content DocSearch-content"> <h1 id="e-commerce-ssg-to-ssr-migration-strategy-and-pitfalls" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#e-commerce-ssg-to-ssr-migration-strategy-and-pitfalls">E-commerce SSG to SSR Migration: Strategy and Pitfalls</a></h1>
+<p>This comprehensive guide outlines the strategic migration from Static Site Generation (SSG) to Server-Side Rendering (SSR) for enterprise e-commerce platforms. Drawing from real-world implementation experience where SSG limitations caused significant business impact including product rollout disruptions, ad rejections, and marketing campaign inefficiencies, this playbook addresses the critical business drivers, technical challenges, and operational considerations that make this architectural transformation essential for modern digital commerce.</p>
+<p>Your marketing team launches a campaign at 9 AM. By 9:15, they discover the featured product shows yesterday’s price because the site rebuild hasn’t completed. By 10 AM, Google Ads has rejected the campaign for price mismatch. This scenario—and dozens like it—drove our migration from SSG to SSR. The lessons learned section documents our missteps—including a mid-project pivot from App Router to Pages Router—that shaped the final approach.</p>
+<figure>
+<p><img alt="High-level architecture comparison: SSG&amp;#x27;s build-time approach vs SSR&amp;#x27;s request-time rendering, with the Strangler Fig pattern enabling gradual traffic migration between platforms" loading="lazy" decoding="async" fetchpriority="auto" width="929" height="1038" src="/legacy-personal-site/v4/_astro/high-level-architecture-comparison-ssg-s-build-time-approach-vs-ssr-s-request-ti.DL7I43OY_Z1vuoIT.svg" ></p>
+<figcaption>High-level architecture comparison: SSG's build-time approach vs SSR's request-time rendering, with the Strangler Fig pattern enabling gradual traffic migration between platforms</figcaption>
+</figure>
+<h2 id="terminology" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#terminology">Terminology</a></h2>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Term</th><th>Definition</th></tr></thead><tbody><tr><td>SSG</td><td>Static Site Generation — HTML generated at build time, served from CDN</td></tr><tr><td>SSR</td><td>Server-Side Rendering — HTML generated on each request by the server</td></tr><tr><td>CDN</td><td>Content Delivery Network — edge servers caching and serving content globally</td></tr><tr><td>CLS</td><td>Cumulative Layout Shift — Core Web Vital measuring visual stability</td></tr><tr><td>LCP</td><td>Largest Contentful Paint — Core Web Vital measuring perceived load speed</td></tr><tr><td>INP</td><td>Interaction to Next Paint — Core Web Vital measuring interactivity responsiveness</td></tr><tr><td>TTFB</td><td>Time to First Byte — time from request to first byte of response</td></tr><tr><td>CTR</td><td>Click-Through Rate — ratio of clicks to impressions in advertising</td></tr><tr><td>ROAS</td><td>Return on Ad Spend — revenue generated per dollar spent on advertising</td></tr></tbody></table></div>
+<h2 id="tldr" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#tldr">TLDR</a></h2>
+<p><strong>SSG-to-SSR migration</strong> is a strategic architecture transformation that addresses fundamental limitations of build-time static generation for dynamic e-commerce platforms, enabling real-time content updates, zero-CLS personalization, and independent content/code lifecycles.</p>
+<h3 id="why-migrate-from-ssg" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#why-migrate-from-ssg">Why Migrate from SSG</a></h3>
+<ul>
+<li><strong>Build-time bottlenecks</strong>: Full site rebuilds for every change create unacceptable delays for marketing teams</li>
+<li><strong>Content-code coupling</strong>: Code rollbacks also roll back content, causing 404 errors and lost marketing spend</li>
+<li><strong>CLS issues</strong>: Dynamic content (pricing, inventory) “pops in” after static shell loads, hurting Core Web Vitals</li>
+<li><strong>Ad rejections</strong>: Static pricing mismatches between cached HTML and client-side updates trigger Google Ads violations</li>
+</ul>
+<h3 id="ssr-benefits-for-e-commerce" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#ssr-benefits-for-e-commerce">SSR Benefits for E-commerce</a></h3>
+<ul>
+<li><strong>Request-time rendering with CDN caching</strong>: Server renders fresh content, CDN caches based on cache headers for performance</li>
+<li><strong>Edge middleware</strong>: Zero-CLS A/B testing and personalization via URL rewrites at the edge</li>
+<li><strong>Cache invalidation</strong>: CMS webhooks trigger CDN cache purges for immediate content updates</li>
+<li><strong>Content decoupling</strong>: Marketing teams publish independently without engineering coordination</li>
+</ul>
+<h3 id="strangler-fig-migration-pattern" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#strangler-fig-migration-pattern">Strangler Fig Migration Pattern</a></h3>
+<ul>
+<li><strong>Gradual replacement</strong>: Route X% of traffic to SSR while maintaining SSG for the rest</li>
+<li><strong>Instant rollback</strong>: Adjust traffic distribution in minutes via edge middleware configuration</li>
+<li><strong>Risk mitigation</strong>: Issues affect only a subset of users during phased rollout</li>
+<li><strong>Platform A/B testing</strong>: Direct performance comparison between old and new systems</li>
+</ul>
+<h3 id="key-success-metrics" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#key-success-metrics">Key Success Metrics</a></h3>
+<ul>
+<li><strong><a href="https://web.dev/articles/vitals">Core Web Vitals</a> targets</strong>: LCP &#x3C; 2.5s, CLS &#x3C; 0.1, INP &#x3C; 200ms</li>
+<li><strong>Content publishing time</strong>: Reduce from ~15 minutes to &#x3C; 30 seconds</li>
+<li><strong>Business metrics</strong>: Maintain or improve conversion rates, CTR, and ROAS throughout migration</li>
+<li><strong>Rollback triggers</strong>: Quantitative thresholds (e.g., >10% drop in add-to-cart rate) for automatic decisions</li>
+</ul>
+<h2 id="part-1-the-strategic-imperative---building-the-business-case-for-migration" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#part-1-the-strategic-imperative---building-the-business-case-for-migration">Part 1: The Strategic Imperative - Building the Business Case for Migration</a></h2>
+<p>While our specific journey involved migrating from Gatsby.js to Next.js, the principles and strategies outlined here apply to any SSG-to-SSR migration. The guide covers stakeholder alignment, risk mitigation, phased execution using platform A/B testing, and post-migration optimization, providing a complete roadmap for engineers undertaking this transformative journey.</p>
+<p>The TLDR above summarizes the core drivers. This section provides the detailed evidence and quantified business impact that supports the migration case.</p>
+<h3 id="the-business-impact-of-ssg-limitations---real-world-production-experience" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-business-impact-of-ssg-limitations---real-world-production-experience">The Business Impact of SSG Limitations - Real-World Production Experience</a></h3>
+<p><strong>Critical Business Problems from Actual Implementation</strong></p>
+<p>Based on real production experience with our SSG implementation, several critical issues emerged that directly impacted revenue and operational efficiency:</p>
+<ul>
+<li>
+<p><strong>Product Rollout Disruptions</strong>: SSG bundles code and content as one snapshot, meaning any code issue requiring rollback also removes newly launched products, resulting in 404 errors and lost marketing spend. Fix-forward approaches take 2+ hours, during which email campaigns and marketing spend are wasted on broken product pages.</p>
+</li>
+<li>
+<p><strong>Product Retirement Complexity</strong>: Retired products require external redirection management via Lambda functions, creating inconsistencies between redirects and in-app navigation, leading to poor user experience and potential SEO issues.</p>
+</li>
+<li>
+<p><strong>Ad Rejection Issues</strong>: Static pricing at build time creates mismatches between cached HTML and client-side updates, leading to Google Ads rejections. The workaround of using <code>img.onError</code> callbacks and <code>data-pricing</code> attributes for DOM manipulation before React initialization is fragile and unsustainable.</p>
+</li>
+<li>
+<p><strong>Marketing Campaign Limitations</strong>: Inability to optimize campaigns based on real-time inventory status, with all products appearing as “In Stock” in cached content. Client-side updates create CLS issues and poor user experience.</p>
+</li>
+<li>
+<p><strong>A/B Testing Scalability</strong>: Page-level A/B testing becomes unfeasible due to template complexity and build-time constraints. Component-level A/B testing below the fold is possible but above-the-fold personalization affects SEO and causes CLS issues.</p>
+</li>
+<li>
+<p><strong>Personalization Constraints</strong>: Above-the-fold personalization impossible without affecting SEO and causing CLS issues. Below-the-fold personalization requires client-side loading which impacts performance.</p>
+</li>
+<li>
+<p><strong>Responsive Design CLS Issues</strong>: For content that differs between mobile and desktop, CLS is inevitable since build time can only generate one default version. Client-side detection and content switching creates layout shifts that negatively impact Core Web Vitals and user experience.</p>
+</li>
+</ul>
+<p><strong>Operational and Cost Issues</strong></p>
+<ul>
+<li>
+<p><strong>Occasional Increased CloudFront Costs</strong>: Home page launches with 200+ products caused ~10x cost for the day when content exceeded 10MB—<a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/ServingCompressedFiles.html">CloudFront’s automatic compression limit</a>—resulting in uncompressed transfers and higher egress costs.</p>
+</li>
+<li>
+<p><strong>Content-Code Coupling</strong>: Marketing teams cannot publish content independently, requiring engineering coordination for simple banner updates and page launches.</p>
+</li>
+<li>
+<p><strong>Time-Based Release Complexity</strong>: Managing multiple content changes for a single page becomes problematic when all changes must be published simultaneously.</p>
+</li>
+</ul>
+<h3 id="ssr-as-the-strategic-solution" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#ssr-as-the-strategic-solution">SSR as the Strategic Solution</a></h3>
+<p><strong>Dynamic Rendering for Modern Commerce</strong></p>
+<p>SSR provides a flexible, dynamic rendering model that directly addresses each of these challenges:</p>
+<ul>
+<li><strong>Server-Side Rendering</strong>: Enables real-time data fetching for dynamic content like pricing and inventory</li>
+<li><strong>CDN Caching with Cache Headers</strong>: SSR responses cached at the edge based on <code>Cache-Control</code> headers, combining fresh rendering with CDN performance</li>
+<li><strong>Edge Middleware</strong>: Enables sophisticated routing, personalization, and A/B testing decisions at the edge</li>
+<li><strong>API Routes</strong>: Built-in backend functionality for handling forms, cart management, and third-party integrations</li>
+</ul>
+<p><strong>Quantifiable Business Benefits</strong></p>
+<p>The migration from SSG to SSR delivers measurable improvements across key business metrics:</p>
+<ul>
+<li><strong>CTR (Click-Through Rate)</strong>: Expected 5-10% increase through faster load times, better personalization, and stable UI</li>
+<li><strong>ROAS (Return on Ad Spend)</strong>: Projected 8-12% improvement from reduced CPC, higher conversion rates, and fewer ad rejections</li>
+<li><strong>Content Publishing Agility</strong>: 50% reduction in time-to-market for new campaigns and promotions</li>
+<li><strong>Developer Productivity</strong>: 20% increase in development velocity through modern tooling and flexible architecture</li>
+<li><strong>Operational Costs</strong>: Elimination of CloudFront cost spikes and improved resource utilization</li>
+</ul>
+<h2 id="part-2-stakeholder-alignment-and-project-governance" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#part-2-stakeholder-alignment-and-project-governance">Part 2: Stakeholder Alignment and Project Governance</a></h2>
+<h3 id="building-executive-buy-in" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#building-executive-buy-in">Building Executive Buy-In</a></h3>
+<p><strong>The CFO Conversation</strong></p>
+<p>Frame the migration as an investment with clear ROI:</p>
+<ul>
+<li>Direct revenue impact through improved conversion rates and reduced ad spend</li>
+<li>Operational cost reduction through faster content publishing and reduced developer dependencies</li>
+<li>Predictable hosting costs through modern serverless architecture</li>
+<li>Elimination of CloudFront cost spikes from large content deployments</li>
+</ul>
+<p><strong>The CMO Conversation</strong></p>
+<p>Emphasize marketing agility and performance:</p>
+<ul>
+<li>Rapid campaign launches without engineering bottlenecks</li>
+<li>Robust A/B testing without negative UX impact</li>
+<li>Superior SEO outcomes and organic traffic growth</li>
+<li>Real-time personalization capabilities</li>
+<li>Independent content publishing workflow</li>
+</ul>
+<p><strong>The CTO Conversation</strong></p>
+<p>Position as strategic de-risking:</p>
+<ul>
+<li>Moving away from architectural constraints toward industry-standard patterns</li>
+<li>Mitigating hiring challenges and improving developer retention</li>
+<li>Positioning technology stack for future innovation</li>
+<li>Reducing technical debt and operational complexity</li>
+<li>Solving critical production issues affecting revenue</li>
+</ul>
+<h3 id="assembling-the-migration-task-force" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#assembling-the-migration-task-force">Assembling the Migration Task Force</a></h3>
+<p><strong>Core Team Structure</strong></p>
+<ul>
+<li><strong>Project Lead</strong>: Ultimate ownership of technical vision and project success</li>
+<li><strong>Frontend Engineering Team</strong>: Core execution team for component migration and new implementation</li>
+<li><strong>Backend/API Team</strong>: Ensures backend services support SSR requirements</li>
+<li><strong>DevOps/Platform Engineering</strong>: Infrastructure setup and CI/CD pipeline management</li>
+<li><strong>SEO Specialist</strong>: Critical role for maintaining organic traffic and search rankings</li>
+<li><strong>QA Team</strong>: Comprehensive testing across all user journeys and performance metrics</li>
+<li><strong>Product and Business Stakeholders</strong>: Representatives from marketing, merchandising, and product management</li>
+</ul>
+<p><strong>Operating Model</strong></p>
+<ul>
+<li><strong>Agile Methodology</strong>: Two-week sprints with daily stand-ups and regular demonstrations</li>
+<li><strong>Cross-Functional Collaboration</strong>: Regular sync meetings across all stakeholders</li>
+<li><strong>Clear Decision-Making Authority</strong>: Defined roles for technical, business, and go/no-go decisions</li>
+</ul>
+<h3 id="risk-assessment-and-mitigation" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#risk-assessment-and-mitigation">Risk Assessment and Mitigation</a></h3>
+<p><strong>High-Priority Risks and Mitigation Strategies</strong></p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Risk Category</th><th>Description</th><th>Likelihood</th><th>Impact</th><th>Mitigation Strategy</th></tr></thead><tbody><tr><td>SEO Impact</td><td>Loss of organic traffic due to incomplete redirects</td><td>High</td><td>Critical</td><td>Dedicated SEO specialist from Day 1, comprehensive redirect mapping</td></tr><tr><td>Performance Regression</td><td>New site performs worse than SSG benchmark</td><td>Medium</td><td>Critical</td><td>Strict performance budgets, automated testing in CI/CD</td></tr><tr><td>Timeline Delays</td><td>Underestimating build-time logic complexity</td><td>High</td><td>High</td><td>Early spike analysis, phased rollout approach</td></tr><tr><td>Checkout Functionality</td><td>Critical revenue-generating flow breaks</td><td>Low</td><td>Critical</td><td>Keep checkout on legacy platform until final phase</td></tr></tbody></table></div>
+<p><strong>Risk Management Framework</strong></p>
+<ul>
+<li><strong>Avoid</strong>: Alter project plan to eliminate risk entirely</li>
+<li><strong>Reduce</strong>: Implement actions to decrease likelihood or impact</li>
+<li><strong>Transfer</strong>: Shift financial impact to third parties</li>
+<li><strong>Accept</strong>: Consciously decide to accept low-priority risks</li>
+</ul>
+<h2 id="part-3-technical-migration-execution" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#part-3-technical-migration-execution">Part 3: Technical Migration Execution</a></h2>
+<h3 id="phase-0-pre-migration-foundation" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#phase-0-pre-migration-foundation">Phase 0: Pre-Migration Foundation</a></h3>
+<p><strong>Comprehensive Site Audit</strong></p>
+<ul>
+<li><strong>Full Site Crawl</strong>: Using tools like Screaming Frog to capture all URLs, meta data, and response codes</li>
+<li><strong>High-Value Page Identification</strong>: Cross-referencing crawl data with analytics to prioritize critical pages</li>
+<li><strong>Backlink Profile Analysis</strong>: Understanding external linking patterns for redirect strategy</li>
+</ul>
+<p><strong>Performance Benchmarking</strong></p>
+<p>Establish quantitative baselines for:</p>
+<ul>
+<li><strong>Core Web Vitals</strong>: LCP, INP, and CLS scores for key page templates</li>
+<li><strong>Load Performance</strong>: TTFB and FCP metrics</li>
+<li><strong>SEO Metrics</strong>: Organic traffic, keyword rankings, indexed pages</li>
+<li><strong>Business Metrics</strong>: Conversion rates, average order value, funnel progression</li>
+</ul>
+<p><strong>Environment Setup</strong></p>
+<ul>
+<li><strong>Repository Initialization</strong>: New Git repo with SSR framework project structure</li>
+<li><strong>Staging Environment</strong>: Preview environment with production parity</li>
+<li><strong>CI/CD Pipeline</strong>: Automated testing, linting, and deployment workflows</li>
+</ul>
+<h3 id="phase-1-foundational-migration" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#phase-1-foundational-migration">Phase 1: Foundational Migration</a></h3>
+<p><strong>Project Structure and Asset Migration</strong></p>
+<ul>
+<li>Adopt modern SSR framework directory structure</li>
+<li>Migrate static assets from SSG to SSR public directory</li>
+<li>Create global layout with shared UI components</li>
+</ul>
+<p><strong>Component Conversion</strong></p>
+<ul>
+<li><strong>Internal Links</strong>: Convert SSG-specific link components to SSR equivalents</li>
+<li><strong>Images</strong>: Replace SSG image components with SSR-optimized alternatives</li>
+<li><strong>Styling</strong>: Handle CSS-in-JS compatibility with modern rendering patterns</li>
+<li><strong>SEO Metadata</strong>: Implement static metadata objects for site-wide and page-specific tags</li>
+</ul>
+<p><strong>Static Page Migration</strong></p>
+<p>Begin with low-complexity pages:</p>
+<ul>
+<li>About Us, Contact, Terms of Service, Privacy Policy</li>
+<li>Simple marketing landing pages</li>
+<li>Static content sections</li>
+</ul>
+<h3 id="phase-2-dynamic-functionality-implementation" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#phase-2-dynamic-functionality-implementation">Phase 2: Dynamic Functionality Implementation</a></h3>
+<p><strong>Data Fetching Paradigm Shift</strong></p>
+<ul>
+<li>Replace SSG’s build-time data sourcing with SSR’s request-time fetching</li>
+<li>Implement dynamic route generation for content-driven pages</li>
+<li>Convert static data sourcing to server-side data fetching</li>
+</ul>
+<p><strong>Rendering Strategy Selection</strong></p>
+<ul>
+<li><strong>SSG</strong>: For infrequently changing content (blog posts, marketing pages)</li>
+<li><strong>SSR with CDN caching</strong>: For product pages requiring data freshness (pricing, inventory) with cache headers controlling TTL</li>
+<li><strong>SSR (no cache)</strong>: For user-specific data (account dashboards, order history)</li>
+<li><strong>CSR</strong>: For highly interactive components within rendered pages</li>
+</ul>
+<p><strong>API Route Development</strong></p>
+<ul>
+<li>Form handling and submission processing</li>
+<li>Shopping cart state management</li>
+<li>Payment processor integration</li>
+<li>Third-party service communication</li>
+</ul>
+<h3 id="phase-3-advanced-e-commerce-features" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#phase-3-advanced-e-commerce-features">Phase 3: Advanced E-commerce Features</a></h3>
+<p><strong>Zero-CLS A/B Testing Architecture</strong></p>
+<p>The “rewrite at the edge” pattern delivers static performance with dynamic logic:</p>
+<ol>
+<li><strong>Create Variants as Static Pages</strong>: Pre-build each experiment variation</li>
+<li><strong>Dynamic Route Generation</strong>: Use SSR routing for variant paths</li>
+<li><strong>Edge Middleware Decision Logic</strong>: Implement experiment assignment and routing</li>
+<li><strong>Transparent URL Rewriting</strong>: Serve variants while maintaining user URLs</li>
+</ol>
+<p><strong>Server-Side Personalization</strong></p>
+<ul>
+<li>Geo-location based content delivery</li>
+<li>User segment targeting</li>
+<li>Behavioral personalization</li>
+<li>Campaign-specific landing page variants</li>
+</ul>
+<p><strong>Dynamic SEO and Structured Data</strong></p>
+<ul>
+<li>Real-time LD+JSON generation for accurate product information</li>
+<li>Dynamic canonical and hreflang tag management</li>
+<li>Core Web Vitals optimization through server-first rendering</li>
+</ul>
+<h3 id="phase-4-content-decoupling-implementation" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#phase-4-content-decoupling-implementation">Phase 4: Content Decoupling Implementation</a></h3>
+<p><strong>On-Demand Revalidation Architecture</strong></p>
+<ul>
+<li><strong>CMS Webhook Integration</strong>: Configure headless CMS to trigger revalidation</li>
+<li><strong>Secure API Route</strong>: Verify authenticity and parse content change payloads</li>
+<li><strong>Cache Management</strong>: Use revalidation APIs for targeted page updates</li>
+<li><strong>Independent Lifecycles</strong>: Enable content and code teams to work autonomously</li>
+</ul>
+<blockquote>
+<p><strong><span role="img" aria-label="warning">⚠️</span> Implementation Warning:</strong> Real-time cache invalidation introduces race conditions with backend systems. If your product API lags behind CMS updates, SSR renders 404s for newly published products. See “Lessons Learned: Real-Time Content Updates Require Operational Readiness” for our solution using versioned content releases.</p>
+</blockquote>
+<p><strong>Benefits of True Decoupling</strong></p>
+<ul>
+<li>Content updates publish in seconds, not minutes</li>
+<li>No engineering dependencies for marketing changes</li>
+<li>Reduced risk of content-code conflicts</li>
+<li>Improved team productivity and autonomy</li>
+</ul>
+<h2 id="part-4-the-strangler-fig-pattern---phased-rollout-strategy-with-platform-ab-testing" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#part-4-the-strangler-fig-pattern---phased-rollout-strategy-with-platform-ab-testing">Part 4: The Strangler Fig Pattern - Phased Rollout Strategy with Platform A/B Testing</a></h2>
+<h3 id="why-not-big-bang-migration" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#why-not-big-bang-migration">Why Not “Big Bang” Migration?</a></h3>
+<p>A single cutover approach is unacceptably risky for mission-critical e-commerce platforms. The Strangler Fig pattern enables incremental migration with continuous value delivery and risk mitigation.</p>
+<p><strong>Architecture Overview</strong></p>
+<ul>
+<li><strong>Routing Layer</strong>: Edge middleware directing traffic between legacy and new systems</li>
+<li><strong>Gradual Replacement</strong>: Piece-by-piece migration of site sections</li>
+<li><strong>Immediate Rollback</strong>: Simple configuration changes for issue resolution</li>
+<li><strong>Platform A/B Testing</strong>: Serve X% of users from SSR while maintaining SSG for others</li>
+</ul>
+<h3 id="platform-ab-testing-implementation" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#platform-ab-testing-implementation">Platform A/B Testing Implementation</a></h3>
+<p><strong>Traffic Distribution Strategy</strong></p>
+<p>The platform A/B approach allows for controlled, gradual migration:</p>
+<ul>
+<li><strong>User Segmentation</strong>: Route users based on user ID hash, geographic location, or other deterministic criteria</li>
+<li><strong>Traffic Percentage Control</strong>: Start with 5% of users on SSR, gradually increase to 100%</li>
+<li><strong>Real-Time Monitoring</strong>: Track performance metrics for both platforms simultaneously</li>
+<li><strong>Instant Rollback</strong>: Switch traffic back to SSG within minutes if issues arise</li>
+</ul>
+<p><strong>Implementation Details</strong></p>
+<p>Our implementation used AWS CloudFront with Lambda@Edge functions at three trigger points: Viewer Request, Origin Request, and Viewer Response. This architecture handles bucketing at the edge before requests reach either origin.</p>
+<figure>
+<p><img alt="CloudFront Lambda@Edge flow: Viewer Request handles user identification and bucketing, Origin Request routes to the appropriate origin, and Viewer Response persists cookies" loading="lazy" decoding="async" fetchpriority="auto" width="1522" height="1007" src="/legacy-personal-site/v4/_astro/cloudfront-lambda-edge-flow-viewer-request-handles-user-identification-and-bucke.wy7m_NwJ_iLVPU.svg" ></p>
+<figcaption>CloudFront Lambda@Edge flow: Viewer Request handles user identification and bucketing, Origin Request routes to the appropriate origin, and Viewer Response persists cookies</figcaption>
+</figure>
+<p><strong>Viewer Request Function</strong> — Runs on every request before cache lookup:</p>
+<div class="expressive-code"><link rel="stylesheet" href="/legacy-personal-site/v4/_astro/ec.g38ze.css"><script type="module" src="/legacy-personal-site/v4/_astro/ec.0vx5m.js"></script><figure class="frame has-title"><figcaption class="header"><span class="title">viewer-request.js</span></figcaption><pre data-language="javascript"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#BF3441;--1:#F97583">const</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#005CC5;--1:#79B8FF">BUCKET_CONFIG</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#BF3441;--1:#F97583">=</span><span style="--0:#24292E;--1:#E1E4E8"> {</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">  </span></span><span style="--0:#24292E;--1:#E1E4E8">ssr: </span><span style="--0:#005CC5;--1:#79B8FF">25</span><span style="--0:#24292E;--1:#E1E4E8">, </span><span style="--0:#616972;--1:#99A0A6">// 25% to SSR</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">  </span></span><span style="--0:#24292E;--1:#E1E4E8">ssg: </span><span style="--0:#005CC5;--1:#79B8FF">75</span><span style="--0:#24292E;--1:#E1E4E8">, </span><span style="--0:#616972;--1:#99A0A6">// 75% to SSG (default)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span style="--0:#24292E;--1:#E1E4E8">}</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span style="--0:#BF3441;--1:#F97583">function</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#6F42C1;--1:#B392F0">handler</span><span style="--0:#24292E;--1:#E1E4E8">(</span><span style="--0:#AE4B07;--1:#FFAB70">event</span><span style="--0:#24292E;--1:#E1E4E8">) {</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">7</div></div><div class="code"><span class="indent">  </span><span style="--0:#BF3441;--1:#F97583">const</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#005CC5;--1:#79B8FF">request</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#BF3441;--1:#F97583">=</span><span style="--0:#24292E;--1:#E1E4E8"> event.request</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">8</div></div><div class="code"><span class="indent">  </span><span style="--0:#BF3441;--1:#F97583">const</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#005CC5;--1:#79B8FF">cookies</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#BF3441;--1:#F97583">=</span><span style="--0:#24292E;--1:#E1E4E8"> request.cookies </span><span style="--0:#BF3441;--1:#F97583">||</span><span style="--0:#24292E;--1:#E1E4E8"> {}</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">9</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">10</div></div><div class="code"><span class="indent">  </span><span style="--0:#616972;--1:#99A0A6">// Extract or generate userId</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">11</div></div><div class="code"><span class="indent">  </span><span style="--0:#BF3441;--1:#F97583">let</span><span style="--0:#24292E;--1:#E1E4E8"> userId </span><span style="--0:#BF3441;--1:#F97583">=</span><span style="--0:#24292E;--1:#E1E4E8"> cookies[</span><span style="--0:#032F62;--1:#9ECBFF">"userId"</span><span style="--0:#24292E;--1:#E1E4E8">]?.value</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">12</div></div><div class="code"><span class="indent">  </span><span style="--0:#BF3441;--1:#F97583">if</span><span style="--0:#24292E;--1:#E1E4E8"> (</span><span style="--0:#BF3441;--1:#F97583">!</span><span style="--0:#24292E;--1:#E1E4E8">userId) {</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">13</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">    </span></span><span style="--0:#24292E;--1:#E1E4E8">userId </span><span style="--0:#BF3441;--1:#F97583">=</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#6F42C1;--1:#B392F0">generateUUID</span><span style="--0:#24292E;--1:#E1E4E8">()</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">14</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">  </span></span><span style="--0:#24292E;--1:#E1E4E8">}</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">15</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">16</div></div><div class="code"><span class="indent">  </span><span style="--0:#616972;--1:#99A0A6">// Check for existing bucket assignment</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">17</div></div><div class="code"><span class="indent">  </span><span style="--0:#BF3441;--1:#F97583">let</span><span style="--0:#24292E;--1:#E1E4E8"> bucket </span><span style="--0:#BF3441;--1:#F97583">=</span><span style="--0:#24292E;--1:#E1E4E8"> cookies[</span><span style="--0:#032F62;--1:#9ECBFF">"platform-ab"</span><span style="--0:#24292E;--1:#E1E4E8">]?.value</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">18</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">19</div></div><div class="code"><span class="indent">  </span><span style="--0:#616972;--1:#99A0A6">// New users: assign bucket based on random distribution</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">20</div></div><div class="code"><span class="indent">  </span><span style="--0:#BF3441;--1:#F97583">if</span><span style="--0:#24292E;--1:#E1E4E8"> (</span><span style="--0:#BF3441;--1:#F97583">!</span><span style="--0:#24292E;--1:#E1E4E8">bucket) {</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">21</div></div><div class="code"><span class="indent">    </span><span style="--0:#BF3441;--1:#F97583">const</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#005CC5;--1:#79B8FF">rand</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#BF3441;--1:#F97583">=</span><span style="--0:#24292E;--1:#E1E4E8"> Math.</span><span style="--0:#6F42C1;--1:#B392F0">random</span><span style="--0:#24292E;--1:#E1E4E8">() </span><span style="--0:#BF3441;--1:#F97583">*</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#005CC5;--1:#79B8FF">100</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">22</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">    </span></span><span style="--0:#24292E;--1:#E1E4E8">bucket </span><span style="--0:#BF3441;--1:#F97583">=</span><span style="--0:#24292E;--1:#E1E4E8"> rand </span><span style="--0:#BF3441;--1:#F97583">&#x3C;</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#005CC5;--1:#79B8FF">BUCKET_CONFIG</span><span style="--0:#24292E;--1:#E1E4E8">.ssr </span><span style="--0:#BF3441;--1:#F97583">?</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#032F62;--1:#9ECBFF">"ssr"</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#BF3441;--1:#F97583">:</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#032F62;--1:#9ECBFF">"ssg"</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">23</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">  </span></span><span style="--0:#24292E;--1:#E1E4E8">}</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">24</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">25</div></div><div class="code"><span class="indent">  </span><span style="--0:#616972;--1:#99A0A6">// Pass bucket to origin-request via header</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">26</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">  </span></span><span style="--0:#24292E;--1:#E1E4E8">request.headers[</span><span style="--0:#032F62;--1:#9ECBFF">"x-platform-bucket"</span><span style="--0:#24292E;--1:#E1E4E8">] </span><span style="--0:#BF3441;--1:#F97583">=</span><span style="--0:#24292E;--1:#E1E4E8"> { value: bucket }</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">27</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">  </span></span><span style="--0:#24292E;--1:#E1E4E8">request.headers[</span><span style="--0:#032F62;--1:#9ECBFF">"x-user-id"</span><span style="--0:#24292E;--1:#E1E4E8">] </span><span style="--0:#BF3441;--1:#F97583">=</span><span style="--0:#24292E;--1:#E1E4E8"> { value: userId }</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">28</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">29</div></div><div class="code"><span class="indent">  </span><span style="--0:#BF3441;--1:#F97583">return</span><span style="--0:#24292E;--1:#E1E4E8"> request</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">30</div></div><div class="code"><span style="--0:#24292E;--1:#E1E4E8">}</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="const BUCKET_CONFIG = {  ssr: 25, // 25% to SSR  ssg: 75, // 75% to SSG (default)}function handler(event) {  const request = event.request  const cookies = request.cookies || {}  // Extract or generate userId  let userId = cookies[&#x22;userId&#x22;]?.value  if (!userId) {    userId = generateUUID()  }  // Check for existing bucket assignment  let bucket = cookies[&#x22;platform-ab&#x22;]?.value  // New users: assign bucket based on random distribution  if (!bucket) {    const rand = Math.random() * 100    bucket = rand < BUCKET_CONFIG.ssr ? &#x22;ssr&#x22; : &#x22;ssg&#x22;  }  // Pass bucket to origin-request via header  request.headers[&#x22;x-platform-bucket&#x22;] = { value: bucket }  request.headers[&#x22;x-user-id&#x22;] = { value: userId }  return request}"><div></div></button></div></figure></div>
+<p><strong>Origin Request Function</strong> — Runs on cache miss, selects origin:</p>
+<div class="expressive-code"><figure class="frame has-title"><figcaption class="header"><span class="title">origin-request.js</span></figcaption><pre data-language="javascript"><code><div class="ec-section collapsible-start"><details><summary><div class="ec-line"><div class="gutter"><div class="ln"></div></div><div class="code"><span class="expand"></span><span class="collapse"></span><span class="text">16 collapsed lines</span></div></div></summary></details><div class="content-lines"><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#616972;--1:#99A0A6">// Lines 1-16: Origin configuration (collapsed)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span style="--0:#BF3441;--1:#F97583">const</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#005CC5;--1:#79B8FF">ORIGINS</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#BF3441;--1:#F97583">=</span><span style="--0:#24292E;--1:#E1E4E8"> {</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">  </span></span><span style="--0:#24292E;--1:#E1E4E8">ssr: {</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">    </span></span><span style="--0:#24292E;--1:#E1E4E8">domainName: </span><span style="--0:#032F62;--1:#9ECBFF">"ssr-app.example.com"</span><span style="--0:#24292E;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">    </span></span><span style="--0:#24292E;--1:#E1E4E8">protocol: </span><span style="--0:#032F62;--1:#9ECBFF">"https"</span><span style="--0:#24292E;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">    </span></span><span style="--0:#24292E;--1:#E1E4E8">port: </span><span style="--0:#005CC5;--1:#79B8FF">443</span><span style="--0:#24292E;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">7</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">    </span></span><span style="--0:#24292E;--1:#E1E4E8">path: </span><span style="--0:#032F62;--1:#9ECBFF">""</span><span style="--0:#24292E;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">8</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">    </span></span><span style="--0:#24292E;--1:#E1E4E8">sslProtocols: [</span><span style="--0:#032F62;--1:#9ECBFF">"TLSv1.2"</span><span style="--0:#24292E;--1:#E1E4E8">],</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">9</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">  </span></span><span style="--0:#24292E;--1:#E1E4E8">},</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">10</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">  </span></span><span style="--0:#24292E;--1:#E1E4E8">ssg: {</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">11</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">    </span></span><span style="--0:#24292E;--1:#E1E4E8">domainName: </span><span style="--0:#032F62;--1:#9ECBFF">"ssg-bucket.s3.amazonaws.com"</span><span style="--0:#24292E;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">12</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">    </span></span><span style="--0:#24292E;--1:#E1E4E8">protocol: </span><span style="--0:#032F62;--1:#9ECBFF">"https"</span><span style="--0:#24292E;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">13</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">    </span></span><span style="--0:#24292E;--1:#E1E4E8">port: </span><span style="--0:#005CC5;--1:#79B8FF">443</span><span style="--0:#24292E;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">14</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">    </span></span><span style="--0:#24292E;--1:#E1E4E8">path: </span><span style="--0:#032F62;--1:#9ECBFF">""</span><span style="--0:#24292E;--1:#E1E4E8">,</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">15</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">    </span></span><span style="--0:#24292E;--1:#E1E4E8">sslProtocols: [</span><span style="--0:#032F62;--1:#9ECBFF">"TLSv1.2"</span><span style="--0:#24292E;--1:#E1E4E8">],</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">16</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">  </span></span><span style="--0:#24292E;--1:#E1E4E8">},</span></div></div></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">17</div></div><div class="code"><span style="--0:#24292E;--1:#E1E4E8">}</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">18</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">19</div></div><div class="code"><span style="--0:#616972;--1:#99A0A6">// Lines 17-27: Key routing logic (visible)</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">20</div></div><div class="code"><span style="--0:#BF3441;--1:#F97583">function</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#6F42C1;--1:#B392F0">handler</span><span style="--0:#24292E;--1:#E1E4E8">(</span><span style="--0:#AE4B07;--1:#FFAB70">event</span><span style="--0:#24292E;--1:#E1E4E8">) {</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">21</div></div><div class="code"><span class="indent">  </span><span style="--0:#BF3441;--1:#F97583">const</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#005CC5;--1:#79B8FF">request</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#BF3441;--1:#F97583">=</span><span style="--0:#24292E;--1:#E1E4E8"> event.request</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">22</div></div><div class="code"><span class="indent">  </span><span style="--0:#BF3441;--1:#F97583">const</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#005CC5;--1:#79B8FF">bucket</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#BF3441;--1:#F97583">=</span><span style="--0:#24292E;--1:#E1E4E8"> request.headers[</span><span style="--0:#032F62;--1:#9ECBFF">"x-platform-bucket"</span><span style="--0:#24292E;--1:#E1E4E8">]?.value </span><span style="--0:#BF3441;--1:#F97583">||</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#032F62;--1:#9ECBFF">"ssg"</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">23</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">24</div></div><div class="code"><span class="indent">  </span><span style="--0:#616972;--1:#99A0A6">// Override origin based on bucket</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">25</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">  </span></span><span style="--0:#24292E;--1:#E1E4E8">request.origin </span><span style="--0:#BF3441;--1:#F97583">=</span><span style="--0:#24292E;--1:#E1E4E8"> { custom: </span><span style="--0:#005CC5;--1:#79B8FF">ORIGINS</span><span style="--0:#24292E;--1:#E1E4E8">[bucket] }</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">26</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">27</div></div><div class="code"><span class="indent">  </span><span style="--0:#616972;--1:#99A0A6">// Required: update Host header to match new origin</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">28</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">  </span></span><span style="--0:#24292E;--1:#E1E4E8">request.headers[</span><span style="--0:#032F62;--1:#9ECBFF">"host"</span><span style="--0:#24292E;--1:#E1E4E8">] </span><span style="--0:#BF3441;--1:#F97583">=</span><span style="--0:#24292E;--1:#E1E4E8"> { value: </span><span style="--0:#005CC5;--1:#79B8FF">ORIGINS</span><span style="--0:#24292E;--1:#E1E4E8">[bucket].domainName }</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">29</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">30</div></div><div class="code"><span class="indent">  </span><span style="--0:#BF3441;--1:#F97583">return</span><span style="--0:#24292E;--1:#E1E4E8"> request</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">31</div></div><div class="code"><span style="--0:#24292E;--1:#E1E4E8">}</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="// Lines 1-16: Origin configuration (collapsed)const ORIGINS = {  ssr: {    domainName: &#x22;ssr-app.example.com&#x22;,    protocol: &#x22;https&#x22;,    port: 443,    path: &#x22;&#x22;,    sslProtocols: [&#x22;TLSv1.2&#x22;],  },  ssg: {    domainName: &#x22;ssg-bucket.s3.amazonaws.com&#x22;,    protocol: &#x22;https&#x22;,    port: 443,    path: &#x22;&#x22;,    sslProtocols: [&#x22;TLSv1.2&#x22;],  },}// Lines 17-27: Key routing logic (visible)function handler(event) {  const request = event.request  const bucket = request.headers[&#x22;x-platform-bucket&#x22;]?.value || &#x22;ssg&#x22;  // Override origin based on bucket  request.origin = { custom: ORIGINS[bucket] }  // Required: update Host header to match new origin  request.headers[&#x22;host&#x22;] = { value: ORIGINS[bucket].domainName }  return request}"><div></div></button></div></figure></div>
+<p><strong>Viewer Response Function</strong> — Runs on every response, sets cookies:</p>
+<div class="expressive-code"><figure class="frame has-title"><figcaption class="header"><span class="title">viewer-response.js</span></figcaption><pre data-language="javascript"><code><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">1</div></div><div class="code"><span style="--0:#BF3441;--1:#F97583">function</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#6F42C1;--1:#B392F0">handler</span><span style="--0:#24292E;--1:#E1E4E8">(</span><span style="--0:#AE4B07;--1:#FFAB70">event</span><span style="--0:#24292E;--1:#E1E4E8">) {</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">2</div></div><div class="code"><span class="indent">  </span><span style="--0:#BF3441;--1:#F97583">const</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#005CC5;--1:#79B8FF">request</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#BF3441;--1:#F97583">=</span><span style="--0:#24292E;--1:#E1E4E8"> event.request</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">3</div></div><div class="code"><span class="indent">  </span><span style="--0:#BF3441;--1:#F97583">const</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#005CC5;--1:#79B8FF">response</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#BF3441;--1:#F97583">=</span><span style="--0:#24292E;--1:#E1E4E8"> event.response</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">4</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">5</div></div><div class="code"><span class="indent">  </span><span style="--0:#BF3441;--1:#F97583">const</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#005CC5;--1:#79B8FF">userId</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#BF3441;--1:#F97583">=</span><span style="--0:#24292E;--1:#E1E4E8"> request.headers[</span><span style="--0:#032F62;--1:#9ECBFF">"x-user-id"</span><span style="--0:#24292E;--1:#E1E4E8">]?.value</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">6</div></div><div class="code"><span class="indent">  </span><span style="--0:#BF3441;--1:#F97583">const</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#005CC5;--1:#79B8FF">bucket</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#BF3441;--1:#F97583">=</span><span style="--0:#24292E;--1:#E1E4E8"> request.headers[</span><span style="--0:#032F62;--1:#9ECBFF">"x-platform-bucket"</span><span style="--0:#24292E;--1:#E1E4E8">]?.value</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">7</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">8</div></div><div class="code"><span class="indent">  </span><span style="--0:#616972;--1:#99A0A6">// Set cookies for user persistence and bucket consistency</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">9</div></div><div class="code"><span class="indent">  </span><span style="--0:#BF3441;--1:#F97583">const</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#005CC5;--1:#79B8FF">cookieOptions</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#BF3441;--1:#F97583">=</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#032F62;--1:#9ECBFF">"Path=/; Secure; SameSite=Lax; Max-Age=2592000"</span><span style="--0:#24292E;--1:#E1E4E8"> </span><span style="--0:#616972;--1:#99A0A6">// 30 days</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">10</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">11</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">  </span></span><span style="--0:#24292E;--1:#E1E4E8">response.cookies </span><span style="--0:#BF3441;--1:#F97583">=</span><span style="--0:#24292E;--1:#E1E4E8"> response.cookies </span><span style="--0:#BF3441;--1:#F97583">||</span><span style="--0:#24292E;--1:#E1E4E8"> {}</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">12</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">  </span></span><span style="--0:#24292E;--1:#E1E4E8">response.cookies[</span><span style="--0:#032F62;--1:#9ECBFF">"userId"</span><span style="--0:#24292E;--1:#E1E4E8">] </span><span style="--0:#BF3441;--1:#F97583">=</span><span style="--0:#24292E;--1:#E1E4E8"> { value: userId, attributes: cookieOptions }</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">13</div></div><div class="code"><span class="indent"><span style="--0:#24292E;--1:#E1E4E8">  </span></span><span style="--0:#24292E;--1:#E1E4E8">response.cookies[</span><span style="--0:#032F62;--1:#9ECBFF">"platform-ab"</span><span style="--0:#24292E;--1:#E1E4E8">] </span><span style="--0:#BF3441;--1:#F97583">=</span><span style="--0:#24292E;--1:#E1E4E8"> { value: bucket, attributes: cookieOptions }</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">14</div></div><div class="code">
+</div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">15</div></div><div class="code"><span class="indent">  </span><span style="--0:#BF3441;--1:#F97583">return</span><span style="--0:#24292E;--1:#E1E4E8"> response</span></div></div><div class="ec-line"><div class="gutter"><div class="ln" aria-hidden="true">16</div></div><div class="code"><span style="--0:#24292E;--1:#E1E4E8">}</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="function handler(event) {  const request = event.request  const response = event.response  const userId = request.headers[&#x22;x-user-id&#x22;]?.value  const bucket = request.headers[&#x22;x-platform-bucket&#x22;]?.value  // Set cookies for user persistence and bucket consistency  const cookieOptions = &#x22;Path=/; Secure; SameSite=Lax; Max-Age=2592000&#x22; // 30 days  response.cookies = response.cookies || {}  response.cookies[&#x22;userId&#x22;] = { value: userId, attributes: cookieOptions }  response.cookies[&#x22;platform-ab&#x22;] = { value: bucket, attributes: cookieOptions }  return response}"><div></div></button></div></figure></div>
+<p><strong>Cache Policy Configuration</strong> — Critical for correct bucketing:</p>
+<p>The <code>platform-ab</code> cookie must be included in the CloudFront cache policy’s cache key. Without this, users in different buckets would receive cached responses from the wrong origin. Configure the cache policy to include:</p>
+<ul>
+<li><strong>Cookies</strong>: <code>platform-ab</code> (whitelist)</li>
+<li><strong>Headers</strong>: None (or minimal for cache efficiency)</li>
+<li><strong>Query strings</strong>: As needed for your application</li>
+</ul>
+<blockquote>
+<p><strong>Why cookies in cache key?</strong> If user A (SSR bucket) requests <code>/product/123</code> and the response is cached, user B (SSG bucket) requesting the same URL would incorrectly receive the SSR-rendered page. Including <code>platform-ab</code> in the cache key creates separate cache entries per bucket.</p>
+</blockquote>
+<p><strong>Benefits of Platform A/B Testing</strong></p>
+<ul>
+<li><strong>Risk Mitigation</strong>: Issues affect only a subset of users</li>
+<li><strong>Performance Comparison</strong>: Direct A/B testing of both platforms</li>
+<li><strong>Gradual Validation</strong>: Build confidence before full migration</li>
+<li><strong>Business Continuity</strong>: Maintain revenue while testing new platform</li>
+</ul>
+<h3 id="phased-rollout-plan" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#phased-rollout-plan">Phased Rollout Plan</a></h3>
+<p><strong>Phase A: Low-Risk Content with Platform A/B (Weeks 1-4)</strong></p>
+<ul>
+<li><strong>Scope</strong>: Blog, marketing pages, static content</li>
+<li><strong>Traffic Distribution</strong>: 10% SSR, 90% SSG</li>
+<li><strong>Success Metrics</strong>: LCP &#x3C; 2.5s, organic traffic maintenance, keyword stability</li>
+<li><strong>Go/No-Go Criteria</strong>: All P0/P1 bugs resolved, staging performance validated</li>
+<li><strong>Rollback Strategy</strong>: Reduce SSR traffic to 0% if issues arise</li>
+</ul>
+<p><strong>Phase B: Core E-commerce with Increased Traffic (Weeks 5-8)</strong></p>
+<ul>
+<li><strong>Scope</strong>: Product Detail Pages with SSR and CDN caching</li>
+<li><strong>Traffic Distribution</strong>: 25% SSR, 75% SSG</li>
+<li><strong>Success Metrics</strong>: CLS &#x3C; 0.1, add-to-cart rate maintenance, conversion stability</li>
+<li><strong>Approach</strong>: Monitor business metrics closely, adjust traffic distribution based on performance</li>
+<li><strong>Rollback Trigger</strong>: >10% drop in add-to-cart rate for 24 hours</li>
+</ul>
+<p><strong>Phase C: High-Complexity Sections (Weeks 9-12)</strong></p>
+<ul>
+<li><strong>Scope</strong>: Category pages, search functionality, checkout flow</li>
+<li><strong>Traffic Distribution</strong>: 50% SSR, 50% SSG</li>
+<li><strong>Success Metrics</strong>: TTFB &#x3C; 400ms, funnel progression rates, error rates</li>
+<li><strong>Approach</strong>: Sequential migration with extensive testing</li>
+<li><strong>Rollback Trigger</strong>: Critical bugs affecting >5% of users</li>
+</ul>
+<p><strong>Phase D: Final Migration and Legacy Decommissioning (Week 13+)</strong></p>
+<ul>
+<li><strong>Scope</strong>: Complete migration and infrastructure cleanup</li>
+<li><strong>Traffic Distribution</strong>: 100% SSR, 0% SSG</li>
+<li><strong>Success Criteria</strong>: 100% traffic on new platform, stable performance for one business cycle</li>
+<li><strong>Final Steps</strong>: Remove edge middleware, decommission SSG infrastructure</li>
+</ul>
+<h3 id="rollback-strategy" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#rollback-strategy">Rollback Strategy</a></h3>
+<p><strong>Immediate Response Protocol</strong></p>
+<ul>
+<li><strong>Configuration Change</strong>: Update edge middleware to route problematic paths back to legacy</li>
+<li><strong>Execution Time</strong>: Minutes, not hours or days</li>
+<li><strong>Clear Triggers</strong>: Quantitative thresholds for automatic rollback decisions</li>
+<li><strong>Communication</strong>: Immediate stakeholder notification and status updates</li>
+</ul>
+<p><strong>Platform A/B Rollback Benefits</strong></p>
+<ul>
+<li><strong>Instant Traffic Control</strong>: Adjust SSR percentage from 0% to 100% in real-time</li>
+<li><strong>Granular Control</strong>: Rollback specific user segments or geographic regions</li>
+<li><strong>Performance Monitoring</strong>: Compare both platforms side-by-side during issues</li>
+<li><strong>Business Continuity</strong>: Maintain revenue while resolving technical problems</li>
+</ul>
+<h2 id="part-5-security-and-performance-considerations" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#part-5-security-and-performance-considerations">Part 5: Security and Performance Considerations</a></h2>
+<h3 id="security-hardening-for-ssr" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#security-hardening-for-ssr">Security Hardening for SSR</a></h3>
+<p><strong>HTTP Security Headers Implementation</strong></p>
+<ul>
+<li><strong>Content Security Policy</strong>: Restrict resource origins and prevent XSS attacks</li>
+<li><strong>Strict Transport Security</strong>: Force HTTPS and prevent downgrade attacks</li>
+<li><strong>Frame Ancestors</strong>: Prevent clickjacking through CSP directives</li>
+<li><strong>Referrer Policy</strong>: Minimize information leakage to external domains</li>
+</ul>
+<p><strong>Framework-Specific Security Measures</strong></p>
+<ul>
+<li><strong>SSR Framework Hardening</strong>: Enable strict mode, implement security headers API</li>
+<li><strong>Edge Function Security</strong>: Runtime isolation and minimal permissions</li>
+<li><strong>API Route Protection</strong>: Authentication, rate limiting, and input validation</li>
+</ul>
+<p><strong>Attack Vector Mitigation</strong></p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Attack Type</th><th>SSR Risk Level</th><th>Primary Defenses</th></tr></thead><tbody><tr><td>Reflected XSS</td><td>High</td><td>CSP nonces, template encoding</td></tr><tr><td>CSRF</td><td>High</td><td>SameSite cookies, CSRF tokens</td></tr><tr><td>Clickjacking</td><td>High</td><td>frame-ancestors directive</td></tr><tr><td>Cache Poisoning</td><td>Medium</td><td>Proper Vary headers, WAF</td></tr></tbody></table></div>
+<h3 id="performance-optimization" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#performance-optimization">Performance Optimization</a></h3>
+<p><strong>Core Web Vitals Engineering</strong></p>
+<ul>
+<li><strong>LCP Optimization</strong>: Priority loading for above-the-fold images, server-side rendering</li>
+<li><strong>INP Improvement</strong>: Modern rendering patterns to reduce client-side JavaScript</li>
+<li><strong>CLS Prevention</strong>: Server-side layout decisions, mandatory image dimensions</li>
+</ul>
+<p><strong>Edge Performance Features</strong></p>
+<ul>
+<li><strong>Global CDN</strong>: Worldwide content delivery with minimal latency</li>
+<li><strong>Edge Functions</strong>: Logic execution close to users</li>
+<li><strong>Automatic Scaling</strong>: Handle traffic spikes without performance degradation</li>
+</ul>
+<p><strong>SSR Performance Considerations</strong></p>
+<ul>
+<li><strong>Throughput Optimization</strong>: Start with 2 RPS, target 7+ RPS per pod</li>
+<li><strong>Deployment Stability</strong>: Configure proper scaling parameters to prevent errors during scaling</li>
+<li><strong>BFF Integration</strong>: Multi-team effort to move from cached to non-cached backend services</li>
+</ul>
+<h2 id="part-6-success-measurement-and-continuous-optimization" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#part-6-success-measurement-and-continuous-optimization">Part 6: Success Measurement and Continuous Optimization</a></h2>
+<h3 id="the-unified-success-dashboard" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#the-unified-success-dashboard">The Unified Success Dashboard</a></h3>
+<p><strong>Multi-Layered KPI Framework</strong></p>
+<ul>
+<li><strong>Layer 1: Business Metrics</strong>: Conversion rates, AOV, revenue per visitor</li>
+<li><strong>Layer 2: SEO Performance</strong>: Organic traffic, keyword rankings, indexed pages</li>
+<li><strong>Layer 3: Web Performance</strong>: Core Web Vitals, TTFB, FCP</li>
+<li><strong>Layer 4: Operational Health</strong>: Error rates, build times, content publishing speed</li>
+</ul>
+<p><strong>Recommended Instrumentation Stack</strong></p>
+<ul>
+<li><strong>Real User Monitoring (RUM):</strong> Vercel Analytics, Datadog RUM, or New Relic Browser for Core Web Vitals from actual user sessions</li>
+<li><strong>Synthetic Monitoring:</strong> Calibre, SpeedCurve, or Lighthouse CI for consistent baseline measurements</li>
+<li><strong>APM:</strong> Instrument SSR functions with distributed tracing (Datadog APM, New Relic APM) to identify slow data fetches</li>
+<li><strong>Custom Metrics:</strong> Track cache hit rates at CDN, SSR cold start frequency, and revalidation webhook latency</li>
+</ul>
+<p>Key metrics to alert on: p95 TTFB > 800ms, cache hit rate &#x3C; 90%, revalidation failures > 1% of requests.</p>
+<p><strong>Key Performance Indicators</strong></p>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Metric Category</th><th>Pre-Migration</th><th>Post-Migration Target</th><th>Business Impact</th></tr></thead><tbody><tr><td>Overall Conversion Rate</td><td>2.0%</td><td>≥ 2.1%</td><td>Direct revenue increase</td></tr><tr><td>CTR (Paid Campaigns)</td><td>Baseline</td><td>+5-10%</td><td>Improved ad efficiency</td></tr><tr><td>ROAS</td><td>Baseline</td><td>+8-12%</td><td>Better marketing ROI</td></tr><tr><td>Content Publishing Time</td><td>~15 minutes</td><td>&#x3C; 30 seconds</td><td>Operational agility</td></tr><tr><td>LCP (p75)</td><td>2.9s</td><td>&#x3C; 2.5s</td><td>User experience improvement</td></tr><tr><td>CloudFront Cost Spikes</td><td>~10x daily</td><td>Eliminated</td><td>Predictable infrastructure costs</td></tr></tbody></table></div>
+<h3 id="post-launch-hypercare" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#post-launch-hypercare">Post-Launch Hypercare</a></h3>
+<p><strong>Real-Time Monitoring</strong></p>
+<ul>
+<li><strong>Dashboard Surveillance</strong>: Daily monitoring of all KPI categories</li>
+<li><strong>Automated Alerts</strong>: Configured for critical metric deviations</li>
+<li><strong>Issue Tracking</strong>: Centralized logging and triage system</li>
+</ul>
+<p><strong>Response Protocols</strong></p>
+<ul>
+<li><strong>Triage Lead</strong>: Designated engineer for issue assessment and assignment</li>
+<li><strong>Priority Classification</strong>: P0-P4 system for issue prioritization</li>
+<li><strong>Escalation Paths</strong>: Clear communication channels for critical issues</li>
+</ul>
+<h3 id="continuous-platform-evolution" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#continuous-platform-evolution">Continuous Platform Evolution</a></h3>
+<p><strong>Post-Migration Roadmap</strong></p>
+<ul>
+<li><strong>Experimentation Program</strong>: Formal A/B testing framework and culture</li>
+<li><strong>Personalization Strategy</strong>: Advanced user segmentation and targeting</li>
+<li><strong>Modern Rendering Patterns</strong>: Progressive refactoring for performance optimization</li>
+<li><strong>Performance Tuning</strong>: Ongoing optimization based on real user data</li>
+</ul>
+<p><strong>Long-Term Benefits</strong></p>
+<ul>
+<li><strong>Business Agility</strong>: Rapid response to market changes and competitive pressures</li>
+<li><strong>Innovation Velocity</strong>: Faster feature development and deployment</li>
+<li><strong>Operational Efficiency</strong>: Reduced maintenance overhead and improved reliability</li>
+<li><strong>Competitive Advantage</strong>: Superior user experience and marketing effectiveness</li>
+</ul>
+<h2 id="lessons-learned-from-big-bang-to-data-backed-deployments" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#lessons-learned-from-big-bang-to-data-backed-deployments">Lessons Learned: From Big Bang to Data-Backed Deployments</a></h2>
+<p>Our migration journey evolved significantly from the initial plan. What started as an ambitious big-bang release transformed into a phased, data-driven approach after encountering several hard-learned lessons.</p>
+<h3 id="lesson-1-framework-familiarity-doesnt-guarantee-speed" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#lesson-1-framework-familiarity-doesnt-guarantee-speed">Lesson 1: Framework Familiarity Doesn’t Guarantee Speed</a></h3>
+<p><strong>Initial Assumption</strong>: Since both Gatsby and Next.js are React-based meta-frameworks, we assumed the migration would be straightforward and quick.</p>
+<p><strong>Reality</strong>: The migration took significantly longer than estimated. While the component code was largely portable, the differences in data fetching patterns, routing conventions, build configuration, and plugin ecosystems created unexpected complexity. Each framework has its own idioms, and “React-based” doesn’t mean “interchangeable.”</p>
+<p><strong>Takeaway</strong>: Budget for framework-specific learning curves even when the underlying technology stack appears similar. The devil is in the framework-specific details.</p>
+<h3 id="lesson-2-separate-technology-migration-from-behavior-changes" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#lesson-2-separate-technology-migration-from-behavior-changes">Lesson 2: Separate Technology Migration from Behavior Changes</a></h3>
+<p><strong>What We Did Wrong</strong>: During the migration, we attempted to simultaneously fix feature behaviors and implementation patterns that had been problematic in the old system. This seemed efficient—why migrate broken behavior?</p>
+<p><strong>Why It Failed</strong>: When analyzing post-migration metrics, we couldn’t determine whether changes in conversion rates, engagement, or performance were due to:</p>
+<ul>
+<li>The Next.js migration itself</li>
+<li>The behavior changes we introduced</li>
+<li>The combination of both (which could be net negative if one improvement was offset by a regression)</li>
+</ul>
+<p>This ambiguity forced us to roll back behavior changes and re-implement them separately, causing significant rework.</p>
+<p><strong>Takeaway</strong>: Keep technology migrations as pure as possible. A migration should produce functionally identical behavior on the new stack. Behavior changes should be separate, measurable experiments conducted after the migration stabilizes.</p>
+<h3 id="lesson-3-start-with-proven-patterns-not-cutting-edge-features" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#lesson-3-start-with-proven-patterns-not-cutting-edge-features">Lesson 3: Start with Proven Patterns, Not Cutting-Edge Features</a></h3>
+<p><strong>Original Plan</strong>: Deploy on App Router with streaming support and no caching—the most modern Next.js architecture available.</p>
+<p><strong>Problems Encountered</strong>:</p>
+<ol>
+<li><strong>Unknown risks</strong>: A big-bang release with streaming and no caching could have introduced performance or reliability issues that would be difficult to diagnose under production load</li>
+<li><strong>Infrastructure load</strong>: Without caching, every request hit the SSR servers, creating unpredictable scaling requirements</li>
+<li><strong>Caching complexity</strong>: We discovered that caching decisions required page-level data (product type, inventory status, personalization requirements) to determine appropriate TTLs</li>
+<li><strong>Router limitations</strong>: The App Router’s data fetching patterns didn’t align well with our need to inspect page data before setting cache headers. Unlike Pages Router’s <code>getServerSideProps</code> which provides direct access to the response object (<code>res.setHeader('Cache-Control', '...')</code>), App Router initially had no equivalent mechanism—this limitation wasn’t addressed until <a href="https://github.com/vercel/next.js/discussions/52491">Next.js 14.2.10</a>. This forced a pivot to Pages Router mid-project</li>
+</ol>
+<p><strong>Result</strong>: Significant rework as we migrated from App Router back to Pages Router mid-project.</p>
+<p><strong>Takeaway</strong>: Start with the most conservative, well-understood architecture that solves your immediate problems. Adopt newer patterns incrementally after the foundation is stable.</p>
+<h3 id="lesson-4-the-phased-approach-that-worked" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#lesson-4-the-phased-approach-that-worked">Lesson 4: The Phased Approach That Worked</a></h3>
+<p>After these setbacks, we restructured the project into distinct, measurable phases:</p>
+<p><strong>Phase 1: Pure Technology Migration</strong></p>
+<ul>
+<li>Gatsby to Next.js with Pages Router</li>
+<li>Full CDN caching enabled (matching SSG behavior)</li>
+<li>Zero behavior changes</li>
+<li><strong>Success Criteria</strong>: Metrics parity with the old platform</li>
+</ul>
+<p><strong>Phase 2a: Infrastructure and Performance Optimization</strong></p>
+<ul>
+<li>Gradually reduce cache TTLs based on measured server capacity</li>
+<li>Optimize SSR performance (response times, memory usage)</li>
+<li>Eventually move to no-cache for real-time content where needed</li>
+<li>Enable personalization capabilities</li>
+<li><strong>Success Criteria</strong>: Server stability at reduced cache rates, improved freshness metrics</li>
+</ul>
+<p><strong>Phase 2b: Feature A/B Testing (Parallel Track)</strong></p>
+<ul>
+<li>Behavior changes released as separate experiments</li>
+<li>Each change measured independently</li>
+<li>Clear attribution of metric movements</li>
+<li><strong>Success Criteria</strong>: Statistically significant improvements per experiment</li>
+</ul>
+<p><strong>Outcome</strong>: This approach took longer than the original aggressive timeline, but every decision was backed by data. We could confidently attribute metric changes to specific modifications, roll back individual changes without affecting others, and build organizational trust in the migration through demonstrated incremental wins.</p>
+<h3 id="lesson-5-real-time-content-updates-require-operational-readiness" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#lesson-5-real-time-content-updates-require-operational-readiness">Lesson 5: Real-Time Content Updates Require Operational Readiness</a></h3>
+<p><strong>What We Implemented</strong>: Near real-time content updates from Contentful via webhooks that triggered cache invalidation whenever content was published.</p>
+<p><strong>Problems Encountered</strong>:</p>
+<ol>
+<li>
+<p><strong>Race conditions with backend systems</strong>: Sometimes product data updates in backend systems (inventory, pricing) lagged behind CMS updates. When a content author published a new product page in Contentful, the webhook immediately invalidated the cache and SSR attempted to render the page—but the product API returned 404 because the backend hadn’t synced yet. Users saw broken pages until the backend caught up.</p>
+</li>
+<li>
+<p><strong>Content publishing order dependencies</strong>: Real-time updates introduced ordering constraints that didn’t exist with build-time SSG. For example, when creating a campaign banner on the home page linking to a new landing page:</p>
+<ul>
+<li><strong>Correct order</strong>: Publish landing page first → then publish home page banner</li>
+<li><strong>Wrong order</strong>: Publish home page banner first → banner immediately goes live linking to a 404 because the landing page doesn’t exist yet</li>
+</ul>
+<p>With SSG, both changes would be bundled in the same build, so ordering didn’t matter. With real-time updates, each publish is independent and immediate.</p>
+</li>
+<li>
+<p><strong>Content author training gap</strong>: Site operations teams were accustomed to SSG workflows where they could stage multiple changes and publish them together in a single build. The new real-time model required understanding dependency graphs between content pieces—a significant operational shift that we failed to address before launch.</p>
+</li>
+</ol>
+<p><strong>Our Solution: Versioned Content Releases</strong></p>
+<p>Instead of real-time publishing, we built a versioned content release system:</p>
+<ol>
+<li><strong>Staged content changes</strong>: Content authors make changes in Contentful as usual, but changes don’t go live immediately</li>
+<li><strong>Release preview</strong>: Site-ops can preview all pending changes bundled together before releasing—similar to the SSG experience but without requiring a full rebuild</li>
+<li><strong>Explicit release action</strong>: A deliberate “Release” action publishes all staged changes atomically, ensuring dependent content goes live together</li>
+<li><strong>Version history</strong>: Each release is versioned, enabling quick rollback to previous content states if issues arise</li>
+</ol>
+<p>This approach preserved the operational simplicity of SSG’s bundled publishing while gaining SSR’s rendering flexibility. Content authors could work in familiar patterns without learning complex dependency ordering rules.</p>
+<p><strong>Takeaway</strong>: Real-time content publishing is a capability that requires organizational readiness, not just technical implementation. If your team isn’t ready for real-time workflows, consider building intermediate solutions like versioned releases that provide control without requiring process changes. Before enabling true real-time updates:</p>
+<ul>
+<li>Document content dependency patterns and publish ordering rules</li>
+<li>Train content authors on the implications of immediate publishing</li>
+<li>Consider implementing safeguards like versioned releases, scheduled publishing windows, or dependency validation</li>
+<li>Ensure all upstream systems (product APIs, inventory services) can handle the same update velocity as the CMS</li>
+</ul>
+<h3 id="summary-principles-for-large-scale-migrations" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#summary-principles-for-large-scale-migrations">Summary: Principles for Large-Scale Migrations</a></h3>
+<div class="table-container">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Principle</th><th>Anti-Pattern</th><th>Recommended Approach</th></tr></thead><tbody><tr><td>Scope</td><td>Combine migration + improvements</td><td>Pure migration first, improvements as separate experiments</td></tr><tr><td>Architecture</td><td>Start with cutting-edge features</td><td>Start conservative, adopt modern patterns incrementally</td></tr><tr><td>Release</td><td>Big-bang deployment</td><td>Phased rollout with traffic splitting</td></tr><tr><td>Measurement</td><td>Ship and hope</td><td>Data-backed decisions at each phase</td></tr><tr><td>Timeline</td><td>Aggressive estimates based on surface similarity</td><td>Budget for framework-specific complexity</td></tr><tr><td>Operations</td><td>Deploy real-time features without training</td><td>Ensure operational readiness before enabling new capabilities</td></tr></tbody></table></div>
+<p>The longer timeline was ultimately an investment in certainty. Every phase delivered measurable value, built stakeholder confidence, and reduced the risk of catastrophic failures that could have derailed the entire initiative.</p>
+<h2 id="conclusion" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#conclusion">Conclusion</a></h2>
+<p>The migration from SSG to SSR represents more than a technology upgrade—it’s a strategic transformation that addresses fundamental limitations in how e-commerce platforms operate. By moving from a static-first architecture to a dynamic, server-rendered approach, organizations unlock new capabilities for personalization, experimentation, and operational agility.</p>
+<p>The success of this migration depends on thorough planning, stakeholder alignment, and disciplined execution. The Strangler Fig pattern with platform A/B testing enables risk mitigation while delivering continuous value, and the comprehensive monitoring framework ensures measurable business impact.</p>
+<p>For engineers undertaking this journey, the investment in time and resources pays dividends through improved user experience, better marketing efficiency, and enhanced competitive positioning. The result is a platform that not only solves today’s challenges but positions the organization for future growth and innovation in the dynamic world of digital commerce.</p>
+<p>The migration from SSG to SSR is not just about solving technical problems—it’s about building a foundation for business success in an increasingly competitive and dynamic e-commerce landscape.</p>
+<h2 id="references" class="heading-with-deep-link"><a aria-hidden="" tabindex="-1" class="deep-link" href="#references">References</a></h2>
+<ul>
+<li><a href="https://nextjs.org/docs/pages/building-your-application/data-fetching/get-server-side-props">Next.js Pages Router - getServerSideProps</a> - Official Next.js documentation on server-side rendering with the Pages Router</li>
+<li><a href="https://nextjs.org/docs/app/api-reference/file-conventions/proxy">Next.js Proxy</a> - Edge proxy for routing, A/B testing, and personalization (replaces middleware.ts as of Next.js 16)</li>
+<li><a href="https://nextjs.org/docs/messages/middleware-to-proxy">Next.js Middleware to Proxy Migration</a> - Official migration guide for updating middleware.ts to proxy.ts in Next.js 16+</li>
+<li><a href="https://web.dev/articles/vitals">Core Web Vitals - web.dev</a> - Google’s official documentation on LCP, INP, and CLS thresholds and measurement</li>
+<li><a href="https://web.dev/articles/defining-core-web-vitals-thresholds">Core Web Vitals Thresholds</a> - How Google defined the “good”, “needs improvement”, and “poor” thresholds</li>
+<li><a href="https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/strangler-fig.html">Strangler Fig Pattern - AWS</a> - AWS Prescriptive Guidance on incremental migration using the Strangler Fig pattern</li>
+<li><a href="https://learn.microsoft.com/en-us/azure/architecture/patterns/strangler-fig">Strangler Fig Pattern - Microsoft Azure</a> - Azure Architecture Center’s pattern documentation with implementation considerations</li>
+<li><a href="https://martinfowler.com/bliki/StranglerFigApplication.html">Strangler Fig Application - Martin Fowler</a> - Original pattern description by Martin Fowler</li>
+<li><a href="https://vercel.com/blog/ab-testing-with-nextjs-and-vercel">A/B Testing with Next.js and Vercel</a> - Edge-based A/B testing patterns using middleware rewrites</li>
+<li><a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-functions.html">CloudFront Functions</a> - AWS documentation on lightweight edge compute for viewer request/response manipulation</li>
+<li><a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-at-the-edge.html">Lambda@Edge</a> - AWS documentation on origin request/response functions for dynamic origin selection</li>
+<li><a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/controlling-the-cache-key.html">CloudFront Cache Policy</a> - Configuring cache keys with cookies and headers for A/B testing</li>
+<li><a href="https://www.gatsbyjs.com/docs/how-to/performance/improving-build-performance/">Gatsby Build Performance Guide</a> - Understanding SSG build time bottlenecks and optimization strategies</li>
+<li><a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html">CloudFront Quotas</a> - AWS documentation on CloudFront limits including the 10MB automatic compression threshold</li>
+</ul> </article>  <section class="article-navigation"> <div class="section-divider"> <span class="section-divider-text">Continue Reading</span> </div> <ul class="article-list"> <li class="article-card"> <p class="article-card-label">Previous</p> <h3 class="article-card-title"> <a href="/legacy-personal-site/v4/articles/platform-engineering/experimentation-testing/statsig-experimentation-overview" class="article-card-link">  Statsig Experimentation Platform: Architecture and Rollouts </a> </h3> <div class="frontmatter article-card-frontmatter">   <span class="frontmatter-item"> <a title="Category - Platform Engineering" href="/legacy-personal-site/v4/articles/platform-engineering" class="frontmatter-link">  Platform Engineering </a>  <span class="text-muted">/</span> <a title="Topic - Experimentation &#38; Testing" href="/legacy-personal-site/v4/articles/platform-engineering/experimentation-testing" class="frontmatter-link">  Experimentation &amp; Testing </a>  </span> <span class="frontmatter-item"> <svg width="1em" height="1em" viewBox="0 0 32 32" class="icon-sm" data-icon="carbon:time">   <use href="#ai:carbon:time"></use>  </svg> 17 min read </span>  </div> <p class="article-card-excerpt"> Statsig is a unified experimentation platform that combines feature flags, A/B testing, and product analytics into a single, cohesive system. This post explores the internal architecture, SDK integration patterns, and implementation strategies for both browser and server-side environments. </p> </li> <li class="article-card"> <p class="article-card-label">Next</p> <h3 class="article-card-title"> <a href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns/micro-frontends-architecture" class="article-card-link">  Micro-Frontends Architecture: Composition, Isolation, and Delivery </a> </h3> <div class="frontmatter article-card-frontmatter">   <span class="frontmatter-item"> <a title="Category - Frontend Engineering" href="/legacy-personal-site/v4/articles/frontend-engineering" class="frontmatter-link">  Frontend Engineering </a>  <span class="text-muted">/</span> <a title="Topic - Frontend Architecture &#38; Patterns" href="/legacy-personal-site/v4/articles/frontend-engineering/frontend-architecture-patterns" class="frontmatter-link">  Frontend Architecture &amp; Patterns </a>  </span> <span class="frontmatter-item"> <svg width="1em" height="1em" viewBox="0 0 32 32" class="icon-sm" data-icon="carbon:time">   <use href="#ai:carbon:time"></use>  </svg> 16 min read </span>  </div> <p class="article-card-excerpt"> Learn how to scale frontend development with microfrontends, enabling team autonomy, independent deployments, and domain-driven boundaries for large-scale applications. </p> </li> </ul> </section> </div> <footer class="site-footer"> <div class="site-footer-inner">  <nav class="site-footer-categories"> <a title="Browser &#38; Runtime Internals" href="/legacy-personal-site/v4/articles/browser-runtime-internals" class="nav-link">  Browser &amp; Runtime Internals </a><a title="System Design" href="/legacy-personal-site/v4/articles/system-design" class="nav-link">  System Design </a><a title="Platform Engineering" href="/legacy-personal-site/v4/articles/platform-engineering" class="nav-link">  Platform Engineering </a><a title="Frontend Engineering" href="/legacy-personal-site/v4/articles/frontend-engineering" class="nav-link">  Frontend Engineering </a><a title="Web Foundations" href="/legacy-personal-site/v4/articles/web-foundations" class="nav-link">  Web Foundations </a><a title="Programming &#38; Patterns" href="/legacy-personal-site/v4/articles/programming-patterns" class="nav-link">  Programming &amp; Patterns </a><a title="Developer Experience" href="/legacy-personal-site/v4/articles/developer-experience" class="nav-link">  Developer Experience </a> </nav>  <div class="site-footer-bar"> <div class="site-footer-links"> <a href="https://docs.google.com/document/d/1pazXBfzuL9O1wCjPdKb7IS-7nXz_ZzI7EvNL1r_KKRc/edit?usp=sharing" target="_blank" rel="noopener noreferrer" class="nav-link">  Resume </a><a href="/legacy-personal-site/v4/tags" class="nav-link">  Tags </a><a href="/legacy-personal-site/v4/articles/drafts" class="nav-link">  Drafts </a> </div> <div class="site-footer-controls">  <div class="site-footer-theme"> <svg width="1em" height="1em" class="site-footer-theme-icon" data-icon="carbon:paint-brush">   <symbol id="ai:carbon:paint-brush" viewBox="0 0 32 32"><path fill="currentColor" d="M28.83 23.17L23 17.33V13a1 1 0 0 0-.29-.71l-10-10a1 1 0 0 0-1.42 0l-9 9a1 1 0 0 0 0 1.42l10 10A1 1 0 0 0 13 23h4.34l5.83 5.84a4 4 0 0 0 5.66-5.66ZM6 10.41l2.29 2.3l1.42-1.42L7.41 9L9 7.41l4.29 4.3l1.42-1.42L10.41 6L12 4.41L18.59 11L11 18.59L4.41 12Zm21.41 17a2 2 0 0 1-2.82 0l-6.13-6.12a1.8 1.8 0 0 0-.71-.29h-4.34l-1-1L20 12.41l1 1v4.34a1 1 0 0 0 .29.7l6.12 6.14a2 2 0 0 1 0 2.82"/></symbol><use href="#ai:carbon:paint-brush"></use>  </svg> <select id="theme-select" class="site-footer-theme-select" aria-label="Select theme"> <option value="auto">Auto</option> <option value="light">Light</option> <option value="dark">Dark</option> <option value="high-contrast-light">High contrast light</option> <option value="high-contrast-dark">High contrast dark</option> <option value="paper">Paper</option> </select> </div>  <div class="site-footer-social"> <a aria-label="GitHub" title="GitHub" href="https://github.com/sujeet-pro" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-github">   <symbol id="ai:carbon:logo-github" viewBox="0 0 32 32"><path fill="currentColor" fill-rule="evenodd" d="M16 2a14 14 0 0 0-4.43 27.28c.7.13 1-.3 1-.67v-2.38c-3.89.84-4.71-1.88-4.71-1.88a3.7 3.7 0 0 0-1.62-2.05c-1.27-.86.1-.85.1-.85a2.94 2.94 0 0 1 2.14 1.45a3 3 0 0 0 4.08 1.16a2.93 2.93 0 0 1 .88-1.87c-3.1-.36-6.37-1.56-6.37-6.92a5.4 5.4 0 0 1 1.44-3.76a5 5 0 0 1 .14-3.7s1.17-.38 3.85 1.43a13.3 13.3 0 0 1 7 0c2.67-1.81 3.84-1.43 3.84-1.43a5 5 0 0 1 .14 3.7a5.4 5.4 0 0 1 1.44 3.76c0 5.38-3.27 6.56-6.39 6.91a3.33 3.33 0 0 1 .95 2.59v3.84c0 .46.25.81 1 .67A14 14 0 0 0 16 2"/></symbol><use href="#ai:carbon:logo-github"></use>  </svg>  </a> <a aria-label="LinkedIn" title="LinkedIn" href="https://www.linkedin.com/in/sujeetkrjaiswal/" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-linkedin">   <symbol id="ai:carbon:logo-linkedin" viewBox="0 0 32 32"><path fill="currentColor" d="M26.2 4H5.8C4.8 4 4 4.8 4 5.7v20.5c0 .9.8 1.7 1.8 1.7h20.4c1 0 1.8-.8 1.8-1.7V5.7c0-.9-.8-1.7-1.8-1.7M11.1 24.4H7.6V13h3.5zm-1.7-13c-1.1 0-2.1-.9-2.1-2.1s.9-2.1 2.1-2.1c1.1 0 2.1.9 2.1 2.1s-1 2.1-2.1 2.1m15.1 12.9H21v-5.6c0-1.3 0-3.1-1.9-3.1S17 17.1 17 18.5v5.7h-3.5V13h3.3v1.5h.1c.5-.9 1.7-1.9 3.4-1.9c3.6 0 4.3 2.4 4.3 5.5v6.2z"/></symbol><use href="#ai:carbon:logo-linkedin"></use>  </svg>  </a> <a aria-label="Twitter" title="Twitter" href="https://twitter.com/sujeetpro" target="_blank" rel="noopener noreferrer" class="site-footer-social-link link-with-icon"> <svg width="1em" height="1em" data-icon="carbon:logo-twitter">   <symbol id="ai:carbon:logo-twitter" viewBox="0 0 32 32"><path fill="currentColor" d="M11.548 25.752c9.056 0 14.01-7.503 14.01-14.01c0-.213 0-.425-.015-.636A10 10 0 0 0 28 8.556a9.8 9.8 0 0 1-2.828.776a4.94 4.94 0 0 0 2.164-2.724a9.9 9.9 0 0 1-3.126 1.195a4.929 4.929 0 0 0-8.392 4.491A13.98 13.98 0 0 1 5.67 7.15a4.93 4.93 0 0 0 1.525 6.573a4.9 4.9 0 0 1-2.235-.617v.063a4.926 4.926 0 0 0 3.95 4.827a4.9 4.9 0 0 1-2.223.084a4.93 4.93 0 0 0 4.6 3.42A9.88 9.88 0 0 1 4 23.54a13.94 13.94 0 0 0 7.547 2.209"/></symbol><use href="#ai:carbon:logo-twitter"></use>  </svg>  </a> </div> </div> </div>  <p class="site-footer-copyright">
+&copy; 2024-2026 Sujeet Jaiswal </p> </div> </footer> </main> <aside id="right-sidebar" class="zen-sidebar zen-sidebar-right" aria-label="Table of contents"> <div class="zen-sidebar-header"> <span class="zen-sidebar-header-title">On This Page</span> <button class="zen-sidebar-close" data-sidebar-close="right" aria-label="Close table of contents"> <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5"> <path d="M8 8l16 16M24 8L8 24"></path> </svg> </button> </div> <div class="zen-sidebar-content"> <nav aria-label="Table of contents"><h2 class="sidebar-nav-title">On this page</h2><ul class="sidebar-toc-list"><li><a href="#terminology" class="sidebar-toc-item">Terminology</a></li><li><a href="#tldr" class="sidebar-toc-item">TLDR</a></li><li><a href="#why-migrate-from-ssg" class="sidebar-toc-item sidebar-toc-item--h3">Why Migrate from SSG</a></li><li><a href="#ssr-benefits-for-e-commerce" class="sidebar-toc-item sidebar-toc-item--h3">SSR Benefits for E-commerce</a></li><li><a href="#strangler-fig-migration-pattern" class="sidebar-toc-item sidebar-toc-item--h3">Strangler Fig Migration Pattern</a></li><li><a href="#key-success-metrics" class="sidebar-toc-item sidebar-toc-item--h3">Key Success Metrics</a></li><li><a href="#part-1-the-strategic-imperative---building-the-business-case-for-migration" class="sidebar-toc-item">Part 1: The Strategic Imperative - Building the Business Case for Migration</a></li><li><a href="#the-business-impact-of-ssg-limitations---real-world-production-experience" class="sidebar-toc-item sidebar-toc-item--h3">The Business Impact of SSG Limitations - Real-World Production Experience</a></li><li><a href="#ssr-as-the-strategic-solution" class="sidebar-toc-item sidebar-toc-item--h3">SSR as the Strategic Solution</a></li><li><a href="#part-2-stakeholder-alignment-and-project-governance" class="sidebar-toc-item">Part 2: Stakeholder Alignment and Project Governance</a></li><li><a href="#building-executive-buy-in" class="sidebar-toc-item sidebar-toc-item--h3">Building Executive Buy-In</a></li><li><a href="#assembling-the-migration-task-force" class="sidebar-toc-item sidebar-toc-item--h3">Assembling the Migration Task Force</a></li><li><a href="#risk-assessment-and-mitigation" class="sidebar-toc-item sidebar-toc-item--h3">Risk Assessment and Mitigation</a></li><li><a href="#part-3-technical-migration-execution" class="sidebar-toc-item">Part 3: Technical Migration Execution</a></li><li><a href="#phase-0-pre-migration-foundation" class="sidebar-toc-item sidebar-toc-item--h3">Phase 0: Pre-Migration Foundation</a></li><li><a href="#phase-1-foundational-migration" class="sidebar-toc-item sidebar-toc-item--h3">Phase 1: Foundational Migration</a></li><li><a href="#phase-2-dynamic-functionality-implementation" class="sidebar-toc-item sidebar-toc-item--h3">Phase 2: Dynamic Functionality Implementation</a></li><li><a href="#phase-3-advanced-e-commerce-features" class="sidebar-toc-item sidebar-toc-item--h3">Phase 3: Advanced E-commerce Features</a></li><li><a href="#phase-4-content-decoupling-implementation" class="sidebar-toc-item sidebar-toc-item--h3">Phase 4: Content Decoupling Implementation</a></li><li><a href="#part-4-the-strangler-fig-pattern---phased-rollout-strategy-with-platform-ab-testing" class="sidebar-toc-item">Part 4: The Strangler Fig Pattern - Phased Rollout Strategy with Platform A/B Testing</a></li><li><a href="#why-not-big-bang-migration" class="sidebar-toc-item sidebar-toc-item--h3">Why Not “Big Bang” Migration?</a></li><li><a href="#platform-ab-testing-implementation" class="sidebar-toc-item sidebar-toc-item--h3">Platform A/B Testing Implementation</a></li><li><a href="#phased-rollout-plan" class="sidebar-toc-item sidebar-toc-item--h3">Phased Rollout Plan</a></li><li><a href="#rollback-strategy" class="sidebar-toc-item sidebar-toc-item--h3">Rollback Strategy</a></li><li><a href="#part-5-security-and-performance-considerations" class="sidebar-toc-item">Part 5: Security and Performance Considerations</a></li><li><a href="#security-hardening-for-ssr" class="sidebar-toc-item sidebar-toc-item--h3">Security Hardening for SSR</a></li><li><a href="#performance-optimization" class="sidebar-toc-item sidebar-toc-item--h3">Performance Optimization</a></li><li><a href="#part-6-success-measurement-and-continuous-optimization" class="sidebar-toc-item">Part 6: Success Measurement and Continuous Optimization</a></li><li><a href="#the-unified-success-dashboard" class="sidebar-toc-item sidebar-toc-item--h3">The Unified Success Dashboard</a></li><li><a href="#post-launch-hypercare" class="sidebar-toc-item sidebar-toc-item--h3">Post-Launch Hypercare</a></li><li><a href="#continuous-platform-evolution" class="sidebar-toc-item sidebar-toc-item--h3">Continuous Platform Evolution</a></li><li><a href="#lessons-learned-from-big-bang-to-data-backed-deployments" class="sidebar-toc-item">Lessons Learned: From Big Bang to Data-Backed Deployments</a></li><li><a href="#lesson-1-framework-familiarity-doesnt-guarantee-speed" class="sidebar-toc-item sidebar-toc-item--h3">Lesson 1: Framework Familiarity Doesn’t Guarantee Speed</a></li><li><a href="#lesson-2-separate-technology-migration-from-behavior-changes" class="sidebar-toc-item sidebar-toc-item--h3">Lesson 2: Separate Technology Migration from Behavior Changes</a></li><li><a href="#lesson-3-start-with-proven-patterns-not-cutting-edge-features" class="sidebar-toc-item sidebar-toc-item--h3">Lesson 3: Start with Proven Patterns, Not Cutting-Edge Features</a></li><li><a href="#lesson-4-the-phased-approach-that-worked" class="sidebar-toc-item sidebar-toc-item--h3">Lesson 4: The Phased Approach That Worked</a></li><li><a href="#lesson-5-real-time-content-updates-require-operational-readiness" class="sidebar-toc-item sidebar-toc-item--h3">Lesson 5: Real-Time Content Updates Require Operational Readiness</a></li><li><a href="#summary-principles-for-large-scale-migrations" class="sidebar-toc-item sidebar-toc-item--h3">Summary: Principles for Large-Scale Migrations</a></li><li><a href="#conclusion" class="sidebar-toc-item">Conclusion</a></li><li><a href="#references" class="sidebar-toc-item">References</a></li></ul></nav> </div> </aside> </div>  <div id="sidebar-backdrop" class="zen-sidebar-backdrop"></div>  <!-- Image Modal --><div id="image-modal" class="image-modal" role="dialog" aria-modal="true" aria-label="Image viewer"> <div class="image-modal-backdrop"></div> <div class="image-modal-content"> <div class="image-modal-header"> <div class="image-modal-controls"> <button type="button" id="image-zoom-out" class="image-modal-btn" aria-label="Zoom out" title="Zoom out"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <circle cx="11" cy="11" r="8"></circle> <line x1="21" y1="21" x2="16.65" y2="16.65"></line> <line x1="8" y1="11" x2="14" y2="11"></line> </svg> </button> <span id="image-zoom-level" class="image-zoom-level">1.0X</span> <button type="button" id="image-zoom-in" class="image-modal-btn" aria-label="Zoom in" title="Zoom in"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <circle cx="11" cy="11" r="8"></circle> <line x1="21" y1="21" x2="16.65" y2="16.65"></line> <line x1="11" y1="8" x2="11" y2="14"></line> <line x1="8" y1="11" x2="14" y2="11"></line> </svg> </button> <button type="button" id="image-zoom-reset" class="image-modal-btn" aria-label="Reset zoom" title="Reset zoom"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path> <path d="M3 3v5h5"></path> </svg> </button> </div> <button type="button" id="image-modal-close" class="image-modal-btn image-modal-close" aria-label="Close image viewer"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-md"> <line x1="18" y1="6" x2="6" y2="18"></line> <line x1="6" y1="6" x2="18" y2="18"></line> </svg> </button> </div> <div class="image-modal-body" id="image-modal-body"> <!-- Cloned image will be inserted here --> </div> </div> </div> <script type="module" src="/legacy-personal-site/v4/_astro/image-modal.astro_astro_type_script_index_0_lang.DaIybCtt.js"></script>  <!-- Google Analytics 4 --><script async src="https://www.googletagmanager.com/gtag/js?id=G-1Z2TP5LG65"></script> <script>(function(){const GA_MEASUREMENT_ID = "G-1Z2TP5LG65";
+
+  window.dataLayer = window.dataLayer || []
+  function gtag() {
+    dataLayer.push(arguments)
+  }
+  gtag("js", new Date())
+  gtag("config", GA_MEASUREMENT_ID)
+})();</script> <script type="module" src="/legacy-personal-site/v4/_astro/sidebar-toggle.astro_astro_type_script_index_0_lang.BjmuyXEJ.js"></script> <script type="module">function l(){const s=document.getElementById("main");if(!s)return;const n=Array.from(s.querySelectorAll("h2[id], h3[id]"));if(n.length===0)return;const o=document.querySelectorAll("#right-sidebar .sidebar-toc-item");if(o.length===0)return;const c=new Map;o.forEach(t=>{const e=t.getAttribute("href");e?.startsWith("#")&&c.set(e.slice(1),t)});let r=null;const i=new Set;function f(t){const e=c.get(t);!e||e===r||(r?.classList.remove("is-active"),e.classList.add("is-active"),r=e,e.scrollIntoView({block:"nearest",behavior:"smooth"}))}const a=new IntersectionObserver(t=>{if(t.forEach(e=>{const d=e.target.id;e.isIntersecting?i.add(d):i.delete(d)}),i.size>0){for(const e of n)if(i.has(e.id)){f(e.id);break}}},{rootMargin:"-80px 0px -75% 0px"});n.forEach(t=>a.observe(t)),document.addEventListener("astro:before-swap",()=>{a.disconnect()},{once:!0})}l();document.addEventListener("astro:page-load",l);</script> <script type="module">function c(e,t){const n=window.__themeConfig.THEME_LABELS,o=window.getNextTheme();e.setAttribute("aria-label",`Theme: ${n[t]}. Click to cycle.`),e.title=`Switch to ${n[o]}`,e.dataset.theme=t,e.querySelectorAll("[data-theme-icon]").forEach(a=>{a.style.display=a.dataset.themeIcon===t?"block":"none"})}function s(e,t){e.value!==t&&(e.value=t)}function m(e){e.dataset.themeInit||(e.dataset.themeInit="true",e.addEventListener("click",()=>{const t=window.getNextTheme();window.applySiteTheme(t)}))}function r(e){e.dataset.themeInit||(e.dataset.themeInit="true",e.addEventListener("change",()=>{const t=e.value;window.__themeConfig.THEMES.includes(t)&&window.applySiteTheme(t)}))}function u(){const e=document.documentElement;if(e.dataset.themeObserverInit)return;e.dataset.themeObserverInit="true",new MutationObserver(()=>{const n=e.dataset.theme||"auto",o=document.getElementById("theme-toggle-btn");o&&c(o,n);const i=document.getElementById("theme-select");i&&s(i,n)}).observe(e,{attributes:!0,attributeFilter:["data-theme"]})}function d(){const e=document.documentElement.dataset.theme||"auto",t=document.getElementById("theme-toggle-btn");t&&(c(t,e),m(t));const n=document.getElementById("theme-select");n&&(s(n,e),r(n)),u()}d();document.addEventListener("astro:page-load",d);</script> <script type="module" src="/legacy-personal-site/v4/_astro/docsearch.astro_astro_type_script_index_0_lang.B0uJCub6.js"></script> <script type="module">function a(){function r(){const n=document.documentElement.dataset.colorScheme==="dark";document.querySelectorAll(".mermaid-diagram").forEach(e=>{const t=n?e.dataset.srcDark:e.dataset.srcLight;t&&e.src!==new URL(t,location.origin).href&&(e.src=t)})}r(),new MutationObserver(()=>r()).observe(document.documentElement,{attributes:!0,attributeFilter:["data-color-scheme"]})}document.addEventListener("DOMContentLoaded",a);document.addEventListener("astro:page-load",a);</script> </body> </html> 
