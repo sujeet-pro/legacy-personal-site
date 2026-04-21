@@ -1,0 +1,28 @@
+%% Diagram: Software supply chain attack surface and the controls that defend each link
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    DEV["Developer plane<br/>IDE, workstation, tokens"]
+    SRC["Source plane<br/>Repo, branch protections"]
+    BUILD["Build plane<br/>CI/CD, secrets, artifacts"]
+    DIST["Distribution plane<br/>Registry, CDN, auto-update"]
+    RUN["Runtime plane<br/>App, transitive deps"]
+
+    DEV --> SRC --> BUILD --> DIST --> RUN
+
+    DC["Controls: MFA, scoped tokens"]
+    SC["Controls: signed commits, branch rules"]
+    BC["Controls: hermetic builds, SLSA, signed artifacts, SBOM"]
+    DSC["Controls: private proxy, allowlist, SRI, canary"]
+    RC["Controls: signature verification, lockfile pinning"]
+
+    DEV -.-> DC
+    SRC -.-> SC
+    BUILD -.-> BC
+    DIST -.-> DSC
+    RUN -.-> RC
+
+    classDef plane fill:#26344a,color:#ffffff,stroke:#101828,stroke-width:1px
+    classDef control fill:#1f6f43,color:#ffffff,stroke:#0f3f25,stroke-width:1px
+    class DEV,SRC,BUILD,DIST,RUN plane
+    class DC,SC,BC,DSC,RC control

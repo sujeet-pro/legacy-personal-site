@@ -1,0 +1,20 @@
+%% Diagram: CDC variant of the transactional outbox
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant App as Service
+    participant DB as Postgres + WAL
+    participant Deb as Debezium
+    participant Reg as Registry
+    participant K as Kafka
+
+    App->>DB: BEGIN
+    App->>DB: UPDATE orders SET status='PLACED'
+    App->>DB: INSERT INTO outbox (...)
+    App->>DB: COMMIT
+    DB-->>Deb: stream WAL commit record
+    Deb->>Reg: register / fetch schema
+    Reg-->>Deb: schema id
+    Deb->>K: publish(key=aggregate_id, schema-id + payload)
+    K-->>Deb: ack
+    Note over DB,K: Outbox row never re-read by polling.\nA separate TTL job purges processed rows.

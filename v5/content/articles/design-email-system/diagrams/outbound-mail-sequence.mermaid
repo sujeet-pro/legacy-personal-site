@@ -1,0 +1,31 @@
+%% Diagram: Diagram 5
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant C as Client
+    participant API
+    participant Q as Queue
+    participant Sg as DKIM
+    participant MTA
+    participant DNS
+    participant Rc as Recipient
+
+    C->>API: POST /send
+    API->>API: validate
+    API->>Q: enqueue
+    API-->>C: 202 (id)
+    Q->>Sg: sign DKIM
+    Sg->>MTA: signed
+    MTA->>DNS: MX
+    DNS-->>MTA: mx record
+    MTA->>Rc: SMTP
+    alt Success
+        Rc-->>MTA: 250 OK
+        MTA->>Q: delivered
+    else 4xx
+        Rc-->>MTA: 421
+        MTA->>Q: retry
+    else 5xx
+        Rc-->>MTA: 550
+        MTA->>Q: bounce
+    end

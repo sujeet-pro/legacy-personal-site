@@ -1,0 +1,15 @@
+%% Diagram: Diagram 5
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant C as Client
+    participant GW as GW
+    participant RLS
+    participant R as Redis
+
+    C->>GW: GET /api
+    GW->>RLS: check
+    RLS->>R: sliding_window
+    R-->>RLS: ok rem
+    RLS-->>GW: ALLOW
+    GW-->>C: 200 + headers

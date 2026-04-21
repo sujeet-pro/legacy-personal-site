@@ -1,0 +1,20 @@
+%% Diagram: Component deprecation lifecycle from "stable" to "removed"
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart LR
+    STABLE["Stable\n@stable in docs"]
+    DEPRECATED["Deprecated\n@deprecated JSDoc\nDev console.warn\nCodemod ships now"]
+    SUNSET["Sunset\n2 minor versions runway\nOutreach to laggards"]
+    REMOVED["Removed\nNext major\nCodemod still installable"]
+
+    STABLE --> DEPRECATED --> SUNSET --> REMOVED
+
+    classDef stable fill:#2E5A88,stroke:#1F3F60,color:#ffffff
+    classDef deprecated fill:#8B5E15,stroke:#5C3F0E,color:#ffffff
+    classDef sunset fill:#B43A3A,stroke:#7E2828,color:#ffffff
+    classDef removed fill:#5A5A5A,stroke:#333333,color:#ffffff
+
+    class STABLE stable
+    class DEPRECATED deprecated
+    class SUNSET sunset
+    class REMOVED removed

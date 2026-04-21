@@ -1,0 +1,12 @@
+%% Diagram: Coordination Costs
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    W["Single write API"]
+    R["Readers A, B, C ..."]
+    W --> R
+
+    R --> C1["Resubscribe and rerender fan-out"]
+    R --> C2["Merge and conflict detection"]
+    C1 --> C3["Test fixtures and prelude grow"]
+    C2 --> C4["Stampede risk after invalidation"]

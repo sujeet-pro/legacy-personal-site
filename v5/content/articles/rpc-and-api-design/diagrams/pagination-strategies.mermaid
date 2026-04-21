@@ -1,0 +1,25 @@
+%% Diagram: How offset, cursor, and keyset pagination read the underlying index
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    Index[("B-tree index on\n(created_at, id)\nrows r1 ... r10020")]
+
+    subgraph Offset["Offset: LIMIT 20 OFFSET 10000"]
+        direction TB
+        oScan[Scan and discard\n10,000 rows] --> oReturn[Return rows\n10001 to 10020]
+    end
+
+    subgraph Cursor["Cursor: opaque token after last row"]
+        direction TB
+        cDecode[Decode token to\nts, id of last row] --> cSeek[Index seek\nWHERE ts,id > prev]
+        cSeek --> cReturn[Return next 20]
+    end
+
+    subgraph Keyset["Keyset: explicit ts,id > prev"]
+        direction TB
+        kPredicate[WHERE created_at,id > prev\nORDER BY created_at, id\nLIMIT 20] --> kReturn[Return next 20]
+    end
+
+    Index --> Offset
+    Index --> Cursor
+    Index --> Keyset

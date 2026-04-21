@@ -1,0 +1,8 @@
+%% Diagram: Pipeline mental model
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart LR
+    A["1. Browser bursts<br/>(unpredictable)"] --> B["2. Fire-and-forget API<br/>(204, no I/O)"]
+    B --> C["3. Kafka buffer<br/>(absorbs spikes)"]
+    C --> D["4. Dedup window<br/>(70-90% reduction)"]
+    D --> E["5. OLAP storage<br/>(aggregate queries)"]

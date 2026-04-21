@@ -1,0 +1,31 @@
+%% Diagram: Asynchronous Task Queue Distributing Work Across Multiple Executors With Bounded
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+graph TB
+    P1[Producer]
+
+    subgraph Q["Bounded Queue (size N)"]
+        T1[Task 1]
+        T2[Task 2]
+        T3[Task 3]
+    end
+
+    subgraph X["Executor pool (concurrency = 3)"]
+        E1[Exec 1]
+        E2[Exec 2]
+        E3[Exec 3]
+    end
+
+    P1 -->|enqueue| Q
+    T1 --> E1
+    T2 --> E2
+    T3 --> E3
+    X -->|backpressure on full| P1
+
+    classDef producerClass fill:#5A5A5A,stroke:#000,stroke-width:2px,color:#ffffff
+    classDef taskClass fill:#8B5E15,stroke:#000,stroke-width:2px,color:#ffffff
+    classDef executorClass fill:#1F6E68,stroke:#000,stroke-width:2px,color:#ffffff
+
+    class P1 producerClass
+    class T1,T2,T3 taskClass
+    class E1,E2,E3 executorClass

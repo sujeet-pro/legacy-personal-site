@@ -1,0 +1,22 @@
+%% Diagram: Strict CSP nonce + 'strict-dynamic' lifecycle
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant Client as Browser
+    participant Edge as Edge
+    participant App as App
+    participant Loader as Trusted loader
+
+    Client->>Edge: GET /page
+    Edge->>App: forward
+    App->>App: nonce = randomBytes(16)
+    App-->>Edge: HTML + CSP header
+    Edge-->>Client: response with nonce on every script tag
+
+    Client->>Client: inline script with matching nonce: allowed
+    Client->>Loader: execute trusted bootstrap
+    Loader->>Client: parser-inserted app bundles
+    Note over Client,Loader: 'strict-dynamic' propagates trust\nto scripts created by trusted scripts
+
+    Client-xClient: injected script without nonce: blocked
+    Client->>Edge: POST /csp-report

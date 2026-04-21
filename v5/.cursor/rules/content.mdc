@@ -1,0 +1,85 @@
+---
+description: Content authoring and management rules for sujeet.pro
+globs: ["content/**/*.md", "content/**/*.json5"]
+alwaysApply: false
+---
+
+# Content Rules
+
+This project is a personal engineering blog at sujeet.pro. When working with content files, follow these guidelines.
+
+## Guidelines
+
+Read the full guidelines before creating or editing content:
+
+- `ai-guidelines/README.md` — task routing and validation commands
+- `ai-guidelines/content-structure.md` — content model, audience, frontmatter, citations
+- `ai-guidelines/markdown.md` — local markdown rules layered on top of Pagesmith
+- `ai-guidelines/diagrams.md` — diagram expectations, file layout, embedding
+- `ai-guidelines/packages.md` — Pagesmith and diagramkit reference map
+- `ai-guidelines/workflows/article-workflow.md` — article create/update/review
+- `ai-guidelines/workflows/blog-workflow.md` — blog create/update/review
+- `ai-guidelines/workflows/update-docs.md` — AI doc refresh workflow
+
+Prefer repo-local skills when they match the task. Canonical bodies live at `.agents/skills/<name>/SKILL.md`; the `.claude/` and `.cursor/` wrappers are thin pointers.
+
+- `prj-doc` — route an unclear task
+- `prj-article` — articles
+- `prj-blog` — blogs
+- `prj-content` — markdown body of an existing entry
+- `prj-diagrams` — diagram authoring + audit
+- `prj-validate` — full validation suite
+- `prj-sync` — refresh AI docs and skill wrappers
+
+Before editing content, identify the companion metadata that may need to change with it:
+
+- `content/articles/meta.json5`
+- `content/blogs/meta.json5`
+- `content/home.json5`
+- `content/redirects.json5`
+
+## Quick Reference
+
+### Frontmatter (required for all content)
+
+```yaml
+---
+title: "Title"
+description: "One-line description"
+publishedDate: 2026-03-15
+lastUpdatedOn: 2026-03-20
+tags: [topic-a, topic-b]
+---
+```
+
+Do NOT set `layout` or `category` — resolved from `meta.json5`.
+
+### Content Types
+
+- Articles: `content/articles/<slug>/README.md` — research-backed, staff-level, diagram-heavy
+- Blogs: `content/blogs/<slug>/README.md` — shorter, personal, still technically correct
+- Projects: legacy only for now; do not create new project content unless explicitly asked
+
+### Diagrams
+
+Write source files (`.mermaid`, `.excalidraw`, `.drawio`, `.dot`, `.gv`) in `<slug>/diagrams/`. Never hand-author SVG. Run `npm run diagrams` to render.
+
+Preferred embed pattern — consecutive markdown images with `-light` and `-dark` filename suffixes are auto-merged by Pagesmith into a themed `<figure>`:
+
+```md
+![Description](./diagrams/name-light.svg "Optional caption")
+![Description](./diagrams/name-dark.svg)
+```
+
+Do **not** use raw `<figure>`, `<picture>`, or `<img>` HTML for images or diagrams — `validate-pagesmith.ts` enforces `forbidHtmlImgTag: true`.
+
+### Validation
+
+```bash
+npm run validate           # Schemas + cross-file references
+npm run validate:content   # @pagesmith/site content validators
+npm run validate:diagrams  # diagramkit validate (SVG + WCAG)
+npm run validate:full      # All of the above + build validators + project cross-refs
+npm run build              # Full build
+vp check                   # Format + lint + type-check
+```

@@ -1,0 +1,31 @@
+%% Diagram: Centralized Model
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    subgraph Core["Core team"]
+        direction LR
+        PO["Product owner"]
+        DS["Designers (1-2)"]
+        EN["Engineers (1-2)"]
+        QA["Shared QA / a11y"]
+    end
+
+    SYS[("Design system\ntokens, components,\ndocs, releases")]
+
+    subgraph Consumers["Product teams (consumers)"]
+        direction LR
+        T1["Team A"]
+        T2["Team B"]
+        T3["Team C"]
+    end
+
+    Core ==> SYS
+    SYS ==> Consumers
+    Consumers -.requests / bugs.-> Core
+
+    classDef core fill:#2E5A88,stroke:#1F4870,color:#ffffff
+    classDef team fill:#5A5A5A,stroke:#3D3D3D,color:#ffffff
+    classDef sys fill:#2E7D5A,stroke:#1F5C42,color:#ffffff
+    class PO,DS,EN,QA core
+    class T1,T2,T3 team
+    class SYS sys

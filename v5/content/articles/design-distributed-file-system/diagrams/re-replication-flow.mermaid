@@ -1,0 +1,21 @@
+%% Diagram: Re-replication after chunk-server failure
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    subgraph Detect["1. Detect"]
+        START["Heartbeat missed\n(cs.dead after timeout)"] --> MARK["Master marks\nserver dead"]
+    end
+
+    subgraph Plan["2. Plan"]
+        SCAN["Walk chunk → server map\nfor failed server"] --> CHECK{"Replica count\nbelow target?"}
+        CHECK -->|No| SKIP["Skip — no action"]
+        CHECK -->|Yes| QUEUE["Queue with priority\n1. 1 surviving replica\n2. 2 surviving replicas\n3. Hot / blocking files"]
+    end
+
+    subgraph Recover["3. Recover"]
+        COPY["Copy from healthy replica\nto a new chunk server"] --> THROTTLE["Throttle source bandwidth\nto protect production reads"]
+        THROTTLE --> VERIFY["Verify checksum\n+ bump chunk version"]
+    end
+
+    Detect --> Plan
+    QUEUE --> COPY

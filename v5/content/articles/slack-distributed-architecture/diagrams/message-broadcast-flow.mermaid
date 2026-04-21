@@ -1,0 +1,19 @@
+%% Diagram: Message broadcast — sender to global subscribers
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant CA as Client A (sender)
+    participant WA as Webapp + Vitess
+    participant AS as Admin Server
+    participant CS as Channel Server (owner)
+    participant GS as Gateway Servers (R1, R2)
+    participant CB as Subscribers (R1, R2)
+
+    CA->>WA: POST /chat.postMessage (via Envoy)
+    WA->>WA: persist to Vitess
+    WA->>AS: forward event (channel_id)
+    AS->>AS: hash(channel_id) → owner CS
+    AS->>CS: deliver event
+    CS->>GS: broadcast to subscribed Gateways
+    GS->>CB: WebSocket push to clients
+    Note over CA,CB: Target end-to-end: <500 ms globally

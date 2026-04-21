@@ -1,0 +1,20 @@
+%% Diagram: Service Worker streaming response relay using TransformStream
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    actor Page
+    participant SW as Service Worker
+    participant BE as Cache + Net
+    participant TX as TransformStream
+
+    Page->>SW: GET /article
+    SW->>SW: respondWith(Response(readable))
+    Note over SW,TX: Empty response is alive
+    SW->>BE: cache.match(/shell.html)
+    BE-->>SW: shell stream
+    SW->>TX: shell.pipeTo(writable)
+    SW->>BE: fetch(/api/article-body)
+    BE-->>SW: body stream
+    SW->>TX: body.pipeTo(writable)
+    TX-->>Page: chunks streamed
+    Note over Page: Shell first, body after

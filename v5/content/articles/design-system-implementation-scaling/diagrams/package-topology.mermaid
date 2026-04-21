@@ -1,0 +1,28 @@
+%% Diagram: Three package topologies for distributing a design system
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    subgraph Single["Single package — @company/ds"]
+        S1["import { Button } from '@company/ds'"]
+        S2["Tree-shaking depends on\npreserveModules + sideEffects"]
+        S1 --> S2
+    end
+
+    subgraph Subpath["Subpath exports — @company/ds/button"]
+        SP1["import { Button } from '@company/ds/button'"]
+        SP2["Narrow imports even with\naggressive tree-shakers off"]
+        SP1 --> SP2
+    end
+
+    subgraph PerComponent["Per-component packages — @company/button"]
+        PC1["import { Button } from '@company/button'"]
+        PC2["Independent semver per component;\nheaviest release tooling"]
+        PC1 --> PC2
+    end
+
+    classDef single fill:#2E5A88,stroke:#1F3F60,color:#ffffff
+    classDef subpath fill:#2D7A2D,stroke:#1B4D1B,color:#ffffff
+    classDef perc fill:#8B5E15,stroke:#5C3F0E,color:#ffffff
+    class S1,S2 single
+    class SP1,SP2 subpath
+    class PC1,PC2 perc

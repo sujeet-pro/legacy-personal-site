@@ -1,0 +1,23 @@
+%% Diagram: Streaming SSR with Suspense
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant B as Browser
+    participant S as SSR Server
+    participant F as Fast data
+    participant L as Slow data
+
+    B->>S: GET /product/42
+    S-->>B: shell + Suspense fallbacks (TTFB)
+    Note over B: Renders shell\nFCP / LCP can fire
+    par Resolve in parallel
+        S->>F: query product
+        F-->>S: 30 ms
+        S-->>B: $RC swaps fallback A
+    and
+        S->>L: query recommendations
+        L-->>S: 400 ms
+        S-->>B: $RC swaps fallback B
+    end
+    S-->>B: close connection
+    Note over B: Selective hydration\nper Suspense boundary

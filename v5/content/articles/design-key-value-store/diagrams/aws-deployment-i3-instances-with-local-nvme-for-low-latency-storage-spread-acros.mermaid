@@ -1,0 +1,24 @@
+%% Diagram: Aws Deployment I3 Instances With Local Nvme For Low Latency Storage Spread Acros
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    subgraph "Availability Zone 1"
+        EC2_1[EC2 i3.xlarge<br/>NVMe SSD]
+        EC2_2[EC2 i3.xlarge<br/>NVMe SSD]
+    end
+
+    subgraph "Availability Zone 2"
+        EC2_3[EC2 i3.xlarge<br/>NVMe SSD]
+        EC2_4[EC2 i3.xlarge<br/>NVMe SSD]
+    end
+
+    subgraph "Availability Zone 3"
+        EC2_5[EC2 i3.xlarge<br/>NVMe SSD]
+        EC2_6[EC2 i3.xlarge<br/>NVMe SSD]
+    end
+
+    NLB[Network Load Balancer]
+    S3[(S3 - Backups)]
+
+    NLB --> EC2_1 & EC2_2 & EC2_3 & EC2_4 & EC2_5 & EC2_6
+    EC2_1 & EC2_2 & EC2_3 & EC2_4 & EC2_5 & EC2_6 --> S3

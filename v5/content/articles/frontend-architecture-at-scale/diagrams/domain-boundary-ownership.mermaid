@@ -1,0 +1,59 @@
+%% Diagram: Domain Boundary Ownership
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+  subgraph shell["App shell (composition & cross-cutting bootstrap)"]
+    router["Router / composition root"]
+    shellConcerns["Shell concerns: auth session bootstrap, global telemetry hooks"]
+  end
+
+  subgraph platform["Platform layer (explicit ownership & SLAs)"]
+    ds["Design system & tokens"]
+    headless["Accessible primitives & patterns"]
+    build["Build graph, CI gates, artifact registry"]
+    published["Published contracts: generated API clients, shared event schemas, shared types"]
+  end
+
+  subgraph teamA["Team A: Catalog domain"]
+    catUI["Catalog UI surfaces"]
+    catLogic["Catalog-specific state & orchestration"]
+    catClient["Thin adapters over generated clients"]
+  end
+
+  subgraph teamB["Team B: Checkout domain"]
+    chkUI["Checkout UI surfaces"]
+    chkLogic["Checkout-specific state & orchestration"]
+    chkClient["Thin adapters over generated clients"]
+  end
+
+  subgraph teamC["Team C: Account domain"]
+    accUI["Account UI surfaces"]
+    accLogic["Account-specific state & orchestration"]
+    accClient["Thin adapters over generated clients"]
+  end
+
+  router --> catUI
+  router --> chkUI
+  router --> accUI
+  shellConcerns --> catUI
+  shellConcerns --> chkUI
+  shellConcerns --> accUI
+
+  ds --> catUI
+  ds --> chkUI
+  ds --> accUI
+  headless --> catUI
+  headless --> chkUI
+  headless --> accUI
+
+  published --> catClient
+  published --> chkClient
+  published --> accClient
+
+  catClient --> catLogic
+  chkClient --> chkLogic
+  accClient --> accLogic
+
+  build -.->|"gates & policies"| catUI
+  build -.->|"gates & policies"| chkUI
+  build -.->|"gates & policies"| accUI

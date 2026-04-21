@@ -1,0 +1,14 @@
+%% Diagram: Effect timing pipeline
+%% Type: flowchart
+%%{init: {'htmlLabels': false, 'flowchart': {'htmlLabels': false}}}%%
+flowchart LR
+    render["Render"] --> commit["Commit (DOM mutated)"]
+    commit --> insertion["useInsertionEffect"]
+    insertion --> layout["useLayoutEffect"]
+    layout --> paint["Browser paint"]
+    paint --> effect["useEffect"]
+
+    classDef phase fill:#2E5A88,stroke:#1F4870,color:#ffffff
+    class render,commit,paint phase
+    classDef hook fill:#1F6E68,stroke:#155752,color:#ffffff
+    class insertion,layout,effect hook

@@ -1,0 +1,15 @@
+%% Diagram: High Level Architecture
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    CLIENTS["Clients\nMobile · Desktop · Web · Smart Speakers"]
+    GW["API Gateway\nauth + routing"]
+    CORE["Core Services\nPlayback · Catalog · Playlist · Search · Recommendation"]
+    DATA["Data Layer\nCassandra · Postgres · Bigtable · Cache"]
+    CDN["Multi-CDN\nAkamai · Fastly · AWS"]
+    ORIGIN[("GCS Audio Origin")]
+    EVENTS["Event Pipeline\nPub/Sub → Dataflow → BigQuery"]
+
+    CLIENTS --> GW --> CORE --> DATA
+    CORE --> CDN --> ORIGIN
+    GW --> EVENTS

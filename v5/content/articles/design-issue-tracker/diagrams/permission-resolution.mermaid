@@ -1,0 +1,25 @@
+%% Diagram: Permission resolution — global → project (RBAC) → issue-level security
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    REQ["Request"]
+    G{"Global?"}
+    P{"Project?"}
+    I{"Issue level?"}
+    ALLOW["Allow"]
+    DENY["Deny"]
+
+    REQ --> G
+    G -- yes --> ALLOW
+    G -- no --> P
+    P -- deny --> DENY
+    P -- allow --> I
+    I -- yes --> ALLOW
+    I -- no --> DENY
+
+    classDef allow fill:#1F6F4A,stroke:#0E4A2E,color:#ffffff
+    classDef deny fill:#8C2A2A,stroke:#5A1A1A,color:#ffffff
+    classDef gate fill:#2E5A88,stroke:#1F4870,color:#ffffff
+    class ALLOW allow
+    class DENY deny
+    class G,P,I gate

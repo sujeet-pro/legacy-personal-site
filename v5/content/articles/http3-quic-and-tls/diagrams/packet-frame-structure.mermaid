@@ -1,0 +1,24 @@
+%% Diagram: QUIC packet and frame structure inside a UDP datagram
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TD
+    UDP["UDP datagram\n(what middleboxes see)"]
+    UDP --> Coalesced
+
+    subgraph Coalesced["Coalesced QUIC packets (one or more)"]
+        direction LR
+        Long["Long header\nInitial / 0-RTT / Handshake / Retry"]
+        Short["Short header\n1-RTT (post-handshake)"]
+    end
+
+    Coalesced --> Headers
+
+    subgraph Headers["Cleartext header prefix"]
+        direction TB
+        LongHdr["Long: Form + Type + Version\n+ DCID + SCID + Token + Length\n+ Packet Number (header-protected)"]
+        ShortHdr["Short: Form + Spin + key phase\n+ DCID + Packet Number (header-protected)"]
+    end
+
+    Headers --> Payload
+
+    Payload["AEAD-encrypted payload\nSTREAM / ACK / CRYPTO / PATH_*\nNEW_CONNECTION_ID / MAX_*\nCONNECTION_CLOSE"]

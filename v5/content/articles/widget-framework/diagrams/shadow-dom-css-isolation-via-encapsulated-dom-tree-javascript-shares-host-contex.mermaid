@@ -1,0 +1,18 @@
+%% Diagram: Shadow Dom Css Isolation Via Encapsulated Dom Tree Javascript Shares Host Contex
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    subgraph "Host DOM"
+        HD["Document"]
+        WC["<widget-container>"]
+    end
+
+    subgraph "Shadow Root (closed)"
+        SR["Shadow DOM"]
+        WS["Widget Styles"]
+        WT["Widget Template"]
+    end
+
+    HD --> WC
+    WC -->|"attachShadow({mode:'closed'})"| SR
+    SR --> WS & WT

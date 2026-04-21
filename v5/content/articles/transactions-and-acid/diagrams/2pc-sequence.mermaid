@@ -1,0 +1,26 @@
+%% Diagram: Two-Phase Commit happy path and the blocking failure mode
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant C as Coordinator
+    participant P1 as Participant 1
+    participant P2 as Participant 2
+
+    note over C,P2: Phase 1 — Prepare (vote)
+    C->>P1: PREPARE
+    C->>P2: PREPARE
+    P1->>P1: log, lock
+    P2->>P2: log, lock
+    P1-->>C: VOTE-YES
+    P2-->>C: VOTE-YES
+
+    note over C,P2: Phase 2 — Commit (decide)
+    C->>C: log COMMIT
+    C->>P1: COMMIT
+    C->>P2: COMMIT
+    P1-->>C: ACK
+    P2-->>C: ACK
+
+    note over C,P2: Failure: coordinator crash after PREPARE
+    C-xC: crash
+    note over P1,P2: YES-voters hold locks.\nNo decision: cannot commit.\nMight have committed: cannot abort.\nBlock until recovery.

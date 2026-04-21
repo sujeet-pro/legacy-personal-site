@@ -1,0 +1,12 @@
+%% Diagram: Diagram 5
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    OBJECT["OBJECT\n---\nbigint id (PK)\nstring type\nblob data\ntimestamp created_at\ntimestamp updated_at"]
+    ASSOCIATION["ASSOCIATION\n---\nbigint id1 (PK)\nstring assoc_type (PK)\nbigint id2 (PK)\ntimestamp time\nblob data"]
+
+    OBJECT -->|"source (id1)"| ASSOCIATION
+    OBJECT -->|"target (id2)"| ASSOCIATION
+
+    classDef entity fill:#2E5A88,stroke:#1F4870,color:#ffffff
+    class OBJECT,ASSOCIATION entity

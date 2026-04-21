@@ -1,0 +1,35 @@
+%% Diagram: End-to-end request lifecycle through the layered caches
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant Cmp as Component
+    participant Lib as Query Lib
+    participant App as App cache
+    participant SW as Service Worker<br/>+ HTTP cache
+    participant Edge as CDN / edge
+    participant Org as Origin
+
+    Cmp->>Lib: useQuery(key)
+    Lib->>App: read(key)
+    alt App cache fresh
+        App-->>Lib: data
+        Lib-->>Cmp: data (no I/O)
+    else App cache miss / stale
+        Lib->>SW: fetch(url)
+        alt Browser cache fresh
+            SW-->>Lib: 200 cached
+        else Browser cache stale
+            SW->>Edge: GET<br/>(If-None-Match)
+            alt Edge fresh
+                Edge-->>SW: 200 (or 304)
+            else Edge miss
+                Edge->>Org: GET
+                Org-->>Edge: 200 + ETag
+                Edge-->>SW: 200 + Cache-Control
+            end
+            SW->>SW: store per RFC 9111
+            SW-->>Lib: response
+        end
+        Lib->>App: write(key, parsed)
+        Lib-->>Cmp: data
+    end

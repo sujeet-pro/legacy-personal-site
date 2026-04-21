@@ -1,0 +1,21 @@
+%% Diagram: Contraction Hierarchies Offline Preprocessing Creates Shortcuts Online Queries S
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    subgraph Preprocessing["Preprocessing (Offline)"]
+        Raw["Raw Road Graph"] --> Order["Node Ordering"]
+        Order --> Contract["Contract Nodes"]
+        Contract --> Shortcuts["Add Shortcuts"]
+        Shortcuts --> CHGraph["CH Graph"]
+    end
+
+    subgraph Query["Query (Online)"]
+        Start["Source"] --> FwdSearch["Forward Search ↑"]
+        End["Target"] --> BwdSearch["Backward Search ↑"]
+        FwdSearch --> Meet["Meet at Top"]
+        BwdSearch --> Meet
+        Meet --> Unpack["Unpack Shortcuts"]
+        Unpack --> Path["Final Path"]
+    end
+
+    CHGraph -.-> Query

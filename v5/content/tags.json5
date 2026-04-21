@@ -1,0 +1,590 @@
+// Canonical tag taxonomy for sujeet.pro.
+//
+// Keys are canonical kebab-case slugs. `displayName` is what surfaces in
+// listings, cards, and content meta. `aliases` collapse to the canonical
+// slug at load time, so authors can write "JS", "javascript", "ecmascript",
+// or "es6" in an article and the rendered tag is always "JavaScript".
+//
+// Matching is case-insensitive and ignores `_`, `.`, and whitespace, so
+// "Web Vitals", "web_vitals", and "web-vitals" all collapse to the same tag.
+//
+// Add new entries here whenever a new topic is introduced; otherwise a raw
+// frontmatter tag falls through with title-cased text.
+
+{
+  // ── Languages and runtimes ─────────────────────────────────────────────
+  javascript: {
+    displayName: "JavaScript",
+    shortName: "JS",
+    aliases: ["js", "ecmascript", "es", "es6", "es2015", "es2017", "es2020", "es2021", "esnext"],
+  },
+  typescript: {
+    displayName: "TypeScript",
+    shortName: "TS",
+    aliases: ["ts"],
+  },
+  nodejs: {
+    displayName: "Node.js",
+    aliases: ["node", "nodejs", "node-js", "node.js"],
+  },
+  v8: {
+    displayName: "V8",
+    aliases: ["v8-engine"],
+  },
+  runtime: {
+    displayName: "Runtime",
+    aliases: ["runtimes", "language-runtime"],
+  },
+  "event-loop": {
+    displayName: "Event Loop",
+    aliases: ["eventloop", "event-loops"],
+  },
+  programming: {
+    displayName: "Programming",
+    aliases: ["programming-languages"],
+  },
+
+  // ── Browser, web platform, frontend ───────────────────────────────────
+  browser: {
+    displayName: "Browser",
+    aliases: ["browsers", "web-browser"],
+  },
+  "web-platform": {
+    displayName: "Web Platform",
+    aliases: ["web-platform-apis"],
+  },
+  "web-apis": {
+    displayName: "Web APIs",
+    aliases: ["webapi", "browser-apis", "browser-api"],
+  },
+  dom: {
+    displayName: "DOM",
+    aliases: ["document-object-model"],
+  },
+  "shadow-dom": {
+    displayName: "Shadow DOM",
+    aliases: ["shadow-root"],
+  },
+  "custom-elements": {
+    displayName: "Custom Elements",
+    aliases: ["customelements", "web-components-element"],
+  },
+  rendering: {
+    displayName: "Rendering",
+    shortName: "Render",
+    aliases: ["render", "rendering-engine", "browser-rendering"],
+  },
+  css: {
+    displayName: "CSS",
+    aliases: ["cascading-style-sheets", "css3"],
+  },
+  frontend: {
+    displayName: "Frontend",
+    aliases: ["front-end", "client-side", "ui"],
+  },
+  react: {
+    displayName: "React",
+    aliases: ["reactjs", "react-js"],
+  },
+  components: {
+    displayName: "Components",
+    aliases: ["component", "ui-components"],
+  },
+  "design-systems": {
+    displayName: "Design Systems",
+    shortName: "DS",
+    aliases: ["design-system", "ds"],
+  },
+  accessibility: {
+    displayName: "Accessibility",
+    shortName: "A11y",
+    aliases: ["a11y", "wcag"],
+  },
+
+  // ── Performance ───────────────────────────────────────────────────────
+  performance: {
+    displayName: "Performance",
+    shortName: "Perf",
+    aliases: ["perf", "web-performance"],
+  },
+  "web-vitals": {
+    displayName: "Web Vitals",
+    aliases: ["core-web-vitals", "cwv"],
+  },
+  optimization: {
+    displayName: "Optimization",
+    aliases: ["optimisation", "optimizations"],
+  },
+  "performance-engineering": {
+    displayName: "Performance Engineering",
+    shortName: "Perf Eng",
+    aliases: ["perf-engineering"],
+  },
+
+  // ── Networking ────────────────────────────────────────────────────────
+  networking: {
+    displayName: "Networking",
+    aliases: ["network", "networks"],
+  },
+  http: {
+    displayName: "HTTP",
+    aliases: ["http1", "http2", "http3", "https"],
+  },
+  dns: {
+    displayName: "DNS",
+    aliases: ["domain-name-system"],
+  },
+  tls: {
+    displayName: "TLS",
+    aliases: ["ssl", "tls13"],
+  },
+
+  // ── Security ──────────────────────────────────────────────────────────
+  security: {
+    displayName: "Security",
+    aliases: ["sec"],
+  },
+  "web-security": {
+    displayName: "Web Security",
+    aliases: ["websec"],
+  },
+  authentication: {
+    displayName: "Authentication",
+    shortName: "Auth",
+    aliases: ["auth", "authn"],
+  },
+
+  // ── Distributed systems and architecture ──────────────────────────────
+  "system-design": {
+    displayName: "System Design",
+    shortName: "SD",
+    aliases: ["systemdesign", "sd"],
+  },
+  architecture: {
+    displayName: "Architecture",
+    shortName: "Arch",
+    aliases: ["arch", "software-architecture"],
+  },
+  "distributed-systems": {
+    displayName: "Distributed Systems",
+    shortName: "Dist. Systems",
+    aliases: ["distsys", "distributed", "distributed-system"],
+  },
+  reliability: {
+    displayName: "Reliability",
+    aliases: ["reliable-systems"],
+  },
+  "reliability-engineering": {
+    displayName: "Reliability Engineering",
+    aliases: ["sre"],
+  },
+  patterns: {
+    displayName: "Patterns",
+    aliases: ["design-patterns", "software-patterns"],
+  },
+  outages: {
+    displayName: "Outages",
+    aliases: ["outage", "incidents"],
+  },
+  "case-study": {
+    displayName: "Case Study",
+    aliases: ["case-studies", "casestudy"],
+  },
+  "interview-prep": {
+    displayName: "Interview Prep",
+    shortName: "Interview",
+    aliases: ["interview", "interviewing", "interview-preparation"],
+  },
+
+  // ── Data and storage ──────────────────────────────────────────────────
+  data: {
+    displayName: "Data",
+    aliases: ["data-platforms"],
+  },
+  databases: {
+    displayName: "Databases",
+    shortName: "DB",
+    aliases: ["database", "db", "rdbms"],
+  },
+  storage: {
+    displayName: "Storage",
+    aliases: ["storage-systems"],
+  },
+  migrations: {
+    displayName: "Migrations",
+    aliases: ["migration", "data-migrations"],
+  },
+  "data-engineering": {
+    displayName: "Data Engineering",
+    shortName: "Data Eng",
+    aliases: ["dataeng"],
+  },
+
+  // ── Infrastructure and platform ───────────────────────────────────────
+  infrastructure: {
+    displayName: "Infrastructure",
+    shortName: "Infra",
+    aliases: ["infra"],
+  },
+  "platform-engineering": {
+    displayName: "Platform Engineering",
+    shortName: "Platform",
+    aliases: ["platform", "platform-eng"],
+  },
+  devops: {
+    displayName: "DevOps",
+    aliases: ["dev-ops"],
+  },
+  cicd: {
+    displayName: "CI/CD",
+    aliases: ["ci-cd", "ci_cd", "continuous-integration"],
+  },
+  "build-systems": {
+    displayName: "Build Systems",
+    aliases: ["build-system", "build-tooling", "bundler"],
+  },
+
+  // ── Computer science fundamentals ─────────────────────────────────────
+  algorithms: {
+    displayName: "Algorithms",
+    aliases: ["algorithm"],
+  },
+  "data-structures": {
+    displayName: "Data Structures",
+    shortName: "DS&A",
+    aliases: ["datastructures"],
+  },
+  "computer-science": {
+    displayName: "Computer Science",
+    shortName: "CS",
+    aliases: ["cs"],
+  },
+
+  // ── State and front-end glue ──────────────────────────────────────────
+  "state-management": {
+    displayName: "State Management",
+    aliases: ["state", "client-state"],
+  },
+
+  // ── Testing and quality ───────────────────────────────────────────────
+  testing: {
+    displayName: "Testing",
+    aliases: ["tests", "test", "qa"],
+  },
+
+  // ── Media ─────────────────────────────────────────────────────────────
+  media: {
+    displayName: "Media",
+    aliases: ["streaming", "video"],
+  },
+
+  // ── Productivity and leadership ───────────────────────────────────────
+  productivity: {
+    displayName: "Productivity",
+    aliases: ["dev-productivity"],
+  },
+  "developer-experience": {
+    displayName: "Developer Experience",
+    shortName: "DX",
+    aliases: ["dx", "devex"],
+  },
+  "engineering-leadership": {
+    displayName: "Engineering Leadership",
+    aliases: ["eng-leadership", "leadership"],
+  },
+
+  // ── Caching, CDN, content delivery ────────────────────────────────────
+  caching: {
+    displayName: "Caching",
+    aliases: ["cache", "caches", "http-caching"],
+  },
+  cdn: {
+    displayName: "CDN",
+    aliases: ["content-delivery-network", "cdns", "edge-cdn"],
+  },
+  fonts: {
+    displayName: "Fonts",
+    aliases: ["typography", "web-fonts"],
+  },
+
+  // ── Observability ─────────────────────────────────────────────────────
+  observability: {
+    displayName: "Observability",
+    aliases: ["o11y"],
+  },
+  monitoring: {
+    displayName: "Monitoring",
+    aliases: ["alerting"],
+  },
+  tracing: {
+    displayName: "Tracing",
+    aliases: ["distributed-tracing"],
+  },
+  logging: {
+    displayName: "Logging",
+    aliases: ["logs"],
+  },
+  opentelemetry: {
+    displayName: "OpenTelemetry",
+    shortName: "OTel",
+    aliases: ["otel", "open-telemetry"],
+  },
+
+  // ── Messaging, streaming, event-driven ───────────────────────────────
+  messaging: {
+    displayName: "Messaging",
+    aliases: ["message-queues", "message-brokers"],
+  },
+  kafka: {
+    displayName: "Kafka",
+    aliases: ["apache-kafka"],
+  },
+  "event-driven": {
+    displayName: "Event-Driven",
+    aliases: ["event-driven-architecture", "eda"],
+  },
+  "event-sourcing": {
+    displayName: "Event Sourcing",
+    aliases: ["eventsourcing"],
+  },
+  cqrs: {
+    displayName: "CQRS",
+    aliases: ["command-query-separation"],
+  },
+  idempotency: {
+    displayName: "Idempotency",
+    aliases: ["idempotent", "idempotent-operations"],
+  },
+  "real-time": {
+    displayName: "Real-Time",
+    aliases: ["realtime", "real-time-systems", "realtime-systems"],
+  },
+
+  // ── Distributed-systems specifics ─────────────────────────────────────
+  microservices: {
+    displayName: "Microservices",
+    aliases: ["micro-services"],
+  },
+  "service-mesh": {
+    displayName: "Service Mesh",
+    aliases: ["servicemesh"],
+  },
+  "load-balancing": {
+    displayName: "Load Balancing",
+    aliases: ["loadbalancer", "load-balancers", "lb"],
+  },
+  "fault-tolerance": {
+    displayName: "Fault Tolerance",
+    aliases: ["fault-tolerant"],
+  },
+  resilience: {
+    displayName: "Resilience",
+    aliases: ["resilient-systems", "resilience-engineering"],
+  },
+  "cloud-native": {
+    displayName: "Cloud Native",
+    aliases: ["cloudnative"],
+  },
+  concurrency: {
+    displayName: "Concurrency",
+    aliases: ["parallelism", "parallel-computing"],
+  },
+  crdt: {
+    displayName: "CRDT",
+    aliases: ["crdts", "conflict-free-replicated-data-types"],
+  },
+  collaboration: {
+    displayName: "Collaboration",
+    aliases: ["collaborative-editing", "collaborative-systems"],
+  },
+  "offline-first": {
+    displayName: "Offline-First",
+    aliases: ["offline", "offline-capable"],
+  },
+  "operational-transformation": {
+    displayName: "Operational Transformation",
+    shortName: "OT",
+    aliases: ["ot"],
+  },
+
+  // ── Search and recommendations ────────────────────────────────────────
+  search: {
+    displayName: "Search",
+    aliases: ["search-engine"],
+  },
+  elasticsearch: {
+    displayName: "Elasticsearch",
+    aliases: ["elastic-search", "elastic"],
+  },
+  lucene: {
+    displayName: "Lucene",
+    aliases: ["apache-lucene"],
+  },
+  "information-retrieval": {
+    displayName: "Information Retrieval",
+    shortName: "IR",
+    aliases: ["ir"],
+  },
+  "recommendation-systems": {
+    displayName: "Recommendation Systems",
+    aliases: ["recommender-systems", "recommendation", "recommenders", "recsys"],
+  },
+
+  // ── Geospatial ────────────────────────────────────────────────────────
+  geospatial: {
+    displayName: "Geospatial",
+    aliases: ["geo", "geo-systems", "geosystems"],
+  },
+  routing: {
+    displayName: "Routing",
+    aliases: ["route-planning"],
+  },
+
+  // ── Storage and data — additions ──────────────────────────────────────
+  redis: {
+    displayName: "Redis",
+    aliases: ["redis-stack"],
+  },
+  memcached: {
+    displayName: "Memcached",
+    aliases: ["memcache"],
+  },
+  postgresql: {
+    displayName: "PostgreSQL",
+    shortName: "Postgres",
+    aliases: ["postgres", "psql"],
+  },
+
+  // ── Security additions ────────────────────────────────────────────────
+  csp: {
+    displayName: "Content Security Policy",
+    shortName: "CSP",
+    aliases: ["content-security-policy"],
+  },
+  privacy: {
+    displayName: "Privacy",
+    aliases: ["data-privacy", "privacy-engineering"],
+  },
+  "fraud-detection": {
+    displayName: "Fraud Detection",
+    aliases: ["fraud", "anti-fraud"],
+  },
+  "pci-dss": {
+    displayName: "PCI DSS",
+    aliases: ["pci"],
+  },
+  compliance: {
+    displayName: "Compliance",
+    aliases: ["regulatory-compliance"],
+  },
+
+  // ── Frontend additions ────────────────────────────────────────────────
+  "service-worker": {
+    displayName: "Service Worker",
+    aliases: ["service-workers", "sw"],
+  },
+  pwa: {
+    displayName: "PWA",
+    aliases: ["progressive-web-app", "progressive-web-apps"],
+  },
+  forms: {
+    displayName: "Forms",
+    aliases: ["form-builders"],
+  },
+  validation: {
+    displayName: "Validation",
+    aliases: ["data-validation"],
+  },
+  "file-upload": {
+    displayName: "File Upload",
+    aliases: ["uploads", "file-uploads"],
+  },
+  "server-components": {
+    displayName: "Server Components",
+    aliases: ["react-server-components", "rsc"],
+  },
+  "functional-programming": {
+    displayName: "Functional Programming",
+    shortName: "FP",
+    aliases: ["fp"],
+  },
+
+  // ── E-commerce, payments ──────────────────────────────────────────────
+  "e-commerce": {
+    displayName: "E-Commerce",
+    aliases: ["ecommerce", "online-shopping"],
+  },
+  payments: {
+    displayName: "Payments",
+    aliases: ["payment-systems", "payment-processing"],
+  },
+
+  // ── API and protocol ──────────────────────────────────────────────────
+  "api-design": {
+    displayName: "API Design",
+    aliases: ["apidesign", "api-architecture"],
+  },
+
+  // ── Languages and runtimes — additions ────────────────────────────────
+  rust: {
+    displayName: "Rust",
+    aliases: ["rust-lang"],
+  },
+  go: {
+    displayName: "Go",
+    aliases: ["golang", "go-lang"],
+  },
+  erlang: {
+    displayName: "Erlang",
+    aliases: ["erlang-otp"],
+  },
+  libuv: {
+    displayName: "libuv",
+    aliases: ["uv"],
+  },
+  "garbage-collection": {
+    displayName: "Garbage Collection",
+    shortName: "GC",
+    aliases: ["gc"],
+  },
+  unicode: {
+    displayName: "Unicode",
+    aliases: ["utf", "utf-8", "utf-16"],
+  },
+  "ecma-262": {
+    displayName: "ECMA-262",
+    aliases: ["ecma262", "ecmascript-spec"],
+  },
+
+  // ── Notifications ─────────────────────────────────────────────────────
+  notifications: {
+    displayName: "Notifications",
+    aliases: ["push-notifications", "messaging-and-notifications"],
+  },
+
+  // ── Platform additions ────────────────────────────────────────────────
+  "task-scheduler": {
+    displayName: "Task Scheduler",
+    aliases: ["job-scheduler", "schedulers"],
+  },
+  governance: {
+    displayName: "Governance",
+    aliases: ["technical-governance"],
+  },
+  "multi-tenancy": {
+    displayName: "Multi-Tenancy",
+    aliases: ["multitenancy", "multi-tenant"],
+  },
+  extensibility: {
+    displayName: "Extensibility",
+    aliases: ["plugin-architecture"],
+  },
+  experimentation: {
+    displayName: "Experimentation",
+    aliases: ["ab-testing", "a-b-testing"],
+  },
+  "feature-flags": {
+    displayName: "Feature Flags",
+    aliases: ["feature-toggles", "featureflags"],
+  },
+}

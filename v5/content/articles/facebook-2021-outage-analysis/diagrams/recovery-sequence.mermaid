@@ -1,0 +1,21 @@
+%% Diagram: Recovery Sequence
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant Eng as On-call engineer
+    participant DC as Data center +\nphysical security
+    participant Console as Backbone router\nconsole
+    participant BGP as Edge BGP /\nupstream peers
+    participant Res as Recursive\nresolvers
+    participant App as Meta service\nfleet
+
+    Note over Eng: Workplace and wikis down.\nCoordinate via cell + non-FB chat.
+    Eng->>DC: Travel on-site,\nactivate manual access protocol
+    DC-->>Eng: Override badge reader,\nescort in
+    Eng->>Console: Connect via serial / OOB cart
+    Console-->>Eng: Identify and revert\nmaintenance change
+    Console->>BGP: Backbone restored,\nedge probes pass
+    BGP-->>BGP: Re-announce withdrawn prefixes\n(peak ~21:17 UTC)
+    BGP-->>Res: Routes re-appear globally
+    Res-->>App: SERVFAIL stops, clients reconnect
+    Note over App: Staged ramp using prior\n'storm' drill playbook to avoid\na thundering herd

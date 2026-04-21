@@ -1,0 +1,15 @@
+%%{init: {'htmlLabels': false, 'flowchart': {'htmlLabels': false}}}%%
+flowchart TD
+  Update["Consent write via API\ncreate / update / withdraw / migrate"]
+  Tx[("PostgreSQL Tx:\nconsent_records + consent_audit")]
+  Update --> Tx
+  Tx --> Hot
+  subgraph Storage[Storage lifecycle]
+    direction LR
+    Hot[("Hot partitions\n0–12 months")] -->|nightly ETL| Warm[("S3 Standard-IA\n12–24 months")]
+    Warm -->|lifecycle policy| Cold[("S3 Glacier\n2–5 years")]
+    Cold -->|retention expiry| Erase["Crypto-erase\nor delete"]
+  end
+  Hot --> Query["DSAR / regulator audit query"]
+  Warm --> Query
+  Cold -.restore.-> Query

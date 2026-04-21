@@ -1,0 +1,44 @@
+%% Diagram: Cellular architecture — AZ drain via Rotor + RTDS
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    Client["Slack clients"]
+    EdgeLB["Edge Envoy LB\nweighted clusters"]
+    Rotor["Rotor (xDS)\ncontrol plane"]
+    RTDS["RTDS runtime\nweight push"]
+
+    subgraph AZ_A["AZ A (cell)"]
+        direction TB
+        A_GS["Gateway"]
+        A_WA["Webapp"]
+        A_DB["Vitess local"]
+    end
+    subgraph AZ_B["AZ B (cell)"]
+        direction TB
+        B_GS["Gateway"]
+        B_WA["Webapp"]
+        B_DB["Vitess local"]
+    end
+    subgraph AZ_C["AZ C — degraded"]
+        direction TB
+        C_GS["Gateway"]
+        C_WA["Webapp"]
+        C_DB["Vitess local"]
+    end
+
+    Client --> EdgeLB
+    EdgeLB -- "50% (was 33%)" --> A_GS
+    EdgeLB -- "50% (was 33%)" --> B_GS
+    EdgeLB -- "0% (drain)" --> C_GS
+    A_GS --> A_WA --> A_DB
+    B_GS --> B_WA --> B_DB
+    C_GS --> C_WA --> C_DB
+
+    Rotor -- "1% steps" --> RTDS
+    RTDS -- "no Envoy restart" --> EdgeLB
+
+    style C_GS fill:#B43A3A,stroke:#8E2828,color:#ffffff
+    style C_WA fill:#B43A3A,stroke:#8E2828,color:#ffffff
+    style C_DB fill:#B43A3A,stroke:#8E2828,color:#ffffff
+    style EdgeLB fill:#2E5A88,stroke:#1F4870,color:#ffffff
+    style Rotor fill:#8B5E15,stroke:#6E4810,color:#ffffff

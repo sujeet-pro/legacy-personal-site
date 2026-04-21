@@ -1,0 +1,21 @@
+%% Diagram: Sync queue happy path with optimistic UI
+%% Type: sequenceDiagram
+sequenceDiagram
+    participant U as User
+    participant Client as App + SW + IDB
+    participant API as API
+
+    U->>Client: edit
+    Client->>Client: queue + optimistic UI
+    Client-->>U: render
+    Note over Client: online
+    Client->>API: POST /sync (idempotent)
+    alt 2xx
+        API-->>Client: ack
+        Client->>U: dismiss "saving"
+    else 4xx
+        API-->>Client: error
+        Client->>U: surface conflict
+    else 5xx
+        Client-->>Client: retry on next sync
+    end

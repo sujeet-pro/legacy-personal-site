@@ -1,0 +1,32 @@
+%% Diagram: Diagram 4
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant S as Sender
+    participant DNS
+    participant MX
+    participant A as Auth
+    participant SP as Spam
+    participant R as Router
+    participant M as Mailbox
+
+    S->>DNS: MX records
+    DNS-->>S: mx1.example
+    S->>MX: EHLO/MAIL/RCPT
+    MX->>MX: rate limit
+    MX->>A: SPF/DKIM/DMARC
+    A-->>MX: pass/fail
+    MX->>S: 250 OK
+    S->>MX: DATA
+    MX->>SP: analyze
+    SP-->>MX: score
+    alt Spam
+        MX->>S: 250 OK
+        MX->>R: route spam
+    else Legit
+        MX->>S: 250 OK
+        MX->>R: route inbox
+    end
+    R->>M: store
+    M->>M: index
+    M-->>R: stored

@@ -1,0 +1,12 @@
+%% Diagram: Alt-Svc-driven HTTP/3 upgrade flow
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    A["TCP+TLS h2 connect"] --> B["Alt-Svc: h3=:443\n(cached)"]
+    B --> C["Next request"]
+    C --> D{"Entry valid?"}
+    D -->|No| G["Stay on HTTP/2"]
+    D -->|Yes| F["Open QUIC + race"]
+    F --> H{"QUIC wins?"}
+    H -->|Yes| I["HTTP/3"]
+    H -->|No| J["Fall back, mark broken"]

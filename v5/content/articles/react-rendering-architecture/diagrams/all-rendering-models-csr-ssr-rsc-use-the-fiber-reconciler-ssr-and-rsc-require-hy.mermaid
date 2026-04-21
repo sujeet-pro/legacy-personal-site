@@ -1,0 +1,25 @@
+%% Diagram: Rendering Models Overview
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    subgraph Fiber["Fiber Reconciler"]
+        direction TB
+        Render["Render Phase\n(Interruptible, 5 ms slices)"]
+        Commit["Commit Phase\n(Synchronous)"]
+        Render --> Commit
+    end
+
+    subgraph Execution["Rendering Models"]
+        direction TB
+        CSR["CSR\nClient builds DOM"]
+        SSR["SSR / Streaming\nServer renders HTML"]
+        RSC["RSC\nServer components + Flight"]
+    end
+
+    Fiber --> CSR
+    Fiber --> SSR
+    Fiber --> RSC
+
+    SSR --> Hydration["Hydration\nAttach React to SSR HTML"]
+    RSC --> Flight["Flight stream\nServer component payload"]
+    Flight --> ClientBoundaries["Hydrate client boundaries\nwhere interactivity exists"]

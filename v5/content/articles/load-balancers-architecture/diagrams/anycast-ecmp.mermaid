@@ -1,0 +1,35 @@
+%% Diagram: Anycast + ECMP — same VIP advertised from many sites; routers spread flows by 5-tuple
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    subgraph Internet["Internet (BGP — same VIP from N PoPs)"]
+        direction LR
+        U1["User in EU"]
+        U2["User in US"]
+        Udots["…(330+ PoPs total)"]
+    end
+
+    subgraph PoP_EU["PoP — Frankfurt"]
+        direction TB
+        BGP_EU["BGP: announce 1.2.3.0/24"]
+        R_EU["Edge router<br/>ECMP across LB nodes<br/>(consistent hash on 5-tuple)"]
+        LB_EU1["Maglev / Katran / Unimog<br/>node A"]
+        LB_EU2["Maglev / Katran / Unimog<br/>node B"]
+        BGP_EU --> R_EU
+        R_EU --> LB_EU1
+        R_EU --> LB_EU2
+    end
+
+    subgraph PoP_US["PoP — Ashburn"]
+        direction TB
+        BGP_US["BGP: announce 1.2.3.0/24"]
+        R_US["Edge router<br/>ECMP"]
+        LB_US1["LB node A"]
+        LB_US2["LB node B"]
+        BGP_US --> R_US
+        R_US --> LB_US1
+        R_US --> LB_US2
+    end
+
+    U1 -->|shortest AS path| BGP_EU
+    U2 -->|shortest AS path| BGP_US

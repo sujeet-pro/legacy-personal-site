@@ -1,0 +1,23 @@
+%% Diagram: WebAuthn / passkey registration ceremony
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant U as User
+    participant B as Browser
+    participant A as Authenticator
+    participant RP as Relying Party
+
+    U->>RP: start registration
+    RP->>RP: generate challenge, rpId, user.id
+    RP-->>B: PublicKeyCredentialCreationOptions
+    B->>A: navigator.credentials.create()
+    A->>U: verify user (biometric / PIN)
+    U-->>A: gesture
+    A->>A: generate keypair bound to rpId
+    A-->>B: credentialId, attestationObject, clientDataJSON
+    B-->>RP: POST /webauthn/register
+    RP->>RP: verify origin, challenge, attestation
+    RP->>RP: store credentialId + public key
+    RP-->>U: registration complete
+
+    Note over A,RP: Private key never leaves the authenticator.\nOrigin-bound credential is phishing-resistant.

@@ -1,0 +1,18 @@
+%% Diagram: QPACK Required Insert Count blocks one stream, not all
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant Enc as Encoder
+    participant Req as Request stream
+    participant Dec as Decoder
+
+    Enc->>Dec: Insert "x-custom" (encoder stream) → table[62]
+    Enc->>Req: Header block, RIC = 63
+
+    Note over Req,Dec: Request arrives before insert
+    Note over Dec: RIC 63 > current 62 → block this stream only
+
+    Note over Enc,Dec: Encoder-stream insert reaches Dec
+    Note over Dec: count = 63 → unblock request stream
+
+    Dec-->>Enc: Section Acknowledgment (decoder stream)

@@ -1,0 +1,21 @@
+%% Diagram: Resolver cache chain — TTL behavior at each layer between authoritative and client
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart LR
+    Auth["Authoritative — sets TTL"]
+    Recursive["Recursive resolver — honors TTL, may serve stale"]
+    OS["OS stub — may impose TTL floor"]
+    Browser["Browser — ~60 s default"]
+    App["Application — may cache forever"]
+
+    Auth --> Recursive --> OS --> Browser --> App
+
+    classDef source fill:#2E5A88,stroke:#1F4870,color:#ffffff
+    classDef respect fill:#2D7A2D,stroke:#1E5A1E,color:#ffffff
+    classDef floor fill:#8B5E15,stroke:#6E4810,color:#ffffff
+    classDef ignore fill:#B43A3A,stroke:#8E2828,color:#ffffff
+
+    class Auth source
+    class Recursive respect
+    class OS,Browser floor
+    class App ignore

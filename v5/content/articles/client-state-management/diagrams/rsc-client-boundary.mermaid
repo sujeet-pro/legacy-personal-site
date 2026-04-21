@@ -1,0 +1,16 @@
+%% Diagram: React Server Components vs Client Components — state boundary
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart LR
+    SERVER["Server Component (Node / Edge)<br/>fetch + render, no hooks<br/>new QueryClient() per request<br/>prefetchQuery → dehydrate"]
+    PAYLOAD["RSC tree + dehydrated cache<br/>streamed to the client"]
+    CLIENT["Browser (Client Components)<br/>HydrationBoundary + useSuspenseQuery<br/>useState / Zustand / Jotai<br/>localStorage / IndexedDB"]
+
+    SERVER --> PAYLOAD --> CLIENT
+
+    classDef server fill:#1f4e79,stroke:#0d2b45,color:#ffffff
+    classDef wire fill:#37474f,stroke:#1c313a,color:#ffffff
+    classDef client fill:#2e7d32,stroke:#1b5e20,color:#ffffff
+    class SERVER server
+    class PAYLOAD wire
+    class CLIENT client

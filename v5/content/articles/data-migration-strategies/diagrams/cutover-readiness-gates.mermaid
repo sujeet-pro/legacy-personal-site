@@ -1,0 +1,22 @@
+%% Diagram: Cutover Readiness Gates
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    start([Cutover checklist])
+    subgraph GATES["Gates · all yes to advance"]
+        direction TB
+        g1{Lag under SLO?} --> g2{Reconciliation clean?}
+        g2 --> g3{Shadow reads OK?}
+        g3 --> g4{Rollback rehearsed?}
+        g4 --> g5{Flags + on-call ready?}
+    end
+    go[Bounded cutover]
+    watch{Healthy?}
+    done([Stabilize then decommission])
+    fail["Any NO → remediate<br/>then restart checks"]
+
+    start --> GATES --> go --> watch
+    watch -->|yes| done
+    watch -->|no| fail
+    GATES -->|any no| fail
+    fail --> start

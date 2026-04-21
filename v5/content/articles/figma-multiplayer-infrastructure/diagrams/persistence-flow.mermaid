@@ -1,0 +1,29 @@
+%% Diagram: Persistence Flow Journal Checkpoint Recovery
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant C as Client
+    participant MP as Multiplayer<br/>(Rust)
+    participant J as Journal<br/>(DynamoDB)
+    participant S as Checkpoint<br/>(S3)
+
+    Note over C,MP: Steady-state edits
+    C->>MP: delta @ ~33ms
+    MP->>MP: apply, assign seq #
+
+    par Journal
+        MP->>J: append (~0.5s)
+        J-->>MP: ack (~600ms)
+    and Checkpoint
+        MP->>S: snapshot (30-60s)
+        S-->>MP: ack
+    end
+
+    Note over MP: Crash, new process recovers
+    MP->>S: load checkpoint
+    S-->>MP: snapshot @ seq=N
+    MP->>J: read seq > N
+    J-->>MP: deltas N+1 ... M
+    MP->>MP: replay to seq=M
+
+    Note over MP,J: Loss < 1s vs 60s checkpoint-only

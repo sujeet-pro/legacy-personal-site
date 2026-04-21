@@ -1,0 +1,35 @@
+%% Diagram: Paint cost classes for common CSS property changes.
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    Change[CSS property change]
+
+    subgraph Layout["Layout + Paint + Composite (full pipeline)"]
+        direction TB
+        L1["width / height / margin / padding"]
+        L2["top / left / right / bottom"]
+        L3["display / position"]
+        L4["font-size / line-height"]
+    end
+
+    subgraph PaintOnly["Paint + Composite (skip Layout)"]
+        direction TB
+        P1["color / background-color / background-image"]
+        P2["box-shadow / outline / outline-color"]
+        P3["border-style / border-color"]
+        P4["visibility"]
+    end
+
+    subgraph Compositor["Composite only (skip Layout + Paint)"]
+        direction TB
+        C1["transform on a composited layer"]
+        C2["opacity on a composited layer"]
+        C3["filter on a composited layer"]
+        C4["scroll handled on the compositor thread"]
+    end
+
+    Change --> Layout --> PaintOnly --> Compositor
+
+    style Layout fill:#ffebee,stroke:#c62828
+    style PaintOnly fill:#fff8e1,stroke:#ef6c00
+    style Compositor fill:#e8f5e9,stroke:#2e7d32

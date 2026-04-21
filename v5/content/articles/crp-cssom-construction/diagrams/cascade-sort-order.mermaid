@@ -1,0 +1,22 @@
+%% Diagram: Cascade sort order (CSS Cascade Levels 5 and 6)
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    subgraph row1[" "]
+        direction LR
+        decl["Declared values"]
+        s1["1. Origin & Importance"]
+        s2["2. Encapsulation Context"]
+        s3["3. Element-attached styles"]
+        decl --> s1 --> s2 --> s3
+    end
+    subgraph row2[" "]
+        direction LR
+        s4["4. Cascade Layers"]
+        s5["5. Specificity"]
+        s6["6. Scope Proximity"]
+        s7["7. Order of Appearance"]
+        out["Cascaded value"]
+        s4 --> s5 --> s6 --> s7 --> out
+    end
+    s3 --> s4

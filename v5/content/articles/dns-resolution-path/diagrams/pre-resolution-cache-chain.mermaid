@@ -1,0 +1,17 @@
+%% Diagram: Pre-Resolution Cache Lookup Chain
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    App["Application / browser"] --> BC{"Browser HTTP /<br/>host cache"}
+    BC -- "miss" --> Sys["OS resolver API<br/>getaddrinfo"]
+    Sys --> Hosts{"hosts file /<br/>NSS first"}
+    Hosts -- "no match" --> mDNS{"name ends<br/>in .local"}
+    mDNS -- "no" --> OSCache{"OS / system<br/>resolver cache"}
+    OSCache -- "miss" --> Stub["Stub resolver<br/>queries recursive"]
+    Stub --> Recursive["Recursive resolver<br/>1.1.1.1 / 8.8.8.8"]
+    Recursive --> Iter["Iterative walk:<br/>root, TLD, authoritative"]
+
+    BC -- "hit" --> Done(["Connect using<br/>cached IP"])
+    Hosts -- "match" --> Done
+    OSCache -- "hit" --> Done
+    mDNS -- "yes" --> Multicast["mDNS multicast<br/>224.0.0.251 / FF02::FB"]

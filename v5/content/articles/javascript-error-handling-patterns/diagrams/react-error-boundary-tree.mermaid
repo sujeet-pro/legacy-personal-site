@@ -1,0 +1,25 @@
+%% Diagram: React error boundary tree
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    Root["createRoot(...)<br/>onCaughtError /<br/>onUncaughtError"]
+    EB["ErrorBoundary<br/>getDerivedStateFromError<br/>componentDidCatch"]
+    Page["Page"]
+    Render["Render / lifecycle /<br/>constructor<br/>OK caught"]
+    Handler["onClick handler<br/>NOT caught<br/>(use try/catch)"]
+    Async["setTimeout /<br/>fetch.then<br/>NOT caught"]
+    SSR["renderToString throw<br/>NOT caught on server"]
+    Self["Boundary's own throw<br/>NOT caught<br/>(bubbles up)"]
+
+    Root --> EB
+    EB --> Page
+    Page --> Render
+    Page --> Handler
+    Page --> Async
+    Page --> SSR
+    EB --> Self
+
+    classDef caught fill:#2D7A2D,stroke:#2D7A2D,color:#ffffff
+    classDef notcaught fill:#B43A3A,stroke:#B43A3A,color:#ffffff
+    class Render caught
+    class Handler,Async,SSR,Self notcaught

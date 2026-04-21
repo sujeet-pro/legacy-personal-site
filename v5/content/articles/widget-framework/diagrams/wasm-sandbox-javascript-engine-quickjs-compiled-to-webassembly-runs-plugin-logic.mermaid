@@ -1,0 +1,21 @@
+%% Diagram: Wasm Sandbox Javascript Engine Quickjs Compiled To Webassembly Runs Plugin Logic
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    subgraph "Host Application"
+        HM["Host Main Thread"]
+        API["Plugin API"]
+    end
+
+    subgraph "Plugin Process"
+        subgraph "WASM Sandbox"
+            QJS["QuickJS Engine"]
+            PC["Plugin Code"]
+        end
+        UI["Plugin UI (iframe)"]
+    end
+
+    HM <-->|"Structured API"| API
+    API <-->|"WASM boundary calls"| QJS
+    QJS --> PC
+    PC <-.->|"postMessage"| UI

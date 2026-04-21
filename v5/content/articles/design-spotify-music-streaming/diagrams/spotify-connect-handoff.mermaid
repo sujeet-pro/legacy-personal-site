@@ -1,0 +1,24 @@
+%% Diagram: Spotify Connect playback handoff
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant Phone as Phone (active)
+    participant Speaker as Smart speaker (Connect SDK)
+    participant Backend as Spotify backend (Web API + player state)
+    participant CDN as Audio CDN
+
+    Note over Phone,Speaker: Local discovery via mDNS / ZeroConf (_spotify-connect._tcp)
+    Phone->>Speaker: ZeroConf addUser (credentials, blob)
+    Speaker->>Backend: Register device, fetch player state
+    Backend-->>Speaker: Current track, position, queue, volume
+
+    Phone->>Backend: PUT /me/player {device_ids:[speaker]}
+    Backend-->>Phone: kSpPlaybackNotifyBecameInactive
+    Backend-->>Speaker: kSpPlaybackNotifyBecameActive
+
+    Speaker->>CDN: GET signed audio URL (HTTP Range)
+    CDN-->>Speaker: Audio bytes
+    Speaker->>Backend: Heartbeat (position, buffer health)
+
+    Phone->>Backend: PUT /me/player/volume?volume_percent=N
+    Backend-->>Speaker: SpCallbackPlaybackApplyVolume

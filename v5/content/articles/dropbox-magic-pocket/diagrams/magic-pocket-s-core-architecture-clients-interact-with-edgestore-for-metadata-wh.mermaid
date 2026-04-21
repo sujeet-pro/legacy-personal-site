@@ -1,0 +1,36 @@
+%% Diagram: Magic Pocket core architecture
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TD
+    subgraph "Client / Metadata"
+        C["Dropbox Client"] --> ES["Edgestore<br/>(file -> block hashes)"]
+    end
+
+    subgraph "Magic Pocket control plane"
+        FE["Frontends<br/>(stateless gateway)"]
+        BI["Block Index<br/>(sharded MySQL)<br/>hash -> cell, bucket, checksum"]
+        CZ["Cross-zone<br/>Replication daemon<br/>(async, ~1s)"]
+        FE --> BI
+        FE -- "enqueue PUT" --> CZ
+    end
+
+    subgraph "Zone West (cell)"
+        M1["Master<br/>(soft-state coordinator)"]
+        RT1["Replication Table<br/>(cell-local MySQL)"]
+        OSD1["OSDs / Volume Managers"]
+        M1 -. "repair, GC" .-> OSD1
+        RT1 --- M1
+    end
+    subgraph "Zone Central (cell)"
+        OSD2["OSDs / Volume Managers"]
+    end
+    subgraph "Zone East (cell)"
+        OSD3["OSDs / Volume Managers"]
+    end
+
+    ES --> FE
+    FE -- "PUT/GET" --> OSD1
+    FE -- "PUT/GET" --> OSD2
+    FE -- "PUT/GET" --> OSD3
+    CZ -- "mirror PUT" --> OSD2
+    CZ -- "mirror PUT" --> OSD3

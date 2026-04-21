@@ -1,0 +1,18 @@
+%% Diagram: Spanner Commit Wait
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant Client
+    participant Coord as Coordinator
+    participant Replica
+    participant TT as TrueTime
+
+    Client->>Coord: BEGIN T1
+    Coord->>TT: TT.now()
+    TT-->>Coord: [earliest, latest], ε≈4ms
+    Note over Coord: pick s = latest
+    Coord->>Replica: prepare T1 @ s
+    Replica-->>Coord: prepared
+    Note over Coord: commit-wait until TT.after(s)<br/>≈ 2ε ≈ 7-14ms
+    Coord-->>Client: ack T1
+    Note right of Coord: Any T2 starting after the ack<br/>sees s(T2) > s(T1).

@@ -1,0 +1,16 @@
+%% Diagram: W3C Trace Context propagation across three services
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant Gateway as Edge / Gateway
+    participant Orders as Orders service
+    participant Payments as Payments service
+
+    Note over Gateway: Mint root span\ntraceparent 00-{trace}-{spanA}-01
+    Gateway->>Orders: HTTP + traceparent + tracestate
+    Note over Orders: Extract context, start spanB\nparent = spanA
+    Orders->>Payments: HTTP + traceparent (spanB) + baggage
+    Note over Payments: Child spanC\nread baggage user.tier=premium
+    Payments-->>Orders: 200 OK
+    Orders-->>Gateway: 200 OK
+    Note over Gateway,Payments: Each service async-exports its span via OTLP.\nBackend reassembles the DAG by trace-id.

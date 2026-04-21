@@ -1,0 +1,32 @@
+%% Diagram: ACID and the three transaction-coordination regimes
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    subgraph SINGLE["Single-node ACID"]
+        direction TB
+        WAL["WAL\natomicity, durability"]
+        MVCC["MVCC + locking\nisolation"]
+        APP["App + constraints\nconsistency"]
+    end
+
+    subgraph DIST["Distributed (synchronous)"]
+        direction TB
+        COORD["Coordinator\n2PC / 3PC / Spanner"]
+        COORD --> P1["Participants"]
+    end
+
+    subgraph ASYNC["Async alternatives"]
+        direction TB
+        S1["Local tx 1"] --> S2["Local tx 2"] --> S3["Local tx 3"]
+        S3 -.compensate.-> S1
+        S3 --> OUT["Outbox / event log"]
+    end
+
+    SINGLE --> DIST --> ASYNC
+
+    classDef single fill:#1F6E68,stroke:#155752,color:#ffffff
+    classDef dist fill:#2E5A88,stroke:#1F4870,color:#ffffff
+    classDef async fill:#8B5E15,stroke:#6E4810,color:#ffffff
+    class WAL,MVCC,APP single
+    class COORD,P1 dist
+    class S1,S2,S3,OUT async

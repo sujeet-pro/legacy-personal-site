@@ -1,0 +1,25 @@
+%% Diagram: Promotion cost trade-off (fewer vs more layers)
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart LR
+    subgraph Few["Few layers (merge by default)"]
+        direction TB
+        F1["Lower GPU memory"]
+        F2["Larger raster surface"]
+        F3["Coarser invalidation"]
+        F4["Property change<br/>= re-raster"]
+    end
+
+    subgraph Many["Many layers (aggressive promotion)"]
+        direction TB
+        M1["Higher GPU memory"]
+        M2["Smaller raster<br/>surfaces (parallel)"]
+        M3["Per-layer<br/>invalidation"]
+        M4["Compositor-only<br/>updates skip raster"]
+    end
+
+    Few -. "too few:<br/>raster jank" .-> Many
+    Many -. "too many: GPU OOM,<br/>checkerboarding" .-> Few
+
+    style Few fill:#c8e6c9,stroke:#1b5e20
+    style Many fill:#ffe0b2,stroke:#e65100

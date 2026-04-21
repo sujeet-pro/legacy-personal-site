@@ -1,0 +1,26 @@
+%% Diagram: One event-loop iteration — universal across browser and Node.js
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart LR
+    start(["Iteration\nstart"]):::start
+    pick["Pick one task /\nphase callback"]:::task
+    run["Run sync JS\nto completion"]:::engine
+    empty{"Stack\nempty?"}:::decision
+    drain["Drain microtasks\nPromise reactions +\nqueueMicrotask\n+ nextTick in Node"]:::microtask
+    render{"Browser:\nrender?"}:::decision
+    paint["Update rendering\nrAF, style, layout, paint"]:::host
+    next(["Iteration\nend"]):::start
+
+    start --> pick --> run --> empty
+    empty -->|No| run
+    empty -->|Yes| drain --> render
+    render -->|Yes| paint --> next
+    render -->|No / Node| next
+    next --> start
+
+    classDef start fill:#1F6E68,stroke:#155752,color:#fff
+    classDef task fill:#8B5E15,stroke:#6E4810,color:#fff
+    classDef engine fill:#2E5A88,stroke:#1F4870,color:#fff
+    classDef microtask fill:#5A2E88,stroke:#3F1F70,color:#fff
+    classDef decision fill:#444,stroke:#222,color:#fff
+    classDef host fill:#1F6E68,stroke:#155752,color:#fff

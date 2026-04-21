@@ -1,0 +1,24 @@
+%% Diagram: Hybrid Fan Out
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    POST[New Post Created]
+    CHECK{Followers > 10K?}
+    POST --> CHECK
+
+    CHECK -->|No| GETFOLL[Get Follower List]
+    GETFOLL --> FANOUT[Fan-out Workers]
+    FANOUT --> WRITE[Write to Timeline Caches]
+    WRITE --> REDIS[("Redis Timeline Caches\nuser:N:timeline")]
+
+    CHECK -->|Yes| CELEB[("Celebrity Posts Store")]
+
+    READ[User Opens Feed]
+    READ --> CACHE[Read Timeline Cache]
+    READ --> MERGE[Merge Celebrity Posts]
+    CACHE --> RANK[Ranking Service]
+    MERGE --> RANK
+    RANK --> RESPONSE[Ranked Feed Response]
+
+    REDIS -.-> CACHE
+    CELEB -.-> MERGE

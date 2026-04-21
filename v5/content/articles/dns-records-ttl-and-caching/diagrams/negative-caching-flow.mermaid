@@ -1,0 +1,20 @@
+%% Diagram: Negative caching of NXDOMAIN/NODATA per RFC 2308
+%% Type: sequence
+sequenceDiagram
+    participant C as Client
+    participant R as Resolver
+    participant A as Auth
+
+    C->>R: Q: missing.example.com A?
+    R->>A: Q: missing.example.com A?
+    A-->>R: NXDOMAIN + SOA (MIN=3600)
+    Note over R: ncache TTL\n= min(SOA.MIN, SOA TTL)\n= 3600 s
+    R-->>C: NXDOMAIN (TTL 3600)
+    Note over C,R: Within 3600 s — name later created
+    C->>R: Q: missing.example.com A?
+    R-->>C: NXDOMAIN from cache
+    Note over R: After negative TTL expires
+    C->>R: Q: missing.example.com A?
+    R->>A: Q: missing.example.com A?
+    A-->>R: A 192.0.2.10
+    R-->>C: A 192.0.2.10

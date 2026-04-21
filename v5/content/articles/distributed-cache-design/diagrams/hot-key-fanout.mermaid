@@ -1,0 +1,26 @@
+%% Diagram: Hot-key fan-out problem and four mitigation strategies
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    H1["100K req/s for 'celeb:123'"] --> Shard["Shard 7 CPU saturated"]
+
+    Shard --> Mitigations["Mitigations"]
+
+    Mitigations --> S1["L1 in front of L2"]
+    Mitigations --> S2["Request coalescing"]
+    Mitigations --> S3["Hot-key replication"]
+    Mitigations --> S4["Key splitting"]
+
+    S1 --> S1d["Per-instance L1, miss falls through to L2 cluster"]
+    S2 --> S2d["10K waiters collapse to 1 DB query via single-flight"]
+    S3 --> S3d["celeb:123 mirrored on N shards, client picks one at random"]
+    S4 --> S4d["celeb:123 split into celeb:123:0..N, client picks suffix"]
+
+    classDef hot fill:#B43A3A,stroke:#8E2828,color:#ffffff
+    classDef hub fill:#5A5A5A,stroke:#3D3D3D,color:#ffffff
+    classDef good fill:#1F6E68,stroke:#155752,color:#ffffff
+    classDef neutral fill:#2E5A88,stroke:#1F4870,color:#ffffff
+    class H1,Shard hot
+    class Mitigations hub
+    class S1,S2,S3,S4 good
+    class S1d,S2d,S3d,S4d neutral

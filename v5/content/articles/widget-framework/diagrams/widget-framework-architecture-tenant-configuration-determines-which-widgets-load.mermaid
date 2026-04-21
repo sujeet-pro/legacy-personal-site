@@ -1,0 +1,21 @@
+%% Diagram: Widget Framework Architecture Tenant Configuration Determines Which Widgets Load
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    TM["Tenant Config"]
+    WR["Widget Registry"]
+    WL["Widget Loader"]
+    SDK["Host SDK"]
+    SLOTS["Slots"]
+    WA["Widget A\n(iframe)"]
+    WB["Widget B\n(MF)"]
+
+    TM -->|tenant| WL
+    WL -->|resolve| WR
+    WR -->|URLs| WL
+    WL -->|load| WA
+    WL -->|load| WB
+    SDK <--> WA
+    SDK <--> WB
+    WA --> SLOTS
+    WB --> SLOTS

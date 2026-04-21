@@ -1,0 +1,22 @@
+%% Diagram: Layout thrashing - interleaved reads vs batched
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant JS as JavaScript
+    participant Pending as Pending mutations
+    participant Engine as Style + Layout
+
+    Note over JS,Engine: BAD — interleaved read after write
+    loop For each item N
+        JS->>Engine: read offsetWidth
+        Engine-->>JS: flushes pending styles + layout
+        JS->>Pending: write item.style.width
+    end
+
+    Note over JS,Engine: GOOD — batch reads, then writes
+    JS->>Engine: read offsetWidth once
+    Engine-->>JS: single flush
+    loop For each item N
+        JS->>Pending: write item.style.width
+    end
+    Pending-->>Engine: flush at next frame boundary

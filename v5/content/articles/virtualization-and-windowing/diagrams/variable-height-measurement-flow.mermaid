@@ -1,0 +1,17 @@
+%% Diagram: Variable-height measurement and correction flow
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant U as User
+    participant V as Virtualizer
+    participant C as Cache
+    participant D as DOM+RO
+
+    U->>V: scroll (rAF)
+    V->>C: lookup heights
+    C-->>V: measured + est.
+    V->>D: render window
+    D-->>V: RO: actual heights
+    V->>C: write measured
+    V->>V: recompute total
+    Note over V,D: Wrong est. → jump.<br/>Overscan + anchor mitigate.

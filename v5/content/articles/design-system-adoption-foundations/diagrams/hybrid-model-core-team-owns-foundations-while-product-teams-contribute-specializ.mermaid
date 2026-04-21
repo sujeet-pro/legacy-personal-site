@@ -1,0 +1,30 @@
+%% Diagram: Hybrid Model
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    Core["Core team\nfoundations + review gates"]
+
+    subgraph Shared["Shared layer"]
+        direction TB
+        Foundations[("Foundations\ntokens, primitives,\na11y baseline")]
+        Standards[("Shared standards\nAPI patterns, tests,\na11y, docs")]
+    end
+
+    subgraph Teams["Product teams"]
+        direction TB
+        PA["Team A\ndomain components"]
+        PB["Team B\ndomain components"]
+        PC["Team C\nrecipes / one-offs"]
+    end
+
+    Core ==> Shared
+    Shared ==> Teams
+    Standards -.gates.-> Teams
+    Teams -.promote upstream.-> Core
+
+    classDef core fill:#2E5A88,stroke:#1F4870,color:#ffffff
+    classDef shared fill:#2E7D5A,stroke:#1F5C42,color:#ffffff
+    classDef team fill:#5A5A5A,stroke:#3D3D3D,color:#ffffff
+    class Core core
+    class Foundations,Standards shared
+    class PA,PB,PC team

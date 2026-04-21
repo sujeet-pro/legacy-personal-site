@@ -1,0 +1,25 @@
+%% Diagram: Stories Architecture Aggressive Client Side Prefetch With Ttl Synced Caching Rin
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    subgraph "Client"
+        APP[App] --> PREFETCH[Prefetch Manager]
+        PREFETCH --> LOCAL[(Local Cache)]
+    end
+
+    subgraph "Stories Service"
+        API[Stories API]
+        RING[Ring Ordering Service]
+        TTL[TTL Manager]
+    end
+
+    subgraph "Storage"
+        REDIS[(Redis<br/>Story Metadata<br/>24h TTL)]
+        S3[(S3<br/>Story Media)]
+        CDN[CDN Edge]
+    end
+
+    APP --> API
+    API --> RING --> REDIS
+    TTL --> REDIS
+    S3 --> CDN --> PREFETCH

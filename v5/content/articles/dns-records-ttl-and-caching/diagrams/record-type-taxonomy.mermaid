@@ -1,0 +1,49 @@
+%% Diagram: DNS record types grouped by functional category
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    Root["DNS record types"]
+
+    Addr["Address resolution"]
+    Del["Zone delegation"]
+    Svc["Service location"]
+    Sec["Security and verification"]
+
+    Root --> Addr
+    Root --> Del
+    Root --> Svc
+    Root --> Sec
+
+    Addr --> A["A — IPv4 address (RFC 1035)"]
+    Addr --> AAAA["AAAA — IPv6 address (RFC 3596)"]
+    Addr --> CNAME["CNAME — alias (RFC 1034 §3.6.2; forbidden at apex)"]
+    Addr --> PTR["PTR — reverse DNS (in-addr.arpa / ip6.arpa)"]
+
+    Del --> NS["NS — delegate to nameservers"]
+    Del --> SOA["SOA — zone metadata + negative-cache TTL (RFC 2308)"]
+
+    Svc --> MX["MX — mail (RFC 5321 / RFC 7505)"]
+    Svc --> SRV["SRV — generic service (RFC 2782)"]
+
+    Sec --> TXT["TXT — SPF, DKIM, DMARC + domain verification"]
+    Sec --> CAA["CAA — restrict CAs (RFC 8659; mandatory since 2017-09)"]
+
+    classDef rootCat fill:#5A5A5A,stroke:#3D3D3D,color:#ffffff,font-weight:bold
+    classDef cat_addr fill:#2E5A88,stroke:#1F4870,color:#ffffff,font-weight:bold
+    classDef cat_del fill:#2D7A2D,stroke:#1E5A1E,color:#ffffff,font-weight:bold
+    classDef cat_svc fill:#8B5E15,stroke:#6E4810,color:#ffffff,font-weight:bold
+    classDef cat_sec fill:#B43A3A,stroke:#8E2828,color:#ffffff,font-weight:bold
+    classDef leaf_addr fill:#dbeafe,stroke:#1F4870,color:#0c1f5e
+    classDef leaf_del fill:#dcfce7,stroke:#1E5A1E,color:#0a3a0a
+    classDef leaf_svc fill:#fef3c7,stroke:#6E4810,color:#3a1604
+    classDef leaf_sec fill:#fee2e2,stroke:#8E2828,color:#450a0a
+
+    class Root rootCat
+    class Addr cat_addr
+    class Del cat_del
+    class Svc cat_svc
+    class Sec cat_sec
+    class A,AAAA,CNAME,PTR leaf_addr
+    class NS,SOA leaf_del
+    class MX,SRV leaf_svc
+    class TXT,CAA leaf_sec

@@ -1,0 +1,26 @@
+%% Diagram: Friend leaderboard via ZINTERSTORE
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart LR
+    subgraph Inputs["Inputs"]
+        G["ZSET lb:alltime<br/>~100M members<br/>(global)"]
+        F["SET user:42:friends<br/>~150 members<br/>(friend ids only)"]
+    end
+
+    Z["ZINTERSTORE lb:f:42 2<br/>lb:alltime user:42:friends<br/>WEIGHTS 1 0"]
+    T["ZSET lb:f:42<br/>scores from lb:alltime,<br/>members from intersection"]
+    R["ZREVRANGE lb:f:42 0 19 WITHSCORES<br/>EXPIRE lb:f:42 60"]
+
+    G --> Z
+    F --> Z
+    Z --> T --> R
+
+    NoteCost["O(N*K) + O(M*log M)<br/>N = |smallest input| (friends)<br/>K = number of inputs (2)<br/>M = result size"]
+    Z -. cost .- NoteCost
+
+    classDef primary fill:#2E5A88,stroke:#1F4870,color:#fff
+    classDef storage fill:#8B5E15,stroke:#6E4810,color:#fff
+    classDef neutral fill:#5A5A5A,stroke:#3D3D3D,color:#fff
+    class Z primary
+    class T storage
+    class NoteCost neutral

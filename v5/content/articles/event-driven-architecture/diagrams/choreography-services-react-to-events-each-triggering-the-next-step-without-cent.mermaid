@@ -1,0 +1,13 @@
+%% Diagram: Choreography Services React To Events Each Triggering The Next Step Without Cent
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant Order
+    participant Inventory
+    participant Payment
+    participant Shipping
+
+    Order->>Inventory: OrderPlaced event
+    Inventory->>Payment: InventoryReserved event
+    Payment->>Shipping: PaymentProcessed event
+    Shipping->>Order: ShipmentCreated event

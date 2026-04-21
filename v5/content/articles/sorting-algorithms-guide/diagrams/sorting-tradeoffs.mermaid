@@ -1,0 +1,17 @@
+%% Diagram: Sorting Trade-off Triangle
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    TIME["TIME<br/>O(n²) → O(n log n) → O(n)"]
+    SPACE["SPACE<br/>O(1) → O(log n) → O(n)"]
+    STAB["STABILITY<br/>Preserves equal-key order"]
+
+    TIME <-->|"cache vs<br/>aux buffers"| SPACE
+    SPACE <-->|"buffers enable<br/>stable merges"| STAB
+    STAB <-->|"stability often costs<br/>log factor or O(n) space"| TIME
+
+    QS["Quick Sort<br/>fast, in-place, unstable"] -.- TIME
+    PDQ["pdqsort / ipnsort<br/>fast, in-place, unstable, pattern-aware"] -.- TIME
+    MS["Merge Sort<br/>stable, O(n) space"] -.- STAB
+    TIM["Tim Sort / Powersort<br/>stable, O(n) space, adaptive"] -.- STAB
+    HS["Heap Sort<br/>O(1) space, slower in practice"] -.- SPACE

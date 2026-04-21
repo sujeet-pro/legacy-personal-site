@@ -1,0 +1,27 @@
+%% Diagram: TCP HOL Blocking under HTTP/2
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant S as Server
+    participant N as Network
+    participant C as Client
+
+    S->>N: Seg 1 (stream 1, CSS)
+    S->>N: Seg 2 (stream 3, JS)
+    S->>N: Seg 3 (stream 5, img)
+
+    Note over N: Seg 1 dropped
+
+    N->>C: Seg 2 arrives, buffered
+    N->>C: Seg 3 arrives, buffered
+
+    Note over C: App sees nothing<br/>(TCP in-order)
+
+    Note over S,C: ~1 RTT later<br/>(retransmit timeout)
+
+    S->>N: Seg 1 (retransmit)
+    N->>C: Seg 1 arrives
+
+    C-->>C: TCP releases 1,2,3<br/>to HTTP/2
+
+    Note over C: 3 streams stalled<br/>by 1 lost segment

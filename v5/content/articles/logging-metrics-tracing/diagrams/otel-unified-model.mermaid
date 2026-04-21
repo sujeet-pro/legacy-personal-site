@@ -1,0 +1,24 @@
+%% Diagram: OpenTelemetry unified instrumentation model
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    OTelSDK["OpenTelemetry SDK\n(in application process)"]
+
+    Logs["Logs\nevents + context"]
+    Metrics["Metrics\naggregated measurements"]
+    Traces["Traces\nrequest flow"]
+
+    OTLP["OTLP\ngRPC or HTTP"]
+
+    Backends["Storage backends\nLoki / Prometheus / Tempo"]
+
+    OTelSDK --> Logs
+    OTelSDK --> Metrics
+    OTelSDK --> Traces
+    Logs --> OTLP
+    Metrics --> OTLP
+    Traces --> OTLP
+    OTLP --> Backends
+
+    Traces -.->|"TraceId, SpanId\n(auto correlation)"| Logs
+    Traces -.->|"Exemplars\n(metric to trace)"| Metrics

@@ -1,0 +1,26 @@
+%% Diagram: Two-phase upload — safety/EXIF + variants, then post creation triggers fan-out
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant C as Client
+    participant US as Upload Svc
+    participant SAFE as Safety + EXIF
+    participant IMG as Processor
+    participant S3 as Object + CDN
+    participant PS as Post Svc
+
+    C->>US: POST /upload
+    US->>US: validate size + format
+    US->>S3: store original
+    US->>SAFE: PhotoDNA / PDQ + classifiers
+    SAFE-->>US: allow / block / review
+    SAFE->>SAFE: strip GPS + serial EXIF
+    US->>IMG: process
+    IMG->>IMG: resize ladder 1080/640/320/150 + filter
+    IMG->>S3: write variants + warm edge
+    US-->>C: 200 {media_id}
+
+    Note over C: caption + tags
+    C->>PS: POST /posts
+    PS->>PS: hybrid fan-out
+    PS-->>C: 201 {post_id}

@@ -1,0 +1,11 @@
+%% Diagram: Multi-stage ranking funnel
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart LR
+    ALL["Inventory<br/>~10,000 candidates"]
+    FILTER["Eligibility filter<br/>(blocked, hidden, seen)"]
+    LIGHT["Pass 0<br/>Lightweight model<br/>~500 candidates"]
+    HEAVY["Pass 1<br/>Multitask NN<br/>~100 candidates"]
+    RERANK["Pass 2<br/>Diversity + integrity<br/>~50 posts"]
+
+    ALL --> FILTER --> LIGHT --> HEAVY --> RERANK

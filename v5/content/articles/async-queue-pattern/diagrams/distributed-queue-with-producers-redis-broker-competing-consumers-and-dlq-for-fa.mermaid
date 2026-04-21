@@ -1,0 +1,43 @@
+%% Diagram: Distributed Queue With Producers Redis Broker Competing Consumers And Dlq For Fa
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+graph TB
+    subgraph "Producers"
+        P1[API Server]
+        P2[Cron Job]
+        P3[Event Handler]
+    end
+
+    subgraph "Message Broker"
+        MB[(Redis)]
+    end
+
+    subgraph "Workers"
+        W1[Worker 1]
+        W2[Worker 2]
+        W3[Worker 3]
+    end
+
+    subgraph "Failure Handling"
+        DLQ[(Dead Letter Queue)]
+    end
+
+    P1 --> MB
+    P2 --> MB
+    P3 --> MB
+    MB --> W1
+    MB --> W2
+    MB --> W3
+    W1 -->|Max retries exceeded| DLQ
+    W2 -->|Max retries exceeded| DLQ
+    W3 -->|Max retries exceeded| DLQ
+
+    classDef producerClass fill:#8B5E15,stroke:#000,stroke-width:2px,color:#ffffff
+    classDef brokerClass fill:#5A5A5A,stroke:#000,stroke-width:2px,color:#ffffff
+    classDef workerClass fill:#1F6E68,stroke:#000,stroke-width:2px,color:#ffffff
+    classDef dlqClass fill:#B43A3A,stroke:#000,stroke-width:2px,color:#ffffff
+
+    class P1,P2,P3 producerClass
+    class MB brokerClass
+    class W1,W2,W3 workerClass
+    class DLQ dlqClass

@@ -1,0 +1,19 @@
+%% Diagram: Cell write path
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant C as Client
+    participant W as Worker
+    participant S as Sec master
+    participant P as Pri master
+    participant R as Pri minions
+
+    C->>W: PUT cell
+    W->>W: hash % 4096
+    W->>S: insert buffer
+    S-->>W: ack
+    W->>P: insert entity
+    P-->>W: ack
+    W-->>C: 200 OK
+    P-)R: async repl
+    R--)S: reaper deletes buffer row

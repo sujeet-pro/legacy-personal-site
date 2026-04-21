@@ -1,0 +1,26 @@
+%% Diagram: Payment lifecycle state machine
+%% Type: state
+%%{init: {'htmlLabels': false}}%%
+stateDiagram-v2
+    direction TB
+    [*] --> pending: POST /payments
+    pending --> requires_action: 3DS2 challenge
+    pending --> requires_capture: Auth only ok
+    pending --> processing: Auth+capture
+    pending --> failed: Validation / fraud
+    requires_action --> processing: Challenge passed
+    requires_action --> failed: Challenge failed
+    requires_capture --> processing: POST /capture
+    requires_capture --> canceled: POST /cancel
+    requires_capture --> failed: Auth expired
+    processing --> succeeded: Issuer approved
+    processing --> failed: Issuer declined
+    succeeded --> partially_refunded: Refund (partial)
+    succeeded --> refunded: Refund (full)
+    partially_refunded --> refunded: Remaining refunded
+    succeeded --> disputed: dispute.created
+    disputed --> succeeded: Dispute won
+    disputed --> refunded: Dispute lost
+    refunded --> [*]
+    canceled --> [*]
+    failed --> [*]

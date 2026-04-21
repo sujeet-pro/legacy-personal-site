@@ -1,0 +1,28 @@
+%% Diagram: Transport choice decision tree
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TD
+    START(["Need to fetch /<br/>push data"]) --> SHAPE{"Data shape?"}
+
+    SHAPE -->|"Resource,<br/>cacheable"| REST["REST + HTTP cache<br/>(RFC 9111)"]
+    SHAPE -->|"Graph"| GQL["GraphQL + APQ"]
+    SHAPE -->|"Typed RPC"| RPCK{"Stack?"}
+    SHAPE -->|"Server push"| PUSH{"Direction?"}
+
+    RPCK -->|"TS only"| TRPC["tRPC<br/>(no IDL)"]
+    RPCK -->|"Polyglot /<br/>Protobuf"| CONNECT["Connect /<br/>gRPC-Web"]
+
+    PUSH -->|"One-way"| SSE["SSE / EventSource"]
+    PUSH -->|"Bi-dir,<br/>simple"| WS["WebSocket<br/>(RFC 6455)"]
+    PUSH -->|"Bi-dir,<br/>low-latency"| WT["WebTransport<br/>(QUIC)"]
+
+    classDef start fill:#2E5A88,stroke:#1F4870,color:#ffffff
+    classDef rest fill:#1F6E68,stroke:#155752,color:#ffffff
+    classDef rpc fill:#8B5E15,stroke:#6E4810,color:#ffffff
+    classDef stream fill:#6B3FA0,stroke:#522F7A,color:#ffffff
+    classDef gate fill:#5A5A5A,stroke:#3D3D3D,color:#ffffff
+    class START start
+    class REST rest
+    class GQL,TRPC,CONNECT rpc
+    class SSE,WS,WT stream
+    class SHAPE,RPCK,PUSH gate

@@ -1,0 +1,27 @@
+%% Diagram: Netflix S 7 Year Journey From A Monolithic Java Oracle Stack To 700 Microservice
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    subgraph Before["2008: Monolith"]
+        Client1["Clients"] --> NCCP["NCCP\n(Monolithic API)"]
+        NCCP --> Oracle["Oracle DB\n(Single SPOF)"]
+    end
+
+    subgraph Migration["2009–2016: 7-Year Migration"]
+        direction TB
+        P1["Phase 1\nNon-critical workloads\n(2009)"]
+        P2["Phase 2\nStateless services\n(2010–2012)"]
+        P3["Phase 3\nData tier migration\n(2012–2014)"]
+        P4["Phase 4\nMulti-region active-active\n(2015–2016)"]
+        P1 --> P2 --> P3 --> P4
+    end
+
+    subgraph After["2016: Microservices on AWS"]
+        Client2["Clients"] --> Zuul["Zuul\n(API Gateway)"]
+        Zuul --> MS1["Hundreds of microservices\n(commonly cited as ~700)"]
+        MS1 --> Cass["Cassandra\n(50+ clusters, 750+ nodes)"]
+        MS1 --> EVC["EVCache\n(~400M ops/sec)"]
+    end
+
+    Before -->|"2008 DB corruption\ntriggers migration"| Migration
+    Migration -->|"Jan 2016\nmigration complete"| After

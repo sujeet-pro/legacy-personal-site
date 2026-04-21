@@ -1,0 +1,25 @@
+%% Diagram: Intersection Computation
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+  root["root<br/>(viewport or Element)<br/>+ rootMargin"]
+  target["target<br/>getBoundingClientRect()"]
+
+  rir["Root intersection rect"]
+  walk["Walk containing-block;<br/>clip by overflow / clip-path;<br/>+ scrollMargin per scrollport"]
+  inter["Intersect"]
+  ratio["intersectionRatio"]
+  idx["thresholdIndex"]
+  cmp{"thresholdIndex or<br/>isIntersecting changed?"}
+  queue["Queue<br/>IntersectionObserverEntry"]
+  skip["No notification"]
+
+  root --> rir
+  target --> walk
+  rir --> inter
+  walk --> inter
+  inter --> ratio
+  ratio --> idx
+  idx --> cmp
+  cmp -->|"yes"| queue
+  cmp -->|"no"| skip

@@ -1,0 +1,32 @@
+%% Diagram: Event Sourcing With Cqrs Events Flow From Write Side Through Queue To Multiple R
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+graph TD
+    subgraph "Write Side"
+        C[Command Handler]
+        ES[(Event Store)]
+    end
+
+    subgraph "Event Distribution"
+        Q[Message Queue]
+    end
+
+    subgraph "Read Side"
+        R1[Read Model 1]
+        R2[Read Model 2]
+        R3[Analytics]
+    end
+
+    C -->|Append Event| ES
+    ES -->|Publish| Q
+    Q --> R1
+    Q --> R2
+    Q --> R3
+
+    classDef writeClass fill:#8B5E15,stroke:#000,stroke-width:2px,color:#ffffff
+    classDef queueClass fill:#5A5A5A,stroke:#000,stroke-width:2px,color:#ffffff
+    classDef readClass fill:#1F6E68,stroke:#000,stroke-width:2px,color:#ffffff
+
+    class C,ES writeClass
+    class Q queueClass
+    class R1,R2,R3 readClass

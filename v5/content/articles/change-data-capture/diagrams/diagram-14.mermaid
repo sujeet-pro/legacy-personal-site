@@ -1,0 +1,9 @@
+%% Diagram: Diagram 14
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    DB[(OLTP DB)] --> CDC[Debezium]
+    CDC --> K[Kafka]
+    K --> F[Flink]
+    F --> DW[(Data Warehouse)]
+    F --> RT[Real-time Dashboard]

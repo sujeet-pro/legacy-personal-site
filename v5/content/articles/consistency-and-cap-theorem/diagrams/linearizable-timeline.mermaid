@@ -1,0 +1,22 @@
+%% Diagram: Linearizable timeline — operations as wall-clock intervals with linearization points
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant A as Client A
+    participant K as Key x (linearization)
+    participant B as Client B
+    participant C as Client C
+
+    A->>K: write(x=1) start
+    Note over K: lin point: x = 1
+    K-->>A: ack
+    B->>K: read(x) start
+    K-->>B: returns 1
+    A->>K: read(x) start
+    K-->>A: returns 1
+    B->>K: write(x=2) start
+    Note over K: lin point: x = 2
+    K-->>B: ack
+    C->>K: read(x) start
+    K-->>C: returns 2
+    Note over A,C: Real-time order: A:write(1) < B:read(1) < B:write(2) < C:read(2)

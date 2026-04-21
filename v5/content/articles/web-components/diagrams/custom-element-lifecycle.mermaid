@@ -1,0 +1,15 @@
+%% Diagram: Custom Element Lifecycle
+%% Type: state
+%%{init: {'htmlLabels': false}}%%
+stateDiagram-v2
+  direction TB
+  [*] --> Constructed: new or upgrade
+  Constructed --> Connected: connectedCallback
+  Connected --> AttributeChanged: attributeChangedCallback
+  AttributeChanged --> Connected: sync or render
+  Connected --> Adopted: adoptedCallback
+  Adopted --> Connected: still connected
+  Connected --> Connected: connectedMoveCallback (moveBefore)
+  Connected --> Disconnected: disconnectedCallback
+  Disconnected --> Connected: re-inserted
+  Disconnected --> [*]: GC when unreachable

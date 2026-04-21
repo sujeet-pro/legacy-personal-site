@@ -1,0 +1,17 @@
+%% Diagram: strangler-rollout-timeline
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart LR
+    A["A · Blog & marketing\n10% SSR · 4w"]:::pa
+    B["B · Product pages\n25% SSR · 4w"]:::pb
+    C["C · Listings & search\n50% SSR · 4w"]:::pc
+    D["D · Checkout cutover\n100% SSR · 2w"]:::pd
+    E["Decommission\nRetire SSG · 2w"]:::pe
+
+    A --> B --> C --> D --> E
+
+    classDef pa fill:#5A5A5A,stroke:#3D3D3D,color:#fff
+    classDef pb fill:#2E5A88,stroke:#1F4870,color:#fff
+    classDef pc fill:#1F6E68,stroke:#155752,color:#fff
+    classDef pd fill:#B43A3A,stroke:#8E2828,color:#fff
+    classDef pe fill:#2D7A2D,stroke:#1E5A1E,color:#fff

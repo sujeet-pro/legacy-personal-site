@@ -1,0 +1,29 @@
+%% Diagram: Orchestrated saga with compensating transactions on failure
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant Cl as Client
+    participant Or as Orchestrator
+    participant Od as Order
+    participant Pa as Payment
+    participant In as Inventory
+
+    Cl->>Or: place order
+
+    Or->>Od: create (PENDING)
+    Od-->>Or: ok
+
+    Or->>Pa: reserve
+    Pa-->>Or: ok
+
+    Or->>In: reserve
+    In--xOr: FAIL
+
+    note over Or,In: Compensate in reverse —\nidempotent, semantic.
+
+    Or->>Pa: release hold
+    Pa-->>Or: ok
+    Or->>Od: cancel
+    Od-->>Or: ok
+
+    Or-->>Cl: failed

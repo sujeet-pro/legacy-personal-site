@@ -1,0 +1,20 @@
+%% Diagram: Lane Preemption Sequence
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant U as User
+    participant S as Scheduler
+    participant T as Transition\n(Low priority)
+    participant C as Sync\n(Click handler)
+    participant D as DOM
+
+    U->>S: 1. startTransition(filter)
+    S->>T: 2. Begin work loop\n(TransitionLane)
+    T-->>S: 3. Yield after 5 ms\n(MessageChannel)
+    U->>S: 4. Click event
+    S->>S: 5. Schedule SyncLane
+    S->>T: 6. Discard WIP tree
+    S->>C: 7. Begin sync render
+    C->>D: 8. Commit feedback
+    S->>T: 9. Restart transition
+    T->>D: 10. Commit filtered list

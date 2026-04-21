@@ -1,0 +1,18 @@
+%% Diagram: Orchestration Central Orchestrator Commands Services And Handles The Workflow
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant Client
+    participant Orchestrator
+    participant Inventory
+    participant Payment
+    participant Shipping
+
+    Client->>Orchestrator: PlaceOrder
+    Orchestrator->>Inventory: ReserveInventory
+    Inventory-->>Orchestrator: Reserved
+    Orchestrator->>Payment: ProcessPayment
+    Payment-->>Orchestrator: Processed
+    Orchestrator->>Shipping: CreateShipment
+    Shipping-->>Orchestrator: Created
+    Orchestrator-->>Client: OrderComplete

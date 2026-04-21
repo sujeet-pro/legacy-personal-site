@@ -1,0 +1,20 @@
+%% Diagram: Rsc Flight Stream Sequence
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant B as Browser
+    participant E as Edge\n(SSR + RSC)
+    participant DB as Database
+
+    B->>E: 1. GET /products
+    E->>E: 2. Render server tree
+    E->>DB: 3. Query products
+    DB-->>E: 4. Rows
+    E-->>B: 5. Shell + first chunks
+    Note over E,B: Stream continues as\nSuspense boundaries resolve
+    E->>DB: 6. Query reviews\n(suspended)
+    DB-->>E: 7. Rows
+    E-->>B: 8. Flight chunk\n(reviews subtree)
+    B->>B: 9. Patch DOM placeholder
+    B->>B: 10. Hydrate client islands
+    Note over B: Server code never\ncrosses the wire

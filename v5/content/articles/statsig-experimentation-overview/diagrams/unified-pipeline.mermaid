@@ -1,0 +1,34 @@
+%% Diagram: Statsig unified platform - one ingestion pipeline for all surfaces
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    subgraph Surfaces["Product surfaces"]
+        FF[Feature flags]
+        XP[Experiments]
+        PA[Product analytics]
+        SR[Session replay]
+    end
+
+    subgraph Ingest["Shared ingestion + identity"]
+        Pipe["Event pipeline (common identity + metric model)"]
+    end
+
+    subgraph Backend["Platform services"]
+        Assign["Assignment service"]
+        Cfg["Configuration service<br/>(serves config spec)"]
+        Metrics["Metrics pipeline"]
+        Stats["Stats Engine<br/>(CUPED, sequential testing)"]
+    end
+
+    FF --> Pipe
+    XP --> Pipe
+    PA --> Pipe
+    SR --> Pipe
+
+    Pipe --> Assign
+    Pipe --> Cfg
+    Pipe --> Metrics
+    Metrics --> Stats
+
+    Outcome["Causal link from exposure to outcome without cross-tool reconciliation"]
+    Stats --> Outcome

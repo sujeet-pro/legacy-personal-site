@@ -1,0 +1,17 @@
+%% Diagram: Server SDK lifecycle - download full config, evaluate locally
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    Init["new Statsig(secretKey, options)<br/>await statsig.initialize()"]
+    CDN[(api.statsigcdn.com<br/>/v1/download_config_specs)]
+    Spec["In-memory config spec<br/>(gates, configs, layers, id_lists)"]
+    Poller["Background poller<br/>rulesetsSyncIntervalMs=10000 default"]
+    Eval["checkGate / getExperiment / getDynamicConfig<br/>SHA-256(salt+unitID) % 10000<br/>target: sub-1ms"]
+
+    Init -- "GET with secret key" --> CDN
+    CDN -- "JSON spec" --> Spec
+    Spec --> Eval
+    Poller -- "company_lcut delta poll" --> CDN
+    CDN -. "atomic swap" .-> Spec
+
+    Caller["Application code"] --> Eval

@@ -1,0 +1,25 @@
+%% Diagram: Saga With Compensating Transactions Each Step Has A Corresponding Rollback Actio
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+graph TB
+    subgraph "Order Saga - Happy Path"
+        S1[1. Reserve Inventory]
+        S2[2. Charge Payment]
+        S3[3. Ship Order]
+        S4[4. Confirm]
+    end
+
+    subgraph "Compensation - On Failure"
+        C3[Cancel Shipment]
+        C2[Refund Payment]
+        C1[Release Inventory]
+    end
+
+    S1 --> S2 --> S3 --> S4
+    S3 -->|Failure| C3 --> C2 --> C1
+
+    classDef stepClass fill:#1F6E68,stroke:#000,stroke-width:2px,color:#ffffff
+    classDef compClass fill:#B43A3A,stroke:#000,stroke-width:2px,color:#ffffff
+
+    class S1,S2,S3,S4 stepClass
+    class C1,C2,C3 compClass

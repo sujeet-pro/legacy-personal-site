@@ -1,0 +1,20 @@
+%% Diagram: React Server Components style boundary — which strategies cross the line
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    ServerOK["Server Component\n(no JS, no hooks, no Context)\nOK: Tailwind / UnoCSS, CSS Modules,\nvanilla-extract, StyleX, Pigment CSS,\nplain stylesheets / @layer"]:::server
+    ServerLimited["Limited at server render\nstyled-components 6.3+ inline injection\nno ThemeProvider Context"]:::server
+    Boundary["'use client' boundary\nReact Context, hooks, effects available"]:::boundary
+    ClientOK["Client Component\nOK at hydration:\nruntime CSS-in-JS\n(styled-components, Emotion),\nThemeProvider, useInsertionEffect,\ndynamic per-render styles"]:::client
+    Vars["CSS custom properties\nset on html or layout root\nread by both trees"]:::theme
+
+    ServerOK --> Boundary
+    ServerLimited --> Boundary
+    Boundary --> ClientOK
+    Vars -. "consumed by both" .-> ServerOK
+    Vars -. "consumed by both" .-> ClientOK
+
+    classDef server fill:#1F6E68,stroke:#155752,color:#ffffff
+    classDef client fill:#2E5A88,stroke:#1F4870,color:#ffffff
+    classDef boundary fill:#B43A3A,stroke:#8E2828,color:#ffffff
+    classDef theme fill:#5A4A8A,stroke:#3D3163,color:#ffffff

@@ -1,0 +1,18 @@
+%% Diagram: ISR cache lifecycle
+%% Type: state
+%%{init: {'htmlLabels': false}}%%
+stateDiagram-v2
+    [*] --> Built: build prerender
+    Built --> Fresh: deploy to CDN
+    Fresh --> Fresh: hit within\nrevalidate window
+    Fresh --> Stale: window expires
+    Stale --> Regenerating: first request\nafter expiry
+    Regenerating --> Fresh: new HTML\nreplaces cache
+    Regenerating --> Stale: regen error\n(retry next request)
+
+    Fresh --> Regenerating: revalidatePath /\nrevalidateTag
+    note right of Stale
+        Caller still gets a fast
+        cached response while a
+        background re-render runs.
+    end note

@@ -1,0 +1,32 @@
+%% Diagram: Federated Model
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    Core["Core team (2-3)\n---\nOwns process, tokens,\nreview, releases"]
+
+    Ch1["Champion - team A"]
+    Ch2["Champion - team B"]
+    Ch3["Champion - team C"]
+
+    TA["Product team A"]
+    TB["Product team B"]
+    TC["Product team C"]
+
+    Core <==> Ch1
+    Core <==> Ch2
+    Core <==> Ch3
+
+    Ch1 --- TA
+    Ch2 --- TB
+    Ch3 --- TC
+
+    TA -.RFC / contribution.-> Core
+    TB -.RFC / contribution.-> Core
+    TC -.RFC / contribution.-> Core
+
+    classDef core fill:#2E5A88,stroke:#1F4870,color:#ffffff
+    classDef champ fill:#7A4A2E,stroke:#5C381F,color:#ffffff
+    classDef team fill:#5A5A5A,stroke:#3D3D3D,color:#ffffff
+    class Core core
+    class Ch1,Ch2,Ch3 champ
+    class TA,TB,TC team

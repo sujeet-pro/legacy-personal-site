@@ -1,0 +1,18 @@
+%% Diagram: Diagram 4
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    APP["Mobile/Web App\n+ Offline Cache"]
+    EDGE["Edge\nGeoDNS · CDN · L4 LB"]
+    GW["API Gateway\n+ Auth + Rate Limiter"]
+    AGG["Aggregator\nLeaf + Tailer"]
+    RANK["Ranking Pipeline\nretrieve → 1st → 2nd → rerank"]
+    POST_SVC["Post + Graph + Engagement"]
+    FANOUT["Fan-out + Push"]
+    DATA["Data Layer\nTAO · Redis · MySQL · Kafka · S3"]
+    ML["ML Platform"]
+
+    APP --> EDGE --> GW --> AGG --> RANK --> ML
+    AGG --> DATA
+    POST_SVC --> DATA
+    POST_SVC --> FANOUT --> DATA

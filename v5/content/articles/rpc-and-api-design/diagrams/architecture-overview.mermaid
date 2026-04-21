@@ -1,0 +1,37 @@
+%% Diagram: Protocol families across the request lifecycle
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    Browser[Browser]
+    Mobile[Mobile App]
+    Partner[Partner / S2S]
+    Service[Internal Service]
+
+    CDN[CDN / Cache]
+    Gateway["API Gateway\nauth, rate limit,\nversion routing"]
+
+    REST[REST / JSON]
+    GraphQL[GraphQL]
+    gRPCWeb[gRPC-Web]
+    gRPC[gRPC over HTTP/2]
+
+    BFF[BFF / Aggregator]
+    Svc[Domain Services]
+    Stream[Streaming / Pub-Sub]
+
+    Browser --> CDN
+    CDN --> Gateway
+    Mobile --> Gateway
+    Partner --> Gateway
+    Service --> Gateway
+
+    Gateway --> REST
+    Gateway --> GraphQL
+    Gateway --> gRPCWeb
+
+    REST --> BFF
+    GraphQL --> BFF
+    gRPCWeb --> BFF
+    BFF --> gRPC
+    gRPC --> Svc
+    Svc --> Stream

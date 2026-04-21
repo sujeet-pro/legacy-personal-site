@@ -1,0 +1,31 @@
+%% Diagram: High Level Architecture Aggregators Query Leaf Servers For Candidates Ranking Se
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    CLIENTS["Clients\nMobile / Web"]
+    LB["LB"]
+    GW["Gateway"]
+    AGG["Aggregator"]
+    LEAF["Leaf Servers"]
+    RANK["Ranking"]
+    POST["Post"]
+    USER["User"]
+    SOCIAL["Social Graph"]
+    FANOUT["Fan-out"]
+    KAFKA["Kafka"]
+    TAO["TAO Store"]
+    REDIS["Redis"]
+    MYSQL[(MySQL)]
+    S3["S3"]
+    FEATURE["Feature Store"]
+    MODEL["Model Serving"]
+
+    CLIENTS --> LB --> GW --> AGG
+    AGG --> LEAF
+    AGG --> RANK
+    RANK --> MODEL --> FEATURE
+    LEAF --> TAO
+    POST --> KAFKA --> FANOUT --> REDIS
+    SOCIAL --> TAO
+    TAO --> MYSQL
+    POST --> S3

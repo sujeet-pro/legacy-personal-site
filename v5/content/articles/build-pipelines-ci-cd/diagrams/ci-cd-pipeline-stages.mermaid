@@ -1,0 +1,21 @@
+%% Diagram: Ci Cd Pipeline Stages
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TD
+  T[Version control event: commit or PR] --> V[Static verification: lint, format, typecheck]
+  V --> F1{Pass?}
+  F1 -->|No| X1[Fail fast: fix locally]
+  F1 -->|Yes| U[Fast tests: unit and scoped integration]
+  U --> F2{Pass?}
+  F2 -->|No| X2[Block merge or mainline signal]
+  F2 -->|Yes| B[Build: compile, package, container image]
+  B --> A[Publish immutable artifacts with digest metadata]
+  A --> G[Security and policy gates: SAST, SCA, secrets, licenses]
+  G --> F3{Pass?}
+  F3 -->|No| X3[Quarantine or deny promotion]
+  F3 -->|Yes| N[Deploy to non-production environment]
+  N --> S[Environment tests: smoke, contract, targeted e2e]
+  S --> F4{Pass?}
+  F4 -->|No| R1[Roll back or hold promotion]
+  F4 -->|Yes| P[Controlled production rollout with monitors]
+  P --> O[Observe: SLOs, errors, business KPIs]

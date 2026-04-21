@@ -1,0 +1,15 @@
+%% Diagram: Deprecation timeline across release cycles
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart LR
+    V1["v3.4 — Card ships"] --> V2["v3.7 — deprecate\nconsole.warn + docs"]
+    V2 --> V3["v3.8–3.10 — codemod\nchampions migrate"]
+    V3 --> V4["v4.0 — Card removed"]
+
+    classDef live fill:#2E5A88,stroke:#1F4870,color:#ffffff
+    classDef warn fill:#8B5E15,stroke:#6E4810,color:#ffffff
+    classDef removed fill:#B43A3A,stroke:#8E2828,color:#ffffff
+
+    class V1 live
+    class V2,V3 warn
+    class V4 removed

@@ -1,0 +1,27 @@
+%% Diagram: Transactionally-staged job drain
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant API as API
+    participant DB as Postgres
+    participant ENQ as Enqueuer
+    participant Q as Redis
+    participant W as Worker
+
+    API->>DB: BEGIN
+    API->>DB: INSERT ride
+    API->>DB: INSERT staged_jobs
+    API->>DB: COMMIT
+
+    Note over DB: rows visible to<br/>other transactions
+
+    loop poll
+        ENQ->>DB: BEGIN (REPEATABLE READ)
+        ENQ->>DB: SELECT staged_jobs LIMIT N
+        ENQ->>Q: ENQUEUE jobs
+        ENQ->>DB: DELETE selected
+        ENQ->>DB: COMMIT
+    end
+
+    Q-->>W: dequeue
+    W->>W: send receipt

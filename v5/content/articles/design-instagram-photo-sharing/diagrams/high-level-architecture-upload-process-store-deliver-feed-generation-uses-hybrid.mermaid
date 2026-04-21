@@ -1,0 +1,34 @@
+%% Diagram: High Level Architecture Upload Process Store Deliver Feed Generation Uses Hybrid
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    U["Upload"]
+    US["Upload Svc"]
+    RAW[(Raw)]
+    IP["Image Processing"]
+    CDN[(CDN)]
+    POST["Post Svc"]
+    FO["Fan-out"]
+    TC[(Timeline)]
+    STORY["Stories Svc"]
+    SC[(Stories Cache)]
+    SEARCH["Search"]
+    REC["Explore"]
+    NOTIFY["Notif"]
+    DM["DMs"]
+    META[(PG)]
+    SOCIAL[(Cassandra)]
+    CACHE[(Redis)]
+
+    U --> US --> RAW
+    US --> IP --> CDN
+    POST --> FO --> TC
+    STORY --> SC
+    CDN --> SEARCH
+    CDN --> REC
+    TC --> NOTIFY
+    TC --> DM
+    US --> META
+    POST --> META
+    POST --> SOCIAL
+    FO --> CACHE

@@ -1,0 +1,15 @@
+%% Diagram: Capacity Planning Workflow
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TD
+    A["Frame objectives<br/>and falsifiable hypotheses"] --> B["Model workload mix<br/>and scenarios"]
+    B --> C["Prepare systems<br/>and realistic data or mocks"]
+    C --> D["Warmup then validate<br/>steady-state behavior"]
+    D --> E["Execute scenarios<br/>and observe SLO signals"]
+    E --> F{"Bottleneck or<br/>SLO violation?"}
+    F -->|Yes| G["Classify bottleneck<br/>and isolate variables"]
+    G --> H["Remediate or refine model"]
+    H --> D
+    F -->|No| I["Derive capacity envelope<br/>from saturation points"]
+    I --> J["Apply headroom to<br/>targets and risk budget"]
+    J --> K["Report decisions, limits,<br/>and operational follow-ups"]

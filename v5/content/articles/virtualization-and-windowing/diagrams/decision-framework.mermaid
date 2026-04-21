@@ -1,0 +1,13 @@
+%% Diagram: Virtualization decision framework
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TD
+    A[Large list] --> B{Find-in-page<br/>needed?}
+    B -->|Yes| C{Under<br/>~10K items?}
+    C -->|Yes| D[content-<br/>visibility]
+    C -->|No| E[Search +<br/>virtualizer]
+    B -->|No| F{Same<br/>height?}
+    F -->|Yes| G[Fixed-<br/>height]
+    F -->|No| H{GC pauses<br/>on scroll?}
+    H -->|Yes| I[Recycling<br/>pool]
+    H -->|No| J[Variable-<br/>height]

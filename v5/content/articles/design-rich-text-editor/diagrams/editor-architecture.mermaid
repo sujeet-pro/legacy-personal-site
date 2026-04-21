@@ -1,0 +1,25 @@
+%% Diagram: Rich Text Editor Architecture Input Events Flow Through The Transaction Engine U
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    INPUT["Input\nKeyboard / Mouse / IME / Paste"]
+    Schema["Schema"]
+    State["Editor State"]
+    Trans["Transaction Engine"]
+    History["Undo/Redo"]
+    DOM["DOM Reconciler"]
+    Cursor["Selection"]
+    Decorations["Marks"]
+    Local["Local Ops"]
+    Sync["Sync"]
+    Remote["Remote Ops"]
+
+    INPUT --> Trans
+    Trans --> State
+    State --> History
+    Schema --> State
+    State --> DOM
+    DOM --> Cursor
+    DOM --> Decorations
+    Local --> Sync --> Remote
+    Trans <--> Local

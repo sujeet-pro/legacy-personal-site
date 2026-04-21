@@ -1,0 +1,10 @@
+%% Diagram: Uber's three architectural phases
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    P1["Phase 1: Monolith (2009-2013)<br/>2 services · 1 PostgreSQL · ~100 engineers · 1 city"]
+    P2["Phase 2: Microservices (2013-2018)<br/>1,000+ services · 8,000+ repos · ~2,000 engineers"]
+    P3["Phase 3: DOMA (2018-2020)<br/>2,200 critical services · 70 domains · 5 layers · gateways"]
+
+    P1 -->|"DB saturation,<br/>deploy queue,<br/>org scaling"| P2
+    P2 -->|"'death star' graph,<br/>cascading failures,<br/>cognitive overload"| P3

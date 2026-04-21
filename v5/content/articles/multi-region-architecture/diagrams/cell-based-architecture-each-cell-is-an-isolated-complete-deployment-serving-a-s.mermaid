@@ -1,0 +1,28 @@
+%% Diagram: Cell-based architecture
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    Router_A["Cell router<br/>(per-tenant / per-shard)"]
+
+    subgraph Region["Region"]
+        subgraph CellA1["Cell A1 (impaired)"]
+            SA1["Services"]
+            DA1[("Data")]
+            SA1 --> DA1
+        end
+        subgraph CellA2["Cell A2"]
+            SA2["Services"]
+            DA2[("Data")]
+            SA2 --> DA2
+        end
+        subgraph CellA3["Cell A3"]
+            SA3["Services"]
+            DA3[("Data")]
+            SA3 --> DA3
+        end
+    end
+
+    Router_A --> SA1 & SA2 & SA3
+
+    style SA1 fill:#f9f,stroke:#333
+    style DA1 fill:#f9f,stroke:#333

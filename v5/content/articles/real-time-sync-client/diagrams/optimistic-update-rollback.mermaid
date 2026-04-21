@@ -1,0 +1,27 @@
+%% Diagram: Optimistic Update with Rollback
+%% Type: sequenceDiagram
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant U as User
+    participant UI as UI
+    participant S as Local Store + Pending Queue
+    participant Srv as Server
+
+    U->>UI: click toggle
+    UI->>S: snapshot previous, apply optimistic, enqueue mutation
+    UI-->>U: render new state immediately
+    UI->>Srv: PATCH /todos/:id (idempotency key)
+
+    alt Success
+        Srv-->>UI: 200 ack
+        UI->>S: dequeue mutation, clear pending marker
+    else Validation failure (4xx)
+        Srv-->>UI: 422
+        UI->>S: restore snapshot, drop mutation
+        UI-->>U: show error
+    else Network failure
+        Srv -x UI: timeout
+        UI->>S: keep mutation pending
+        UI->>Srv: retry with backoff
+        Note over UI,S: after persistent failure: rollback and surface to user
+    end

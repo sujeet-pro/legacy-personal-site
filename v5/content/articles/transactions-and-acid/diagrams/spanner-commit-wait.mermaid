@@ -1,0 +1,23 @@
+%% Diagram: Spanner commit wait turns clock uncertainty into external consistency
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant TT as TrueTime
+    participant Co as Coordinator
+    participant P as Participants
+
+    Co->>P: prepare
+    P-->>Co: prepare ts
+
+    Co->>TT: TT.now()
+    TT-->>Co: [earliest, latest]
+    Co->>Co: pick s = max(latest,\nprepare ts, prev commit + 1)
+
+    note over Co,TT: Commit wait —\nblock until earliest > s\n(typically 1–7 ms)
+    Co->>TT: TT.now()
+    TT-->>Co: earliest <= s
+    Co->>TT: TT.now()
+    TT-->>Co: earliest > s
+
+    Co->>P: COMMIT at s
+    note over Co,P: Any later real-time tx\ngets a timestamp > s.\nReal-time order preserved.

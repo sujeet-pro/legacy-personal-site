@@ -1,0 +1,30 @@
+%% Diagram: Wasm renderer interaction (C++ engine + WebGPU/WebGL)
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    Engine["Rendering engine\n+ scene graph (C++)"]
+    Shaders["Shaders (GLSL)\n→ WGSL via naga"]
+
+    Emcc["Emscripten"]
+    Wasm["WebAssembly\nmodule"]
+    JSI["JS interop\n(emdawnwebgpu)"]
+    Fallback{"Device test +\nloss handler"}
+    WGPU["WebGPU\n(Dawn-backed)"]
+    WGL["WebGL fallback"]
+
+    Bin["Native binary\n(SSR, tests)"]
+    DawnNative["Dawn native →\nD3D12/Metal/Vulkan"]
+
+    GPU["GPU\n(tile-based 2D)"]
+
+    Engine --> Emcc --> Wasm --> JSI
+    Engine --> Bin --> DawnNative
+    Shaders --> JSI
+    Shaders --> DawnNative
+
+    JSI --> Fallback
+    Fallback -->|"WebGPU OK"| WGPU
+    Fallback -->|"WebGPU lost /\nblocklisted device"| WGL
+    WGPU --> GPU
+    WGL --> GPU
+    DawnNative --> GPU

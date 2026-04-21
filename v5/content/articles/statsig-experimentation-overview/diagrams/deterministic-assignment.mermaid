@@ -1,0 +1,18 @@
+%% Diagram: Deterministic bucket assignment via SHA-256
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart LR
+    UnitID["unitID<br/>(userID / stableID / customID)"]
+    Salt["Per-rule salt"]
+    Concat["concat(salt, unitID)"]
+    Hash["SHA-256 digest"]
+    Reduce["Leading bytes to integer"]
+    ModExp{"% 10000<br/>experiments"}
+    ModLay{"% 1000<br/>layers"}
+    Variant["Compare to allocation thresholds<br/>then map to variant"]
+
+    UnitID --> Concat
+    Salt --> Concat
+    Concat --> Hash --> Reduce
+    Reduce --> ModExp --> Variant
+    Reduce --> ModLay --> Variant

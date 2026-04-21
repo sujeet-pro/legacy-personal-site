@@ -1,0 +1,18 @@
+%% Diagram: Adoption Maturity Ladder
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart LR
+    L1["1. Ad-hoc UI kit\nshared assets,\nno owner"]
+    L2["2. Shared library\nversioned package,\npart-time owner"]
+    L3["3. Funded system\ncore team, tokens,\ntiered governance"]
+    L4["4. Product platform\nfederated contribution,\ncoverage metrics"]
+    L5["5. Strategic asset\nmulti-brand,\nROI compounding"]
+
+    L1 --> L2 --> L3 --> L4 --> L5
+
+    classDef early fill:#5A5A5A,stroke:#3D3D3D,color:#ffffff
+    classDef mid fill:#2E5A88,stroke:#1F4870,color:#ffffff
+    classDef late fill:#2E7D5A,stroke:#1F5C42,color:#ffffff
+    class L1,L2 early
+    class L3 mid
+    class L4,L5 late

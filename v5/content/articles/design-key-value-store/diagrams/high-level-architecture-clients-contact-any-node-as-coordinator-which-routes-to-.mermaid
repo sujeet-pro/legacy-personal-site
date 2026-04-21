@@ -1,0 +1,33 @@
+%% Diagram: High Level Architecture Clients Contact Any Node As Coordinator Which Routes To
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    subgraph Clients
+        C1[Client 1]
+        C2[Client 2]
+        C3[Client N]
+    end
+
+    subgraph "Coordinator Layer"
+        COORD[Any Node Can Coordinate]
+    end
+
+    subgraph "Storage Ring"
+        direction LR
+        N1[Node A<br/>vnodes: 0-63]
+        N2[Node B<br/>vnodes: 64-127]
+        N3[Node C<br/>vnodes: 128-191]
+        N4[Node D<br/>vnodes: 192-255]
+    end
+
+    subgraph "Per-Node Storage"
+        WAL[Write-Ahead Log<br/>append-only, fsync]
+        MEM[Memtable<br/>in-memory, sorted]
+        SST[SSTables<br/>immutable, on-disk]
+    end
+
+    C1 & C2 & C3 --> COORD
+    COORD --> N1 & N2 & N3 & N4
+    N1 --> WAL
+    WAL --> MEM
+    MEM -- "flush when full" --> SST

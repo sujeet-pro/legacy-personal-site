@@ -1,0 +1,34 @@
+%% Diagram: Sorting Algorithm Taxonomy
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    subgraph SIMPLE["Quadratic comparison sorts — O(n²)"]
+        direction LR
+        BUB["Bubble Sort"]
+        SEL["Selection Sort"]
+        INS["Insertion Sort"]
+    end
+
+    subgraph COMP["Optimal comparison sorts — Θ(n log n)"]
+        direction LR
+        QS["Quick Sort"]
+        MS["Merge Sort"]
+        HS["Heap Sort"]
+    end
+
+    subgraph LIN["Non-comparison sorts — O(n+k) or O(d·n)"]
+        direction LR
+        CS["Counting Sort"]
+        RS["Radix Sort"]
+        BUC["Bucket Sort"]
+    end
+
+    subgraph HYB["Production hybrids"]
+        direction LR
+        TIM["Tim Sort + Powersort<br/>(Python, Java obj, V8)"]
+        INTRO["Introsort<br/>(C++ std::sort)"]
+        PDQ["pdqsort / ipnsort<br/>(Go, Rust ≥1.81)"]
+    end
+
+    SIMPLE -. "switch below ~32 elements" .-> HYB
+    COMP -. "core engine + cutoffs" .-> HYB

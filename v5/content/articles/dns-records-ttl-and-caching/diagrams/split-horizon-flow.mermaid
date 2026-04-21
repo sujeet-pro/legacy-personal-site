@@ -1,0 +1,28 @@
+%% Diagram: Split-horizon DNS — view selection by source IP
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    InternalClient["Internal client\n10.x.y.z"]
+    ExternalClient["External client\npublic IP"]
+    AuthServer{"Authoritative server\nview selection by\nsource ACL / EDNS-CS"}
+    InternalView[("Internal zone\nexample.com\napi → 10.0.1.50\ndb → 10.0.1.60")]
+    ExternalView[("External zone\nexample.com\nwww → 203.0.113.10\napi → NXDOMAIN")]
+    InternalAnswer["Returns 10.0.1.50\n(private RFC 1918)"]
+    ExternalAnswer["Returns 203.0.113.10\nor NXDOMAIN for\ninternal-only names"]
+
+    InternalClient -->|"query api.example.com"| AuthServer
+    ExternalClient -->|"query api.example.com"| AuthServer
+    AuthServer -->|"match-clients = internal"| InternalView
+    AuthServer -->|"match-clients = any"| ExternalView
+    InternalView --> InternalAnswer
+    ExternalView --> ExternalAnswer
+    InternalAnswer --> InternalClient
+    ExternalAnswer --> ExternalClient
+
+    classDef internal fill:#2D7A2D,stroke:#1E5A1E,color:#ffffff
+    classDef external fill:#8B5E15,stroke:#6E4810,color:#ffffff
+    classDef pivot fill:#2E5A88,stroke:#1F4870,color:#ffffff
+
+    class InternalClient,InternalView,InternalAnswer internal
+    class ExternalClient,ExternalView,ExternalAnswer external
+    class AuthServer pivot

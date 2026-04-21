@@ -1,0 +1,16 @@
+%% Diagram: Server-Sent Events vs streaming fetch - decision matrix
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    Start(["Server pushes data to browser"]) --> Q1{"POST, custom headers,\nor auth tokens?"}
+    Q1 -->|"Yes"| Fetch["Streaming fetch\n+ ReadableStream"]
+    Q1 -->|"No"| Q2{"Need auto reconnect\nwith Last-Event-ID?"}
+    Q2 -->|"No"| Fetch
+    Q2 -->|"Yes (HTTP/2+)"| SSE["EventSource (SSE)"]
+
+    classDef sseBox fill:#1F6E68,stroke:#155752,color:#ffffff
+    classDef fetchBox fill:#2E5A88,stroke:#1F4870,color:#ffffff
+    classDef qBox fill:#5A5A5A,stroke:#3D3D3D,color:#ffffff
+    class SSE sseBox
+    class Fetch fetchBox
+    class Q1,Q2 qBox

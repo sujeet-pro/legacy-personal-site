@@ -1,0 +1,17 @@
+%% Diagram: Decision tree of the optimal k=2 plan for N=100 (first three drops)
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    Start(["2 eggs, N=100\nT = 14"])
+    Start --> D1["Drop #1\nfloor 14"]
+
+    D1 -->|safe| D2["Drop #2\nfloor 27\n(step 13)"]
+    D1 -->|BREAK| L1["Egg #2: 1..13\n1 + 13 = 14"]
+
+    D2 -->|safe| D3["Drop #3\nfloor 39\n(step 12)"]
+    D2 -->|BREAK| L2["Egg #2: 15..26\n2 + 12 = 14"]
+
+    D3 -->|safe| Dnext["Continue with\nsteps 11..1\n(reaches 105 by drop 14)"]
+    D3 -->|BREAK| L3["Egg #2: 28..38\n3 + 11 = 14"]
+
+    Dnext --> Done(["Every leaf\n<= 14 drops"])

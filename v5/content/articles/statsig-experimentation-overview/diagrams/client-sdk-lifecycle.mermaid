@@ -1,0 +1,18 @@
+%% Diagram: Client SDK lifecycle - pre-computed values from /initialize
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    Init["new StatsigClient(clientKey, user, options)<br/>await client.initializeAsync()"]
+    Endpoint[(api.statsig.com /initialize<br/>server-side evaluation)]
+    Payload["Pre-computed JSON<br/>{gate, value, ruleId, exposures}<br/>filtered for this user"]
+    Cache["localStorage cache<br/>keyed by (sdkKey, userKey)"]
+    Calls["checkGate / getLayer / getDynamicConfig<br/>synchronous lookup"]
+
+    Init -- "POST user object" --> Endpoint
+    Endpoint -- "tailored payload" --> Payload
+    Payload --> Cache
+    Cache --> Calls
+    Calls -. "details.reason: Network or Cache" .-> Calls
+
+    OfflineNote["Offline / new session:<br/>initializeSync reads localStorage;<br/>NoValues -> code defaults"]
+    Cache -.- OfflineNote

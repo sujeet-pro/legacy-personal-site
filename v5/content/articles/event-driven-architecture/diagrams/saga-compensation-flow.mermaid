@@ -1,0 +1,29 @@
+%% Diagram: Saga compensation flow — happy path vs failure with backward recovery
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant Client
+    participant Orch as Orchestrator
+    participant Inv as Inventory
+    participant Pay as Payment
+    participant Ship as Shipping
+
+    Note over Client,Ship: Happy path
+    Client->>Orch: PlaceOrder
+    Orch->>Inv: ReserveItems
+    Inv-->>Orch: Reserved
+    Orch->>Pay: ChargeCard
+    Pay-->>Orch: Charged (pivot)
+    Orch->>Ship: CreateShipment
+    Ship-->>Orch: Shipped
+    Orch-->>Client: OrderConfirmed
+
+    Note over Client,Ship: Failure: payment declined → backward recovery
+    Client->>Orch: PlaceOrder
+    Orch->>Inv: ReserveItems
+    Inv-->>Orch: Reserved
+    Orch->>Pay: ChargeCard
+    Pay-->>Orch: Declined
+    Orch->>Inv: ReleaseReservation (compensate)
+    Inv-->>Orch: Released
+    Orch-->>Client: OrderRejected

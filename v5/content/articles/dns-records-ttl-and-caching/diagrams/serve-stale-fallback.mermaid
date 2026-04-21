@@ -1,0 +1,18 @@
+%% Diagram: RFC 8767 serve-stale fallback when authoritative servers are unreachable
+%% Type: sequence
+sequenceDiagram
+    participant C as Client
+    participant R as Resolver
+    participant A as Auth
+
+    Note over R: Cached record\nTTL expired 4 h ago
+    C->>R: Q: api A?
+    Note over R: 1.8 s timer
+    R->>A: forward
+    Note right of A: Timeout
+    Note over R: 1.8 s elapsed
+    R-->>C: stale (TTL 30 s)
+    R->>A: bg retry
+    A-->>R: SERVFAIL
+    Note over R: 30 s recheck
+    Note over C,R: Service stays up

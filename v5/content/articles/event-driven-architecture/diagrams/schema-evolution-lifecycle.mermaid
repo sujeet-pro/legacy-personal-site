@@ -1,0 +1,16 @@
+%% Diagram: Schema evolution lifecycle
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    A["Author schema v2\nin producer repo"] --> B["Local diff vs\nregistered v1"]
+    B --> C{"Compatibility\ncheck"}
+    C -- "BACKWARD\nfails" --> X["Block CI\nfix or version bump"]
+    C -- "BACKWARD\npasses" --> D["Register v2\nat schema registry"]
+    D --> E1["Roll out new consumers\nthat understand v1 and v2"]
+    E1 --> E2["Roll out producers\nemitting v2"]
+    E2 --> F["Drain remaining v1\nevents from topic"]
+    F --> G{"Breaking change\nrequired?"}
+    G -- no --> H["Optional cleanup:\nretire upcaster in consumer"]
+    G -- yes --> I["Publish new event type\nOrderPlacedV2"]
+    I --> J["Run V1 and V2\nin parallel for window"]
+    J --> K["Switch consumers\nto V2; retire V1"]

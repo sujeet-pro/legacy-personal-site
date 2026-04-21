@@ -1,0 +1,18 @@
+%% Diagram: Iframe Sandbox Widget Runs In Isolated Browsing Context Communication Via Postme
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    subgraph "Host Application"
+        HP["Host Page"]
+        PM["postMessage Handler"]
+    end
+
+    subgraph "iframe (sandbox)"
+        WC["Widget Code"]
+        WS["Widget SDK Shim"]
+    end
+
+    HP -->|"Create iframe<br/>sandbox='allow-scripts'"| WC
+    WS <-->|"postMessage"| PM
+    PM -->|"API Response"| WS
+    WS -->|"SDK call"| WC

@@ -1,0 +1,28 @@
+%% Diagram: Repo Shape Governance
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+  mono["Monorepo"]
+  m1["Single graph visibility"]
+  m2["Shared tooling"]
+  m3["CODEOWNERS + scoped CI"]
+  m4["Central dep policy"]
+
+  poly["Polyrepo"]
+  p1["Hard boundaries"]
+  p2["Versioned packages"]
+  p3["Per-repo CI"]
+  p4["Cross-repo coordination"]
+
+  mono --> m1
+  mono --> m2
+  mono --> m3
+  mono --> m4
+
+  poly --> p1
+  poly --> p2
+  poly --> p3
+  poly --> p4
+
+  m2 -.->|mitigates| p4
+  p2 -.->|mitigates| m4

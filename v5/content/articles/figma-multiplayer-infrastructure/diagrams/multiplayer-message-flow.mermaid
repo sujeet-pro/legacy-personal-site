@@ -1,0 +1,24 @@
+%% Diagram: Multiplayer Message Flow (steady state)
+%% Type: sequence
+%%{init: {'htmlLabels': false}}%%
+sequenceDiagram
+    participant CA as Client A
+    participant MP as Multiplayer<br/>(Node.js + Rust)
+    participant Other as Clients B...N
+
+    Note over CA: User edits O.P
+    CA->>CA: apply optimistically,<br/>mark unacked
+    CA->>MP: batched delta (~33ms)
+
+    Note over MP: Apply in arrival order,<br/>assign seq #
+    MP->>MP: update authoritative state
+    MP->>MP: append to journal buffer
+
+    par Fan-out
+        MP-->>CA: ack(O, P, seq)
+        MP-->>Other: broadcast(O, P, seq)
+    and Durability
+        MP->>MP: flush journal (~0.5s)
+    end
+
+    Note over Other: Discard if conflicts with<br/>unacked local edit on same prop

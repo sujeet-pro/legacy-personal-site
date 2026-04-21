@@ -1,0 +1,22 @@
+%% Diagram: Tile texture lifecycle from raster to display
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    subgraph Renderer["Renderer process"]
+        DL["Display list"] --> TM["TileManager<br/>NOW / SOON / EVENTUALLY"]
+        TM --> RW["Raster workers<br/>GPU raster (OOPR)"]
+        RW --> TP["Tile pool<br/>SharedImage handles"]
+        TP --> BUILD["CompositorFrame<br/>TextureDrawQuads"]
+    end
+
+    BUILD -- "SubmitCompositorFrame (Mojo)" --> Viz
+
+    subgraph Viz["Viz / GPU process"]
+        SM["SurfaceManager"] --> SA["SurfaceAggregator"]
+        SA --> DR["SkiaRenderer"]
+        DR --> GPU["GPU command buffer"]
+        GPU -. "overlay-eligible quads" .-> OV["HW overlay planes"]
+    end
+
+    GPU --> Display["Physical display"]
+    OV --> Display

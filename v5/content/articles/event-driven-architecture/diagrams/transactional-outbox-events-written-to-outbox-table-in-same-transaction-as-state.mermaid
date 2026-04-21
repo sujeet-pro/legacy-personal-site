@@ -1,0 +1,14 @@
+%% Diagram: Transactional Outbox Events Written To Outbox Table In Same Transaction As State
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    subgraph Transaction
+        S[Service] -->|1. Write| DB[(Database)]
+        S -->|2. Write| OB[Outbox Table]
+    end
+
+    OB -->|3. Poll| R[Relay Process]
+    R -->|4. Publish| MB[Message Broker]
+    MB --> C[Consumer]
+
+    style OB fill:#fff2cc,stroke:#d6b656

@@ -1,0 +1,22 @@
+%% Diagram: font-display strategies — block / swap / fallback / optional periods
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    REQ["@font-face<br/>font-display = ?"]
+
+    REQ --> BLOCK["block (FOIT)<br/>~3s block, then swap"]
+    REQ --> SWAP["swap (FOUT)<br/>fallback ~0, swap forever"]
+    REQ --> FALL["fallback<br/>~100ms hide, swap if ≤3s"]
+    REQ --> OPT["optional<br/>~100ms hide, no late swap"]
+
+    BLOCK --> BU["icon fonts<br/>bad FCP / LCP"]
+    SWAP --> SU["headlines<br/>CLS without overrides"]
+    FALL --> FU["body text<br/>balanced default"]
+    OPT --> OU["non-critical<br/>excellent CLS"]
+
+    classDef bad fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d
+    classDef ok fill:#d1fae5,stroke:#059669,color:#064e3b
+    classDef warn fill:#fef3c7,stroke:#d97706,color:#7c2d12
+    class BU bad
+    class FU,OU ok
+    class SU warn

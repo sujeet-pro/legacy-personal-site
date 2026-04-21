@@ -1,0 +1,11 @@
+%% Diagram: Diagram 2
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    subgraph PostgreSQL
+        W[Write] --> WAL[(WAL)]
+        WAL --> LD[Logical Decoding]
+        LD --> RS[Replication Slot]
+    end
+    RS --> CDC[CDC Connector]
+    CDC --> K[Kafka]

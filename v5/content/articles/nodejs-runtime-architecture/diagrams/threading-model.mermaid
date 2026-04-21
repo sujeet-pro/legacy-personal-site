@@ -1,0 +1,29 @@
+%% Diagram: JS thread, libuv threadpool, and worker_threads
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+  subgraph Main["Main thread"]
+    direction LR
+    js["JavaScript\nV8 isolate + microtasks"]
+    loop["libuv event loop\ntimers / poll / check / close"]
+    js --- loop
+  end
+
+  subgraph Workers["worker_threads (opt-in)"]
+    direction LR
+    w1["Worker 1\nown isolate, own loop"]
+    w2["Worker N\nown isolate, own loop"]
+  end
+
+  Pool["Shared libuv thread pool\n(default 4 OS threads,\nUV_THREADPOOL_SIZE)"]
+
+  Main --> Pool
+  Workers -. "shares" .-> Pool
+  Main <-- "MessageChannel /\nSharedArrayBuffer" --> Workers
+
+  classDef main fill:#2E5A88,stroke:#1F4870,color:#ffffff
+  classDef worker fill:#1F6E68,stroke:#155752,color:#ffffff
+  classDef pool fill:#8B5E15,stroke:#6E4810,color:#ffffff
+  class js,loop main
+  class w1,w2 worker
+  class Pool pool

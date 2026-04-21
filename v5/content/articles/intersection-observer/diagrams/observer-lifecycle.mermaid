@@ -1,0 +1,12 @@
+%% Diagram: Observer Lifecycle
+%% Type: flowchart
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+  N["new IntersectionObserver(callback, options)"] --> O["observe(target)"]
+  O --> U["Async intersection updates"]
+  U --> C["callback(entries)"]
+  C --> M{"Continue?"}
+  M -->|"keep observing"| U
+  M -->|"one target done"| X["unobserve(target)"]
+  X --> U
+  M -->|"teardown"| D["disconnect()"]

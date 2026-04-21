@@ -1,0 +1,29 @@
+%% Diagram: BeginImplFrame → Activate → Draw → Swap → Present timeline (mapped to Life-of-a-Frame steps).
+%%{init: {'htmlLabels': false}}%%
+flowchart TB
+    subgraph Top["Renderer + Viz"]
+        direction LR
+        subgraph Renderer["Renderer (cc + main)"]
+            direction LR
+            BIF["[1] BeginImplFrame"] --> BMF["[3-5] Main + Commit"] --> ACT["[6-7] Raster + Activate"] --> SUBMIT["[9] Submit frame"]
+        end
+        subgraph VizPhase["Viz display compositor"]
+            direction LR
+            AGG["[10] Aggregate"] --> DRAW["[11] Draw (DDLs)"] --> RSWAP["[12] RequestSwap"]
+        end
+        SUBMIT --> AGG
+    end
+
+    subgraph GPUPhase["GPU main + display"]
+        direction LR
+        GPUDRAW["[15] GPU draw"] --> SWAP["[16] Swap"] --> PRES["[17] Present @ VBlank"]
+    end
+
+    RSWAP --> GPUDRAW
+
+    classDef impl fill:#e3f2fd,stroke:#0d47a1,color:#0d47a1
+    classDef viz fill:#fff3e0,stroke:#bf360c,color:#7f2300
+    classDef gpu fill:#f3e5f5,stroke:#4a148c,color:#4a148c
+    class BIF,BMF,ACT,SUBMIT impl
+    class AGG,DRAW,RSWAP viz
+    class GPUDRAW,SWAP,PRES gpu
